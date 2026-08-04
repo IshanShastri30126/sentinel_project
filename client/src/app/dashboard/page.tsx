@@ -485,7 +485,7 @@ export default function DashboardPage() {
               SYSTEM STATUS: SYNCED // OPERATIVE
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[var(--ck-text)]">
-              {greeting}, <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#CCFF00] via-[#FF4D00] to-[#FF003C]">{user?.name?.split(" ")[0]}</span> 👋
+              {greeting}, <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#CCFF00] via-[#FF4D00] to-[#FF003C]">{user?.name}</span>
             </h1>
             <p className="mt-2 text-xs sm:text-sm text-[var(--ck-text-secondary)] font-mono">
               Welcome back to your Chakravyuh Club portal. Managed clearances: <span className="font-semibold uppercase text-[var(--ck-text)] font-mono">{user?.role?.replace(/_/g, " ")}</span>.

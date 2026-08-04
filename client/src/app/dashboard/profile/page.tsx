@@ -154,7 +154,7 @@ export default function ProfilePage() {
             <p className="text-sm font-mono text-[var(--ck-text-secondary)]">{user?.email}</p>
             
             <div className="flex flex-wrap justify-center sm:justify-start items-center gap-2 mt-3 text-xs font-mono">
-              {user?.studentId && (
+              {user?.studentId && !user.studentId.includes("@") && user?.role !== "FACULTY" && (
                 <span className="px-2 py-0.5 rounded bg-[var(--ck-bg)] border border-[var(--ck-border)] text-[var(--ck-text-muted)]">
                   CLEARANCE: {user.studentId}
                 </span>
