@@ -7,7 +7,7 @@
 
 <br />
 
-# 🛡️ CyberKavach 2.0
+# 🛡️ Chakravyuh CLub
 
 **[Live Deployment: cyberkavach2-0.vercel.app](https://cyberkavach2-0.vercel.app/)**
 
