@@ -37,7 +37,7 @@ function baseTemplate(content: string): string {
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CyberKavach</title>
+  <title>Chakravyuh</title>
 </head>
 <body style="margin: 0; padding: 0; background-color: #000000; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color: #000000; min-height: 100vh;">
@@ -52,7 +52,7 @@ function baseTemplate(content: string): string {
                   <span style="color: white; font-size: 22px;">🛡️</span>
                 </div>
               </div>
-              <h1 style="color: #ffffff; font-size: 28px; font-weight: 800; letter-spacing: 6px; margin: 12px 0 0; font-family: 'Courier New', monospace;">CYBERKAVACH</h1>
+              <h1 style="color: #ffffff; font-size: 28px; font-weight: 800; letter-spacing: 6px; margin: 12px 0 0; font-family: 'Courier New', monospace;">CHAKRAVYUH</h1>
               <div style="width: 60px; height: 2px; background: linear-gradient(90deg, transparent, #dc2626, transparent); margin: 8px auto;"></div>
             </td>
           </tr>
@@ -78,7 +78,7 @@ function baseTemplate(content: string): string {
           <tr>
             <td style="text-align: center; padding-top: 30px;">
               <p style="color: #475569; font-size: 11px; margin: 0; font-family: 'Courier New', monospace; letter-spacing: 2px;">
-                CYBERKAVACH 2.0 // DIGITAL OPERATIONS HUB
+                CHAKRAVYUH 2.0 // DIGITAL OPERATIONS HUB
               </p>
               <p style="color: #334155; font-size: 10px; margin: 6px 0 0;">
                 This is an automated notification. Do not reply to this email.
@@ -113,7 +113,7 @@ async function sendMail(to: string, subject: string, html: string): Promise<bool
       await transporter.sendMail({
         from: config.smtp.from,
         to,
-        subject: `🛡️ CyberKavach — ${subject}`,
+        subject: `🛡️ Chakravyuh — ${subject}`,
         html,
       });
       console.log(`[Email] ✅ Sent: "${subject}" -> ${to}`);
@@ -439,7 +439,7 @@ export async function sendAccountApprovedEmail(user: { name: string; email: stri
       Access Granted, Operative <span style="color: #10b981;">${user.name}</span>
     </h2>
     <p style="color: #94a3b8; font-size: 14px; line-height: 1.6; margin: 0 0 24px;">
-      Your CyberKavach account has been <strong style="color: #10b981;">approved</strong>. You now have full access to all member features.
+      Your Chakravyuh Club account has been <strong style="color: #10b981;">approved</strong>. You now have full access to all member features.
     </p>
     
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background: rgba(0, 0, 0, 0.5); border: 1px solid #262626; border-radius: 10px; margin-bottom: 24px;">
@@ -474,7 +474,7 @@ export async function sendAccountApprovedEmail(user: { name: string; email: stri
     </table>
     
     <p style="color: #64748b; font-size: 12px; line-height: 1.6; margin: 20px 0 0; text-align: center;">
-      Welcome to the CyberKavach family. Stay sharp, operative.
+      Welcome to the Chakravyuh Club family. Stay sharp, operative.
     </p>
   `;
 
@@ -573,7 +573,7 @@ export async function sendRoleUpdatedEmail(
       Role Updated
     </h2>
     <p style="color: #94a3b8; font-size: 14px; line-height: 1.6; margin: 0 0 24px;">
-      Your clearance level within CyberKavach has been updated.
+      Your clearance level within the Chakravyuh Club has been updated.
     </p>
     
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background: rgba(0, 0, 0, 0.5); border: 1px solid #262626; border-radius: 10px; margin-bottom: 24px;">

@@ -9,7 +9,7 @@ const router = Router();
 router.get("/", async (req: Request, res: Response) => {
   res.json({
     clubs: [
-      { id: "cyberkavach", name: "CyberKavach", slug: "cyberkavach" }
+      { id: "chakravyuh", name: "Chakravyuh Club", slug: "chakravyuh" }
     ]
   });
 });
@@ -37,7 +37,7 @@ router.get("/:slug", async (req: Request, res: Response) => {
 
     const defaultBranding = {
       id: slug,
-      name: "CyberKavach",
+      name: "Chakravyuh Club",
       slug: slug,
       logoUrl: null,
       primaryColor: "#CCFF00",
@@ -90,7 +90,7 @@ router.patch("/:clubId/branding", authenticate, requireMinRole("STUDENT_COORDINA
     res.json({
       club: {
         id: clubId,
-        name: "CyberKavach",
+        name: "Chakravyuh Club",
         slug: clubId,
         ...setting.value as any
       },

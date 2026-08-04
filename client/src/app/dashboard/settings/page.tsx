@@ -27,7 +27,7 @@ const SECTIONS: SettingSection[] = [
     icon: <Cpu className="w-4 h-4" />,
     color: "#7c3aed",
     fields: [
-      { label: "Platform Version", value: "CyberKavach v2.0", disabled: true, description: "Current platform build version" },
+      { label: "Platform Version", value: "Chakravyuh Club v2.0", disabled: true, description: "Current platform build version" },
       { label: "Academic Year", value: "2025-2026", disabled: true, description: "Active academic session" },
       { label: "Environment", value: "PRODUCTION", disabled: true, description: "Deployment environment" },
     ]
@@ -101,7 +101,7 @@ export default function SettingsPage() {
   };
 
   const handleSaveBranding = async () => {
-    const activeClubSlug = typeof window !== "undefined" ? localStorage.getItem("ck_active_club_slug") || "cyberkavach" : "cyberkavach";
+    const activeClubSlug = typeof window !== "undefined" ? localStorage.getItem("ck_active_club_slug") || "chakravyuh" : "chakravyuh";
     try {
       setSaving(true);
       await api(`/clubs/${activeClubSlug}/branding`, {

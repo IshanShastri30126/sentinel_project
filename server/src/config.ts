@@ -19,7 +19,7 @@ export const config = {
     port: parseInt(process.env.SMTP_PORT || "587", 10),
     user: process.env.SMTP_USER || "",
     pass: process.env.SMTP_PASS || "",
-    from: process.env.SMTP_FROM || "CyberKavach <noreply@cyberkavach.club>",
+    from: process.env.SMTP_FROM || "Chakravyuh Club <noreply@chakravyuhclub.com>",
   },
   google: {
     clientId: process.env.GOOGLE_CLIENT_ID || "",

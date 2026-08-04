@@ -5,19 +5,19 @@ import bcrypt from "bcryptjs";
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log("🌱 Seeding CyberKavach 2.0 database...\n");
+  console.log("🌱 Seeding Chakravyuh Club database...\n");
 
   const password = await bcrypt.hash("Demo@CV_$2026", 10);
 
   // ─── Seed Users ────────────────────────────────────────────
   const seedUsers = [
-    { name: "Dr. Sharma (Faculty)", email: "faculty@chakravyah.com", role: "FACULTY" as Role },
-    { name: "Aarav Patel (SC)", email: "sc@chakravyah.com", role: "STUDENT_COORDINATOR" as Role },
-    { name: "Priya Verma (Tech)", email: "tech@chakravyah.com", role: "TECH" as Role },
-    { name: "Riya Singh (Content)", email: "content@chakravyah.com", role: "CONTENT" as Role },
-    { name: "Karan Mehta (Social)", email: "social@chakravyah.com", role: "SOCIAL_MEDIA" as Role },
-    { name: "Ananya Gupta (Member)", email: "member@chakravyah.com", role: "MEMBER" as Role },
-    { name: "Guest User", email: "guest@chakravyah.com", role: "GUEST" as Role },
+    { name: "Dr. Sharma (Faculty)", email: "faculty@chakravyuhclub.com", role: "FACULTY" as Role },
+    { name: "Aarav Patel (SC)", email: "sc@chakravyuhclub.com", role: "STUDENT_COORDINATOR" as Role },
+    { name: "Priya Verma (Tech)", email: "tech@chakravyuhclub.com", role: "TECH" as Role },
+    { name: "Riya Singh (Content)", email: "content@chakravyuhclub.com", role: "CONTENT" as Role },
+    { name: "Karan Mehta (Social)", email: "social@chakravyuhclub.com", role: "SOCIAL_MEDIA" as Role },
+    { name: "Ananya Gupta (Member)", email: "member@chakravyuhclub.com", role: "MEMBER" as Role },
+    { name: "Guest User", email: "guest@chakravyuhclub.com", role: "GUEST" as Role },
   ];
 
   for (const u of seedUsers) {

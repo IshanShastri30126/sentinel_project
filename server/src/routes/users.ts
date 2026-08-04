@@ -138,7 +138,7 @@ router.patch("/:id/approve", authenticate, requireMinRole("STUDENT_COORDINATOR")
       userId: user.id,
       type: "ACCOUNT_APPROVED",
       title: "Account Approved! 🎉",
-      message: "Your CyberKavach account has been approved. You can now access all member features.",
+      message: "Your Chakravyuh Club account has been approved. You can now access all member features.",
     });
 
     // Send account approved email (fire and forget)

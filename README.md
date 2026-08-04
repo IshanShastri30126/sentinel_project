@@ -157,13 +157,13 @@ The database comes pre-seeded with the following default operative accounts. All
 
 | Operative Role | Email Identity |
 |---|---|
-| **Faculty Coordinator** | `faculty@chakravyah.com` |
-| **Student Coordinator** | `sc@chakravyah.com` |
-| **Tech Lead** | `tech@chakravyah.com` |
-| **Content Strategist** | `content@chakravyah.com` |
-| **Social Media Manager** | `social@chakravyah.com` |
-| **General Member** | `member@chakravyah.com` |
-| **Guest Operator** | `guest@chakravyah.com` |
+| **Faculty Coordinator** | `faculty@chakravyuhclub.com` |
+| **Student Coordinator** | `sc@chakravyuhclub.com` |
+| **Tech Lead** | `tech@chakravyuhclub.com` |
+| **Content Strategist** | `content@chakravyuhclub.com` |
+| **Social Media Manager** | `social@chakravyuhclub.com` |
+| **General Member** | `member@chakravyuhclub.com` |
+| **Guest Operator** | `guest@chakravyuhclub.com` |
 
 ---
 

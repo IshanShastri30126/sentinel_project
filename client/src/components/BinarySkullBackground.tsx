@@ -141,7 +141,7 @@ export function BinarySkullBackground() {
         ctx.font = "bold 64px 'Courier New', monospace";
         
         // Typewriter animation (Slow, no repeat, only CYBERKAVACH CLUB)
-        const fullText = "CYBERKAVACH\\nCLUB";
+        const fullText = "CHAKRAVYUH\\nCLUB";
         const charsPerTick = 3.5; // Slower speed
         const currentTick = Math.floor(time * charsPerTick);
         const visibleChars = Math.min(currentTick, fullText.length);

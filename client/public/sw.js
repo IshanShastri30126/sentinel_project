@@ -1,4 +1,4 @@
-const CACHE_NAME = "cyberkavach-v2-cache";
+const CACHE_NAME = "chakravyuh-v2-cache";
 const OFFLINE_URLS = [
   "/dashboard/attendance",
   "/favicon.ico",
@@ -68,7 +68,7 @@ self.addEventListener("fetch", (event) => {
 
 // Listen to Push Notifications
 self.addEventListener("push", (event) => {
-  let data = { title: "CyberKavach Broadcast", body: "Incoming operational transmission..." };
+  let data = { title: "Chakravyuh Broadcast", body: "Incoming operational transmission..." };
   if (event.data) {
     try {
       data = event.data.json();

@@ -90,7 +90,7 @@ export function PWARegistration() {
           <div>
             <h4 className="font-bold text-white uppercase tracking-wider text-sm">INSTALL APP</h4>
             <p className="text-slate-400 text-[11px] mt-0.5 leading-relaxed font-sans">
-              Install CyberKavach 2.0 for offline telemetry access and instant event updates.
+              Install Chakravyuh Club for offline telemetry access and instant event updates.
             </p>
           </div>
         </div>

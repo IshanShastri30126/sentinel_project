@@ -446,7 +446,7 @@ function PublicEventPageContent() {
             <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
               <div className="flex items-center gap-2 mb-3">
                 <Shield className="w-5 h-5 shadow-[0_0_8px_rgba(239,68,68,0.5)]" style={{ color: themeAccent }} />
-                <span className="text-sm font-semibold font-mono tracking-wider uppercase" style={{ color: themeAccent }}>CyberKavach Club</span>
+                <span className="text-sm font-semibold font-mono tracking-wider uppercase" style={{ color: themeAccent }}>Chakravyuh Club</span>
               </div>
               <MatrixTitle title={event.title} accent={themeAccent} />
               <div className="flex flex-wrap items-center gap-3">
@@ -772,19 +772,19 @@ function PublicEventPageContent() {
               </div>
             </motion.div>
 
-            {/* CyberKavach Community Links Card — with event socialLinks */}
+            {/* Chakravyuh Community Links Card — with event socialLinks */}
             {(() => {
               let socialLinks: Record<string, string> = {};
               if (event.socialLinks) {
                 try { socialLinks = JSON.parse(event.socialLinks); } catch {}
               }
               const instagramUrl = socialLinks.instagram || "https://www.instagram.com/chakravyuh.charusat/";
-              const linkedinUrl = socialLinks.linkedin || "https://linkedin.com/company/cyberkavach";
-              const whatsappUrl = socialLinks.whatsapp || "https://chat.whatsapp.com/cyberkavach";
+              const linkedinUrl = socialLinks.linkedin || "https://linkedin.com/company/chakravyuhclub";
+              const whatsappUrl = socialLinks.whatsapp || "https://chat.whatsapp.com/chakravyuhclub";
               return (
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
                   className="ck-card p-6 mt-4">
-                  <h3 className="text-sm font-bold font-mono tracking-tighter uppercase mb-4 text-white border-b border-red-950 pb-2">CyberKavach Network</h3>
+                  <h3 className="text-sm font-bold font-mono tracking-tighter uppercase mb-4 text-white border-b border-red-950 pb-2">Chakravyuh Network</h3>
                   <div className="space-y-2.5">
                     <a href={linkedinUrl} target="_blank" rel="noopener noreferrer"
                       className="flex items-center gap-3 p-2.5 rounded-lg border border-zinc-800 bg-[#0D0F14]/30 hover:border-blue-500/40 hover:bg-blue-950/10 transition-all font-mono text-xs text-slate-350 group">

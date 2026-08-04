@@ -241,7 +241,7 @@ router.get("/verify/:code", async (req: Request, res: Response) => {
       certificate: {
         recipientName: cert.recipientName, eventTitle: cert.event.title,
         eventDate: cert.event.startDate, uniqueCode: cert.uniqueCode,
-        generatedAt: cert.generatedAt, issuingAuthority: "CyberKavach Club",
+        generatedAt: cert.generatedAt, issuingAuthority: "Chakravyuh Club",
       },
     });
   } catch (err) { console.error("[Certs] Verify error:", err); res.status(500).json({ error: "Internal server error" }); }
@@ -653,7 +653,7 @@ ${patternCSS}
     <div class="footer">
       <div>
         <div class="authority-label">Issuing Authority</div>
-        <div class="authority-value">CyberKavach Club</div>
+        <div class="authority-value">Chakravyuh Club</div>
       </div>
       <div>
         <div class="code-label">Certificate ID</div>

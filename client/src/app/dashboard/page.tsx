@@ -488,7 +488,7 @@ export default function DashboardPage() {
               {greeting}, <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#CCFF00] via-[#FF4D00] to-[#FF003C]">{user?.name?.split(" ")[0]}</span> 👋
             </h1>
             <p className="mt-2 text-xs sm:text-sm text-[var(--ck-text-secondary)] font-mono">
-              Welcome back to your CyberKavach portal. Managed clearances: <span className="font-semibold uppercase text-[var(--ck-text)] font-mono">{user?.role?.replace(/_/g, " ")}</span>.
+              Welcome back to your Chakravyuh Club portal. Managed clearances: <span className="font-semibold uppercase text-[var(--ck-text)] font-mono">{user?.role?.replace(/_/g, " ")}</span>.
             </p>
           </div>
           <div className="rounded-xl bg-black/50 backdrop-blur-sm p-3.5 flex flex-col justify-center min-w-[140px] font-mono text-center shrink-0 self-start sm:self-auto border border-white/5">

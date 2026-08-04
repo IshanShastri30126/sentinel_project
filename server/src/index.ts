@@ -102,7 +102,7 @@ app.use((err: Error, _req: express.Request, res: express.Response, _next: expres
 
 // ─── Start Server ──────────────────────────────────────────
 httpServer.listen(config.port, () => {
-  console.log(`\n🛡️  CyberKavach 2.0 API Server running on http://localhost:${config.port}`);
+  console.log(`\n🛡️  Chakravyuh Club API Server running on http://localhost:${config.port}`);
   console.log(`   Health: http://localhost:${config.port}/api/health`);
   console.log(`   Socket.io: ws://localhost:${config.port}\n`);
 });

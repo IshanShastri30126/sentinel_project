@@ -1,6 +1,6 @@
 {
-  "name": "CyberKavach 2.0 Command Center",
-  "short_name": "CyberKavach",
+  "name": "Chakravyuh Club Command Center",
+  "short_name": "Chakravyuh",
   "description": "On-the-go security operations check-in and notification console",
   "start_url": "/dashboard/attendance",
   "scope": "/",
