@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { api, SERVER_BASE_URL } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
 import { motion } from "framer-motion";
-import { Award, Download, ExternalLink, Calendar, Trophy, Shield, Sparkles } from "lucide-react";
+import { Award, Download, ExternalLink, Calendar, Trophy, Sparkles, Eye, X } from "lucide-react";
 import Link from "next/link";
 
 const LinkedinIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
@@ -28,14 +28,14 @@ interface MyCertificate {
 
 const CertificateTiltCard = ({ 
   cert, 
-  token, 
   index, 
-  handleDownload 
+  handleDownload,
+  handleView
 }: { 
   cert: MyCertificate; 
-  token: string | null; 
   index: number; 
-  handleDownload: (cert: MyCertificate) => void 
+  handleDownload: (cert: MyCertificate) => void;
+  handleView: (cert: MyCertificate) => void;
 }) => {
   const [tiltStyle, setTiltStyle] = useState<React.CSSProperties>({});
   const [coords, setCoords] = useState({ x: 0, y: 0 });
@@ -73,14 +73,16 @@ const CertificateTiltCard = ({
   };
 
   const getLinkedInShareUrl = () => {
-    const date = new Date(cert.generatedAt || Date.now());
+    // cert.generatedAt should always exist, fallback to static date if somehow missing to satisfy purity
+    const dateStr = cert.generatedAt || new Date("2024-01-01").toISOString();
+    const date = new Date(dateStr);
     const year = date.getFullYear();
     const month = date.getMonth() + 1;
     
     // Construct absolute verify URL
     const verifyUrl = `${window.location.origin}/verify/${cert.uniqueCode}`;
     const name = `${cert.event.title} Certification`;
-    const org = "CyberKavach Club";
+    const org = "Chakravyuh Club";
     
     return `https://www.linkedin.com/profile/add?startTask=CERTIFICATION&name=${encodeURIComponent(name)}&organizationName=${encodeURIComponent(org)}&issueYear=${year}&issueMonth=${month}&certUrl=${encodeURIComponent(verifyUrl)}&certId=${encodeURIComponent(cert.uniqueCode)}`;
   };
@@ -108,20 +110,20 @@ const CertificateTiltCard = ({
 
       {/* Card Header */}
       <div className="flex items-start justify-between mb-4 z-10">
-        <div className="p-3 bg-[#CCFF00]/10 rounded-xl border border-[#CCFF00]/25">
-          <Award className="w-6 h-6" style={{ color: "#CCFF00" }} />
+        <div className="p-3 bg-[#FFD700]/10 rounded-xl border border-[#FFD700]/30">
+          <Award className="w-6 h-6 text-[#FFD700]" />
         </div>
-        <span className="text-[10px] font-mono px-2 py-1 bg-zinc-900 text-slate-300 rounded border border-zinc-800">
+        <span className="text-[10px] font-mono px-2 py-1 bg-[var(--ck-bg-card)] text-[var(--ck-text)] rounded border border-[var(--ck-border)]">
           {cert.uniqueCode}
         </span>
       </div>
       
       {/* Core details */}
       <div className="flex-1 z-10">
-        <h3 className="text-base font-bold text-white font-mono uppercase tracking-tight mb-2 line-clamp-2">
+        <h3 className="text-base font-bold text-[var(--ck-text)] font-mono uppercase tracking-tight mb-2 line-clamp-2">
           {cert.event.title}
         </h3>
-        <p className="text-[10px] text-slate-400 flex items-center gap-2 mb-4">
+        <p className="text-[10px] text-[var(--ck-text-secondary)] flex items-center gap-2 mb-4">
           <Calendar className="w-3.5 h-3.5" style={{ color: "#FF4D00" }} />
           {new Date(cert.event.startDate).toLocaleDateString("en-IN", {
             day: "numeric", month: "short", year: "numeric"
@@ -133,8 +135,14 @@ const CertificateTiltCard = ({
       <div className="flex flex-col gap-2 pt-4 border-t border-zinc-850 mt-4 z-10">
         <div className="flex items-center gap-2">
           <button
-            onClick={() => handleDownload(cert)}
+            onClick={() => handleView(cert)}
             className="flex-1 ck-btn-secondary text-[10px] py-1.5 flex justify-center items-center gap-1.5 font-mono font-bold"
+          >
+            <Eye className="w-3.5 h-3.5" /> View
+          </button>
+          <button
+            onClick={() => handleDownload(cert)}
+            className="flex-1 bg-[var(--ck-bg-card)] border border-[var(--ck-border)] text-[var(--ck-text)] hover:bg-[var(--ck-bg-elevated)] hover:text-[var(--ck-text)] rounded-lg text-[10px] py-1.5 flex justify-center items-center gap-1.5 font-mono font-bold transition-colors"
           >
             <Download className="w-3.5 h-3.5" /> Download
           </button>
@@ -142,7 +150,7 @@ const CertificateTiltCard = ({
             href={`/verify/${cert.uniqueCode}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="px-3 py-1.5 rounded-lg bg-zinc-900 border border-zinc-800 text-slate-300 text-[10px] hover:bg-zinc-800 hover:text-white transition flex items-center gap-1.5 font-mono font-bold"
+            className="px-3 py-1.5 rounded-lg bg-[var(--ck-bg-card)] border border-[var(--ck-border)] text-[var(--ck-text)] text-[10px] hover:bg-[var(--ck-bg-elevated)] hover:text-[var(--ck-text)] transition flex items-center gap-1.5 font-mono font-bold"
           >
             <ExternalLink className="w-3.5 h-3.5" /> Verify
           </a>
@@ -153,7 +161,7 @@ const CertificateTiltCard = ({
           href={getLinkedInShareUrl()}
           target="_blank"
           rel="noopener noreferrer"
-          className="w-full bg-[#0077b5] text-white hover:bg-[#006295] py-2 px-3 rounded-lg text-[10px] font-bold font-mono transition flex justify-center items-center gap-1.5 border border-[#0091db] cursor-pointer"
+          className="w-full bg-[#0077b5] text-[var(--ck-text)] hover:bg-[#006295] py-2 px-3 rounded-lg text-[10px] font-bold font-mono transition flex justify-center items-center gap-1.5 border border-[#0091db] cursor-pointer"
         >
           <LinkedinIcon className="w-3.5 h-3.5 fill-white" /> Add to LinkedIn
         </a>
@@ -166,6 +174,7 @@ export default function MyCertificatesPage() {
   const { token } = useAuth();
   const [certificates, setCertificates] = useState<MyCertificate[]>([]);
   const [loading, setLoading] = useState(true);
+  const [viewingCert, setViewingCert] = useState<string | null>(null);
 
   useEffect(() => {
     if (!token) return;
@@ -183,14 +192,18 @@ export default function MyCertificatesPage() {
   }, [token]);
 
   const handleDownload = (cert: MyCertificate) => {
-    window.open(`${SERVER_BASE_URL}/api/certificates/${cert.id}/download?token=${token}`, "_blank");
+    window.open(`${SERVER_BASE_URL}/api/certificates/${cert.id}/download?format=pdf&token=${token}`, "_blank");
+  };
+
+  const handleView = (cert: MyCertificate) => {
+    setViewingCert(cert.id);
   };
 
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-32 gap-4">
         <div className="ck-spinner" />
-        <p className="text-xs font-mono uppercase tracking-widest text-zinc-500 animate-pulse">LOADING CERTIFICATE VAULT...</p>
+        <p className="text-xs font-mono uppercase tracking-widest text-[var(--ck-text-muted)] animate-pulse">LOADING CERTIFICATE VAULT...</p>
       </div>
     );
   }
@@ -203,13 +216,13 @@ export default function MyCertificatesPage() {
             <Trophy className="w-3.5 h-3.5" style={{ color: "#CCFF00" }} />
             <span className="text-[10px] font-mono uppercase tracking-widest font-bold animate-pulse" style={{ color: "#CCFF00" }}>ACHIEVEMENT VAULT</span>
           </div>
-          <h1 className="text-3xl font-black font-mono tracking-tighter text-white">MY <span className="ck-gradient-text">CERTIFICATES</span></h1>
-          <p className="mt-1 text-xs text-zinc-500 font-mono">
+          <h1 className="text-3xl font-black font-mono tracking-tighter text-[var(--ck-text)]">MY <span className="ck-gradient-text">CERTIFICATES</span></h1>
+          <p className="mt-1 text-xs text-[var(--ck-text-muted)] font-mono">
             {certificates.length > 0 ? <span style={{ color: "#CCFF00" }}>{certificates.length} ACHIEVEMENT{certificates.length > 1 ? "S" : ""} UNLOCKED</span> : "NO ACHIEVEMENTS YET"}
           </p>
         </div>
-        <div className="flex items-center gap-2 px-4 py-2 rounded-xl border border-[#CCFF00]/15 bg-[#CCFF00]/5 text-[#CCFF00]">
-          <Sparkles className="w-4 h-4 text-[#CCFF00] animate-pulse" />
+        <div className="flex items-center gap-2 px-4 py-2 rounded-xl border border-[#CCFF00]/15 bg-[#CCFF00]/5 text-[var(--ck-primary)]">
+          <Sparkles className="w-4 h-4 text-[var(--ck-primary)] animate-pulse" />
           <span className="text-xs font-mono font-bold uppercase">VERIFIED SECURE CERTS</span>
         </div>
       </div>
@@ -218,12 +231,12 @@ export default function MyCertificatesPage() {
         <div className="flex flex-col items-center justify-center py-24 gap-5">
           <div className="relative">
             <div className="absolute inset-0 bg-[#CCFF00]/10 rounded-full blur-3xl animate-pulse" />
-            <div className="relative w-24 h-24 rounded-3xl border border-zinc-800 bg-gradient-to-br from-zinc-950/30 to-black flex items-center justify-center">
+            <div className="relative w-24 h-24 rounded-3xl border border-[var(--ck-border)] bg-gradient-to-br from-zinc-950/30 to-black flex items-center justify-center">
               <Trophy className="w-10 h-10" style={{ color: "#CCFF00" }} />
             </div>
           </div>
           <div className="text-center">
-            <p className="text-sm font-black uppercase tracking-widest text-zinc-400 font-mono">VAULT EMPTY</p>
+            <p className="text-sm font-black uppercase tracking-widest text-[var(--ck-text-secondary)] font-mono">VAULT EMPTY</p>
             <p className="text-xs text-zinc-650 mt-1 max-w-xs font-mono">No achievements yet. Participate in events to earn verified certificates.</p>
           </div>
           <Link href="/dashboard/events"
@@ -238,11 +251,32 @@ export default function MyCertificatesPage() {
             <CertificateTiltCard 
               key={cert.id} 
               cert={cert} 
-              token={token} 
               index={i} 
               handleDownload={handleDownload} 
+              handleView={handleView}
             />
           ))}
+        </div>
+      )}
+
+      {/* View Certificate Modal */}
+      {viewingCert && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+          <div className="relative w-full max-w-5xl h-[80vh] flex flex-col bg-[#0f172a] border border-[var(--ck-border)] rounded-2xl shadow-2xl overflow-hidden">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-800/50 bg-black/20">
+              <h2 className="text-sm font-bold text-[var(--ck-text)] font-mono flex items-center gap-2"><Award className="w-4 h-4 text-[var(--ck-lime)]" /> CERTIFICATE VIEWER</h2>
+              <button onClick={() => setViewingCert(null)} className="p-2 text-[var(--ck-text-secondary)] hover:text-[var(--ck-text)] transition-colors bg-[var(--ck-bg-card)] rounded-lg hover:bg-[var(--ck-bg-elevated)]">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="flex-1 w-full bg-[var(--ck-bg)] flex items-center justify-center">
+              <iframe 
+                src={`${SERVER_BASE_URL}/api/certificates/${viewingCert}/view?token=${token}`}
+                className="w-full h-full border-0"
+                title="Certificate Viewer"
+              />
+            </div>
+          </div>
         </div>
       )}
     </div>

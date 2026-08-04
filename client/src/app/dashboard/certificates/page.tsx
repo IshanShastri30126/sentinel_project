@@ -280,7 +280,7 @@ export default function CertificatesPage() {
             <div className="w-2 h-2 rounded-full animate-pulse" style={{ background: "#CCFF00", boxShadow: "0 0 8px #CCFF00" }} />
             <span className="text-[10px] font-mono uppercase tracking-widest" style={{ color: "#CCFF00" }}>CREDENTIAL ENGINE · ONLINE</span>
           </div>
-          <h1 className="text-3xl font-black tracking-tight text-white" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+          <h1 className="text-3xl font-black tracking-tight text-[var(--ck-text)]" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
             CERTIFICATE <span style={{ color: "#CCFF00" }}>GEN</span>
           </h1>
           <p className="text-[11px] font-mono mt-1" style={{ color: "#4B5563" }}>
@@ -290,13 +290,13 @@ export default function CertificatesPage() {
 
         {/* Header stats */}
         <div className="flex items-center gap-3">
-          <div className="flex flex-col items-end gap-0.5 px-4 py-2.5 rounded-xl border bg-[#0D0F14]" style={{ borderColor: "#1A1E26" }}>
+          <div className="flex flex-col items-end gap-0.5 px-4 py-2.5 rounded-xl border bg-[var(--ck-bg-card)]" style={{ borderColor: "#1A1E26" }}>
             <span className="text-[9px] font-mono uppercase tracking-widest" style={{ color: "#4B5563" }}>SYS TIME</span>
             <span className="text-xs font-mono font-bold" style={{ color: "#CCFF00" }}>{systemTime || "SYNCING..."}</span>
           </div>
-          <div className="flex flex-col items-end gap-0.5 px-4 py-2.5 rounded-xl border bg-[#0D0F14]" style={{ borderColor: "#1A1E26" }}>
+          <div className="flex flex-col items-end gap-0.5 px-4 py-2.5 rounded-xl border bg-[var(--ck-bg-card)]" style={{ borderColor: "#1A1E26" }}>
             <span className="text-[9px] font-mono uppercase tracking-widest" style={{ color: "#4B5563" }}>TEMPLATES</span>
-            <span className="text-xs font-mono font-bold text-white">{templates.length} UNITS</span>
+            <span className="text-xs font-mono font-bold text-[var(--ck-text)]">{templates.length} UNITS</span>
           </div>
         </div>
       </div>
@@ -324,7 +324,7 @@ export default function CertificatesPage() {
       <div className="flex flex-col gap-3">
         <div className="flex items-center gap-2">
           <Cpu className="w-4 h-4" style={{ color: "#CCFF00" }} />
-          <h2 className="text-sm font-bold uppercase tracking-widest text-white" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+          <h2 className="text-sm font-bold uppercase tracking-widest text-[var(--ck-text)]" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
             TEMPLATE VAULT <span className="text-[#4B5563] font-normal">({templates.length})</span>
           </h2>
         </div>
@@ -337,7 +337,7 @@ export default function CertificatesPage() {
               <Upload className="w-6 h-6" style={{ color: "#CCFF00" }} />
             </div>
             <div className="text-center">
-              <p className="text-sm font-bold text-white">No Templates Found</p>
+              <p className="text-sm font-bold text-[var(--ck-text)]">No Templates Found</p>
               <p className="text-xs text-[#4B5563] font-mono mt-1">Upload or design a certificate template to begin</p>
             </div>
             <div className="flex gap-2">
@@ -346,12 +346,12 @@ export default function CertificatesPage() {
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-3">
             {templates.map((t, i) => (
               <motion.div key={t.id}
                 initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}
                 onClick={() => router.push(`/dashboard/certificates/builder?templateId=${t.id}`)}
-                className="group relative rounded-xl border bg-[#0D0F14] overflow-hidden cursor-pointer transition-all hover:border-[rgba(204,255,0,0.3)]"
+                className="group relative rounded-xl border bg-[var(--ck-bg-card)] overflow-hidden cursor-pointer transition-all hover:border-[rgba(204,255,0,0.3)]"
                 style={{ borderColor: "#1A1E26" }}
               >
                 <button
@@ -362,13 +362,13 @@ export default function CertificatesPage() {
                   <Trash2 className="w-3.5 h-3.5" />
                 </button>
 
-                <div className="h-24 flex items-center justify-center bg-black border-b overflow-hidden" style={{ borderColor: "#1A1E26" }}>
+                <div className="h-24 flex items-center justify-center bg-[var(--ck-bg)] border-b overflow-hidden" style={{ borderColor: "#1A1E26" }}>
                   {t.fileType && t.fileType.toLowerCase() !== "pdf" ? (
                     /* eslint-disable-next-line @next/next/no-img-element */
                     <img src={getFileUrl(t.fileUrl)} alt={t.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-400" />
                   ) : (
                     <div className="flex flex-col items-center gap-1">
-                      <FileCheck className="w-7 h-7 text-[#4B5563] group-hover:text-[#CCFF00] transition-colors" />
+                      <FileCheck className="w-7 h-7 text-[#4B5563] group-hover:text-[var(--ck-primary)] transition-colors" />
                       <span className="text-[9px] font-mono text-[#4B5563]">PDF</span>
                     </div>
                   )}
@@ -378,7 +378,7 @@ export default function CertificatesPage() {
                 </div>
 
                 <div className="p-3 flex items-center justify-between gap-2">
-                  <p className="text-xs font-bold text-white truncate">{t.name}</p>
+                  <p className="text-xs font-bold text-[var(--ck-text)] truncate">{t.name}</p>
                   <span className="text-[8px] font-mono px-1.5 py-0.5 rounded border shrink-0 uppercase" style={{ color: "#FF4D00", borderColor: "rgba(255,77,0,0.25)", background: "rgba(255,77,0,0.06)" }}>
                     {t.fileType}
                   </span>
@@ -394,7 +394,7 @@ export default function CertificatesPage() {
         <div className="flex items-center justify-between flex-wrap gap-3">
           <div className="flex items-center gap-2">
             <Layers className="w-4 h-4" style={{ color: "#CCFF00" }} />
-            <h2 className="text-sm font-bold uppercase tracking-widest text-white" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+            <h2 className="text-sm font-bold uppercase tracking-widest text-[var(--ck-text)]" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
               ISSUED CERTIFICATES
             </h2>
           </div>
@@ -446,25 +446,25 @@ export default function CertificatesPage() {
               { step: "03", icon: <Plus className="w-5 h-5" />, title: "BULK GENERATE", desc: "Issue certificates to participants via CSV or registrations", color: "#FF003C", action: () => setShowGenerate(true) },
             ].map(s => (
               <button key={s.step} type="button" onClick={s.action}
-                className="text-left p-4 rounded-xl border bg-[#0D0F14] hover:bg-[#121519] transition-all group"
+                className="text-left p-4 rounded-xl border bg-[var(--ck-bg-card)] hover:bg-[var(--ck-bg-elevated)] transition-all group"
                 style={{ borderColor: "#1A1E26" }}
               >
                 <div className="flex items-center justify-between mb-3">
                   <div className="w-9 h-9 rounded-lg flex items-center justify-center border" style={{ color: s.color, borderColor: `${s.color}25`, background: `${s.color}08` }}>{s.icon}</div>
                   <span className="text-[9px] font-mono font-bold px-2 py-0.5 rounded border" style={{ color: s.color, borderColor: `${s.color}25` }}>STEP {s.step}</span>
                 </div>
-                <h3 className="text-xs font-bold uppercase tracking-wider text-white mb-1 group-hover:text-[#CCFF00] transition-colors" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>{s.title}</h3>
+                <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--ck-text)] mb-1 group-hover:text-[var(--ck-primary)] transition-colors" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>{s.title}</h3>
                 <p className="text-[10px] font-mono text-[#4B5563] leading-relaxed">{s.desc}</p>
               </button>
             ))}
           </div>
         ) : certs.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 gap-4 rounded-xl border bg-[#0D0F14]" style={{ borderColor: "#1A1E26" }}>
+          <div className="flex flex-col items-center justify-center py-16 gap-4 rounded-xl border bg-[var(--ck-bg-card)]" style={{ borderColor: "#1A1E26" }}>
             <div className="w-12 h-12 rounded-2xl border flex items-center justify-center" style={{ borderColor: "#1A1E26" }}>
               <FileText className="w-6 h-6 text-[#4B5563]" />
             </div>
             <div className="text-center">
-              <p className="text-sm font-bold text-white">No Certificates Yet</p>
+              <p className="text-sm font-bold text-[var(--ck-text)]">No Certificates Yet</p>
               <p className="text-xs text-[#4B5563] font-mono mt-1">No certificates generated for this event.</p>
             </div>
             <button type="button" onClick={() => setShowGenerate(true)} className="ck-btn-primary text-xs py-2 px-4 flex items-center gap-2">
@@ -474,7 +474,7 @@ export default function CertificatesPage() {
         ) : (
           <div className="rounded-xl border overflow-hidden" style={{ borderColor: "#1A1E26" }}>
             <div className="overflow-x-auto w-full">
-              <table className="w-full border-collapse" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+              <table className="ck-table ck-table-responsive w-full border-collapse" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
                 <thead>
                   <tr style={{ background: "rgba(0,0,0,0.3)" }}>
                     {["RECIPIENT", "EMAIL", "CERT ID", "STATUS", "DATE", "ACTIONS"].map(h => (
@@ -490,21 +490,21 @@ export default function CertificatesPage() {
                     .sort((a, b) => certSortBy === "name" ? a.recipientName.localeCompare(b.recipientName) : new Date(b.generatedAt || b.createdAt || 0).getTime() - new Date(a.generatedAt || a.createdAt || 0).getTime())
                     .map(c => (
                       <tr key={c.id} className="border-b transition-colors hover:bg-[rgba(204,255,0,0.02)]" style={{ borderColor: "rgba(255,255,255,0.04)" }}>
-                        <td className="px-4 py-3 text-sm font-bold text-white">{c.recipientName}</td>
-                        <td className="px-4 py-3 text-xs text-[#4B5563]">{c.recipientEmail || "—"}</td>
-                        <td className="px-4 py-3">
+                        <td className="px-4 py-3 text-sm font-bold text-[var(--ck-text)]" data-label="Recipient">{c.recipientName}</td>
+                        <td className="px-4 py-3 text-xs text-[#4B5563]" data-label="Email">{c.recipientEmail || "—"}</td>
+                        <td className="px-4 py-3" data-label="Cert ID">
                           <code className="text-[10px] px-2 py-0.5 rounded border" style={{ color: "#FF4D00", borderColor: "rgba(255,77,0,0.2)", background: "rgba(255,77,0,0.05)" }}>
                             {c.uniqueCode}
                           </code>
                         </td>
-                        <td className="px-4 py-3">
+                        <td className="px-4 py-3" data-label="Status">
                           <span className="ck-badge ck-badge-success text-[9px]">{c.status}</span>
                         </td>
-                        <td className="px-4 py-3 text-[10px] text-[#4B5563]">
+                        <td className="px-4 py-3 text-[10px] text-[#4B5563]" data-label="Date">
                           {c.generatedAt ? new Date(c.generatedAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : "—"}
                         </td>
-                        <td className="px-4 py-3">
-                          <div className="flex items-center gap-3">
+                        <td className="px-4 py-3" data-label="Actions">
+                          <div className="flex flex-wrap items-center gap-3 justify-end sm:justify-start">
                             {c.fileUrl && (
                               <>
                                 <a href={getFileUrl(c.fileUrl)} target="_blank" rel="noopener noreferrer"
@@ -514,14 +514,14 @@ export default function CertificatesPage() {
                                   <Eye className="w-3.5 h-3.5" /> VIEW
                                 </a>
                                 <a href={getFileUrl(c.fileUrl)} download target="_blank" rel="noopener noreferrer"
-                                  className="text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 hover:underline transition-colors text-[#FF4D00]"
+                                  className="text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 hover:underline transition-colors text-[var(--ck-accent)]"
                                 >
                                   <Download className="w-3.5 h-3.5" /> DL
                                 </a>
                               </>
                             )}
                             <a href={`/verify/${c.uniqueCode}`} target="_blank"
-                              className="text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 hover:underline transition-colors text-[#8892A4] hover:text-white"
+                              className="text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 hover:underline transition-colors text-[#8892A4] hover:text-[var(--ck-text)]"
                             >
                               <ShieldCheck className="w-3.5 h-3.5" /> VERIFY
                             </a>
@@ -548,7 +548,7 @@ export default function CertificatesPage() {
         {showUpload && (
           <div className="ck-modal-overlay">
             <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
-              className="w-full max-w-md rounded-2xl border bg-[#0D0F14] overflow-hidden"
+              className="w-full max-w-md rounded-2xl border bg-[var(--ck-bg-card)] overflow-hidden"
               style={{ borderColor: "rgba(204,255,0,0.2)" }}
             >
               {/* Modal header bar */}
@@ -556,9 +556,9 @@ export default function CertificatesPage() {
               <div className="px-6 py-4 border-b flex items-center justify-between" style={{ borderColor: "#1A1E26" }}>
                 <div className="flex items-center gap-2">
                   <Upload className="w-4 h-4" style={{ color: "#CCFF00" }} />
-                  <h2 className="text-sm font-bold uppercase tracking-wider text-white" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>UPLOAD TEMPLATE</h2>
+                  <h2 className="text-sm font-bold uppercase tracking-wider text-[var(--ck-text)]" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>UPLOAD TEMPLATE</h2>
                 </div>
-                <button onClick={() => setShowUpload(false)} className="w-7 h-7 rounded-lg border border-[#1A1E26] flex items-center justify-center text-[#4B5563] hover:text-white hover:border-[rgba(255,0,60,0.3)] transition-all">
+                <button onClick={() => setShowUpload(false)} className="w-7 h-7 rounded-lg border border-[#1A1E26] flex items-center justify-center text-[#4B5563] hover:text-[var(--ck-text)] hover:border-[rgba(255,0,60,0.3)] transition-all">
                   <X className="w-4 h-4" />
                 </button>
               </div>
@@ -595,20 +595,20 @@ export default function CertificatesPage() {
         {showGenerate && (
           <div className="ck-modal-overlay">
             <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
-              className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl border bg-[#0D0F14]"
+              className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl border bg-[var(--ck-bg-card)]"
               style={{ borderColor: "rgba(204,255,0,0.2)" }}
             >
               {/* Header bar */}
               <div className="h-0.5 w-full" style={{ background: "linear-gradient(90deg, transparent, #CCFF00, transparent)" }} />
-              <div className="px-6 py-4 border-b flex items-center justify-between sticky top-0 bg-[#0D0F14] z-10" style={{ borderColor: "#1A1E26" }}>
+              <div className="px-6 py-4 border-b flex items-center justify-between sticky top-0 bg-[var(--ck-bg-card)] z-10" style={{ borderColor: "#1A1E26" }}>
                 <div className="flex items-center gap-2">
                   <Terminal className="w-4 h-4" style={{ color: "#CCFF00" }} />
-                  <h2 className="text-sm font-bold uppercase tracking-wider text-white" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+                  <h2 className="text-sm font-bold uppercase tracking-wider text-[var(--ck-text)]" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
                     {generating ? "GENERATING..." : "BULK GENERATE CERTIFICATES"}
                   </h2>
                 </div>
                 <button onClick={() => { setShowGenerate(false); setImportedRecipients([]); setImportSummary(null); setGenerationLogs([]); }}
-                  className="w-7 h-7 rounded-lg border border-[#1A1E26] flex items-center justify-center text-[#4B5563] hover:text-white hover:border-[rgba(255,0,60,0.3)] transition-all"
+                  className="w-7 h-7 rounded-lg border border-[#1A1E26] flex items-center justify-center text-[#4B5563] hover:text-[var(--ck-text)] hover:border-[rgba(255,0,60,0.3)] transition-all"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -621,9 +621,9 @@ export default function CertificatesPage() {
                     <div className="flex flex-col gap-2">
                       <div className="flex justify-between text-[10px] font-mono">
                         <span className="animate-pulse" style={{ color: "#CCFF00" }}>GENERATING CERTIFICATES...</span>
-                        <span className="font-bold text-white">{Math.round(generationProgress)}%</span>
+                        <span className="font-bold text-[var(--ck-text)]">{Math.round(generationProgress)}%</span>
                       </div>
-                      <div className="h-2 rounded-full overflow-hidden bg-[#080A0F] border border-[#1A1E26]">
+                      <div className="h-2 rounded-full overflow-hidden bg-[var(--ck-bg-secondary)] border border-[#1A1E26]">
                         <motion.div animate={{ width: `${generationProgress}%` }} transition={{ duration: 0.3 }}
                           className="h-full rounded-full"
                           style={{ background: "linear-gradient(90deg, #CCFF00, #FF4D00)", boxShadow: "0 0 10px rgba(204,255,0,0.4)" }}
@@ -632,7 +632,7 @@ export default function CertificatesPage() {
                     </div>
 
                     {/* Log terminal */}
-                    <div className="rounded-xl border bg-[#080A0F] overflow-hidden" style={{ borderColor: "#1A1E26" }}>
+                    <div className="rounded-xl border bg-[var(--ck-bg-secondary)] overflow-hidden" style={{ borderColor: "#1A1E26" }}>
                       <div className="flex items-center gap-2 px-4 py-2 border-b" style={{ borderColor: "#1A1E26" }}>
                         <div className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: "#CCFF00" }} />
                         <span className="text-[9px] font-mono uppercase tracking-widest text-[#4B5563]">SYSTEM LOG</span>
@@ -655,7 +655,7 @@ export default function CertificatesPage() {
                     <div className="flex flex-col gap-3">
                       <div className="flex items-center gap-2">
                         <span className="text-[9px] font-mono font-bold px-2 py-0.5 rounded border" style={{ color: "#CCFF00", borderColor: "rgba(204,255,0,0.2)" }}>01</span>
-                        <h3 className="text-xs font-bold uppercase tracking-wider text-white">Configuration</h3>
+                        <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--ck-text)]">Configuration</h3>
                       </div>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div className="ck-field-group">
@@ -683,10 +683,10 @@ export default function CertificatesPage() {
                       <div className="flex items-center justify-between flex-wrap gap-2">
                         <div className="flex items-center gap-2">
                           <span className="text-[9px] font-mono font-bold px-2 py-0.5 rounded border" style={{ color: "#FF4D00", borderColor: "rgba(255,77,0,0.2)" }}>02</span>
-                          <h3 className="text-xs font-bold uppercase tracking-wider text-white">Recipients</h3>
+                          <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--ck-text)]">Recipients</h3>
                         </div>
                         {/* Tab selector */}
-                        <div className="flex gap-0.5 p-0.5 rounded-lg bg-[#080A0F] border border-[#1A1E26]">
+                        <div className="flex gap-0.5 p-0.5 rounded-lg bg-[var(--ck-bg-secondary)] border border-[#1A1E26]">
                           {[
                             { id: "text" as const, label: "TEXT LIST" },
                             { id: "file" as const, label: "FILE" },
@@ -754,9 +754,9 @@ export default function CertificatesPage() {
 
                       {/* Event registrations tab */}
                       {activeImportTab === "event" && (
-                        <div className="flex flex-col items-center gap-4 py-8 rounded-xl border bg-[#080A0F] text-center" style={{ borderColor: "#1A1E26" }}>
+                        <div className="flex flex-col items-center gap-4 py-8 rounded-xl border bg-[var(--ck-bg-secondary)] text-center" style={{ borderColor: "#1A1E26" }}>
                           <div>
-                            <p className="text-sm font-bold text-white">Import from Event Registrations</p>
+                            <p className="text-sm font-bold text-[var(--ck-text)]">Import from Event Registrations</p>
                             <p className="text-xs font-mono text-[#4B5563] mt-1 max-w-sm">Automatically pull all registered participants from the selected event</p>
                           </div>
                           <button type="button" onClick={handleImportFromRegistrations} disabled={!selectedEvent || importing}

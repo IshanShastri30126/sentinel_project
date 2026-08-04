@@ -3,7 +3,8 @@ import React, { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { api, API_BASE } from "@/lib/api";
 import { motion, AnimatePresence } from "framer-motion";
-import { UsersRound, Plus, X, QrCode, Search, Calendar, Download, RefreshCw, Crown, ChevronDown, ChevronUp, ShieldAlert, Trash2, AlertTriangle, Edit2 } from "lucide-react";
+import { UsersRound, Plus, X, QrCode, Search, Calendar, Download, RefreshCw, Crown, ChevronDown, ChevronUp, ShieldAlert, Trash2, AlertTriangle, Edit2, Camera } from "lucide-react";
+import { QrScanner } from "@/components/QrScanner";
 
 interface TeamMember { id: string; name: string; email: string; studentId?: string; }
 interface Team {
@@ -38,6 +39,12 @@ export default function TeamsPage() {
   const [showDisqualifyModal, setShowDisqualifyModal] = useState<string | null>(null);
   const [disqualifyReason, setDisqualifyReason] = useState("");
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
+
+  // Join Team states
+  const [showJoin, setShowJoin] = useState(false);
+  const [joinCode, setJoinCode] = useState("");
+  const [joining, setJoining] = useState(false);
+  const [useScanner, setUseScanner] = useState(false);
 
   // Search/Sort/Filter States
   const [searchQuery, setSearchQuery] = useState("");
@@ -144,6 +151,43 @@ export default function TeamsPage() {
     } catch (err) { showToast(err instanceof Error ? err.message : "Failed to remove member", "error"); }
   };
 
+  const handleJoin = async (e?: React.FormEvent, codeToJoin?: string) => {
+    if (e) e.preventDefault();
+    const code = codeToJoin || joinCode;
+    if (!code) return;
+    
+    setJoining(true);
+    try {
+      await api("/teams/join", {
+        method: "POST", token: token || undefined,
+        body: JSON.stringify({ teamCode: code }),
+      });
+      setShowJoin(false);
+      setJoinCode("");
+      showToast("Successfully joined the team!");
+      loadData();
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : "Failed to join team", "error");
+    } finally {
+      setJoining(false);
+    }
+  };
+
+  const handleScan = (data: string) => {
+    try {
+      const parsed = JSON.parse(data);
+      if (parsed.teamCode) {
+        setUseScanner(false);
+        handleJoin(undefined, parsed.teamCode);
+      } else {
+        showToast("Invalid QR code format", "error");
+      }
+    } catch {
+      setUseScanner(false);
+      handleJoin(undefined, data);
+    }
+  };
+
   const downloadQR = async (teamId: string, teamCode: string) => {
     try {
       const res = await fetch(`${API_BASE}/teams/${teamId}/qr`, {
@@ -211,14 +255,17 @@ export default function TeamsPage() {
             </div>
           )}
           {!isManagement && (
-            <button onClick={() => setShowCreate(true)} className="ck-btn-primary"><Plus className="w-4 h-4" /> Create Team</button>
+            <div className="flex gap-2">
+              <button onClick={() => setShowJoin(true)} className="ck-btn-secondary bg-[#CCFF00]/10 border-[#CCFF00]/30 text-[var(--ck-primary)] hover:bg-[#CCFF00]/20"><QrCode className="w-4 h-4" /> Join Team</button>
+              <button onClick={() => setShowCreate(true)} className="ck-btn-primary"><Plus className="w-4 h-4" /> Create Team</button>
+            </div>
           )}
         </div>
       </div>
 
       {/* Management role info banner */}
       {isManagement && (
-        <div className="mb-5 p-4 rounded-xl border border-[#FF4D00]/20 bg-[#FF4D00]/5 font-mono text-xs text-[#FF4D00]">
+        <div className="mb-5 p-4 rounded-xl border border-[#FF4D00]/20 bg-[#FF4D00]/5 font-mono text-xs text-[var(--ck-accent)]">
           <ShieldAlert className="w-4 h-4 inline mr-2" />
           As a management member, you have <strong>admin access</strong> to remove, disqualify, or manage any team. You cannot create participant teams.
         </div>
@@ -229,7 +276,7 @@ export default function TeamsPage() {
         <div className="flex gap-1 p-1 rounded-xl bg-black/40 border border-[#1A1E26] mb-5 w-fit">
           {(["my", "all"] as const).map((tab) => (
             <button key={tab} onClick={() => setActiveTab(tab)}
-              className={`px-4 py-1.5 rounded-lg text-xs font-mono uppercase tracking-wider transition ${activeTab === tab ? "bg-[#CCFF00] text-black font-bold shadow-[0_0_8px_rgba(204,255,0,0.3)]" : "text-slate-400 hover:text-[#CCFF00]"}`}>
+              className={`px-4 py-1.5 rounded-lg text-xs font-mono uppercase tracking-wider transition ${activeTab === tab ? "bg-[#CCFF00] text-black font-bold shadow-[0_0_8px_rgba(204,255,0,0.3)]" : "text-[var(--ck-text-secondary)] hover:text-[var(--ck-primary)]"}`}>
               {tab === "my" ? "My Teams" : "All Teams"}
             </button>
           ))}
@@ -249,7 +296,7 @@ export default function TeamsPage() {
         </div>
         {isManagement && activeTab === "all" && (
           <select
-            className="ck-input bg-zinc-900 border-zinc-800 text-sm py-2 w-full sm:w-auto"
+            className="ck-input bg-[var(--ck-bg-card)] border-[var(--ck-border)] text-sm py-2 w-full sm:w-auto"
             value={filterEventId}
             onChange={(e) => setFilterEventId(e.target.value)}
           >
@@ -260,7 +307,7 @@ export default function TeamsPage() {
           </select>
         )}
         <select
-          className="ck-input bg-zinc-900 border-zinc-800 text-sm py-2 w-full sm:w-auto"
+          className="ck-input bg-[var(--ck-bg-card)] border-[var(--ck-border)] text-sm py-2 w-full sm:w-auto"
           value={sortBy}
           onChange={(e) => setSortBy(e.target.value as any)}
         >
@@ -337,28 +384,80 @@ export default function TeamsPage() {
                     initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                     className="absolute inset-0 bg-black/95 backdrop-blur-md flex flex-col items-center justify-center z-50 p-6 text-center font-mono"
                   >
-                    <div className="w-full max-w-sm bg-black border border-[#CCFF00]/30 p-5 rounded-lg text-left shadow-[0_0_20px_rgba(204,255,0,0.15)]">
+                    <div className="w-full max-w-sm bg-[var(--ck-bg)] border border-[#CCFF00]/30 p-5 rounded-lg text-left shadow-[0_0_20px_rgba(204,255,0,0.15)]">
                       <div className="flex items-center gap-2 border-b border-zinc-850 pb-2.5 mb-3.5">
                         <div className="w-2.5 h-2.5 rounded-full bg-[#CCFF00] animate-ping" />
-                        <span className="text-[10px] text-[#CCFF00] font-bold uppercase tracking-wider">Security Core Shell v2.0</span>
+                        <span className="text-[10px] text-[var(--ck-primary)] font-bold uppercase tracking-wider">Security Core Shell v2.0</span>
                       </div>
-                      <div className="space-y-2 text-xs text-[#CCFF00]">
-                        <p className="flex items-center gap-2"><span className="text-[#FF4D00]">&gt;</span><span className="animate-pulse">INITIALIZING SECURE PROTOCOL...</span></p>
+                      <div className="space-y-2 text-xs text-[var(--ck-primary)]">
+                        <p className="flex items-center gap-2"><span className="text-[var(--ck-accent)]">&gt;</span><span className="animate-pulse">INITIALIZING SECURE PROTOCOL...</span></p>
                         <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6 }} className="flex items-center gap-2">
-                          <span className="text-[#FF4D00]">&gt;</span><span>COMPILING MEMBER CREDENTIALS... [OK]</span>
+                          <span className="text-[var(--ck-accent)]">&gt;</span><span>COMPILING MEMBER CREDENTIALS... [OK]</span>
                         </motion.p>
-                        <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.2 }} className="flex items-center gap-2 font-bold text-[#CCFF00]">
-                          <span className="text-[#FF4D00]">&gt;</span><span className="shadow-[0_0_10px_rgba(204,255,0,0.2)]">IDENTITY CLONED &amp; SIGNED</span>
+                        <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.2 }} className="flex items-center gap-2 font-bold text-[var(--ck-primary)]">
+                          <span className="text-[var(--ck-accent)]">&gt;</span><span className="shadow-[0_0_10px_rgba(204,255,0,0.2)]">IDENTITY CLONED &amp; SIGNED</span>
                         </motion.p>
                       </div>
                       <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 1.6, type: "spring" }}
-                        className="mt-5 flex items-center justify-center py-2 border border-[#CCFF00] bg-[#CCFF00]/10 rounded text-[#CCFF00] font-bold text-xs uppercase tracking-wider">
+                        className="mt-5 flex items-center justify-center py-2 border border-[#CCFF00] bg-[#CCFF00]/10 rounded text-[var(--ck-primary)] font-bold text-xs uppercase tracking-wider">
                         Verification Lock Secure
                       </motion.div>
                     </div>
                   </motion.div>
                 )}
               </AnimatePresence>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Join Team Modal */}
+      <AnimatePresence>
+        {showJoin && !isManagement && (
+          <div className="ck-modal-overlay">
+            <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
+              className="ck-card p-6 w-full max-w-md relative overflow-hidden">
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#CCFF00] via-[#FF4D00] to-[#CCFF00]" />
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-xl font-bold" style={{ color: "var(--ck-text)" }}>Join Team</h2>
+                <button onClick={() => { setShowJoin(false); setUseScanner(false); }} className="p-2 rounded-lg hover:bg-[var(--ck-border)]"><X className="w-5 h-5" /></button>
+              </div>
+
+              <div className="flex bg-black/40 p-1 rounded-lg border border-[var(--ck-border)] mb-4">
+                <button 
+                  onClick={() => setUseScanner(false)} 
+                  className={`flex-1 py-2 text-xs font-mono uppercase tracking-wider rounded transition-colors ${!useScanner ? "bg-[#CCFF00] text-black font-bold shadow-[0_0_10px_rgba(204,255,0,0.3)]" : "text-[var(--ck-text-muted)] hover:text-[var(--ck-text)]"}`}>
+                  Enter Code
+                </button>
+                <button 
+                  onClick={() => setUseScanner(true)} 
+                  className={`flex-1 py-2 text-xs font-mono uppercase tracking-wider rounded transition-colors flex items-center justify-center gap-2 ${useScanner ? "bg-[#CCFF00] text-black font-bold shadow-[0_0_10px_rgba(204,255,0,0.3)]" : "text-[var(--ck-text-muted)] hover:text-[var(--ck-text)]"}`}>
+                  <Camera className="w-3.5 h-3.5" /> Scan QR
+                </button>
+              </div>
+
+              {useScanner ? (
+                <div className="space-y-4">
+                  <p className="text-xs text-center font-mono text-[var(--ck-text-secondary)]">Point your camera at the team's QR Code.</p>
+                  <QrScanner onScan={handleScan} />
+                </div>
+              ) : (
+                <form onSubmit={(e) => handleJoin(e)} className="space-y-4">
+                  <div>
+                    <label className="ck-label">Team Code</label>
+                    <input 
+                      className="ck-input font-mono tracking-widest text-lg uppercase" 
+                      value={joinCode} 
+                      onChange={(e) => setJoinCode(e.target.value.toUpperCase())} 
+                      required 
+                      placeholder="e.g. CK-T-1A2B3C" 
+                    />
+                  </div>
+                  <button type="submit" disabled={joining || !joinCode} className="ck-btn-primary w-full shadow-[0_0_15px_rgba(204,255,0,0.2)]" style={{ backgroundColor: "#CCFF00", color: "black", borderColor: "#CCFF00" }}>
+                    {joining ? "Authenticating..." : "Join via Code"}
+                  </button>
+                </form>
+              )}
             </motion.div>
           </div>
         )}
@@ -399,11 +498,11 @@ export default function TeamsPage() {
               className="ck-card p-6 w-full max-w-md border border-[#FF003C]/30">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-10 h-10 rounded-xl bg-[#FF003C]/20 flex items-center justify-center">
-                  <ShieldAlert className="w-5 h-5 text-[#FF003C]" />
+                  <ShieldAlert className="w-5 h-5 text-[var(--ck-danger)]" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-bold text-white">Disqualify Team</h2>
-                  <p className="text-xs text-zinc-500 font-mono">This action cannot be reversed.</p>
+                  <h2 className="text-lg font-bold text-[var(--ck-text)]">Disqualify Team</h2>
+                  <p className="text-xs text-[var(--ck-text-muted)] font-mono">This action cannot be reversed.</p>
                 </div>
               </div>
               <div className="space-y-4">
@@ -441,15 +540,15 @@ export default function TeamsPage() {
               className={`ck-card backdrop-blur-md border shadow-md hover:shadow-[0_0_20px_rgba(204,255,0,0.1)] transition-all duration-300 relative overflow-hidden group ${
                 team.isDisqualified
                   ? "bg-red-950/10 border-red-900/30 hover:border-red-500/30"
-                  : "bg-zinc-950/45 border-zinc-800 hover:border-[#CCFF00]/40"
+                  : "bg-zinc-950/45 border-[var(--ck-border)] hover:border-[#CCFF00]/40"
               }`}>
 
               {/* Disqualified banner */}
               {team.isDisqualified && (
                 <div className="absolute top-0 left-0 w-full bg-[#FF003C]/20 border-b border-[#FF003C]/30 px-4 py-1.5 flex items-center gap-2 z-10">
-                  <ShieldAlert className="w-3.5 h-3.5 text-[#FF003C]" />
-                  <span className="text-[10px] font-mono font-bold text-[#FF003C] uppercase tracking-widest">DISQUALIFIED</span>
-                  {team.disqualifyReason && <span className="text-[9px] text-zinc-500 truncate">— {team.disqualifyReason}</span>}
+                  <ShieldAlert className="w-3.5 h-3.5 text-[var(--ck-danger)]" />
+                  <span className="text-[10px] font-mono font-bold text-[var(--ck-danger)] uppercase tracking-widest">DISQUALIFIED</span>
+                  {team.disqualifyReason && <span className="text-[9px] text-[var(--ck-text-muted)] truncate">— {team.disqualifyReason}</span>}
                 </div>
               )}
 
@@ -460,7 +559,7 @@ export default function TeamsPage() {
                 <div className="flex items-start justify-between mb-3.5">
                   <div>
                     <h3 className="font-semibold text-lg font-mono tracking-wide text-[#F0F4FF]">{team.name}</h3>
-                    <code className="text-[10px] px-2 py-0.5 rounded mt-1.5 inline-block font-mono tracking-wider border border-[#CCFF00]/20 bg-[#CCFF00]/5 text-[#CCFF00]">
+                    <code className="text-[10px] px-2 py-0.5 rounded mt-1.5 inline-block font-mono tracking-wider border border-[#CCFF00]/20 bg-[#CCFF00]/5 text-[var(--ck-primary)]">
                       {team.teamCode}
                     </code>
                   </div>
@@ -476,12 +575,12 @@ export default function TeamsPage() {
 
                 <div className="flex items-center gap-2 mb-3.5">
                   <Calendar className="w-3.5 h-3.5" style={{ color: "#FF4D00" }} />
-                  <p className="text-xs font-mono uppercase tracking-wider text-zinc-400">{team.event?.title}</p>
+                  <p className="text-xs font-mono uppercase tracking-wider text-[var(--ck-text-secondary)]">{team.event?.title}</p>
                 </div>
 
                 {team.qrCode && (
                   <div className="mt-4 mb-2 flex justify-center">
-                    <div className="p-2 bg-black/60 rounded-xl border border-zinc-800 group-hover:border-[#CCFF00]/25 transition-colors">
+                    <div className="p-2 bg-black/60 rounded-xl border border-[var(--ck-border)] group-hover:border-[#CCFF00]/25 transition-colors">
                       <img src={team.qrCode} alt="Team QR Code" className="w-28 h-28 rounded-lg" />
                     </div>
                   </div>
@@ -492,23 +591,23 @@ export default function TeamsPage() {
                   {expandedTeam === team.id && team.members && (
                     <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }}
                       className="mt-4 overflow-hidden">
-                      <div className="p-3 rounded-xl space-y-2 border border-zinc-800 bg-black/60">
+                      <div className="p-3 rounded-xl space-y-2 border border-[var(--ck-border)] bg-black/60">
                         <p className="text-[10px] font-bold font-mono tracking-widest uppercase" style={{ color: "#CCFF00" }}>Members Dossier</p>
                         {team.members.map((m) => (
-                          <div key={m.user.id} className="flex items-center justify-between gap-2 text-xs font-mono border-b border-zinc-900/50 pb-1.5 last:border-0 last:pb-0 text-zinc-300">
+                          <div key={m.user.id} className="flex items-center justify-between gap-2 text-xs font-mono border-b border-zinc-900/50 pb-1.5 last:border-0 last:pb-0 text-[var(--ck-text)]">
                             <div className="flex items-center gap-2 min-w-0">
                               {team.leader?.id === m.user.id ? (
                                 <Crown className="w-3 h-3 text-amber-400 shrink-0" />
                               ) : (
                                 <span className="w-1.5 h-1.5 rounded-full bg-[#CCFF00]/60 shrink-0" />
                               )}
-                              <span className="font-semibold text-zinc-200 truncate">{m.user.name}</span>
-                              <span className="text-[10px] text-zinc-500 truncate hidden sm:block">({m.user.email})</span>
+                              <span className="font-semibold text-[var(--ck-text)] truncate">{m.user.name}</span>
+                              <span className="text-[10px] text-[var(--ck-text-muted)] truncate hidden sm:block">({m.user.email})</span>
                             </div>
                             {isManagement && (
                               <button
                                 onClick={() => handleRemoveMember(team.id, m.user.id, m.user.name)}
-                                className="shrink-0 p-1 rounded hover:bg-red-950/40 text-zinc-600 hover:text-[#FF003C] transition"
+                                className="shrink-0 p-1 rounded hover:bg-red-950/40 text-[var(--ck-text-muted)] hover:text-[var(--ck-danger)] transition"
                                 title="Remove member"
                               >
                                 <X className="w-3 h-3" />
@@ -523,14 +622,14 @@ export default function TeamsPage() {
 
                 {/* Actions */}
                 <div className="flex gap-2 mt-4">
-                  <button onClick={() => loadTeamDetails(team.id)} className="ck-btn-secondary text-xs py-1.5 flex-1 font-mono uppercase tracking-wider text-zinc-400 hover:text-white">
+                  <button onClick={() => loadTeamDetails(team.id)} className="ck-btn-secondary text-xs py-1.5 flex-1 font-mono uppercase tracking-wider text-[var(--ck-text-secondary)] hover:text-[var(--ck-text)]">
                     {expandedTeam === team.id ? <><ChevronUp className="w-3.5 h-3.5" style={{ color: "#CCFF00" }} /> Hide</> : <><ChevronDown className="w-3.5 h-3.5" style={{ color: "#CCFF00" }} /> Dossier</>}
                   </button>
-                  <button onClick={() => downloadQR(team.id, team.teamCode)} className="ck-btn-secondary text-xs py-1.5 font-mono uppercase tracking-wider text-zinc-400 hover:text-white" title="Download QR">
+                  <button onClick={() => downloadQR(team.id, team.teamCode)} className="ck-btn-secondary text-xs py-1.5 font-mono uppercase tracking-wider text-[var(--ck-text-secondary)] hover:text-[var(--ck-text)]" title="Download QR">
                     <Download className="w-3.5 h-3.5" style={{ color: "#FF4D00" }} />
                   </button>
                   {!isManagement && (
-                    <button onClick={() => setShowReuse(team.id)} className="ck-btn-secondary text-xs py-1.5 font-mono uppercase tracking-wider text-zinc-400 hover:text-white" title="Clone / Reuse Team">
+                    <button onClick={() => setShowReuse(team.id)} className="ck-btn-secondary text-xs py-1.5 font-mono uppercase tracking-wider text-[var(--ck-text-secondary)] hover:text-[var(--ck-text)]" title="Clone / Reuse Team">
                       <RefreshCw className="w-3.5 h-3.5" style={{ color: "#FF4D00" }} />
                     </button>
                   )}
@@ -540,7 +639,7 @@ export default function TeamsPage() {
                       {!team.isDisqualified && (
                         <button
                           onClick={() => setShowDisqualifyModal(team.id)}
-                          className="ck-btn-secondary text-xs py-1.5 font-mono uppercase tracking-wider text-zinc-400 hover:text-[#FF003C] transition"
+                          className="ck-btn-secondary text-xs py-1.5 font-mono uppercase tracking-wider text-[var(--ck-text-secondary)] hover:text-[var(--ck-danger)] transition"
                           title="Disqualify Team"
                         >
                           <ShieldAlert className="w-3.5 h-3.5" />
@@ -548,7 +647,7 @@ export default function TeamsPage() {
                       )}
                       <button
                         onClick={() => handleRemoveTeam(team.id, team.name)}
-                        className="ck-btn-secondary text-xs py-1.5 font-mono uppercase tracking-wider text-zinc-400 hover:text-[#FF003C] transition"
+                        className="ck-btn-secondary text-xs py-1.5 font-mono uppercase tracking-wider text-[var(--ck-text-secondary)] hover:text-[var(--ck-danger)] transition"
                         title="Remove Team"
                       >
                         <Trash2 className="w-3.5 h-3.5" />

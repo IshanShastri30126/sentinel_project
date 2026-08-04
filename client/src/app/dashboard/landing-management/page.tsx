@@ -139,7 +139,7 @@ export default function LandingManagementPage() {
   if (loading) {
     return (
       <div className="flex justify-center py-20">
-        <div className="w-8 h-8 border-2 border-zinc-800 border-t-[#CCFF00] rounded-full animate-spin" />
+        <div className="w-8 h-8 border-2 border-[var(--ck-border)] border-t-[#CCFF00] rounded-full animate-spin" />
       </div>
     );
   }
@@ -155,7 +155,7 @@ export default function LandingManagementPage() {
   return (
     <div className="max-w-7xl mx-auto space-y-6">
       {/* Page Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-zinc-800 pb-5">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[var(--ck-border)] pb-5">
         <div>
           <h1 className="text-3xl font-extrabold font-mono tracking-tighter uppercase" style={{ color: "var(--ck-text)" }}>Landing CMS Directory</h1>
           <p className="mt-1 text-xs font-mono" style={{ color: "var(--ck-text-secondary)" }}>MANAGE PUBLIC CREW MESH // DIRECTORY DIAGNOSTICS</p>
@@ -173,7 +173,7 @@ export default function LandingManagementPage() {
 
       {/* Grid of Crew Member Cards */}
       {team.length === 0 ? (
-        <div className="text-center py-20 rounded-2xl border border-zinc-800 bg-zinc-950/20 text-zinc-500 font-mono text-xs uppercase">
+        <div className="text-center py-20 rounded-2xl border border-[var(--ck-border)] bg-zinc-950/20 text-[var(--ck-text-muted)] font-mono text-xs uppercase">
           No crew members configured. Click "Add Crew Member" to begin operations.
         </div>
       ) : (
@@ -181,22 +181,22 @@ export default function LandingManagementPage() {
           {team.map((member) => (
             <div 
               key={member.id} 
-              className="group relative rounded-xl border border-zinc-800 hover:border-[#CCFF00]/40 bg-zinc-950/40 p-5 transition-all duration-300 hover:shadow-[0_0_20px_rgba(204,255,0,0.06)] flex flex-col justify-between overflow-hidden"
+              className="group relative rounded-xl border border-[var(--ck-border)] hover:border-[#CCFF00]/40 bg-zinc-950/40 p-5 transition-all duration-300 hover:shadow-[0_0_20px_rgba(204,255,0,0.06)] flex flex-col justify-between overflow-hidden"
             >
               {/* Corner brackets */}
-              <div className="absolute top-0 left-0 w-1.5 h-1.5 border-t border-l border-zinc-700 group-hover:border-[#CCFF00] transition-colors" />
-              <div className="absolute top-0 right-0 w-1.5 h-1.5 border-t border-r border-zinc-700 group-hover:border-[#CCFF00] transition-colors" />
-              <div className="absolute bottom-0 left-0 w-1.5 h-1.5 border-b border-l border-zinc-700 group-hover:border-[#CCFF00] transition-colors" />
-              <div className="absolute bottom-0 right-0 w-1.5 h-1.5 border-b border-r border-zinc-700 group-hover:border-[#CCFF00] transition-colors" />
+              <div className="absolute top-0 left-0 w-1.5 h-1.5 border-t border-l border-[var(--ck-border)] group-hover:border-[#CCFF00] transition-colors" />
+              <div className="absolute top-0 right-0 w-1.5 h-1.5 border-t border-r border-[var(--ck-border)] group-hover:border-[#CCFF00] transition-colors" />
+              <div className="absolute bottom-0 left-0 w-1.5 h-1.5 border-b border-l border-[var(--ck-border)] group-hover:border-[#CCFF00] transition-colors" />
+              <div className="absolute bottom-0 right-0 w-1.5 h-1.5 border-b border-r border-[var(--ck-border)] group-hover:border-[#CCFF00] transition-colors" />
 
               {/* Cover Banner Mockup (Top) */}
-              <div className="h-16 w-full -mx-5 -mt-5 mb-4 bg-zinc-900 border-b border-zinc-800 overflow-hidden relative">
+              <div className="h-16 w-full -mx-5 -mt-5 mb-4 bg-[var(--ck-bg-card)] border-b border-[var(--ck-border)] overflow-hidden relative">
                 {member.coverPosterUrl ? (
                   <img src={member.coverPosterUrl} alt="Cover Banner" className="w-full h-full object-cover opacity-60" />
                 ) : (
                   <div className="w-full h-full bg-gradient-to-r from-zinc-950 to-zinc-900 opacity-60" />
                 )}
-                <div className="absolute top-3 left-4 text-[7px] font-mono text-zinc-500 uppercase tracking-widest">
+                <div className="absolute top-3 left-4 text-[7px] font-mono text-[var(--ck-text-muted)] uppercase tracking-widest">
                   {member.role}
                 </div>
               </div>
@@ -204,7 +204,7 @@ export default function LandingManagementPage() {
               {/* Member Card Body */}
               <div className="relative">
                 {/* Floating Circular Avatar */}
-                <div className="w-14 h-14 rounded-full border-2 border-zinc-800 bg-zinc-900 overflow-hidden shadow-lg -mt-10 mb-3 group-hover:border-[#CCFF00] transition-colors relative z-10 mx-auto sm:mx-0">
+                <div className="w-14 h-14 rounded-full border-2 border-[var(--ck-border)] bg-[var(--ck-bg-card)] overflow-hidden shadow-lg -mt-10 mb-3 group-hover:border-[#CCFF00] transition-colors relative z-10 mx-auto sm:mx-0">
                   {member.imageUrl ? (
                     <img src={member.imageUrl} alt={member.name} className="w-full h-full object-cover" />
                   ) : (
@@ -215,13 +215,13 @@ export default function LandingManagementPage() {
                 </div>
 
                 <div className="text-center sm:text-left">
-                  <h3 className="text-base font-bold text-white tracking-tight truncate group-hover:text-[#CCFF00] transition-colors">{member.name}</h3>
-                  <span className="text-[9px] font-mono text-[#CCFF00] bg-[#CCFF00]/10 border border-[#CCFF00]/25 rounded px-2 py-0.5 mt-1 inline-block uppercase tracking-wider">
+                  <h3 className="text-base font-bold text-[var(--ck-text)] tracking-tight truncate group-hover:text-[var(--ck-primary)] transition-colors">{member.name}</h3>
+                  <span className="text-[9px] font-mono text-[var(--ck-primary)] bg-[#CCFF00]/10 border border-[#CCFF00]/25 rounded px-2 py-0.5 mt-1 inline-block uppercase tracking-wider">
                     {member.role.replace("_", " ")}
                   </span>
-                  <p className="text-xs text-zinc-400 mt-2 truncate">{member.designation}</p>
+                  <p className="text-xs text-[var(--ck-text-secondary)] mt-2 truncate">{member.designation}</p>
                   {member.department && (
-                    <p className="text-[10px] text-zinc-500 mt-0.5 font-mono uppercase">{member.department}</p>
+                    <p className="text-[10px] text-[var(--ck-text-muted)] mt-0.5 font-mono uppercase">{member.department}</p>
                   )}
                 </div>
               </div>
@@ -232,7 +232,7 @@ export default function LandingManagementPage() {
                   href={`/team/${member.id}`} 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="p-2 rounded bg-zinc-900 hover:bg-zinc-850 text-zinc-450 hover:text-white border border-zinc-800 transition-colors"
+                  className="p-2 rounded bg-[var(--ck-bg-card)] hover:bg-zinc-850 text-zinc-450 hover:text-[var(--ck-text)] border border-[var(--ck-border)] transition-colors"
                   title="View Public Profile"
                 >
                   <Eye className="w-4 h-4" />
@@ -241,14 +241,14 @@ export default function LandingManagementPage() {
                 <div className="flex gap-2">
                   <button 
                     onClick={() => handleEditMember(member)}
-                    className="p-2 rounded bg-[#CCFF00]/5 hover:bg-[#CCFF00] text-[#CCFF00] hover:text-black border border-[#CCFF00]/20 transition-colors flex items-center gap-1 text-xs font-mono uppercase"
+                    className="p-2 rounded bg-[#CCFF00]/5 hover:bg-[#CCFF00] text-[var(--ck-primary)] hover:text-black border border-[#CCFF00]/20 transition-colors flex items-center gap-1 text-xs font-mono uppercase"
                     title="Edit Member Info"
                   >
                     <Edit className="w-3.5 h-3.5" /> Edit
                   </button>
                   <button 
                     onClick={(e) => handleDeleteMember(member.id, e)}
-                    className="p-2 rounded bg-rose-500/5 hover:bg-rose-600 text-rose-450 hover:text-white border border-rose-500/20 transition-colors"
+                    className="p-2 rounded bg-rose-500/5 hover:bg-rose-600 text-rose-450 hover:text-[var(--ck-text)] border border-rose-500/20 transition-colors"
                     title="Delete Member"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
@@ -281,7 +281,7 @@ export default function LandingManagementPage() {
             <h3 className="text-xl font-bold font-mono uppercase tracking-widest mb-1.5" style={{ color: "#CCFF00" }}>
               CMS DATABASE SYNCHRONIZED
             </h3>
-            <p className="text-[10px] text-zinc-400 font-mono uppercase tracking-wider text-center max-w-sm">
+            <p className="text-[10px] text-[var(--ck-text-secondary)] font-mono uppercase tracking-wider text-center max-w-sm">
               Public directories written to edge cache network.
             </p>
           </motion.div>
@@ -296,29 +296,29 @@ export default function LandingManagementPage() {
               initial={{ scale: 0.95, opacity: 0 }} 
               animate={{ scale: 1, opacity: 1 }} 
               exit={{ scale: 0.95, opacity: 0 }}
-              className="ck-card w-full max-w-4xl flex flex-col relative bg-zinc-950 border border-zinc-800 shadow-2xl rounded-2xl overflow-hidden"
+              className="ck-card w-full max-w-4xl flex flex-col relative bg-[var(--ck-bg)] border border-[var(--ck-border)] shadow-2xl rounded-2xl overflow-hidden"
               style={{ maxHeight: "90vh" }}
             >
               <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-[#CCFF00] via-[#FF4D00] to-[#FF003C] z-10" />
 
               {/* Modal Header */}
-              <div className="flex justify-between items-center px-6 pt-5 pb-3 border-b border-zinc-900 shrink-0">
+              <div className="flex justify-between items-center px-6 pt-5 pb-3 border-b border-[var(--ck-border)] shrink-0">
                 <div>
-                  <h2 className="text-lg font-bold font-mono uppercase text-white tracking-wide flex items-center gap-2">
-                    <Users className="w-5 h-5 text-[#CCFF00]" /> Configure Crew Member
+                  <h2 className="text-lg font-bold font-mono uppercase text-[var(--ck-text)] tracking-wide flex items-center gap-2">
+                    <Users className="w-5 h-5 text-[var(--ck-primary)]" /> Configure Crew Member
                   </h2>
-                  <p className="text-[9px] font-mono text-zinc-500 mt-0.5">ID // {activeMember.id}</p>
+                  <p className="text-[9px] font-mono text-[var(--ck-text-muted)] mt-0.5">ID // {activeMember.id}</p>
                 </div>
                 <button 
                   onClick={() => setActiveMember(null)}
-                  className="p-2 rounded-lg hover:bg-zinc-900 text-zinc-400 hover:text-white transition"
+                  className="p-2 rounded-lg hover:bg-[var(--ck-bg-card)] text-[var(--ck-text-secondary)] hover:text-[var(--ck-text)] transition"
                 >
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
               {/* Modal Stepper/Tabs */}
-              <div className="px-6 py-3 border-b border-zinc-900 bg-zinc-950/40 flex gap-2 overflow-x-auto shrink-0 scrollbar-none">
+              <div className="px-6 py-3 border-b border-[var(--ck-border)] bg-zinc-950/40 flex gap-2 overflow-x-auto shrink-0 scrollbar-none">
                 {[
                   { id: "basic", label: "Basic Info", icon: UserCheck },
                   { id: "socials", label: "Social Links", icon: Globe },
@@ -335,8 +335,8 @@ export default function LandingManagementPage() {
                       onClick={() => setActiveTab(tab.id as any)}
                       className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-mono uppercase tracking-wider transition-all duration-300 ${
                         active 
-                          ? "bg-[#CCFF00]/10 text-[#CCFF00] border-[#CCFF00]/30 shadow-[0_0_12px_rgba(204,255,0,0.08)]" 
-                          : "bg-transparent text-zinc-500 border-transparent hover:text-zinc-350 hover:bg-zinc-900/30"
+                          ? "bg-[#CCFF00]/10 text-[var(--ck-primary)] border-[#CCFF00]/30 shadow-[0_0_12px_rgba(204,255,0,0.08)]" 
+                          : "bg-transparent text-[var(--ck-text-muted)] border-transparent hover:text-zinc-350 hover:bg-[var(--ck-bg-card)]/30"
                       }`}
                     >
                       <Icon className="w-3.5 h-3.5" />
@@ -351,7 +351,7 @@ export default function LandingManagementPage() {
                 {activeTab === "basic" && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="text-[10px] uppercase font-mono text-zinc-500 font-bold">Full Name *</label>
+                      <label className="text-[10px] uppercase font-mono text-[var(--ck-text-muted)] font-bold">Full Name *</label>
                       <input 
                         type="text"
                         className="ck-input w-full mt-1"
@@ -362,7 +362,7 @@ export default function LandingManagementPage() {
                       />
                     </div>
                     <div>
-                      <label className="text-[10px] uppercase font-mono text-zinc-500 font-bold">Role Division *</label>
+                      <label className="text-[10px] uppercase font-mono text-[var(--ck-text-muted)] font-bold">Role Division *</label>
                       <select 
                         className="ck-input w-full mt-1"
                         value={activeMember.role} 
@@ -376,7 +376,7 @@ export default function LandingManagementPage() {
                       </select>
                     </div>
                     <div>
-                      <label className="text-[10px] uppercase font-mono text-zinc-500 font-bold">Designation (Subtitle) *</label>
+                      <label className="text-[10px] uppercase font-mono text-[var(--ck-text-muted)] font-bold">Designation (Subtitle) *</label>
                       <input 
                         type="text"
                         className="ck-input w-full mt-1"
@@ -387,7 +387,7 @@ export default function LandingManagementPage() {
                       />
                     </div>
                     <div>
-                      <label className="text-[10px] uppercase font-mono text-zinc-500 font-bold">Department</label>
+                      <label className="text-[10px] uppercase font-mono text-[var(--ck-text-muted)] font-bold">Department</label>
                       <input 
                         type="text"
                         className="ck-input w-full mt-1"
@@ -397,7 +397,7 @@ export default function LandingManagementPage() {
                       />
                     </div>
                     <div>
-                      <label className="text-[10px] uppercase font-mono text-zinc-500 font-bold">Joined Date</label>
+                      <label className="text-[10px] uppercase font-mono text-[var(--ck-text-muted)] font-bold">Joined Date</label>
                       <input 
                         type="text"
                         className="ck-input w-full mt-1"
@@ -407,7 +407,7 @@ export default function LandingManagementPage() {
                       />
                     </div>
                     <div>
-                      <label className="text-[10px] uppercase font-mono text-zinc-500 font-bold">Student ID</label>
+                      <label className="text-[10px] uppercase font-mono text-[var(--ck-text-muted)] font-bold">Student ID</label>
                       <input 
                         type="text"
                         className="ck-input w-full mt-1"
@@ -417,7 +417,7 @@ export default function LandingManagementPage() {
                       />
                     </div>
                     <div>
-                      <label className="text-[10px] uppercase font-mono text-zinc-500 font-bold">Email Address</label>
+                      <label className="text-[10px] uppercase font-mono text-[var(--ck-text-muted)] font-bold">Email Address</label>
                       <input 
                         type="email"
                         className="ck-input w-full mt-1"
@@ -427,7 +427,7 @@ export default function LandingManagementPage() {
                       />
                     </div>
                     <div>
-                      <label className="text-[10px] uppercase font-mono text-zinc-500 font-bold">Phone Number</label>
+                      <label className="text-[10px] uppercase font-mono text-[var(--ck-text-muted)] font-bold">Phone Number</label>
                       <input 
                         type="text"
                         className="ck-input w-full mt-1"
@@ -442,7 +442,7 @@ export default function LandingManagementPage() {
                 {activeTab === "socials" && (
                   <div className="space-y-4">
                     <div>
-                      <label className="text-[10px] uppercase font-mono text-zinc-500 font-bold">GitHub Username (Not full link)</label>
+                      <label className="text-[10px] uppercase font-mono text-[var(--ck-text-muted)] font-bold">GitHub Username (Not full link)</label>
                       <input 
                         type="text"
                         className="ck-input w-full mt-1"
@@ -452,7 +452,7 @@ export default function LandingManagementPage() {
                       />
                     </div>
                     <div>
-                      <label className="text-[10px] uppercase font-mono text-zinc-500 font-bold">LinkedIn Username (Not full link)</label>
+                      <label className="text-[10px] uppercase font-mono text-[var(--ck-text-muted)] font-bold">LinkedIn Username (Not full link)</label>
                       <input 
                         type="text"
                         className="ck-input w-full mt-1"
@@ -462,7 +462,7 @@ export default function LandingManagementPage() {
                       />
                     </div>
                     <div>
-                      <label className="text-[10px] uppercase font-mono text-zinc-500 font-bold">Instagram Username (Not full link)</label>
+                      <label className="text-[10px] uppercase font-mono text-[var(--ck-text-muted)] font-bold">Instagram Username (Not full link)</label>
                       <input 
                         type="text"
                         className="ck-input w-full mt-1"
@@ -477,10 +477,10 @@ export default function LandingManagementPage() {
                 {activeTab === "media" && (
                   <div className="space-y-6">
                     {/* Profile image upload */}
-                    <div className="p-4 rounded-xl border border-zinc-900 bg-zinc-950/40">
-                      <label className="text-[10px] uppercase font-mono text-zinc-500 font-bold">Profile Photo Avatar</label>
+                    <div className="p-4 rounded-xl border border-[var(--ck-border)] bg-zinc-950/40">
+                      <label className="text-[10px] uppercase font-mono text-[var(--ck-text-muted)] font-bold">Profile Photo Avatar</label>
                       <div className="flex items-center gap-4 mt-2">
-                        <div className="w-14 h-14 rounded-full border border-zinc-800 bg-zinc-900 overflow-hidden shrink-0 flex items-center justify-center">
+                        <div className="w-14 h-14 rounded-full border border-[var(--ck-border)] bg-[var(--ck-bg-card)] overflow-hidden shrink-0 flex items-center justify-center">
                           {activeMember.imageUrl ? (
                             <img src={activeMember.imageUrl} alt="Profile Photo" className="w-full h-full object-cover" />
                           ) : (
@@ -520,11 +520,11 @@ export default function LandingManagementPage() {
                     </div>
 
                     {/* Cover Banner Poster upload */}
-                    <div className="p-4 rounded-xl border border-zinc-900 bg-zinc-950/40">
-                      <label className="text-[10px] uppercase font-mono text-zinc-500 font-bold">Cover Background Poster Banner</label>
+                    <div className="p-4 rounded-xl border border-[var(--ck-border)] bg-zinc-950/40">
+                      <label className="text-[10px] uppercase font-mono text-[var(--ck-text-muted)] font-bold">Cover Background Poster Banner</label>
                       <div className="mt-2 space-y-3">
                         {activeMember.coverPosterUrl && (
-                          <div className="h-24 w-full rounded-lg border border-zinc-800 bg-zinc-900 overflow-hidden">
+                          <div className="h-24 w-full rounded-lg border border-[var(--ck-border)] bg-[var(--ck-bg-card)] overflow-hidden">
                             <img src={activeMember.coverPosterUrl} alt="Cover Preview" className="w-full h-full object-cover" />
                           </div>
                         )}
@@ -565,10 +565,10 @@ export default function LandingManagementPage() {
                 {activeTab === "cyber" && (
                   <div className="space-y-4">
                     {/* Cyber Character Avatar upload */}
-                    <div className="p-4 rounded-xl border border-zinc-900 bg-zinc-950/40">
-                      <label className="text-[10px] uppercase font-mono text-zinc-500 font-bold">Cyber Character Avatar (Optional)</label>
+                    <div className="p-4 rounded-xl border border-[var(--ck-border)] bg-zinc-950/40">
+                      <label className="text-[10px] uppercase font-mono text-[var(--ck-text-muted)] font-bold">Cyber Character Avatar (Optional)</label>
                       <div className="flex items-center gap-4 mt-2">
-                        <div className="w-14 h-14 rounded-lg border border-zinc-800 bg-zinc-900 overflow-hidden shrink-0 flex items-center justify-center">
+                        <div className="w-14 h-14 rounded-lg border border-[var(--ck-border)] bg-[var(--ck-bg-card)] overflow-hidden shrink-0 flex items-center justify-center">
                           {activeMember.cyberAvatarUrl ? (
                             <img src={activeMember.cyberAvatarUrl} alt="Cyber Avatar" className="w-full h-full object-cover animate-pulse" />
                           ) : (
@@ -609,7 +609,7 @@ export default function LandingManagementPage() {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <label className="text-[10px] uppercase font-mono text-zinc-500 font-bold">Cyber Character Name (e.g. Ghost)</label>
+                        <label className="text-[10px] uppercase font-mono text-[var(--ck-text-muted)] font-bold">Cyber Character Name (e.g. Ghost)</label>
                         <input 
                           type="text" 
                           className="ck-input w-full mt-1" 
@@ -619,7 +619,7 @@ export default function LandingManagementPage() {
                         />
                       </div>
                       <div>
-                        <label className="text-[10px] uppercase font-mono text-zinc-500 font-bold">Special Ability / Skills Tag</label>
+                        <label className="text-[10px] uppercase font-mono text-[var(--ck-text-muted)] font-bold">Special Ability / Skills Tag</label>
                         <input 
                           type="text" 
                           className="ck-input w-full mt-1" 
@@ -631,7 +631,7 @@ export default function LandingManagementPage() {
                     </div>
 
                     <div>
-                      <label className="text-[10px] uppercase font-mono text-zinc-500 font-bold">Cyber Character Backstory (Detailed lore paragraph)</label>
+                      <label className="text-[10px] uppercase font-mono text-[var(--ck-text-muted)] font-bold">Cyber Character Backstory (Detailed lore paragraph)</label>
                       <textarea 
                         className="ck-input w-full mt-1" 
                         rows={4} 
@@ -647,8 +647,8 @@ export default function LandingManagementPage() {
                   <div className="space-y-4">
                     <div>
                       <div className="flex justify-between items-center">
-                        <label className="text-[10px] uppercase font-mono text-zinc-500 font-bold">Bulleted Roles / Skills List (One per line)</label>
-                        <span className="text-[9px] font-mono text-zinc-600">Press Enter for new line.</span>
+                        <label className="text-[10px] uppercase font-mono text-[var(--ck-text-muted)] font-bold">Bulleted Roles / Skills List (One per line)</label>
+                        <span className="text-[9px] font-mono text-[var(--ck-text-muted)]">Press Enter for new line.</span>
                       </div>
                       <textarea 
                         className="ck-input w-full mt-1" 
@@ -663,10 +663,10 @@ export default function LandingManagementPage() {
               </div>
 
               {/* Modal Footer */}
-              <div className="flex justify-between items-center px-6 py-4 border-t border-zinc-900 bg-zinc-950 shrink-0">
+              <div className="flex justify-between items-center px-6 py-4 border-t border-[var(--ck-border)] bg-[var(--ck-bg)] shrink-0">
                 <button 
                   onClick={() => setActiveMember(null)}
-                  className="px-4 py-2 border border-zinc-800 hover:border-zinc-700 text-zinc-400 hover:text-white rounded-xl transition font-mono text-xs uppercase"
+                  className="px-4 py-2 border border-[var(--ck-border)] hover:border-[var(--ck-border)] text-[var(--ck-text-secondary)] hover:text-[var(--ck-text)] rounded-xl transition font-mono text-xs uppercase"
                 >
                   Cancel
                 </button>

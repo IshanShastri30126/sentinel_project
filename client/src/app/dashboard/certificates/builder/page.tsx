@@ -6,10 +6,11 @@ import { api, apiUpload, getFileUrl } from "@/lib/api";
 import { useRouter, useSearchParams } from "next/navigation";
 import { 
   Save, Upload, Layout, Settings2, Crop, Scissors, Image as ImageIcon, 
-  PenTool, Layers, MoveUp, MoveDown, Download, ZoomIn, ZoomOut, 
+  PenTool, Download, ZoomIn, ZoomOut, 
   Palette, Check, X, ClipboardPaste, CheckCircle, AlertCircle, 
   Type, Square, Circle, Minus, PlusCircle, Trash2, AlignLeft, 
-  AlignCenter, AlignRight, Bold, Italic, Sparkles, FileText
+  AlignCenter, AlignRight, Bold, Italic, Sparkles, FileText,
+  Menu, ChevronUp, ChevronDown, FileDown
 } from "lucide-react";
 import dynamic from "next/dynamic";
 import { CanvasNode } from "@/components/KonvaEditor";
@@ -27,13 +28,13 @@ function CertificateBuilderContent() {
   const searchParams = useSearchParams();
   const templateIdParam = searchParams.get("templateId");
   
-  const [events, setEvents] = useState<any[]>([]);
+  const [events, setEvents] = useState<{id: string, title: string, startDate?: string}[]>([]);
   const [selectedEventId, setSelectedEventId] = useState("");
-  const [selectedEvent, setSelectedEvent] = useState<any | null>(null);
+  const [selectedEvent, setSelectedEvent] = useState<{id: string, title: string, startDate?: string} | null>(null);
 
   const [templateName, setTemplateName] = useState("");
   const [backgroundUrl, setBackgroundUrl] = useState<string>("");
-  const [userTemplates, setUserTemplates] = useState<any[]>([]);
+  const [userTemplates, setUserTemplates] = useState<{id: string, name: string, fileUrl?: string, fields?: Record<string, unknown>}[]>([]);
   
   // Theme and Template State
   const [activeTemplate, setActiveTemplate] = useState(CERTIFICATE_TEMPLATES[0]);
@@ -58,6 +59,14 @@ function CertificateBuilderContent() {
   const [isMobile, setIsMobile] = useState(false);
   const [activeSidebarTab, setActiveSidebarTab] = useState<"canvas" | "theme" | "tools" | "properties">("canvas");
 
+  // Popout Navigation Bar state
+  const [isPopoutOpen, setIsPopoutOpen] = useState(false);
+  const [popoutTab, setPopoutTab] = useState<"properties" | "tools" | "theme" | "presets" | "templates" | "ai">("properties");
+
+  // Desktop layout state
+  const [isLeftPanelExpanded, setIsLeftPanelExpanded] = useState(true);
+  const [activeBottomTab, setActiveBottomTab] = useState<"presets" | "templates" | "theme" | null>(null);
+
   // Toast notifications state
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" | "info" } | null>(null);
 
@@ -67,7 +76,7 @@ function CertificateBuilderContent() {
 
   // AI Suggestions state
   const [aiEventType, setAiEventType] = useState("");
-  const [aiSuggestions, setAiSuggestions] = useState<any[]>([]);
+  const [aiSuggestions, setAiSuggestions] = useState<{ name?: string; description?: string; fields?: any }[]>([]);
   const [aiLoading, setAiLoading] = useState(false);
 
   const handleGetSuggestions = async () => {
@@ -234,7 +243,7 @@ function CertificateBuilderContent() {
     if (!token) return;
     const fetchTemplates = async () => {
       try {
-        const data = await api<{ templates: any[] }>("/certificates/templates", { token });
+        const data = await api<{ templates: {id: string, name: string, fileUrl?: string, fields?: Record<string, unknown>}[] }>("/certificates/templates", { token });
         setUserTemplates(data.templates);
       } catch (err) {
         console.error("Failed to load templates:", err);
@@ -248,27 +257,29 @@ function CertificateBuilderContent() {
     if (templateIdParam && userTemplates.length > 0) {
       const template = userTemplates.find(t => t.id === templateIdParam);
       if (template) {
-        setTemplateName(template.name);
-        if (template.fileUrl) {
-          setBackgroundUrl(getFileUrl(template.fileUrl));
-        }
-        if (template.fields && template.fields.type === "canvas_builder") {
-          if (template.fields.themeColors) {
-            setThemeColors(template.fields.themeColors);
+        setTimeout(() => {
+          setTemplateName(template.name);
+          if (template.fileUrl) {
+            setBackgroundUrl(getFileUrl(template.fileUrl));
           }
-          if (template.fields.nodes) {
-            setNodes(template.fields.nodes);
-          }
-        } else {
-          // If raw template background image, load default nodes
-          setNodes([
+          if (template.fields && template.fields.type === "canvas_builder") {
+            if (template.fields.themeColors) {
+              setThemeColors(template.fields.themeColors as ThemeColors);
+            }
+            if (template.fields.nodes) {
+              setNodes(template.fields.nodes as CanvasNode[]);
+            }
+          } else {
+            // If raw template background image, load default nodes
+            setNodes([
             { id: `t-name-${uuidv4()}`, type: "text", x: 100, y: 240, text: "[Recipient Name]", fontSize: 36, fontFamily: "serif", fontStyle: "italic", fill: "#333333", align: "center", width: 600, isPlaceholder: true, placeholderType: "recipientName", rotation: 0, scaleX: 1, scaleY: 1 },
             { id: `t-title-${uuidv4()}`, type: "text", x: 100, y: 320, text: "For successfully participating in [Event Title]", fontSize: 16, fontFamily: "sans-serif", fill: "#333333", align: "center", width: 600, isPlaceholder: true, placeholderType: "eventTitle", rotation: 0, scaleX: 1, scaleY: 1 },
             { id: `t-date-${uuidv4()}`, type: "text", x: 250, y: 370, text: "[Event Date]", fontSize: 14, fontFamily: "sans-serif", fill: "#555555", align: "center", width: 300, isPlaceholder: true, placeholderType: "eventDate", rotation: 0, scaleX: 1, scaleY: 1 },
             { id: `t-code-${uuidv4()}`, type: "text", x: 250, y: 470, text: "CK-XXXX-XXXX", fontSize: 12, fontFamily: "mono", fill: "#888888", align: "center", width: 300, isPlaceholder: true, placeholderType: "uniqueCode", rotation: 0, scaleX: 1, scaleY: 1 }
           ]);
-        }
-        showToast(`Editing custom template: ${template.name}`, "info");
+          }
+          showToast(`Editing custom template: ${template.name}`, "info");
+        }, 0);
       }
     }
   }, [templateIdParam, userTemplates, showToast]);
@@ -299,17 +310,17 @@ function CertificateBuilderContent() {
   // Auto-focus properties tab on mobile when a node is selected
   useEffect(() => {
     if (selectedId && isMobile) {
-      setActiveSidebarTab("properties");
+      setTimeout(() => setActiveSidebarTab("properties"), 0);
     } else if (!selectedId && activeSidebarTab === "properties") {
-      setActiveSidebarTab("tools");
+      setTimeout(() => setActiveSidebarTab("tools"), 0);
     }
-  }, [selectedId, isMobile]);
+  }, [selectedId, isMobile, activeSidebarTab]);
 
   useEffect(() => {
     if (!token) return;
     const fetchEvents = async () => {
       try {
-        const data = await api<{ events: any[] }>("/events/all", { token });
+        const data = await api<{ events: {id: string, title: string, startDate?: string}[] }>("/events/all", { token });
         setEvents(data.events);
       } catch (err) {
         console.error("Failed to load events:", err);
@@ -539,7 +550,7 @@ function CertificateBuilderContent() {
     }
   };
 
-  const handleCropApply = (cropData: any) => {
+  const handleCropApply = (cropData: { x: number; y: number; width: number; height: number; }) => {
     if (selectedId) {
       setNodes(nodes.map(n => n.id === selectedId ? { ...n, crop: cropData } : n));
     }
@@ -567,8 +578,8 @@ function CertificateBuilderContent() {
     setNodes(newNodes);
   };
 
-  const handleExport = async () => {
-    const stage = document.querySelector("#certificate-stage") as any;
+  const handleExportPNG = async () => {
+    const stage = document.querySelector("#certificate-stage") as HTMLElement;
     if (stage) {
       const canvasEl = stage.querySelector("canvas");
       if (canvasEl) {
@@ -576,8 +587,42 @@ function CertificateBuilderContent() {
         link.download = `${templateName || "certificate_design"}.png`;
         link.href = canvasEl.toDataURL("image/png");
         link.click();
-        showToast("Design exported to PNG", "success");
+        showToast("Design exported as high-resolution PNG", "success");
+      } else {
+        showToast("Canvas element not found", "error");
       }
+    }
+  };
+
+  const handleExportPDF = async () => {
+    const stage = document.querySelector("#certificate-stage") as HTMLElement;
+    if (!stage) return showToast("Canvas not found", "error");
+    const canvasEl = stage.querySelector("canvas");
+    if (!canvasEl) return showToast("Canvas element not ready", "error");
+
+    const dataUrl = canvasEl.toDataURL("image/png");
+    const printWindow = window.open("", "_blank");
+    if (printWindow) {
+      printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <title>${templateName || "Certificate"}</title>
+            <style>
+              @page { size: landscape; margin: 0; }
+              body { margin: 0; padding: 0; display: flex; align-items: center; justify-content: center; background: #000; height: 100vh; }
+              img { max-width: 100%; max-height: 100vh; object-fit: contain; }
+            </style>
+          </head>
+          <body>
+            <img src="${dataUrl}" onload="window.print();" />
+          </body>
+        </html>
+      `);
+      printWindow.document.close();
+      showToast("Preparing PDF download dialog...", "success");
+    } else {
+      showToast("Pop-up blocked. Please allow pop-ups for PDF print export.", "error");
     }
   };
 
@@ -589,10 +634,22 @@ function CertificateBuilderContent() {
       const formData = new FormData();
       formData.append("name", templateName);
       
-      const canvas = document.createElement("canvas");
-      canvas.width = 800;
-      canvas.height = 560;
-      const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, "image/png"));
+      let blob: Blob | null = null;
+      const stage = document.querySelector("#certificate-stage") as HTMLElement;
+      if (stage) {
+        const canvasEl = stage.querySelector("canvas");
+        if (canvasEl) {
+          blob = await new Promise<Blob | null>(resolve => canvasEl.toBlob(resolve, "image/png"));
+        }
+      }
+      
+      if (!blob) {
+        const canvas = document.createElement("canvas");
+        canvas.width = 800;
+        canvas.height = 560;
+        blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, "image/png"));
+      }
+
       if (blob) {
         formData.append("template", new File([blob], "design_preview.png", { type: "image/png" }));
       }
@@ -626,7 +683,7 @@ function CertificateBuilderContent() {
 
   const getEventTitle = () => selectedEvent ? selectedEvent.title : "[Event Title]";
   const getEventDate = () => {
-    if (!selectedEvent) return "[Event Date]";
+    if (!selectedEvent || !selectedEvent.startDate) return "[Event Date]";
     return new Date(selectedEvent.startDate).toLocaleDateString("en-IN", {
       year: "numeric", month: "long", day: "numeric"
     });
@@ -840,15 +897,15 @@ function CertificateBuilderContent() {
             <button 
               key={t.id} 
               onClick={() => handleUserTemplateSwitch(t)}
-              className={`w-full text-left p-2 rounded-xl text-xs font-medium transition-all cursor-pointer ${backgroundUrl.includes(t.fileUrl) ? 'bg-cyan-500/20 border border-cyan-500/50 text-cyan-100' : 'bg-zinc-900 border border-zinc-850 text-slate-400 hover:bg-zinc-800'}`}
+              className={`w-full text-left p-2 rounded-xl text-xs font-medium transition-all cursor-pointer ${t.fileUrl && backgroundUrl.includes(t.fileUrl) ? 'bg-cyan-500/20 border border-cyan-500/50 text-cyan-100' : 'bg-zinc-900 border border-zinc-850 text-slate-400 hover:bg-zinc-800'}`}
             >
               <div className="flex items-center justify-between gap-2 font-mono font-semibold">
                 <span className="truncate flex-1">{t.name}</span>
-                {backgroundUrl.includes(t.fileUrl) && <Check className="w-3.5 h-3.5 text-cyan-400 shrink-0" />}
+                {t.fileUrl && backgroundUrl.includes(t.fileUrl) && <Check className="w-3.5 h-3.5 text-cyan-400 shrink-0" />}
               </div>
               {t.fileUrl && (
                 <div className="mt-2 h-14 w-full rounded bg-black border border-zinc-800 overflow-hidden relative flex items-center justify-center">
-                  {t.fileType && t.fileType.toLowerCase() === "pdf" ? (
+                  {t.fileUrl.toLowerCase().endsWith(".pdf") ? (
                     <div className="flex flex-col items-center gap-1">
                       <FileText className="w-5 h-5 text-[#4B5563]" />
                       <span className="text-[8px] font-mono text-[#4B5563]">PDF</span>
@@ -1130,24 +1187,26 @@ function CertificateBuilderContent() {
   );
 
   return (
-    <div className="h-[calc(100vh-2rem)] flex flex-col text-white bg-[var(--ck-bg)] p-2 rounded-2xl overflow-hidden font-sans">
-      {/* Top Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 px-4 py-3 border-b border-zinc-800/50 bg-black/40 rounded-t-xl shrink-0 overflow-y-auto max-h-[30vh] md:max-h-none">
-        <div className="flex flex-col sm:flex-row sm:items-center gap-4 w-full md:w-auto">
-          <h1 className="text-xl font-bold bg-gradient-to-r from-[var(--ck-lime)] to-[var(--ck-orange)] bg-clip-text text-transparent flex items-center gap-2 shrink-0">
-            <Layout className="w-5 h-5 text-[var(--ck-lime)]" /> Certificate Studio
+    <div className="h-[calc(100vh-var(--ck-topbar-height,56px)-0.75rem)] flex flex-col text-white bg-[#030712] p-1.5 sm:p-3 rounded-2xl overflow-hidden font-sans relative border border-[#121F3D]">
+      
+      {/* Top Header Toolbar */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-2.5 px-3 sm:px-4 py-2 border-b border-[#121F3D] bg-[#050A18]/90 rounded-t-xl shrink-0">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3 w-full md:w-auto">
+          <h1 className="text-base sm:text-lg font-bold bg-gradient-to-r from-[#FFD700] to-[#00F5D4] bg-clip-text text-transparent flex items-center gap-2 shrink-0 font-mono">
+            <Layout className="w-4 h-4 text-[#FFD700]" /> Certificate Studio
           </h1>
-          <div className="hidden sm:block h-6 w-px bg-zinc-800" />
+          <div className="hidden sm:block h-5 w-px bg-zinc-800" />
           <input 
-            className="bg-[#0D0F14] border border-[#1A1E26] focus:border-[var(--ck-lime)] focus:outline-none rounded-lg text-sm text-slate-300 placeholder-slate-650 px-3 py-1.5 w-full sm:w-64 font-mono" 
-            placeholder="Template Name (e.g. Cybersecurity Excellence)..." 
+            className="bg-[#080E24] border border-[#121F3D] focus:border-[#FFD700] focus:outline-none rounded-lg text-xs text-slate-200 placeholder-slate-500 px-3 py-1 w-full sm:w-60 font-mono" 
+            placeholder="Template Name..." 
             value={templateName} 
             onChange={(e) => setTemplateName(e.target.value)} 
           />
         </div>
-        <div className="flex flex-wrap items-center gap-3 w-full md:w-auto justify-end">
+
+        <div className="flex flex-wrap items-center gap-2 w-full md:w-auto justify-end">
           <select 
-            className="ck-input text-xs py-1.5 px-3 bg-zinc-900 border-zinc-800 w-full sm:w-48" 
+            className="ck-input text-xs py-1 px-2.5 bg-[#080E24] border-[#121F3D] w-full sm:w-44 text-slate-200" 
             value={selectedEventId} 
             onChange={(e) => handleEventSelect(e.target.value)}
           >
@@ -1156,165 +1215,185 @@ function CertificateBuilderContent() {
               <option key={ev.id} value={ev.id}>{ev.title}</option>
             ))}
           </select>
-          <button onClick={handleExport} className="bg-zinc-800 border border-zinc-700 hover:bg-zinc-700 text-white px-4 py-1.5 rounded-lg text-xs font-bold transition-colors flex items-center gap-2 font-mono cursor-pointer">
-            <Download className="w-4 h-4" /> Save PNG
+
+          {/* Export Action Buttons */}
+          <button 
+            onClick={handleExportPDF} 
+            className="bg-[#080E24] border border-[#FFD700]/40 hover:bg-[#FFD700]/10 text-[#FFD700] px-3 py-1.5 rounded-lg text-xs font-bold font-mono transition-all flex items-center gap-1.5 cursor-pointer shadow-[0_0_10px_rgba(255,215,0,0.15)]"
+            title="Download Certificate as PDF format"
+          >
+            <FileDown className="w-3.5 h-3.5 text-[#FFD700]" /> Save PDF
           </button>
-          <button onClick={handleSave} disabled={saving} className="bg-[var(--ck-lime)] hover:bg-[#DEFF33] text-black px-4 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2 shadow-[0_0_15px_rgba(204,255,0,0.3)] disabled:opacity-50 font-mono cursor-pointer">
-            {saving ? <div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" /> : <Save className="w-4 h-4" />}
-            {templateIdParam ? "Update Template" : "Deploy Template"}
+          
+          <button 
+            onClick={handleExportPNG} 
+            className="bg-[#080E24] border border-[#00F5D4]/40 hover:bg-[#00F5D4]/10 text-[#00F5D4] px-3 py-1.5 rounded-lg text-xs font-bold font-mono transition-all flex items-center gap-1.5 cursor-pointer shadow-[0_0_10px_rgba(0,245,212,0.15)]"
+            title="Download Certificate as PNG format"
+          >
+            <Download className="w-3.5 h-3.5 text-[#00F5D4]" /> Save PNG
+          </button>
+
+          <button 
+            onClick={handleSave} 
+            disabled={saving} 
+            className="bg-gradient-to-r from-[#FFD700] to-[#E5A93C] hover:opacity-95 text-black px-4 py-1.5 rounded-lg text-xs font-bold font-mono transition-all flex items-center gap-1.5 shadow-[0_0_15px_rgba(255,215,0,0.3)] disabled:opacity-50 cursor-pointer"
+          >
+            {saving ? <div className="w-3.5 h-3.5 border-2 border-black/30 border-t-black rounded-full animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+            {templateIdParam ? "Update" : "Deploy"}
           </button>
         </div>
       </div>
 
-      {isMobile ? (
-        /* Mobile Layout */
-        <div className="flex-1 flex flex-col overflow-hidden relative">
-          
-          {/* Top section: Always-visible Live Canvas */}
-          <div className="flex-1 min-h-[220px] max-h-[45vh] bg-zinc-950/80 relative flex flex-col justify-center items-center overflow-auto p-2">
-            <KonvaEditor 
-              nodes={nodes} 
-              setNodes={setNodes} 
-              eventTitle={getEventTitle()} 
-              eventDate={getEventDate()} 
-              backgroundColor={themeColors.background}
-              themeColor={themeColors.primary}
-              backgroundUrl={backgroundUrl || undefined}
-              selectedId={selectedId}
-              setSelectedId={setSelectedId}
-              isCropping={isCropping}
-              onCropApply={handleCropApply}
-              scale={zoom}
-            />
-            {/* Zoom Controls */}
-            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-black/60 backdrop-blur-md border border-zinc-800/50 px-3 py-1 rounded-full z-10 scale-90">
-              <button onClick={() => setZoom(z => Math.max(0.35, z - 0.1))} className="p-1 hover:text-white text-slate-400 bg-transparent border-0"><ZoomOut className="w-3.5 h-3.5" /></button>
-              <span className="text-[10px] font-mono w-10 text-center text-slate-300">{Math.round(zoom * 100)}%</span>
-              <input type="range" min="0.35" max="2" step="0.05" value={zoom} onChange={(e) => setZoom(parseFloat(e.target.value))} className="w-16 accent-white" />
-              <button onClick={() => setZoom(z => Math.min(2, z + 0.1))} className="p-1 hover:text-white text-slate-400 bg-transparent border-0"><ZoomIn className="w-3.5 h-3.5" /></button>
-            </div>
-          </div>
+      {/* Main Studio Viewport */}
+      <div className="flex-1 flex flex-col overflow-hidden relative bg-[#04070A]">
+        
+        {/* Stage View Area (Screen Fitting & Responsive Canvas Scaling) */}
+        <div className="flex-1 overflow-auto flex items-center justify-center p-2 sm:p-6 pb-20 relative hacker-scanline-bg">
+          <KonvaEditor 
+            nodes={nodes} 
+            setNodes={setNodes} 
+            eventTitle={getEventTitle()} 
+            eventDate={getEventDate()} 
+            backgroundColor={themeColors.background}
+            themeColor={themeColors.primary}
+            backgroundUrl={backgroundUrl || undefined}
+            selectedId={selectedId}
+            setSelectedId={setSelectedId}
+            isCropping={isCropping}
+            onCropApply={handleCropApply}
+            scale={zoom}
+          />
 
-          {/* Middle section: Tab navigation */}
-          <div className="flex border-y border-zinc-800/50 bg-[#080A0F]/90 shrink-0">
+          {/* Zoom Controls */}
+          <div className="absolute top-3 right-3 flex items-center gap-2 bg-black/75 backdrop-blur-md border border-[#121F3D] px-3 py-1 rounded-full z-10 scale-90 sm:scale-100">
+            <button onClick={() => setZoom(z => Math.max(0.35, z - 0.1))} className="p-1 hover:text-[#00F5D4] text-slate-400 bg-transparent border-0 cursor-pointer"><ZoomOut className="w-3.5 h-3.5" /></button>
+            <span className="text-[11px] font-mono w-10 text-center text-slate-300">{Math.round(zoom * 100)}%</span>
+            <input type="range" min="0.35" max="2" step="0.05" value={zoom} onChange={(e) => setZoom(parseFloat(e.target.value))} className="w-16 sm:w-24 accent-[#00F5D4] cursor-pointer" />
+            <button onClick={() => setZoom(z => Math.min(2, z + 0.1))} className="p-1 hover:text-[#00F5D4] text-slate-400 bg-transparent border-0 cursor-pointer"><ZoomIn className="w-3.5 h-3.5" /></button>
+          </div>
+        </div>
+
+        {/* Slide-Up Popout Drawer Panel */}
+        <AnimatePresence>
+          {isPopoutOpen && (
+            <motion.div
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{ type: "spring", damping: 25, stiffness: 220 }}
+              className="absolute bottom-14 left-0 right-0 max-h-[60vh] bg-[#050A18]/95 backdrop-blur-xl border-t border-[#121F3D] z-40 shadow-2xl overflow-y-auto p-4 sm:p-6 custom-scrollbar"
+            >
+              <div className="flex items-center justify-between border-b border-[#121F3D] pb-3 mb-4 max-w-5xl mx-auto">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-mono font-bold uppercase tracking-widest text-[#FFD700]">
+                    STUDIO MANAGEMENT MODULE
+                  </span>
+                </div>
+                <button 
+                  onClick={() => setIsPopoutOpen(false)}
+                  className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-black/60 border border-[#121F3D] text-xs font-mono text-slate-400 hover:text-white cursor-pointer"
+                >
+                  <ChevronDown className="w-4 h-4 text-[#FFD700]" /> Collapse
+                </button>
+              </div>
+
+              <div className="max-w-5xl mx-auto space-y-4">
+                {popoutTab === "properties" && (
+                  <div>
+                    {propertyEditorBlock()}
+                  </div>
+                )}
+                {popoutTab === "tools" && (
+                  <div className="space-y-4">
+                    {addElementsBlock()}
+                    <div className="w-full h-px bg-[#121F3D]" />
+                    {orgLogoBlock()}
+                    <div className="w-full h-px bg-[#121F3D]" />
+                    {facultySignatureBlock()}
+                  </div>
+                )}
+                {popoutTab === "theme" && (
+                  <div className="space-y-4">
+                    {themeColorsBlock()}
+                  </div>
+                )}
+                {popoutTab === "presets" && (
+                  <div className="space-y-4">
+                    {presetsBlock()}
+                  </div>
+                )}
+                {popoutTab === "templates" && (
+                  <div className="space-y-4">
+                    {uploadedTemplatesBlock()}
+                  </div>
+                )}
+                {popoutTab === "ai" && (
+                  <div className="space-y-4">
+                    {aiAssistantBlock()}
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* INTELLIGENT BOTTOM POPOUT NAVIGATION BAR */}
+        <div className="h-14 bg-[#050A18] border-t border-[#121F3D] flex items-center justify-between px-3 sm:px-6 z-50 shrink-0">
+          
+          {/* Arrow Popout Toggle Button */}
+          <button 
+            onClick={() => setIsPopoutOpen(!isPopoutOpen)}
+            className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#080E24] border border-[#FFD700]/40 text-[#FFD700] hover:bg-[#FFD700] hover:text-black font-mono font-bold text-xs transition-all shadow-[0_0_12px_rgba(255,215,0,0.2)] cursor-pointer shrink-0"
+            title={isPopoutOpen ? "Collapse Navigation Bar" : "Popout Navigation Controls"}
+          >
+            {isPopoutOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4 animate-bounce" />}
+            <span className="hidden sm:inline uppercase tracking-wider">{isPopoutOpen ? "Hide Controls" : "Popout Controls"}</span>
+          </button>
+
+          {/* Intelligent Quick Navigation Tabs */}
+          <div className="flex items-center gap-1 sm:gap-2 overflow-x-auto custom-scrollbar px-2">
             {[
-              { id: "theme", label: "Presets & Themes" },
-              { id: "tools", label: "Add Elements" },
-              { id: "properties", label: "Properties", disabled: !selectedId }
-            ].map(t => (
-              <button
-                key={t.id}
-                type="button"
-                onClick={() => setActiveSidebarTab(t.id as any)}
-                disabled={t.disabled}
-                className={`flex-1 py-2.5 text-[10px] sm:text-xs font-mono font-bold uppercase border-b-2 transition-all cursor-pointer disabled:opacity-30 ${
-                  activeSidebarTab === t.id 
-                    ? "border-[var(--ck-lime)] text-[var(--ck-lime)] bg-[var(--ck-lime)]/5" 
-                    : "border-transparent text-slate-400 hover:text-slate-200"
-                }`}
-              >
-                {t.label}
-              </button>
-            ))}
+              { id: "properties", label: "Properties", icon: <Settings2 className="w-3.5 h-3.5" />, color: "text-[#00F5D4]", activeBg: "bg-[#00F5D4]/15 border-[#00F5D4]/40" },
+              { id: "tools", label: "Elements", icon: <PlusCircle className="w-3.5 h-3.5" />, color: "text-[#FFD700]", activeBg: "bg-[#FFD700]/15 border-[#FFD700]/40" },
+              { id: "theme", label: "Theme", icon: <Palette className="w-3.5 h-3.5" />, color: "text-emerald-400", activeBg: "bg-emerald-500/15 border-emerald-500/40" },
+              { id: "presets", label: "Presets", icon: <Layout className="w-3.5 h-3.5" />, color: "text-pink-400", activeBg: "bg-pink-500/15 border-pink-500/40" },
+              { id: "templates", label: "Templates", icon: <Upload className="w-3.5 h-3.5" />, color: "text-cyan-400", activeBg: "bg-cyan-500/15 border-cyan-500/40" },
+              { id: "ai", label: "AI", icon: <Sparkles className="w-3.5 h-3.5" />, color: "text-purple-400", activeBg: "bg-purple-500/15 border-purple-500/40" }
+            ].map((tab) => {
+              const isActive = isPopoutOpen && popoutTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => {
+                    if (isPopoutOpen && popoutTab === tab.id) {
+                      setIsPopoutOpen(false);
+                    } else {
+                      setPopoutTab(tab.id as any);
+                      setIsPopoutOpen(true);
+                    }
+                  }}
+                  className={`flex items-center gap-1.5 px-2.5 sm:px-3.5 py-1.5 rounded-xl text-[11px] font-mono font-bold transition-all border cursor-pointer whitespace-nowrap ${
+                    isActive 
+                      ? `${tab.activeBg} text-white` 
+                      : "bg-[#080E24]/60 border-[#121F3D] text-slate-400 hover:text-white hover:bg-[#080E24]"
+                  }`}
+                >
+                  <span className={tab.color}>{tab.icon}</span>
+                  <span className="hidden xs:inline">{tab.label}</span>
+                </button>
+              );
+            })}
           </div>
 
-          {/* Bottom section: Active Tab Controls scrollable */}
-          <div className="h-[40vh] overflow-y-auto p-4 bg-[#080A0F] border-b border-zinc-850 flex flex-col gap-4 custom-scrollbar">
-            {activeSidebarTab === "theme" && (
-              <div className="space-y-4">
-                {themeColorsBlock()}
-                <div className="w-full h-px bg-zinc-800/50" />
-                {presetsBlock()}
-                <div className="w-full h-px bg-zinc-800/50" />
-                {uploadedTemplatesBlock()}
-              </div>
-            )}
-
-            {activeSidebarTab === "tools" && (
-              <div className="space-y-4">
-                {addElementsBlock()}
-                <div className="w-full h-px bg-zinc-800/50" />
-                {aiAssistantBlock()}
-                <div className="w-full h-px bg-zinc-800/50" />
-                {orgLogoBlock()}
-                <div className="w-full h-px bg-zinc-800/50" />
-                {facultySignatureBlock()}
-              </div>
-            )}
-
-            {activeSidebarTab === "properties" && selectedNode && (
-              <div className="space-y-4">
-                {propertyEditorBlock()}
-              </div>
-            )}
+          {/* Quick Zoom Indicator */}
+          <div className="hidden lg:flex items-center gap-1 text-[10px] font-mono text-zinc-500">
+            <span>ZOOM:</span>
+            <span className="text-[#00F5D4] font-bold">{Math.round(zoom * 100)}%</span>
           </div>
 
         </div>
-      ) : (
-        /* Desktop Layout (3-column layout) */
-        <div className="flex flex-1 overflow-hidden relative">
-          
-          {/* LEFT SIDEBAR: Tools, Shapes, and Colors */}
-          <div className="w-80 border-r border-zinc-800/50 bg-[#0D0F14] overflow-y-auto p-4 flex flex-col space-y-5 shrink-0 custom-scrollbar">
-            {aiAssistantBlock()}
-            <div className="w-full h-px bg-zinc-800/50" />
-            {addElementsBlock()}
-            <div className="w-full h-px bg-zinc-800/50" />
-            {studioActionsBlock()}
-            
-            {/* Selected Element Customizer */}
-            <AnimatePresence>
-              {selectedNode && (
-                <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="space-y-4 pt-2 border-t border-zinc-800/80">
-                  {propertyEditorBlock()}
-                </motion.div>
-              )}
-            </AnimatePresence>
-            
-            <div className="w-full h-px bg-zinc-800/50" />
-            {orgLogoBlock()}
-            <div className="w-full h-px bg-zinc-800/50" />
-            {facultySignatureBlock()}
-          </div>
 
-          {/* CENTER CANVAS */}
-          <div className="flex-1 bg-zinc-950/80 relative flex flex-col">
-            <div className="flex-1 overflow-auto flex items-center justify-center p-8">
-              <KonvaEditor 
-                nodes={nodes} 
-                setNodes={setNodes} 
-                eventTitle={getEventTitle()} 
-                eventDate={getEventDate()} 
-                backgroundColor={themeColors.background}
-                themeColor={themeColors.primary}
-                backgroundUrl={backgroundUrl || undefined}
-                selectedId={selectedId}
-                setSelectedId={setSelectedId}
-                isCropping={isCropping}
-                onCropApply={handleCropApply}
-                scale={zoom}
-              />
-            </div>
-            {/* Zoom Controls */}
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-3 bg-black/60 backdrop-blur-md border border-zinc-800/50 px-4 py-2 rounded-full z-10">
-              <button onClick={() => setZoom(z => Math.max(0.35, z - 0.1))} className="p-1 hover:text-white text-slate-400 bg-transparent border-0"><ZoomOut className="w-4 h-4" /></button>
-              <span className="text-xs font-mono w-12 text-center text-slate-300">{Math.round(zoom * 100)}%</span>
-              <input type="range" min="0.35" max="2" step="0.05" value={zoom} onChange={(e) => setZoom(parseFloat(e.target.value))} className="w-24 accent-white" />
-              <button onClick={() => setZoom(z => Math.min(2, z + 0.1))} className="p-1 hover:text-white text-slate-400 bg-transparent border-0"><ZoomIn className="w-4 h-4" /></button>
-            </div>
-          </div>
-
-          {/* RIGHT SIDEBAR: Preset Templates, Theme Colors, & Uploaded Vault templates */}
-          <div className="w-72 border-l border-zinc-800/50 bg-[#0D0F14] overflow-y-auto p-4 flex flex-col space-y-6 shrink-0 custom-scrollbar">
-            {presetsBlock()}
-            <div className="w-full h-px bg-zinc-800/50" />
-            {uploadedTemplatesBlock()}
-            <div className="w-full h-px bg-zinc-800/50" />
-            {themeColorsBlock()}
-          </div>
-
-        </div>
-      )}
+      </div>
 
       {/* Toast Notification */}
       <AnimatePresence>

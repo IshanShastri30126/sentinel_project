@@ -5,6 +5,7 @@ import crypto from "crypto";
 import path from "path";
 import fs from "fs";
 import archiver from "archiver";
+import puppeteer from "puppeteer";
 import prisma from "../lib/prisma";
 import { authenticate, requireMinRole } from "../middlewares/auth";
 import { validate } from "../middlewares/validate";
@@ -257,7 +258,7 @@ router.get("/event/:eventId", authenticate, requireMinRole("TECH"), async (req: 
   } catch (err) { console.error("[Certs] List error:", err); res.status(500).json({ error: "Internal server error" }); }
 });
 
-// ─── GET /api/certificates/:id/download — Download single certificate (on-the-fly) ──
+// ─── GET /api/certificates/:id/download — Download single certificate (PDF or PNG) ──
 router.get("/:id/download", authenticate, async (req: Request, res: Response) => {
   try {
     const cert = await prisma.certificate.findUnique({
@@ -269,7 +270,55 @@ router.get("/:id/download", authenticate, async (req: Request, res: Response) =>
     });
     if (!cert) { res.status(404).json({ error: "Certificate not found" }); return; }
 
-    // Generate HTML on-the-fly
+    const certHTML = generateCertificateHTML({
+      recipientName: cert.recipientName,
+      eventTitle: cert.event.title,
+      eventDate: cert.event.startDate.toLocaleDateString("en-IN", { year: "numeric", month: "long", day: "numeric" }),
+      uniqueCode: cert.uniqueCode,
+      template: cert.template,
+    });
+
+    const format = (req.query.format as string)?.toLowerCase() || "pdf";
+
+    const browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox'] });
+    const page = await browser.newPage();
+    await page.setViewport({ width: 800, height: 560, deviceScaleFactor: 2 });
+    await page.setContent(certHTML, { waitUntil: 'domcontentloaded' });
+    await new Promise(r => setTimeout(r, 150)); // allow fonts/patterns to settle
+
+    if (format === "png") {
+      const pngBuffer = await page.screenshot({ type: 'png' });
+      await browser.close();
+      res.setHeader("Content-Type", "image/png");
+      res.setHeader("Content-Disposition", `attachment; filename="certificate_${cert.uniqueCode}.png"`);
+      res.send(pngBuffer);
+    } else {
+      const pdfBuffer = await page.pdf({
+        width: "800px",
+        height: "560px",
+        printBackground: true,
+        margin: { top: "0px", right: "0px", bottom: "0px", left: "0px" }
+      });
+      await browser.close();
+      res.setHeader("Content-Type", "application/pdf");
+      res.setHeader("Content-Disposition", `attachment; filename="certificate_${cert.uniqueCode}.pdf"`);
+      res.send(pdfBuffer);
+    }
+  } catch (err) { console.error("[Certs] Download error:", err); res.status(500).json({ error: "Internal server error" }); }
+});
+
+// ─── GET /api/certificates/:id/view — View certificate (inline) ──
+router.get("/:id/view", async (req: Request, res: Response) => {
+  try {
+    const cert = await prisma.certificate.findUnique({
+      where: { id: req.params.id },
+      include: {
+        event: { select: { title: true, startDate: true } },
+        template: true,
+      },
+    });
+    if (!cert) { res.status(404).json({ error: "Certificate not found" }); return; }
+
     const certHTML = generateCertificateHTML({
       recipientName: cert.recipientName,
       eventTitle: cert.event.title,
@@ -279,9 +328,9 @@ router.get("/:id/download", authenticate, async (req: Request, res: Response) =>
     });
 
     res.setHeader("Content-Type", "text/html");
-    res.setHeader("Content-Disposition", `attachment; filename="certificate_${cert.uniqueCode}.html"`);
+    res.setHeader("Content-Disposition", `inline; filename="certificate_${cert.uniqueCode}.html"`);
     res.send(certHTML);
-  } catch (err) { console.error("[Certs] Download error:", err); res.status(500).json({ error: "Internal server error" }); }
+  } catch (err) { console.error("[Certs] View error:", err); res.status(500).json({ error: "Internal server error" }); }
 });
 
 // ─── GET /api/certificates/download-zip/:eventId — ZIP all certs (on-the-fly) ──
@@ -305,6 +354,10 @@ router.get("/download-zip/:eventId", authenticate, requireMinRole("TECH"), async
     const archive = archiver("zip", { zlib: { level: 5 } });
     archive.pipe(res);
 
+    const browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox'] });
+    const page = await browser.newPage();
+    await page.setViewport({ width: 800, height: 560, deviceScaleFactor: 2 });
+
     for (const cert of certs) {
       const certHTML = generateCertificateHTML({
         recipientName: cert.recipientName,
@@ -313,9 +366,15 @@ router.get("/download-zip/:eventId", authenticate, requireMinRole("TECH"), async
         uniqueCode: cert.uniqueCode,
         template: cert.template,
       });
-      archive.append(certHTML, { name: `${cert.recipientName.replace(/[^a-z0-9 ]/gi, "")}_${cert.uniqueCode}.html` });
+      
+      await page.setContent(certHTML, { waitUntil: 'domcontentloaded' });
+      await new Promise(r => setTimeout(r, 100)); // allow fonts/patterns to settle
+      const pngBuffer = await page.screenshot({ type: 'png' });
+      
+      archive.append(pngBuffer as Buffer, { name: `${cert.recipientName.replace(/[^a-z0-9 ]/gi, "")}_${cert.uniqueCode}.png` });
     }
 
+    await browser.close();
     await archive.finalize();
   } catch (err) { console.error("[Certs] ZIP error:", err); res.status(500).json({ error: "Internal server error" }); }
 });

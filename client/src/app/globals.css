@@ -6,60 +6,105 @@
   --font-mono: 'JetBrains Mono', monospace;
 }
 
-/* ─── CyberKavach 2.0 — SpaceX Cyber Theme ───────────────── */
+/* ─── Chakravyuh Club — Mythological Landing & Hacker Portal Theme ─── */
 :root {
-  /* Brand Colors — from design spec image */
-  --ck-lime:        #CCFF00;   /* Primary — Neon Lime */
-  --ck-lime-dim:    #99BF00;   /* Lime dimmed */
-  --ck-lime-glow:   rgba(204,255,0,0.15);
-  --ck-orange:      #FF4D00;   /* Secondary — Burn Orange */
-  --ck-orange-dim:  #CC3D00;
-  --ck-orange-glow: rgba(255,77,0,0.15);
-  --ck-red:         #FF003C;   /* Tertiary — Hot Red */
-  --ck-red-dim:     #CC002F;
-  --ck-red-glow:    rgba(255,0,60,0.15);
+  /* Brand Colors — Energetic Greenish Blue Palette */
+  --ck-green:       #00F5D4;   /* Greenish Teal Cyan */
+  --ck-green-dim:   #00C2A8;
+  --ck-green-glow:  rgba(0, 245, 212, 0.3);
+  
+  --ck-blue:        #00E1FF;   /* Electric Cyan Blue */
+  --ck-blue-dim:    #00B5CC;
+  --ck-blue-glow:   rgba(0, 225, 255, 0.3);
+
+  --ck-gold:        #00F5D4;   /* Greenish Blue primary */
+  --ck-gold-dim:    #00C2A8;
+  --ck-gold-glow:   rgba(0, 245, 212, 0.3);
+  
+  --ck-cyan:        #00F5D4;   /* Teal Cyan */
+  --ck-cyan-dim:    #00C2A8;
+  --ck-cyan-glow:   rgba(0, 245, 212, 0.3);
+
+  --ck-hacker-green:#00F5D4;   /* Greenish Cyan */
+  --ck-hacker-blue: #00E1FF;   /* Electric Blue */
+
+  --ck-navy-deep:   #000000;   /* Pitch Black Base */
+  --ck-navy-card:   #0A0A0A;   /* Carbon Card Overlay */
+
+  /* Legacy semantic mappings for backwards compatibility */
+  --ck-lime:        #00F5D4;
+  --ck-lime-dim:    #00C2A8;
+  --ck-lime-glow:   rgba(0, 245, 212, 0.2);
+  --ck-orange:      #00E1FF;
+  --ck-orange-dim:  #00B5CC;
+  --ck-orange-glow: rgba(0, 225, 255, 0.2);
+  --ck-red:         #FF0055;
+  --ck-red-dim:     #CC0044;
+  --ck-red-glow:    rgba(255,0,85,0.15);
 
   /* Semantic aliases */
-  --ck-primary:       var(--ck-lime);
-  --ck-primary-light: var(--ck-lime);
-  --ck-primary-dark:  var(--ck-lime-dim);
-  --ck-accent:        var(--ck-orange);
-  --ck-accent-light:  var(--ck-orange);
-  --ck-success:       #22C55E;
-  --ck-warning:       var(--ck-orange);
+  --ck-primary:       #00F5D4;
+  --ck-primary-light: #00F5D4;
+  --ck-primary-dark:  #00C2A8;
+  --ck-accent:        #00E1FF;
+  --ck-accent-light:  #00E1FF;
+  --ck-success:       #00F5D4;
+  --ck-warning:       #00E1FF;
   --ck-danger:        var(--ck-red);
 
-  /* Backgrounds — ultra dark neutral */
-  --ck-bg:          #05070A;
-  --ck-bg-secondary:#080A0F;
-  --ck-bg-card:     #0D0F14;
-  --ck-bg-elevated: #121519;
+  /* Backgrounds — Pitch Black & Carbon Dark */
+  --ck-bg:          #000000;
+  --ck-bg-secondary:#050505;
+  --ck-bg-card:     #0A0A0A;
+  --ck-bg-elevated: #101010;
 
   /* Text */
-  --ck-text:           #F0F4FF;
-  --ck-text-secondary: #8892A4;
-  --ck-text-muted:     #4B5563;
+  --ck-text:           #F2F5F8;
+  --ck-text-secondary: #9CA3AF;
+  --ck-text-muted:     #6B7280;
 
   /* Borders */
-  --ck-border:        #1A1E26;
-  --ck-border-bright: #252B35;
+  --ck-border:        #1A1A1A;
+  --ck-border-bright: #333333;
 
   /* Glass */
-  --ck-glass-bg:     rgba(13,15,20,0.85);
-  --ck-glass-border: rgba(204,255,0,0.12);
+  --ck-glass-bg:     rgba(0, 0, 0, 0.93);
+  --ck-glass-border: rgba(255, 255, 255, 0.08);
 
   /* Shadows */
-  --ck-shadow:    0 2px 8px rgba(0,0,0,0.6);
-  --ck-shadow-lg: 0 8px 32px rgba(0,0,0,0.8);
+  --ck-shadow:    0 4px 20px rgba(0,0,0,0.9);
+  --ck-shadow-lg: 0 8px 32px rgba(0,0,0,0.95);
 
   /* Layout */
   --ck-sidebar-width:           280px;
   --ck-sidebar-collapsed-width: 64px;
   --ck-topbar-height:           56px;
-  --ck-radius-sm:  4px;
-  --ck-radius-md:  8px;
-  --ck-radius-lg:  12px;
-  --ck-radius-xl:  16px;
+  --ck-radius-sm:  0px;
+  --ck-radius-md:  2px;
+  --ck-radius-lg:  2px;
+  --ck-radius-xl:  4px;
+}
+
+/* Custom Chakravyuh & Hacker Glow Utilities */
+.golden-text-glow {
+  color: #00FF66;
+  text-shadow: 0 0 15px rgba(0, 255, 102, 0.6), 0 0 30px rgba(0, 255, 102, 0.3);
+}
+
+.cyan-text-glow {
+  color: #00E1FF;
+  text-shadow: 0 0 15px rgba(0, 225, 255, 0.6), 0 0 30px rgba(0, 225, 255, 0.3);
+}
+
+.hacker-scanline-bg {
+  background: linear-gradient(
+    to bottom,
+    rgba(255,255,255,0),
+    rgba(255,255,255,0) 50%,
+    rgba(0, 245, 212, 0.03) 50%,
+    rgba(0, 245, 212, 0.03)
+  );
+  background-size: 100% 4px;
 }
 
 /* ─── Reset & Base ────────────────────────────────────────── */
@@ -74,10 +119,10 @@
 *::-webkit-scrollbar-thumb { background: rgba(204,255,0,0.2); border-radius: 2px; }
 *::-webkit-scrollbar-thumb:hover { background: rgba(204,255,0,0.4); }
 
-html { scroll-behavior: smooth; }
+html[data-scroll-behavior="smooth"] { scroll-behavior: smooth; }
 
 body {
-  background: var(--ck-bg-gradient, var(--ck-bg));
+  background: var(--ck-bg);
   color: var(--ck-text);
   font-family: 'Space Grotesk', system-ui, sans-serif;
   font-size: 16px;
@@ -90,6 +135,7 @@ h1, h2, h3, h4, h5, h6 {
   font-family: 'Space Grotesk', sans-serif;
   font-weight: 700;
   letter-spacing: -0.02em;
+  color: var(--ck-text);
 }
 h1 { font-size: 2.25rem; }
 h2 { font-size: 1.875rem; }
@@ -97,6 +143,18 @@ h3 { font-size: 1.5rem; }
 h4 { font-size: 1.25rem; }
 h5 { font-size: 1.125rem; }
 h6 { font-size: 1rem; }
+
+.ck-heading-glow, .golden-text-glow {
+  color: #00F5D4;
+  text-shadow: 0 0 16px rgba(0, 245, 212, 0.4), 0 0 30px rgba(0, 225, 255, 0.25);
+}
+
+.ck-heading-gradient {
+  background: linear-gradient(135deg, #00F5D4 0%, #00E1FF 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 12px rgba(0, 245, 212, 0.35));
+}
 code, pre, .ck-mono {
   font-family: 'JetBrains Mono', monospace;
 }
@@ -143,8 +201,8 @@ code, pre, .ck-mono {
 .ck-btn-primary {
   display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
   padding: 0.5rem 1.25rem;
-  background: var(--ck-lime);
-  color: #000;
+  background: linear-gradient(135deg, #00F5D4 0%, #00E1FF 100%);
+  color: #030712;
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.75rem;
   font-weight: 700;
@@ -155,16 +213,17 @@ code, pre, .ck-mono {
   cursor: pointer;
   transition: all 0.2s ease;
   white-space: nowrap;
+  box-shadow: 0 0 16px rgba(0, 245, 212, 0.35);
 }
 .ck-btn-primary:hover {
-  background: #DEFF33;
-  box-shadow: 0 0 20px rgba(204,255,0,0.4);
+  background: linear-gradient(135deg, #00FFDB 0%, #26E6FF 100%);
+  box-shadow: 0 0 24px rgba(0, 245, 212, 0.55), 0 0 35px rgba(0, 225, 255, 0.3);
   transform: translateY(-1px);
 }
 .ck-btn-primary:active { transform: translateY(0); }
 .ck-btn-primary:disabled {
-  background: #333;
-  color: #666;
+  background: #121F3D;
+  color: #4B6382;
   cursor: not-allowed;
   transform: none;
   box-shadow: none;
@@ -173,23 +232,24 @@ code, pre, .ck-mono {
 .ck-btn-secondary {
   display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
   padding: 0.5rem 1.25rem;
-  background: transparent;
-  color: var(--ck-lime);
+  background: rgba(0, 245, 212, 0.06);
+  color: #00F5D4;
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.75rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  border: 1px solid rgba(204,255,0,0.3);
+  border: 1px solid rgba(0, 245, 212, 0.35);
   border-radius: var(--ck-radius-md);
   cursor: pointer;
   transition: all 0.2s ease;
   white-space: nowrap;
 }
 .ck-btn-secondary:hover {
-  background: rgba(204,255,0,0.06);
-  border-color: rgba(204,255,0,0.6);
-  box-shadow: 0 0 12px rgba(204,255,0,0.15);
+  background: rgba(0, 245, 212, 0.12);
+  border-color: #00F5D4;
+  box-shadow: 0 0 16px rgba(0, 245, 212, 0.3);
+  color: #ffffff;
 }
 
 .ck-btn-danger {
@@ -216,8 +276,8 @@ code, pre, .ck-mono {
 .ck-btn-orange {
   display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
   padding: 0.5rem 1.25rem;
-  background: var(--ck-orange);
-  color: #fff;
+  background: linear-gradient(135deg, #00E1FF 0%, #00F5D4 100%);
+  color: #030712;
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.75rem;
   font-weight: 700;
@@ -229,8 +289,8 @@ code, pre, .ck-mono {
   transition: all 0.2s ease;
 }
 .ck-btn-orange:hover {
-  background: #FF6A33;
-  box-shadow: 0 0 20px rgba(255,77,0,0.4);
+  background: linear-gradient(135deg, #26E6FF 0%, #00FFDB 100%);
+  box-shadow: 0 0 20px rgba(0, 225, 255, 0.5);
   transform: translateY(-1px);
 }
 
@@ -355,26 +415,12 @@ code, pre, .ck-mono {
 .ck-status-inactive::before{ background: var(--ck-text-muted); }
 @keyframes pulse-dot { 0%,100%{opacity:1} 50%{opacity:0.3} }
 
-/* ─── Sidebar ──────────────────────────────────────────────── */
 .ck-sidebar {
-  width: var(--ck-sidebar-width);
-  height: 100vh;
-  margin: 0;
-  background: var(--ck-bg-secondary);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-right: 1px solid var(--ck-border);
-  border-left: none;
-  border-top: none;
-  border-bottom: none;
-  border-radius: 0;
-  display: flex; flex-direction: column;
-  transition: width 0.25s ease, min-width 0.25s ease;
-  position: sticky;
-  top: 0;
-  align-self: stretch;
-  overflow: hidden;
-  flex-shrink: 0;
+  display: none !important;
+  width: 0 !important;
+  min-width: 0 !important;
+  max-width: 0 !important;
+  overflow: hidden !important;
 }
 .ck-sidebar-collapsed {
   width: var(--ck-sidebar-collapsed-width) !important;
@@ -891,5 +937,13 @@ body.drawer-open { overflow: hidden; touch-action: none; }
 }
 .animate-cursor-blink {
   animation: cursor-blink 0.8s step-end infinite;
+}
+
+/* Sharp theme utility layout overrides (forcing boxy corners on cards, inputs, buttons, wrappers, panels) */
+.rounded-sm, .rounded-md, .rounded-lg, .rounded-xl, .rounded-2xl, .rounded-3xl, .rounded-4xl {
+  border-radius: 2px !important;
+}
+.ck-card, .ck-holo-card, .ck-btn-primary, .ck-btn-secondary, .ck-btn-danger, .ck-btn-orange, .ck-input, .ck-field-input, .ck-stat-card, .ck-glass-card {
+  border-radius: 2px !important;
 }
 

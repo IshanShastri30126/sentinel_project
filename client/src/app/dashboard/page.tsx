@@ -476,16 +476,16 @@ export default function DashboardPage() {
               <span className={`inline-block w-2 h-2 rounded-full transition-all duration-500 ${livePulse ? "opacity-100 scale-100" : "opacity-30 scale-75"}`} style={{ backgroundColor: "#CCFF00", boxShadow: "0 0 12px #CCFF00" }} />
               SYSTEM STATUS: SYNCED // OPERATIVE
             </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
+            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[var(--ck-text)]">
               {greeting}, <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#CCFF00] via-[#FF4D00] to-[#FF003C]">{user?.name?.split(" ")[0]}</span> 👋
             </h1>
             <p className="mt-2 text-xs sm:text-sm text-[var(--ck-text-secondary)] font-mono">
-              Welcome back to your CyberKavach portal. Managed clearances: <span className="font-semibold uppercase text-white font-mono">{user?.role?.replace(/_/g, " ")}</span>.
+              Welcome back to your CyberKavach portal. Managed clearances: <span className="font-semibold uppercase text-[var(--ck-text)] font-mono">{user?.role?.replace(/_/g, " ")}</span>.
             </p>
           </div>
           <div className="rounded-xl bg-black/50 backdrop-blur-sm p-3.5 flex flex-col justify-center min-w-[140px] font-mono text-center shrink-0 self-start sm:self-auto border border-white/5">
             <span className="text-[10px] uppercase text-[var(--ck-text-muted)] tracking-wider">Operative Date</span>
-            <span className="text-sm font-bold text-white mt-0.5">{new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span>
+            <span className="text-sm font-bold text-[var(--ck-text)] mt-0.5">{new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span>
             <span className="text-[10px] mt-0.5 uppercase tracking-widest font-semibold" style={{ color: "#CCFF00" }}>{new Date().toLocaleDateString("en-US", { weekday: "long" })}</span>
           </div>
         </div>
@@ -512,7 +512,7 @@ export default function DashboardPage() {
                     <div className="absolute -right-8 -bottom-8 w-24 h-24 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" style={{ background: `radial-gradient(circle, ${accent.glow}, transparent 70%)` }} />
 
                     <div className="flex items-start justify-between mb-3 relative z-[3]">
-                      <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${accent.gradient} flex items-center justify-center text-white shadow-lg`} style={{ boxShadow: `0 4px 16px ${accent.glow}` }}>
+                      <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${accent.gradient} flex items-center justify-center text-[var(--ck-text)] shadow-lg`} style={{ boxShadow: `0 4px 16px ${accent.glow}` }}>
                         {STAT_ICONS[key] || <TrendingUp className="w-5 h-5" />}
                       </div>
                       <span className={`ck-trend ck-trend-${trend.direction}`}>
@@ -543,7 +543,7 @@ export default function DashboardPage() {
                 <motion.div variants={itemVariants} className="ck-glass-card p-5 sm:p-6">
                   <div className="ck-section-header">
                     <Calendar className="w-4.5 h-4.5" style={{ color: "#CCFF00" }} />
-                    <h2 className="text-sm sm:text-base font-bold uppercase tracking-tight text-white font-mono">Upcoming events</h2>
+                    <h2 className="text-sm sm:text-base font-bold uppercase tracking-tight text-[var(--ck-text)] font-mono">Upcoming events</h2>
                     <span className="ml-auto text-[10px] font-mono px-2.5 py-1 rounded-full" style={{ backgroundColor: "rgba(204,255,0,0.08)", border: "1px solid rgba(204,255,0,0.2)", color: "#CCFF00" }}>
                       {opsData.upcomingEvents.length} Active
                     </span>
@@ -573,7 +573,7 @@ export default function DashboardPage() {
                                 <span className="text-[9px] text-[var(--ck-text-muted)] mt-0.5 leading-none">{month}</span>
                               </div>
                               <div className="min-w-0">
-                                <p className="text-sm font-semibold text-white group-hover:text-[#CCFF00] transition-colors truncate">{event.title}</p>
+                                <p className="text-sm font-semibold text-[var(--ck-text)] group-hover:text-[var(--ck-primary)] transition-colors truncate">{event.title}</p>
                                 <p className="text-xs flex items-center gap-1.5 text-[var(--ck-text-muted)] mt-0.5">
                                   <Clock className="w-3.5 h-3.5 shrink-0" style={{ color: "#CCFF00" }} />
                                   {new Date(event.startDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -587,7 +587,7 @@ export default function DashboardPage() {
                                   <span className="text-[9px] font-mono mt-0.5" style={{ color: "#CCFF00" }}>{event._count.attendance} ATTENDED</span>
                                 )}
                               </div>
-                              <ChevronRight className="w-4 h-4 text-[var(--ck-text-muted)] group-hover:text-[#CCFF00] group-hover:translate-x-0.5 transition-all hidden sm:block" />
+                              <ChevronRight className="w-4 h-4 text-[var(--ck-text-muted)] group-hover:text-[var(--ck-primary)] group-hover:translate-x-0.5 transition-all hidden sm:block" />
                             </div>
                           </motion.div>
                         );
@@ -608,7 +608,7 @@ export default function DashboardPage() {
                         <span className="w-2.5 h-2.5 rounded-full bg-[#FF4D00]/80" />
                         <span className="w-2.5 h-2.5 rounded-full bg-[#CCFF00]/80" />
                       </div>
-                      <h2 className="text-xs font-bold flex items-center gap-2 uppercase tracking-wider text-white font-mono">
+                      <h2 className="text-xs font-bold flex items-center gap-2 uppercase tracking-wider text-[var(--ck-text)] font-mono">
                         <Activity className="w-3.5 h-3.5" style={{ color: "#CCFF00" }} /> LIVE ATTENDANCE STREAM
                       </h2>
                     </div>
@@ -637,7 +637,7 @@ export default function DashboardPage() {
                             <div className="flex items-center gap-3 min-w-0">
                               <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: "#CCFF00", boxShadow: "0 0 8px #CCFF00" }} />
                               <div className="min-w-0">
-                                <span className="text-white font-semibold">{record.user.name}</span>
+                                <span className="text-[var(--ck-text)] font-semibold">{record.user.name}</span>
                                 <span className="text-[var(--ck-text-muted)] mx-1.5 hidden sm:inline">checked in to</span>
                                 <span className="text-[var(--ck-text-muted)] mx-1 sm:hidden"> → </span>
                                 <span style={{ color: "#CCFF00" }}>{record.event.title}</span>
@@ -662,7 +662,7 @@ export default function DashboardPage() {
                 <motion.div variants={itemVariants} className="ck-glass-card p-5 sm:p-6">
                   <div className="ck-section-header">
                     <ClipboardList className="w-4.5 h-4.5" style={{ color: "#FF4D00" }} />
-                    <h2 className="text-sm font-bold uppercase tracking-tight text-white font-mono">Pending Actions</h2>
+                    <h2 className="text-sm font-bold uppercase tracking-tight text-[var(--ck-text)] font-mono">Pending Actions</h2>
                   </div>
                   <div className="space-y-3">
                     {/* Action 1: Pending Approvals */}
@@ -671,7 +671,7 @@ export default function DashboardPage() {
                       className="group flex items-center gap-4 p-4 rounded-xl border border-white/[0.04] hover:border-[#FF4D00]/30 cursor-pointer hover:bg-[#FF4D00]/[0.03] transition-all duration-300"
                     >
                       <div className="relative shrink-0">
-                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#FF4D00] to-[#FF003C] flex items-center justify-center text-white text-base font-extrabold shadow-lg" style={{ boxShadow: "0 4px 20px rgba(255,77,0,0.25)" }}>
+                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#FF4D00] to-[#FF003C] flex items-center justify-center text-[var(--ck-text)] text-base font-extrabold shadow-lg" style={{ boxShadow: "0 4px 20px rgba(255,77,0,0.25)" }}>
                           {opsData.pendingApprovals}
                         </div>
                         {opsData.pendingApprovals > 0 && (
@@ -682,10 +682,10 @@ export default function DashboardPage() {
                         )}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-bold text-white group-hover:text-[#FF4D00] transition-colors">Pending Approvals</p>
+                        <p className="text-sm font-bold text-[var(--ck-text)] group-hover:text-[var(--ck-accent)] transition-colors">Pending Approvals</p>
                         <p className="text-[11px] text-[var(--ck-text-muted)] mt-0.5">Click to audit request logs</p>
                       </div>
-                      <ArrowRight className="w-4 h-4 text-[var(--ck-text-muted)] group-hover:text-[#FF4D00] transform group-hover:translate-x-1 transition-all shrink-0" />
+                      <ArrowRight className="w-4 h-4 text-[var(--ck-text-muted)] group-hover:text-[var(--ck-accent)] transform group-hover:translate-x-1 transition-all shrink-0" />
                     </div>
 
                     {/* Action 2: Pending Registration approvals */}
@@ -694,7 +694,7 @@ export default function DashboardPage() {
                       className="group flex items-center gap-4 p-4 rounded-xl border border-white/[0.04] hover:border-[#FF003C]/30 cursor-pointer hover:bg-[#FF003C]/[0.03] transition-all duration-300"
                     >
                       <div className="relative shrink-0">
-                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#FF003C] to-[#990024] flex items-center justify-center text-white text-base font-extrabold shadow-lg" style={{ boxShadow: "0 4px 20px rgba(255,0,60,0.2)" }}>
+                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#FF003C] to-[#990024] flex items-center justify-center text-[var(--ck-text)] text-base font-extrabold shadow-lg" style={{ boxShadow: "0 4px 20px rgba(255,0,60,0.2)" }}>
                           {opsData.pendingUsers}
                         </div>
                         {opsData.pendingUsers > 0 && (
@@ -705,10 +705,10 @@ export default function DashboardPage() {
                         )}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-bold text-white group-hover:text-[#FF003C] transition-colors">User Registrations</p>
+                        <p className="text-sm font-bold text-[var(--ck-text)] group-hover:text-[var(--ck-danger)] transition-colors">User Registrations</p>
                         <p className="text-[11px] text-[var(--ck-text-muted)] mt-0.5">Approve new access permissions</p>
                       </div>
-                      <ArrowRight className="w-4 h-4 text-[var(--ck-text-muted)] group-hover:text-white transform group-hover:translate-x-1 transition-all shrink-0" />
+                      <ArrowRight className="w-4 h-4 text-[var(--ck-text-muted)] group-hover:text-[var(--ck-text)] transform group-hover:translate-x-1 transition-all shrink-0" />
                     </div>
                   </div>
                 </motion.div>
@@ -719,7 +719,7 @@ export default function DashboardPage() {
                 <motion.div variants={itemVariants} className="ck-glass-card p-5 sm:p-6">
                   <div className="ck-section-header">
                     <Users className="w-4.5 h-4.5" style={{ color: "#CCFF00" }} />
-                    <h2 className="text-sm font-bold uppercase tracking-tight text-white font-mono">Team Distribution</h2>
+                    <h2 className="text-sm font-bold uppercase tracking-tight text-[var(--ck-text)] font-mono">Team Distribution</h2>
                   </div>
                   <div className="space-y-4">
                     {clubData.roleDistribution.map((r, idx) => {
@@ -730,7 +730,7 @@ export default function DashboardPage() {
                         <div key={r.role}>
                           <div className="flex justify-between text-xs font-mono mb-2">
                             <span className="text-[var(--ck-text-secondary)] font-semibold uppercase">{r.role.replace(/_/g, " ")}</span>
-                            <span className="text-white font-bold">{r.count} <span className="text-[var(--ck-text-muted)]">({pct}%)</span></span>
+                            <span className="text-[var(--ck-text)] font-bold">{r.count} <span className="text-[var(--ck-text-muted)]">({pct}%)</span></span>
                           </div>
                           <div className="h-2 rounded-full overflow-hidden bg-white/[0.03] border border-white/[0.04]">
                             <motion.div
@@ -756,7 +756,7 @@ export default function DashboardPage() {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-5 gap-2">
               <div className="ck-section-header mb-0 pb-0 border-b-0">
                 <Database className="w-4.5 h-4.5" style={{ color: "#CCFF00" }} />
-                <h2 className="text-sm sm:text-base font-bold uppercase tracking-tight text-white font-mono">Member Directory</h2>
+                <h2 className="text-sm sm:text-base font-bold uppercase tracking-tight text-[var(--ck-text)] font-mono">Member Directory</h2>
               </div>
               <span className="text-[10px] font-mono px-2.5 py-1 rounded-full self-start sm:self-auto" style={{ backgroundColor: "rgba(204,255,0,0.08)", border: "1px solid rgba(204,255,0,0.2)", color: "#CCFF00" }}>
                 {filteredMembers.length} Records
@@ -835,7 +835,7 @@ export default function DashboardPage() {
                           <span className="font-mono font-bold text-xs" style={{ color: "#CCFF00" }}>{member.id}</span>
                         </td>
                         <td data-label="Name">
-                          <span className="font-semibold text-white">{member.name}</span>
+                          <span className="font-semibold text-[var(--ck-text)]">{member.name}</span>
                         </td>
                         <td data-label="Email">
                           <span className="text-[var(--ck-text-secondary)] text-xs sm:text-sm">{member.email}</span>
@@ -847,7 +847,7 @@ export default function DashboardPage() {
                           <span className={`ck-status ck-status-${member.status}`}>{member.status}</span>
                         </td>
                         <td data-label="Points">
-                          <span className="font-mono font-bold text-white text-sm">{member.points}</span>
+                          <span className="font-mono font-bold text-[var(--ck-text)] text-sm">{member.points}</span>
                         </td>
                         <td data-label="Joined">
                           <span className="text-[var(--ck-text-muted)] text-xs font-mono">{formatDate(member.joinedDate)}</span>
@@ -913,7 +913,7 @@ export default function DashboardPage() {
                 className="ck-stat-card ck-shimmer flex items-center gap-4 group"
                 style={{ "--accent-color": stat.accent.text } as React.CSSProperties}
               >
-                <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${stat.accent.gradient} flex items-center justify-center text-white shrink-0`} style={{ boxShadow: `0 4px 16px ${stat.accent.glow}` }}>
+                <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${stat.accent.gradient} flex items-center justify-center text-[var(--ck-text)] shrink-0`} style={{ boxShadow: `0 4px 16px ${stat.accent.glow}` }}>
                   {stat.icon}
                 </div>
                 <div className="min-w-0 relative z-[3]">
@@ -936,7 +936,7 @@ export default function DashboardPage() {
               <motion.div variants={itemVariants} className="ck-glass-card p-5 sm:p-6">
                 <div className="ck-section-header">
                   <Shield className="w-4.5 h-4.5 animate-pulse" style={{ color: "#CCFF00" }} />
-                  <h2 className="text-sm sm:text-base font-bold uppercase tracking-tight text-white font-mono">My Registered Events</h2>
+                  <h2 className="text-sm sm:text-base font-bold uppercase tracking-tight text-[var(--ck-text)] font-mono">My Registered Events</h2>
                   <span className="ml-auto text-[10px] font-mono text-[var(--ck-text-muted)]">
                     {registeredEvents.length} Event{registeredEvents.length !== 1 ? "s" : ""}
                   </span>
@@ -993,7 +993,7 @@ export default function DashboardPage() {
                           {/* Details */}
                           <div className="p-4 sm:p-5 flex-1 flex flex-col justify-between">
                             <div>
-                              <h3 className="font-bold text-sm sm:text-base text-white group-hover:text-[#CCFF00] transition-colors line-clamp-1">
+                              <h3 className="font-bold text-sm sm:text-base text-[var(--ck-text)] group-hover:text-[var(--ck-primary)] transition-colors line-clamp-1">
                                 {event.title}
                               </h3>
                               {event.description && (
@@ -1037,10 +1037,10 @@ export default function DashboardPage() {
                                           href={getFileUrl(doc)}
                                           target="_blank"
                                           rel="noopener noreferrer"
-                                          className="flex items-center gap-1.5 text-[10px] font-mono text-zinc-400 hover:text-[#CCFF00] transition truncate"
+                                          className="flex items-center gap-1.5 text-[10px] font-mono text-[var(--ck-text-secondary)] hover:text-[var(--ck-primary)] transition truncate"
                                           onClick={(e) => e.stopPropagation()}
                                         >
-                                          <FileText className="w-3.5 h-3.5 text-[#FF4D00] shrink-0" />
+                                          <FileText className="w-3.5 h-3.5 text-[var(--ck-accent)] shrink-0" />
                                           <span className="truncate">{doc.split("/").pop()}</span>
                                         </a>
                                       ))}
@@ -1075,7 +1075,7 @@ export default function DashboardPage() {
               <motion.div variants={itemVariants} className="ck-glass-card p-5 sm:p-6">
                 <div className="ck-section-header">
                   <Calendar className="w-4.5 h-4.5 animate-pulse" style={{ color: "#CCFF00" }} />
-                  <h2 className="text-sm sm:text-base font-bold uppercase tracking-tight text-white font-mono">Upcoming Cyber Events</h2>
+                  <h2 className="text-sm sm:text-base font-bold uppercase tracking-tight text-[var(--ck-text)] font-mono">Upcoming Cyber Events</h2>
                   <span className="ml-auto text-[10px] font-mono text-[var(--ck-text-muted)]">Register to participate</span>
                 </div>
 
@@ -1117,7 +1117,7 @@ export default function DashboardPage() {
                           {/* Details */}
                           <div className="p-4 sm:p-5 flex-1 flex flex-col justify-between">
                             <div>
-                              <h3 className="font-bold text-sm sm:text-base text-white group-hover:text-[#CCFF00] transition-colors line-clamp-1">{event.title}</h3>
+                              <h3 className="font-bold text-sm sm:text-base text-[var(--ck-text)] group-hover:text-[var(--ck-primary)] transition-colors line-clamp-1">{event.title}</h3>
                               {event.description && (
                                 <p className="text-xs text-[var(--ck-text-muted)] mt-1.5 line-clamp-2 leading-relaxed">{event.description}</p>
                               )}
@@ -1176,7 +1176,7 @@ export default function DashboardPage() {
               <motion.div variants={itemVariants} className="ck-glass-card p-5 sm:p-6">
                 <div className="ck-section-header">
                   <TrendingUp className="w-4.5 h-4.5" style={{ color: "#CCFF00" }} />
-                  <h2 className="text-sm sm:text-base font-bold uppercase tracking-tight text-white font-mono">Contribution Log</h2>
+                  <h2 className="text-sm sm:text-base font-bold uppercase tracking-tight text-[var(--ck-text)] font-mono">Contribution Log</h2>
                 </div>
 
                 {!memberHistory?.points || memberHistory.points.length === 0 ? (
@@ -1197,7 +1197,7 @@ export default function DashboardPage() {
                         <div className="flex items-center gap-3 min-w-0">
                           <div className="w-1 h-8 rounded-full shrink-0" style={{ background: log.points >= 0 ? "linear-gradient(180deg, #CCFF00, #99BF00)" : "linear-gradient(180deg, #FF003C, #CC002F)" }} />
                           <div className="min-w-0">
-                            <p className="font-semibold text-white uppercase">{log.category.replace(/_/g, " ")}</p>
+                            <p className="font-semibold text-[var(--ck-text)] uppercase">{log.category.replace(/_/g, " ")}</p>
                             {log.reason && <p className="text-[10px] text-[var(--ck-text-secondary)] mt-0.5 truncate">{log.reason}</p>}
                             <p className="text-[9px] text-[var(--ck-text-muted)] mt-0.5">Approved by {log.giver?.name || "System"} · {new Date(log.createdAt).toLocaleDateString()}</p>
                           </div>
@@ -1222,7 +1222,7 @@ export default function DashboardPage() {
               <motion.div variants={itemVariants} className="ck-glass-card p-5 sm:p-6">
                 <div className="ck-section-header">
                   <Award className="w-4.5 h-4.5" style={{ color: "#CCFF00" }} />
-                  <h2 className="text-sm sm:text-base font-bold uppercase tracking-tight text-white font-mono">BADGES VAULT</h2>
+                  <h2 className="text-sm sm:text-base font-bold uppercase tracking-tight text-[var(--ck-text)] font-mono">BADGES VAULT</h2>
                 </div>
 
                 {!memberHistory?.badges || memberHistory.badges.length === 0 ? (
@@ -1231,7 +1231,7 @@ export default function DashboardPage() {
                     <p className="text-xs uppercase font-mono text-[var(--ck-text-secondary)]">No badges unlocked yet</p>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-3 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     {memberHistory.badges.map((b) => {
                       const theme = getBadgeTheme(b.badge.name);
                       return (
@@ -1258,7 +1258,7 @@ export default function DashboardPage() {
                           >
                             <span className="text-lg leading-none">{theme.emoji}</span>
                           </div>
-                          <p className="relative text-[9px] font-mono font-bold mt-1 truncate uppercase tracking-wider text-white/80 group-hover:text-white transition-colors">{b.badge.name}</p>
+                          <p className="relative text-[9px] font-mono font-bold mt-1 truncate uppercase tracking-wider text-white/80 group-hover:text-[var(--ck-text)] transition-colors">{b.badge.name}</p>
                         </motion.div>
                       );
                     })}
@@ -1271,7 +1271,7 @@ export default function DashboardPage() {
               <motion.div variants={itemVariants} className="ck-glass-card p-5 sm:p-6">
                 <div className="ck-section-header">
                   <Zap className="w-4.5 h-4.5" style={{ color: "#FF4D00" }} />
-                  <h2 className="text-sm sm:text-base font-bold uppercase tracking-tight text-white font-mono">QUICK CHANNELS</h2>
+                  <h2 className="text-sm sm:text-base font-bold uppercase tracking-tight text-[var(--ck-text)] font-mono">QUICK CHANNELS</h2>
                 </div>
                 <div className="space-y-2">
                   {[
@@ -1284,8 +1284,8 @@ export default function DashboardPage() {
                       onClick={() => router.push(action.href)}
                       className="w-full flex items-center justify-between px-4 py-3 rounded-xl border border-white/[0.04] hover:border-[rgba(204,255,0,0.2)] bg-white/[0.02] hover:bg-white/[0.04] text-[11px] font-mono transition-all group"
                     >
-                      <span className="text-white group-hover:text-[#CCFF00] transition-colors">{action.label}</span>
-                      <ArrowRight className="w-3.5 h-3.5 text-[var(--ck-text-muted)] group-hover:text-[#CCFF00] group-hover:translate-x-0.5 transition-all" />
+                      <span className="text-[var(--ck-text)] group-hover:text-[var(--ck-primary)] transition-colors">{action.label}</span>
+                      <ArrowRight className="w-3.5 h-3.5 text-[var(--ck-text-muted)] group-hover:text-[var(--ck-primary)] group-hover:translate-x-0.5 transition-all" />
                     </button>
                   ))}
                 </div>

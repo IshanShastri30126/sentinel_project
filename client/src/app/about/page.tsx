@@ -1,7 +1,9 @@
 "use client";
 
 import React, { useEffect, useRef } from "react";
-import { api } from "@/lib/api";
+import Link from "next/link";
+import { motion } from "framer-motion";
+import { Shield, ArrowLeft, ShieldAlert, Trophy, Terminal, Heart, Info, Users, LogIn } from "lucide-react";
 
 const LinkedinIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
   <svg viewBox="0 0 24 24" fill="currentColor" className={className} style={{ width: "1em", height: "1em" }}>
@@ -22,10 +24,6 @@ const WhatsappIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
     <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.513 2.262 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.5-5.729-1.452L0 24zm6.59-4.846c1.6.95 3.188 1.449 4.825 1.451 5.436 0 9.86-4.42 9.864-9.864.002-2.637-1.03-5.114-2.906-6.99C16.558 1.876 14.077.845 11.442.845 6.008.845 1.585 5.26 1.581 10.697c-.001 1.716.452 3.39 1.312 4.869l-.993 3.629 3.71-.973zm11.567-7.25c-.314-.157-1.859-.917-2.128-1.015-.27-.099-.465-.147-.659.148-.195.295-.754.95-.923 1.147-.17.197-.339.221-.653.064-1.294-.648-2.14-1.127-2.99-2.585-.224-.384.224-.356.643-1.198.07-.141.035-.264-.018-.372-.054-.108-.465-1.118-.637-1.532-.167-.403-.35-.347-.481-.353-.125-.006-.27-.008-.415-.008-.146 0-.383.055-.584.275-.2.22-.765.75-.765 1.83 0 1.078.784 2.12.893 2.27.109.15 1.543 2.356 3.738 3.302.522.224.93.359 1.249.46.525.166 1.002.143 1.379.088.42-.062 1.859-.76 2.128-1.492.27-.731.27-1.357.19-1.492-.08-.135-.295-.221-.609-.378z" />
   </svg>
 );
-
-import Link from "next/link";
-import { motion } from "framer-motion";
-import { Shield, ArrowLeft, ShieldAlert, Trophy, Terminal, Heart, Info, Users, LogIn } from "lucide-react";
 
 // =========================================================
 // 3D BRIGHT NEON RED WORLD GLOBE WITH CYBER THREAT ARCS
@@ -485,11 +483,6 @@ function CyberBackground3D() {
       ctx.restore();
 
       // Draw 3D Solar Prominences (raw energy arcing across sun surface)
-      ctx.strokeStyle = "rgba(255, 100, 0, 0.35)";
-      ctx.lineWidth = 1.2;
-      ctx.shadowColor = "#ff5500";
-      ctx.shadowBlur = 8;
-      
       for (let i = 0; i < projectedPoints.length; i += 12) {
         const n1 = projectedPoints[i];
         if (n1.z > R * 0.1) continue;
@@ -524,13 +517,23 @@ function CyberBackground3D() {
           const cpx = centerX + cx1 * cScale;
           const cpy = centerY + cy2 * cScale;
           
+          // Draw prominence glow (fast)
+          ctx.strokeStyle = "rgba(255, 85, 0, 0.12)";
+          ctx.lineWidth = 3.6;
+          ctx.beginPath();
+          ctx.moveTo(n1.px, n1.py);
+          ctx.quadraticCurveTo(cpx, cpy, n2.px, n2.py);
+          ctx.stroke();
+
+          // Draw prominence core
+          ctx.strokeStyle = "rgba(255, 100, 0, 0.35)";
+          ctx.lineWidth = 1.2;
           ctx.beginPath();
           ctx.moveTo(n1.px, n1.py);
           ctx.quadraticCurveTo(cpx, cpy, n2.px, n2.py);
           ctx.stroke();
         }
       }
-      ctx.shadowBlur = 0;
 
       // Spawn Threat Arcs
       if (threatArcs.length < maxThreats && Math.random() < 0.02) {
@@ -607,13 +610,16 @@ function CyberBackground3D() {
           const px = centerX + x1 * scale;
           const py = centerY + y2 * scale;
 
+          // Glow layer (fast)
+          ctx.fillStyle = "rgba(255, 204, 0, 0.18)";
+          ctx.beginPath();
+          ctx.arc(px, py, Math.max(0.2, 8 * scale), 0, Math.PI * 2);
+          ctx.fill();
+
           ctx.fillStyle = "#ffcc00";
-          ctx.shadowColor = "#ffcc00";
-          ctx.shadowBlur = 10;
           ctx.beginPath();
           ctx.arc(px, py, Math.max(0.1, 4 * scale), 0, Math.PI * 2);
           ctx.fill();
-          ctx.shadowBlur = 0;
         }
       });
 
@@ -654,9 +660,15 @@ function CyberBackground3D() {
           continue;
         }
 
+        // Missile outer glow (fast)
+        ctx.strokeStyle = "rgba(255, 51, 51, 0.25)";
+        ctx.lineWidth = 10;
+        ctx.beginPath();
+        ctx.moveTo(m.x, m.y);
+        ctx.lineTo(m.x - m.vx * 1.5, m.y - m.vy * 1.5);
+        ctx.stroke();
+
         ctx.strokeStyle = "#ff3333";
-        ctx.shadowColor = "#ff3333";
-        ctx.shadowBlur = 18;
         ctx.lineWidth = 4;
         ctx.beginPath();
         ctx.moveTo(m.x, m.y);
@@ -669,11 +681,10 @@ function CyberBackground3D() {
         ctx.moveTo(m.x, m.y);
         ctx.lineTo(m.x - m.vx * 1.5, m.y - m.vy * 1.5);
         ctx.stroke();
-        ctx.shadowBlur = 0;
       }
 
       // 5.0. Draw Pulsating Sun Solar Flare Rays (behind globe structure)
-      let sunTime = Date.now() * 0.002;
+      const sunTime = Date.now() * 0.002;
       ctx.save();
       ctx.translate(centerX, centerY);
       for (let r = 0; r < 24; r++) {
@@ -796,13 +807,16 @@ function CyberBackground3D() {
         });
         ctx.stroke();
         
+        // Simulated glow (fast)
+        ctx.fillStyle = fc.color === "#ffffff" ? "rgba(255, 255, 255, 0.18)" : "rgba(255, 204, 0, 0.18)";
+        ctx.beginPath();
+        ctx.arc(px, py, 12 * scale, 0, Math.PI * 2);
+        ctx.fill();
+
         ctx.fillStyle = fc.color;
-        ctx.shadowColor = fc.color;
-        ctx.shadowBlur = 15;
         ctx.beginPath();
         ctx.arc(px, py, 6 * scale, 0, Math.PI * 2);
         ctx.fill();
-        ctx.shadowBlur = 0;
       }
       
       if (activeFusionCores.length === 2) {
@@ -866,9 +880,14 @@ function CyberBackground3D() {
         if (blast.type === 'fusion') {
           const ringRad = ageRatio * R * 1.6;
           
+          // Fusion outer glow (fast)
+          ctx.strokeStyle = `rgba(255, 204, 0, ${progressAlpha * 0.15})`;
+          ctx.lineWidth = 40 * progressAlpha;
+          ctx.beginPath();
+          ctx.arc(centerX, centerY, ringRad, 0, Math.PI * 2);
+          ctx.stroke();
+          
           ctx.strokeStyle = `rgba(255, 255, 255, ${progressAlpha})`;
-          ctx.shadowColor = "#ffffff";
-          ctx.shadowBlur = 25 * progressAlpha;
           ctx.lineWidth = 10 * progressAlpha;
           ctx.beginPath();
           ctx.arc(centerX, centerY, ringRad, 0, Math.PI * 2);
@@ -879,14 +898,8 @@ function CyberBackground3D() {
           ctx.beginPath();
           ctx.arc(centerX, centerY, ringRad, 0, Math.PI * 2);
           ctx.stroke();
-          ctx.shadowBlur = 0;
         } else {
           const ringRad = ageRatio * R * 0.7;
-          ctx.strokeStyle = `rgba(239, 68, 68, ${progressAlpha})`;
-          ctx.shadowColor = "#ef4444";
-          ctx.shadowBlur = 15 * progressAlpha;
-          ctx.lineWidth = 4 * progressAlpha;
-          ctx.beginPath();
           
           const bx1 = blast.x * cosY - blast.z * sinY;
           const bz1 = blast.x * sinY + blast.z * cosY;
@@ -896,10 +909,19 @@ function CyberBackground3D() {
           const bScale = fov / Math.max(10, fov + bz2);
           const bpx = centerX + bx1 * bScale;
           const bpy = centerY + by2 * bScale;
-          
+
+          // Blast glow (fast)
+          ctx.strokeStyle = `rgba(239, 68, 68, ${progressAlpha * 0.25})`;
+          ctx.lineWidth = 12 * progressAlpha;
+          ctx.beginPath();
           ctx.arc(bpx, bpy, ringRad * bScale, 0, Math.PI * 2);
           ctx.stroke();
-          ctx.shadowBlur = 0;
+          
+          ctx.strokeStyle = `rgba(239, 68, 68, ${progressAlpha})`;
+          ctx.lineWidth = 4 * progressAlpha;
+          ctx.beginPath();
+          ctx.arc(bpx, bpy, ringRad * bScale, 0, Math.PI * 2);
+          ctx.stroke();
         }
       }
 
@@ -907,11 +929,25 @@ function CyberBackground3D() {
       if (mouseX > 0 && mouseY > 0) {
         reticleRotation += 0.015;
 
+        // Glow layer (fast)
+        ctx.strokeStyle = "rgba(239, 68, 68, 0.25)";
+        ctx.lineWidth = 3.6;
+        ctx.beginPath();
+        ctx.arc(mouseX, mouseY, 28, 0, Math.PI * 2);
+        ctx.setLineDash([6, 10]);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(mouseX - 38, mouseY); ctx.lineTo(mouseX - 28, mouseY);
+        ctx.moveTo(mouseX + 28, mouseY); ctx.lineTo(mouseX + 38, mouseY);
+        ctx.moveTo(mouseX, mouseY - 38); ctx.lineTo(mouseX, mouseY - 28);
+        ctx.moveTo(mouseX, mouseY + 28); ctx.lineTo(mouseX, mouseY + 38);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Main core lines
         ctx.strokeStyle = "#ef4444";
         ctx.lineWidth = 1.2;
-        ctx.shadowColor = "#ef4444";
-        ctx.shadowBlur = 10;
-        
         ctx.beginPath();
         ctx.arc(mouseX, mouseY, 28, 0, Math.PI * 2);
         ctx.setLineDash([6, 10]);
@@ -929,7 +965,6 @@ function CyberBackground3D() {
         ctx.beginPath();
         ctx.arc(mouseX, mouseY, 2, 0, Math.PI * 2);
         ctx.fill();
-        ctx.shadowBlur = 0;
 
         projectedPoints.forEach((item) => {
           if (item.z > R * 0.8) return;
@@ -1009,49 +1044,50 @@ export default function AboutPage() {
   const timelineEvents = [
     {
       year: "2024",
-      title: "Club Inauguration",
-      desc: "CyberKavach formed as a dedicated cybersecurity interest group with 30 initial members."
+      title: "Club Foundation",
+      desc: "Chakravyuh formed as a dedicated cyber strategic defense interest group with 30 initial members."
     },
     {
       year: "2025",
       title: "Scaling Operations",
-      desc: "Expanded to 200+ members. Launched first college-level Hackathon and built automated scoring boards."
+      desc: "Expanded to 200+ members. Launched major college-level Hackathons and strategic defense scoring boards."
     },
     {
       year: "2026",
-      title: "CyberKavach 2.0 Launch",
-      desc: "Launched a fully centralized operating workspace hosting attendance scanner consoles and digital credentials validation."
+      title: "Chakravyuh 2.0 Hub",
+      desc: "Launched a centralized digital operations workspace hosting attendance scanner consoles and credential verification."
     }
   ];
 
   return (
-    <div className="min-h-screen bg-black text-white overflow-hidden selection:bg-red-500/30 font-sans relative">
+    <div className="min-h-screen bg-[#030712] text-white overflow-hidden selection:bg-[#FFD700]/30 font-sans relative">
       
-      {/* Solid Dark Background */}
-      <div className="fixed inset-0 z-0 pointer-events-none bg-black" />
+      {/* Solid Dark Background with 3D Cyber Globe */}
+      <div className="fixed inset-0 z-0 pointer-events-none bg-[#030712]">
+        <CyberBackground3D />
+      </div>
 
       {/* Navbar */}
-      <header className="relative z-50 flex items-center justify-between px-6 py-6 max-w-7xl mx-auto border-b border-white/10">
+      <header className="relative z-50 flex items-center justify-between px-6 py-6 max-w-7xl mx-auto border-b border-[#121F3D]">
         <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="flex items-center gap-4">
           <Link href="/" className="p-2 rounded-full hover:bg-white/10 transition-colors">
-            <ArrowLeft className="w-5 h-5" />
+            <ArrowLeft className="w-5 h-5 text-[#FFD700]" />
           </Link>
           <div className="flex items-center gap-3">
             <Link href="/" className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-red-900 to-red-600 flex items-center justify-center shadow-[0_0_20px_rgba(220,38,38,0.5)] border border-red-500/50">
-                <Shield className="w-6 h-6 text-white shrink-0" />
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#FFD700] to-[#D4AF37] flex items-center justify-center shadow-[0_0_20px_rgba(255,215,0,0.5)] border border-[#FFD700]/50">
+                <Shield className="w-6 h-6 text-black shrink-0" />
               </div>
-              <span className="text-xl font-bold tracking-widest font-mono hidden sm:inline-block animate-neon-shiver">CYBERKAVACH</span>
+              <span className="text-xl font-bold tracking-widest font-mono hidden sm:inline-block text-[#FFD700]">CHAKRAVYUH</span>
             </Link>
           </div>
-
         </motion.div>
         
         <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="flex items-center gap-3 sm:gap-5">
-          <Link href="/about" className="md:hidden flex items-center justify-center p-1.5 text-red-400 hover:text-white transition-colors" title="About">
+          <Link href="/about" className="md:hidden flex items-center justify-center p-1.5 text-[#FFD700] hover:text-white transition-colors" title="About">
             <Info className="w-5 h-5" />
           </Link>
-          <Link href="/team" className="md:hidden flex items-center justify-center p-1.5 text-slate-300 hover:text-red-400 transition-colors" title="Crew">
+          <Link href="/team" className="md:hidden flex items-center justify-center p-1.5 text-[#00F5D4] hover:text-[#FFD700] transition-colors" title="Crew">
             <Users className="w-5 h-5" />
           </Link>
           <Link href="/auth" className="md:hidden flex items-center justify-center p-1.5 text-slate-400 hover:text-white transition-colors" title="Sign In">
@@ -1066,15 +1102,15 @@ export default function AboutPage() {
           <motion.div 
             initial={{ opacity: 0, y: -20 }} 
             animate={{ opacity: 1, y: 0 }} 
-            className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-900/30 border border-red-500/30 text-red-400 text-xs font-mono mb-6 uppercase tracking-wider animate-pulse"
+            className="inline-flex items-center gap-2 px-4 py-1 rounded-full bg-[#FFD700]/10 border border-[#FFD700]/30 text-[#FFD700] text-xs font-mono mb-6 uppercase tracking-wider animate-pulse"
           >
-            Digital Shield Initiative
+            Invincible Strategic Shield
           </motion.div>
           
           <motion.h1 
             initial={{ opacity: 0, y: 20 }} 
             animate={{ opacity: 1, y: 0 }} 
-            className="text-5xl md:text-7xl font-black mb-6 bg-gradient-to-br from-white via-slate-200 to-red-500/50 bg-clip-text text-transparent"
+            className="text-5xl md:text-7xl font-black mb-6 bg-gradient-to-br from-white via-slate-200 to-[#FFD700] bg-clip-text text-transparent"
           >
             Our Mission & Vision
           </motion.h1>
@@ -1083,17 +1119,17 @@ export default function AboutPage() {
             initial={{ opacity: 0 }} 
             animate={{ opacity: 1 }} 
             transition={{ delay: 0.2 }}
-            className="text-lg md:text-xl text-slate-400 max-w-3xl mx-auto leading-relaxed"
+            className="text-lg md:text-xl text-zinc-300 max-w-3xl mx-auto leading-relaxed"
           >
-            CyberKavach is a collective of security researchers, software developers, and ethical hackers. We are committed to fostering a robust defensive and offensive security culture through collaborative training, simulations, and community auditing.
+            Chakravyuh Club is a collective of security researchers, software developers, and ethical hackers. Inspired by the legendary 7-tier strategic formation of Mahabharat, we build invincible cyber defense systems through collaborative training and simulations.
           </motion.p>
         </div>
 
         {/* Pillars of Focus */}
         <section className="mb-32">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-extrabold tracking-tight">Core Pillars of <span className="text-red-500 font-mono">CyberKavach</span></h2>
-            <p className="text-slate-500 text-xs mt-1 font-mono">// CORE COMPETENCIES & OPERATIONS</p>
+            <h2 className="text-3xl font-extrabold tracking-tight">Core Pillars of <span className="text-[#FFD700] font-mono">Chakravyuh</span></h2>
+            <p className="text-zinc-500 text-xs mt-1 font-mono">{"// CORE COMPETENCIES & FORMATION"}</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -1104,16 +1140,16 @@ export default function AboutPage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: idx * 0.1 }}
-                className="group relative rounded-2xl bg-white/[0.02] border border-white/10 hover:border-red-500/40 p-6 transition-all hover:bg-white/[0.05]"
+                className="group relative rounded-2xl bg-[#080E24]/60 border border-[#121F3D] hover:border-[#FFD700]/50 p-6 transition-all hover:bg-[#050A18]"
               >
-                <div className="absolute top-4 right-4 text-[8px] font-mono text-zinc-650 group-hover:text-red-500/40 transition-colors">
+                <div className="absolute top-4 right-4 text-[8px] font-mono text-zinc-500 group-hover:text-[#FFD700]/70 transition-colors">
                   SEC_PLR_{idx + 1}
                 </div>
-                <div className="mb-4 p-3 rounded-xl bg-white/[0.03] w-fit border border-white/5 group-hover:border-red-500/20 group-hover:bg-red-500/5 transition-all">
+                <div className="mb-4 p-3 rounded-xl bg-black/40 w-fit border border-white/5 group-hover:border-[#FFD700]/30 group-hover:bg-[#FFD700]/10 transition-all text-[#00F5D4]">
                   {p.icon}
                 </div>
-                <h3 className="text-lg font-bold mb-2 group-hover:text-white transition-colors">{p.title}</h3>
-                <p className="text-sm text-slate-450 leading-relaxed">{p.desc}</p>
+                <h3 className="text-lg font-bold mb-2 group-hover:text-[#FFD700] transition-colors">{p.title}</h3>
+                <p className="text-sm text-zinc-400 leading-relaxed">{p.desc}</p>
               </motion.div>
             ))}
           </div>
@@ -1122,8 +1158,8 @@ export default function AboutPage() {
         {/* Timeline Section */}
         <section className="mb-20 max-w-4xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-extrabold tracking-tight">System <span className="text-red-500">Timeline</span></h2>
-            <p className="text-slate-500 text-xs mt-1 font-mono">// CHRONOLOGICAL ARCHIVE</p>
+            <h2 className="text-3xl font-extrabold tracking-tight">System <span className="text-[#FFD700]">Timeline</span></h2>
+            <p className="text-zinc-500 text-xs mt-1 font-mono">{"// CHRONOLOGICAL ARCHIVE"}</p>
           </div>
 
           <div className="relative border-l border-zinc-800 ml-4 md:ml-32 pl-8 space-y-12">
@@ -1137,19 +1173,19 @@ export default function AboutPage() {
                 className="relative"
               >
                 {/* Visual marker point */}
-                <div className="absolute -left-[41px] top-1.5 w-6 h-6 rounded-full bg-black border-2 border-red-500 flex items-center justify-center">
-                  <div className="w-2 h-2 rounded-full bg-red-500 animate-ping" />
+                <div className="absolute -left-[41px] top-1.5 w-6 h-6 rounded-full bg-black border-2 border-[#FFD700] flex items-center justify-center">
+                  <div className="w-2 h-2 rounded-full bg-[#00F5D4] animate-ping" />
                 </div>
                 
                 {/* Year Label */}
-                <span className="hidden md:block absolute -left-[160px] top-1 font-mono text-lg font-extrabold text-red-500">
+                <span className="hidden md:block absolute -left-[160px] top-1 font-mono text-lg font-extrabold text-[#FFD700]">
                   {ev.year}
                 </span>
 
-                <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-white/10 transition-colors">
-                  <span className="md:hidden block font-mono text-sm font-bold text-red-500 mb-1">{ev.year}</span>
+                <div className="p-6 rounded-2xl bg-[#080E24]/60 border border-[#121F3D] hover:border-[#FFD700]/30 transition-colors">
+                  <span className="md:hidden block font-mono text-sm font-bold text-[#FFD700] mb-1">{ev.year}</span>
                   <h3 className="text-xl font-bold mb-2 text-white">{ev.title}</h3>
-                  <p className="text-slate-450 text-sm leading-relaxed">{ev.desc}</p>
+                  <p className="text-zinc-400 text-sm leading-relaxed">{ev.desc}</p>
                 </div>
               </motion.div>
             ))}
@@ -1158,27 +1194,27 @@ export default function AboutPage() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-white/10 bg-black py-12 relative z-10">
+      <footer className="border-t border-[#121F3D] bg-[#030712] py-12 relative z-10">
         <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-2">
-            <Shield className="w-5 h-5 text-red-500" />
-            <span className="font-bold tracking-widest font-mono text-white">CYBERKAVACH</span>
+            <Shield className="w-5 h-5 text-[#FFD700]" />
+            <span className="font-bold tracking-widest font-mono text-white">CHAKRAVYUH</span>
           </div>
           
           {/* Social Links */}
           <div className="flex items-center gap-4">
-            <a href="https://linkedin.com/company/cyberkavach" target="_blank" rel="noopener noreferrer" className="p-2 rounded-full border border-white/10 hover:border-red-500 hover:text-red-500 hover:bg-red-500/10 transition-all text-slate-400" title="LinkedIn">
+            <a href="https://linkedin.com/company/chakravyuh" target="_blank" rel="noopener noreferrer" className="p-2 rounded-full border border-white/10 hover:border-[#FFD700] hover:text-[#FFD700] hover:bg-[#FFD700]/10 transition-all text-zinc-400" title="LinkedIn">
               <LinkedinIcon className="w-5 h-5" />
             </a>
-            <a href="https://instagram.com/cyberkavach" target="_blank" rel="noopener noreferrer" className="p-2 rounded-full border border-white/10 hover:border-red-500 hover:text-red-500 hover:bg-red-500/10 transition-all text-slate-400" title="Instagram">
+            <a href="https://www.instagram.com/chakravyuh.charusat/" target="_blank" rel="noopener noreferrer" className="p-2 rounded-full border border-white/10 hover:border-[#00F5D4] hover:text-[#00F5D4] hover:bg-[#00F5D4]/10 transition-all text-zinc-400" title="Instagram">
               <InstagramIcon className="w-5 h-5" />
             </a>
-            <a href="https://chat.whatsapp.com/cyberkavach" target="_blank" rel="noopener noreferrer" className="p-2 rounded-full border border-white/10 hover:border-red-500 hover:text-red-500 hover:bg-red-500/10 transition-all text-slate-400" title="WhatsApp Community">
+            <a href="https://chat.whatsapp.com/chakravyuh" target="_blank" rel="noopener noreferrer" className="p-2 rounded-full border border-white/10 hover:border-[#FFD700] hover:text-[#FFD700] hover:bg-[#FFD700]/10 transition-all text-zinc-400" title="WhatsApp Community">
               <WhatsappIcon className="w-5 h-5" />
             </a>
           </div>
 
-          <p className="text-slate-500 text-sm">© {new Date().getFullYear()} CyberKavach. All rights reserved.</p>
+          <p className="text-zinc-500 text-sm">© {new Date().getFullYear()} Chakravyuh Club. All rights reserved.</p>
         </div>
       </footer>
 
@@ -1189,7 +1225,7 @@ export default function AboutPage() {
            title="CyberKavach LinkedIn">
            <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.779-1.75-1.75s.784-1.75 1.75-1.75 1.75.779 1.75 1.75-.784 1.75-1.75 1.75zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
         </a>
-        <a href="https://instagram.com/cyberkavach" target="_blank" rel="noopener noreferrer"
+        <a href="https://www.instagram.com/chakravyuh.charusat/" target="_blank" rel="noopener noreferrer"
            className="w-11 h-11 rounded-full bg-black/80 border border-zinc-800 flex items-center justify-center hover:border-red-500 text-zinc-400 hover:text-red-500 shadow-[0_0_15px_rgba(0,0,0,0.5)] transition-all hover:scale-110 hover:shadow-[0_0_20px_rgba(239,68,68,0.25)] flex items-center justify-center"
            title="CyberKavach Instagram">
            <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>

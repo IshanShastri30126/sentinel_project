@@ -54,19 +54,20 @@ export default function PublicEventsPage() {
   });
 
   return (
-    <div className="min-h-screen bg-black">
+    <div className="min-h-screen bg-[#030712] text-white">
       {/* Hero Header */}
-      <div className="relative pt-24 pb-12 overflow-hidden border-b border-red-950/40">
-        <div className="absolute inset-0 bg-radial-gradient from-red-900/10 to-transparent" />
+      <div className="relative pt-24 pb-12 overflow-hidden border-b border-[#121F3D]">
         <div className="max-w-7xl mx-auto px-6 relative z-10 text-center">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-            <div className="inline-flex items-center justify-center gap-2 mb-4">
-              <Shield className="w-6 h-6 text-red-500 shadow-[0_0_12px_rgba(239,68,68,0.6)]" />
-              <span className="text-sm font-bold text-red-400 font-mono tracking-widest uppercase">CyberKavach Operations</span>
+            <div className="inline-flex items-center justify-center gap-2 mb-4 bg-black/40 border border-[#FFD700]/30 px-4 py-1.5 rounded-full">
+              <Shield className="w-4 h-4 text-[#FFD700]" />
+              <span className="text-xs font-bold text-[#FFD700] font-mono tracking-widest uppercase">CHAKRAVYUH STRATEGIC OPERATIONS</span>
             </div>
-            <h1 className="text-4xl md:text-6xl font-extrabold text-white mb-4 uppercase font-mono tracking-tighter">Public Events</h1>
+            <h1 className="text-3xl md:text-5xl font-extrabold text-white mb-4 uppercase font-mono tracking-tighter bg-gradient-to-r from-[#FFD700] via-white to-[#00F5D4] bg-clip-text text-transparent">
+              Public Defense Operations
+            </h1>
             <p className="text-slate-400 max-w-2xl mx-auto text-sm md:text-base">
-              Discover and participate in upcoming cybersecurity workshops, hackathons, and community meetups.
+              Discover and participate in upcoming cybersecurity workshops, strategic hackathons, and community defense exercises.
             </p>
           </motion.div>
         </div>
@@ -75,19 +76,19 @@ export default function PublicEventsPage() {
       <div className="max-w-7xl mx-auto px-6 py-12">
         {/* Controls */}
         <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-10">
-          <div className="relative w-full md:max-w-md ck-input-icon-wrapper">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-red-500/50" />
+          <div className="relative w-full md:max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#00F5D4]" />
             <input 
-              className="ck-input pl-10" 
-              placeholder="Search by title, description..." 
+              className="w-full bg-[#080E24] border border-[#121F3D] focus:border-[#FFD700] focus:outline-none rounded-xl text-xs text-white pl-9 pr-4 py-2.5 font-mono" 
+              placeholder="Search operations by title, keyword..." 
               value={searchQuery} 
               onChange={(e) => setSearchQuery(e.target.value)} 
             />
           </div>
-          <div className="flex gap-1 p-1 rounded-xl bg-black/40 border border-red-900/20 w-full md:w-auto overflow-x-auto">
+          <div className="flex gap-1 p-1 rounded-xl bg-black/60 border border-[#121F3D] w-full md:w-auto overflow-x-auto">
             {(["upcoming", "past", "all"] as const).map((t) => (
               <button key={t} onClick={() => setTimeFilter(t)}
-                className={`flex-1 md:flex-none px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider font-mono transition ${timeFilter === t ? "bg-red-600 text-white shadow-[0_0_12px_rgba(220,38,38,0.4)]" : "text-slate-400 hover:text-red-400"}`}>
+                className={`flex-1 md:flex-none px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider font-mono transition cursor-pointer ${timeFilter === t ? "bg-[#FFD700] text-black shadow-[0_0_12px_rgba(255,215,0,0.4)]" : "text-slate-400 hover:text-white"}`}>
                 {t}
               </button>
             ))}
@@ -97,13 +98,13 @@ export default function PublicEventsPage() {
         {/* Loading / Empty States */}
         {loading ? (
           <div className="flex justify-center py-20">
-            <div className="w-10 h-10 border-3 border-red-500/30 border-t-red-500 rounded-full animate-spin" />
+            <div className="w-10 h-10 border-3 border-[#FFD700]/30 border-t-[#FFD700] rounded-full animate-spin" />
           </div>
         ) : filteredEvents.length === 0 ? (
-          <div className="text-center py-20 bg-zinc-950/40 rounded-2xl border border-red-950/30">
+          <div className="text-center py-20 bg-[#050A18] rounded-2xl border border-[#121F3D]">
             <Calendar className="w-12 h-12 text-slate-600 mx-auto mb-4" />
-            <h3 className="text-lg font-bold text-white mb-2 font-mono uppercase tracking-widest">No Events Found</h3>
-            <p className="text-sm text-slate-500">Try adjusting your search or filters.</p>
+            <h3 className="text-lg font-bold text-white mb-2 font-mono uppercase tracking-widest">No Operations Found</h3>
+            <p className="text-sm text-slate-500">Try adjusting your search query or timeframe filters.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -115,9 +116,9 @@ export default function PublicEventsPage() {
                 transition={{ delay: i * 0.05 }}
               >
                 <Link href={`/events/${event.slug}`} className="block h-full">
-                  <div className="ck-card bg-black/40 border-red-950/30 hover:border-red-500/40 hover:bg-zinc-950/80 transition-all duration-300 h-full flex flex-col group overflow-hidden">
+                  <div className="rounded-2xl bg-[#050A18] border border-[#121F3D] hover:border-[#FFD700]/40 transition-all duration-300 h-full flex flex-col group overflow-hidden shadow-xl">
                     {/* Event Poster / Banner */}
-                    <div className="h-48 relative overflow-hidden bg-zinc-900">
+                    <div className="h-48 relative overflow-hidden bg-[#030712]">
                       {event.posterUrl ? (
                         <img 
                           src={getFileUrl(event.posterUrl)} 
@@ -125,14 +126,14 @@ export default function PublicEventsPage() {
                           className="w-full h-full object-cover group-hover:scale-105 transition duration-500" 
                         />
                       ) : (
-                        <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-red-950 to-black">
-                          <Shield className="w-16 h-16 text-red-900 opacity-50" />
+                        <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-[#080E24] to-[#030712]">
+                          <Shield className="w-16 h-16 text-[#FFD700]/20" />
                         </div>
                       )}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-[#050A18] via-transparent to-transparent" />
                       <div className="absolute bottom-3 left-3 flex gap-2">
                         {event.tags.slice(0, 2).map(t => (
-                          <span key={t} className="px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider font-mono bg-red-600/80 text-white rounded shadow-sm backdrop-blur-md">
+                          <span key={t} className="px-2.5 py-0.5 text-[9px] font-bold uppercase tracking-wider font-mono bg-[#00F5D4]/20 border border-[#00F5D4]/40 text-[#00F5D4] rounded-md backdrop-blur-md">
                             {t}
                           </span>
                         ))}
@@ -140,32 +141,32 @@ export default function PublicEventsPage() {
                     </div>
 
                     <div className="p-5 flex flex-col flex-1">
-                      <h2 className="text-xl font-bold font-mono tracking-tighter text-white mb-2 group-hover:text-red-400 transition-colors line-clamp-2">
+                      <h2 className="text-lg font-bold font-mono tracking-tight text-white mb-2 group-hover:text-[#FFD700] transition-colors line-clamp-2">
                         {event.title}
                       </h2>
                       <div className="space-y-2 mb-4 flex-1">
-                        <p className="text-xs text-slate-400 flex items-center gap-2">
-                          <Calendar className="w-3.5 h-3.5 text-red-500 shrink-0" />
+                        <p className="text-xs text-slate-400 flex items-center gap-2 font-mono">
+                          <Calendar className="w-3.5 h-3.5 text-[#FFD700] shrink-0" />
                           <span>{new Date(event.startDate).toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short", year: "numeric" })}</span>
                         </p>
-                        <p className="text-xs text-slate-400 flex items-center gap-2">
-                          <Clock className="w-3.5 h-3.5 text-red-500 shrink-0" />
+                        <p className="text-xs text-slate-400 flex items-center gap-2 font-mono">
+                          <Clock className="w-3.5 h-3.5 text-[#00F5D4] shrink-0" />
                           <span>{new Date(event.startDate).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}</span>
                         </p>
                         {event.venue && (
-                          <p className="text-xs text-slate-400 flex items-center gap-2 line-clamp-1">
-                            <MapPin className="w-3.5 h-3.5 text-red-500 shrink-0" />
+                          <p className="text-xs text-slate-400 flex items-center gap-2 line-clamp-1 font-mono">
+                            <MapPin className="w-3.5 h-3.5 text-[#FFD700] shrink-0" />
                             <span className="truncate">{event.venue}</span>
                           </p>
                         )}
                       </div>
-                      <div className="pt-4 border-t border-red-950/40 flex items-center justify-between">
-                        <span className="text-[10px] uppercase font-bold text-slate-500 font-mono tracking-wider flex items-center gap-1.5">
-                          <Users className="w-3.5 h-3.5" />
+                      <div className="pt-4 border-t border-[#121F3D] flex items-center justify-between">
+                        <span className="text-[10px] uppercase font-bold text-slate-400 font-mono tracking-wider flex items-center gap-1.5">
+                          <Users className="w-3.5 h-3.5 text-[#00F5D4]" />
                           {event._count.registrations} Enrolled
                         </span>
-                        <span className="text-xs font-bold text-red-400 group-hover:text-red-300 flex items-center gap-1 font-mono uppercase tracking-wider transition-colors">
-                          View Details &rarr;
+                        <span className="text-xs font-bold text-[#FFD700] group-hover:text-[#00F5D4] flex items-center gap-1 font-mono uppercase tracking-wider transition-colors">
+                          Inspect &rarr;
                         </span>
                       </div>
                     </div>

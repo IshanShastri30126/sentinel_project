@@ -120,16 +120,16 @@ export default function VerifyPage() {
     
     const verifyUrl = window.location.href;
     const name = `${cert.eventTitle} Certification`;
-    const org = cert.issuingAuthority || "CyberKavach Club";
+    const org = cert.issuingAuthority || "Chakravyuh Club";
     
     return `https://www.linkedin.com/profile/add?startTask=CERTIFICATION&name=${encodeURIComponent(name)}&organizationName=${encodeURIComponent(org)}&issueYear=${year}&issueMonth=${month}&certUrl=${encodeURIComponent(verifyUrl)}&certId=${encodeURIComponent(cert.uniqueCode)}`;
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-zinc-950 gap-4">
-        <RefreshCw className="w-10 h-10 text-red-500 animate-spin" />
-        <p className="text-xs font-mono text-red-500 uppercase tracking-widest animate-pulse">Cryptographic Secure Verification In Progress...</p>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-black gap-4">
+        <RefreshCw className="w-10 h-10 text-[#FFD700] animate-spin" />
+        <p className="text-xs font-mono text-[#FFD700] uppercase tracking-widest animate-pulse">Cryptographic Secure Verification In Progress...</p>
       </div>
     );
   }
@@ -137,16 +137,16 @@ export default function VerifyPage() {
   return (
     <div className="ck-gradient-bg min-h-screen flex items-center justify-center p-4 relative overflow-hidden select-none">
       {/* Background glowing blobs */}
-      <div className="absolute top-20 left-20 w-80 h-80 bg-red-600/10 rounded-full blur-3xl animate-pulse" />
-      <div className="absolute bottom-20 right-20 w-80 h-80 bg-amber-500/5 rounded-full blur-3xl animate-pulse" />
+      <div className="absolute top-20 left-20 w-80 h-80 bg-[#FFD700]/10 rounded-full blur-3xl animate-pulse" />
+      <div className="absolute bottom-20 right-20 w-80 h-80 bg-[#00F5D4]/10 rounded-full blur-3xl animate-pulse" />
 
       <div className="w-full max-w-2xl relative z-10 my-8">
         
         {/* Secure Top Header */}
         <div className="text-center mb-6">
-          <div className="inline-flex items-center gap-2 mb-2 bg-black/40 border border-red-950/40 px-4 py-2 rounded-full backdrop-blur">
-            <Shield className="w-5 h-5 text-red-500 animate-pulse" />
-            <span className="text-sm font-mono font-bold tracking-widest text-red-500 uppercase">CyberKavach Trust Verify Unit</span>
+          <div className="inline-flex items-center gap-2 mb-2 bg-black/40 border border-[#FFD700]/40 px-4 py-2 rounded-full backdrop-blur">
+            <Shield className="w-5 h-5 text-[#FFD700] animate-pulse" />
+            <span className="text-sm font-mono font-bold tracking-widest text-[#FFD700] uppercase">Chakravyuh Trust Verify Unit</span>
           </div>
           <p className="text-[10px] font-mono text-slate-500 uppercase tracking-widest">SECURE CREDENTIAL VALIDATION NETWORK</p>
         </div>

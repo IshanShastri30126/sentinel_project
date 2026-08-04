@@ -1,11 +1,13 @@
 "use client";
 
 import React, { useEffect, useState, useCallback, Suspense } from "react";
-import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { api, getFileUrl } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
 import { motion, AnimatePresence } from "framer-motion";
-import { Calendar, MapPin, Clock, Users, Tag, Shield, AlertCircle, CheckCircle, UserPlus, Mail, Copy, ExternalLink, Eye, X, Search, Phone, FileText, Download } from "lucide-react";
+import { ArrowLeft, Calendar, MapPin, Clock, Users, Tag, Shield, AlertCircle, Zap, Eye, FileText, CheckCircle, ExternalLink, Copy, UserPlus, X, Search, Download, Phone, Mail } from "lucide-react";
+import Link from "next/link";
+import { DefaultAvatar } from "@/components/default-avatar";
 
 const LinkedinIcon = ({ className = "w-4 h-4", style }: { className?: string; style?: React.CSSProperties }) => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} style={{ width: '1.2em', height: '1.2em', ...style }}>
@@ -36,6 +38,21 @@ interface EventDetail {
   socialLinks?: string;
 }
 
+interface SearchUser {
+  id: string;
+  name: string;
+  email: string;
+  avatarUrl?: string;
+  isApproved?: boolean;
+}
+
+interface Organizer {
+  name: string;
+  role: string;
+  phone?: string;
+  email?: string;
+}
+
 // Theme → gradient mapping for dynamic background
 const EVENT_THEME_GRADIENTS: Record<string, string> = {
   hackathon: "from-[#0a0014] via-[#130030] to-[#020020]",
@@ -55,11 +72,10 @@ const EVENT_THEME_ACCENT: Record<string, string> = {
   general: "#CCFF00",
 };
 
-// Animated letter-by-letter title
-function AnimatedTitle({ text, accent }: { text: string; accent: string }) {
+function MatrixTitle({ title, accent }: { title: string; accent: string }) {
   return (
     <h1 className="text-4xl md:text-6xl font-bold text-white mb-4 uppercase font-mono tracking-tighter">
-      {text.split("").map((char, i) => (
+      {title.split("").map((char, i) => (
         <motion.span
           key={i}
           initial={{ opacity: 0, y: 20 }}
@@ -74,7 +90,6 @@ function AnimatedTitle({ text, accent }: { text: string; accent: string }) {
   );
 }
 
-// Formatted description — detects bullet points and paragraph breaks
 function FormattedDescription({ text }: { text: string }) {
   const paragraphs = text.split(/\n\n+/);
   const highlights: string[] = [];
@@ -93,22 +108,19 @@ function FormattedDescription({ text }: { text: string }) {
   return (
     <div className="space-y-5">
       {regularParagraphs.map((p, i) => (
-        <p key={i} className="text-sm leading-relaxed text-slate-300">
-          {p.split("\n").map((line, li) => (
-            <React.Fragment key={li}>
-              {line}
-              {li < p.split("\n").length - 1 && <br />}
-            </React.Fragment>
-          ))}
+        <p key={i} className="text-slate-300 text-sm sm:text-base leading-relaxed">
+          {p}
         </p>
       ))}
       {highlights.length > 0 && (
-        <div>
-          <p className="text-[10px] font-bold font-mono tracking-widest uppercase text-red-400 mb-3">✦ Key Highlights</p>
+        <div className="p-4 rounded-xl bg-slate-900/50 border border-slate-800 space-y-2">
+          <h4 className="text-[10px] font-bold font-mono tracking-widest uppercase text-red-400 mb-3 flex items-center gap-2">
+            <Zap className="w-3 h-3" /> Key Highlights
+          </h4>
           <ul className="space-y-2">
             {highlights.map((h, i) => (
               <li key={i} className="flex items-start gap-3 text-sm text-slate-300">
-                <span className="mt-1 w-1.5 h-1.5 rounded-full bg-red-500 shrink-0" />
+                <span className="text-red-500 font-bold mt-0.5">&gt;</span>
                 <span>{h}</span>
               </li>
             ))}
@@ -120,129 +132,149 @@ function FormattedDescription({ text }: { text: string }) {
 }
 
 function PublicEventPageContent() {
+  const { login, register } = useAuth();
+  const [authMode, setAuthMode] = useState<"login" | "register">("login");
+  const [authName, setAuthName] = useState("");
+  const [authEmail, setAuthEmail] = useState("");
+  const [authPassword, setAuthPassword] = useState("");
+  const [authStudentId, setAuthStudentId] = useState("");
+  const [authPhone, setAuthPhone] = useState("");
+  const [authDept, setAuthDept] = useState("");
+  const [authSem, setAuthSem] = useState("");
+  const [authInst, setAuthInst] = useState("");
+  const [authError, setAuthError] = useState("");
+  const [authLoading, setAuthLoading] = useState(false);
+  const [clubsList, setClubsList] = useState<Array<{ id: string; name: string }>>([]);
+  const [selectedClubId, setSelectedClubId] = useState("");
+
+  const handleAuthSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAuthError("");
+    setAuthLoading(true);
+    try {
+      if (authMode === "login") {
+        await login(authEmail, authPassword);
+      } else {
+        await register(authName, authEmail, authPassword, {
+          studentId: authStudentId,
+          phone: authPhone,
+          department: authDept,
+          semester: authSem,
+          institute: authInst,
+          clubId: selectedClubId || undefined
+        });
+      }
+    } catch (err) {
+      setAuthError(err instanceof Error ? err.message : "Authentication failed.");
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    async function loadClubs() {
+      try {
+        const data = await api<{ clubs: Array<{ id: string; name: string }> }>("/clubs");
+        setClubsList(data.clubs || []);
+        if (data.clubs && data.clubs.length > 0) {
+          setSelectedClubId(data.clubs[0].id);
+        }
+      } catch (err) {
+        console.error("Failed to load clubs", err);
+      }
+    }
+    loadClubs();
+  }, []);
+
   const params = useParams();
   const router = useRouter();
-  const searchParams = useSearchParams();
   const { user, token } = useAuth();
   const slug = params.slug as string;
 
   const [event, setEvent] = useState<EventDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [registering, setRegistering] = useState(false);
+  const [nowTimestamp, setNowTimestamp] = useState<number>(0);
+
+  useEffect(() => {
+    setNowTimestamp(Date.now());
+    const interval = setInterval(() => setNowTimestamp(Date.now()), 10000);
+    return () => clearInterval(interval);
+  }, []);
   const [registered, setRegistered] = useState(false);
-  const [showFormModal, setShowFormModal] = useState(false);
+  const [registering, setRegistering] = useState(false);
+  const [showRegisterModal, setShowRegisterModal] = useState(false);
   const [showJoinTeamModal, setShowJoinTeamModal] = useState(false);
   const [joinTeamCode, setJoinTeamCode] = useState("");
-  // Read ?invite= from URL for QR deep-link
-  const inviteFromUrl = searchParams?.get("invite") || "";
-  const isFullFromUrl = searchParams?.get("isFull") === "true";
+  const [inviteCode, setInviteCode] = useState<string | null>(null);
+  const [showPosterLightbox, setShowPosterLightbox] = useState(false);
+  
+  const [inviteFromUrl] = useState<string | null>(() => {
+    if (typeof window !== "undefined") {
+      const sp = new URLSearchParams(window.location.search);
+      return sp.get("joinTeam") || sp.get("invite");
+    }
+    return null;
+  });
+  
+  const [isFullFromUrl] = useState<boolean>(() => {
+    if (typeof window !== "undefined") {
+      const sp = new URLSearchParams(window.location.search);
+      return sp.get("full") === "true" || sp.get("isFull") === "true";
+    }
+    return false;
+  });
+
   const [formData, setFormData] = useState({
-    name: "",
-    studentId: "",
-    email: "",
-    phone: "",
-    department: "",
-    semester: "",
-    institute: "",
+    name: user?.name || "",
+    studentId: user?.studentId || "",
+    email: user?.email || "",
+    phone: user?.phone || "",
+    department: user?.department || "",
+    semester: user?.semester || "",
+    institute: user?.institute || "",
     teammateCount: "0",
     teamName: ""
   });
-  const [inviteCode, setInviteCode] = useState<string | null>(null);
-  const [showPosterLightbox, setShowPosterLightbox] = useState(false);
 
-  // Auto-fill invite code from QR deep-link
-  useEffect(() => {
-    if (inviteFromUrl) {
-      setJoinTeamCode(inviteFromUrl);
-      if (!isFullFromUrl) {
-        setShowJoinTeamModal(true);
-      }
-    }
-  }, [inviteFromUrl]);
-
-  // Teammate search states
   const [memberSearch, setMemberSearch] = useState("");
-  const [searchResults, setSearchResults] = useState<any[]>([]);
-  const [selectedMembers, setSelectedMembers] = useState<any[]>([]);
-
-  // Toast notification state
+  const [searchResults, setSearchResults] = useState<SearchUser[]>([]);
+  const [selectedMembers, setSelectedMembers] = useState<SearchUser[]>([]);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" | "info" } | null>(null);
 
   const showToast = useCallback((message: string, type: "success" | "error" | "info" = "info") => {
     setToast({ message, type });
   }, []);
 
-  useEffect(() => {
-    if (toast) {
-      const timer = setTimeout(() => setToast(null), 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [toast]);
-
-  useEffect(() => {
-    if (user) {
-      setFormData({
-        name: user.name || "",
-        studentId: user.studentId || "",
-        email: user.email || "",
-        phone: user.phone || "",
-        department: user.department || "",
-        semester: user.semester || "",
-        institute: user.institute || "",
-        teammateCount: "0",
-        teamName: ""
-      });
-    }
-  }, [user]);
-
-  useEffect(() => {
-    const load = async () => {
-      try {
-        const data = await api<{ event: EventDetail }>(`/events/public/${slug}`);
-        setEvent(data.event);
-        
-        // If token is present, check if user is already registered for this event
-        if (token && data.event) {
-          const regData = await api<{ registered: boolean; teamCode?: string }>(`/events/${data.event.id}/is-registered`, { token });
-          setRegistered(regData.registered);
-          // Also fetch team info to see if user has an invite code
-          try {
-            const myTeams = await api<{ teams: any[] }>("/teams/my", { token });
-            const eventTeam = myTeams.teams.find(t => t.eventId === data.event.id);
-            if (eventTeam) {
-              setInviteCode(eventTeam.teamCode);
-            }
-          } catch (err) {
-            console.error("Failed to load team code:", err);
-          }
-        }
-      } catch (err) { 
-        setError(err instanceof Error ? err.message : "Event not found"); 
-      } finally { 
-        setLoading(false); 
-      }
-    };
-    load();
-  }, [slug, token]);
-
   const searchMembers = async (q: string) => {
     setMemberSearch(q);
     if (q.length < 2) { setSearchResults([]); return; }
     try {
-      const data = await api<{ users: any[] }>(`/users/search?q=${q}`, { token: token || undefined });
-      // Only show users who are approved, not current user, and not already selected
+      const data = await api<{ users: SearchUser[] }>(`/users/search?q=${q}`, { token: token || undefined });
       setSearchResults(data.users.filter((u) => u.id !== user?.id && !selectedMembers.find((m) => m.id === u.id)));
     } catch { setSearchResults([]); }
   };
 
-  // Sync estimated count with selected members
-  useEffect(() => {
-    setFormData(prev => ({ ...prev, teammateCount: selectedMembers.length.toString() }));
-  }, [selectedMembers]);
-
   const handleRegisterClick = () => {
-    if (!token) { router.push(`/auth?redirect=/events/${slug}`); return; }
+    if (!token) {
+      setFormData({
+        name: "",
+        studentId: "",
+        email: "",
+        phone: "",
+        department: "",
+        semester: "",
+        institute: "",
+        teammateCount: "0",
+        teamName: ""
+      });
+      setInviteCode(null);
+      setSelectedMembers([]);
+      setMemberSearch("");
+      setSearchResults([]);
+      setShowRegisterModal(true);
+      return;
+    }
     setFormData({
       name: user?.name || "",
       studentId: user?.studentId || "",
@@ -258,7 +290,7 @@ function PublicEventPageContent() {
     setSelectedMembers([]);
     setMemberSearch("");
     setSearchResults([]);
-    setShowFormModal(true);
+    setShowRegisterModal(true);
   };
 
   const handleGoogleFormRegisterClick = () => {
@@ -267,16 +299,17 @@ function PublicEventPageContent() {
   };
 
   const handleGoogleFormRegister = async () => {
-    if (!token) return;
+    if (!token || !event) return;
     setRegistering(true);
     try {
-      window.open(event!.googleFormUrl || undefined, "_blank", "noopener,noreferrer");
-      await api(`/events/${event!.id}/register`, { method: "POST", token });
+      if (event.googleFormUrl) {
+        window.open(event.googleFormUrl, "_blank", "noopener,noreferrer");
+      }
+      await api(`/events/${event.id}/register`, { method: "POST", token });
       setRegistered(true);
-      showToast("Registration confirmed! Welcome email dispatched.", "success");
-    } catch (err) {
-      console.error("Google form background register failed:", err);
-      showToast("Failed to confirm registration in the portal.", "error");
+      showToast("Registration confirmed!", "success");
+    } catch {
+      showToast("Failed to confirm registration.", "error");
     } finally {
       setRegistering(false);
     }
@@ -284,10 +317,10 @@ function PublicEventPageContent() {
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!token) return;
+    if (!token || !event) return;
     setRegistering(true);
     try {
-      const body: any = {
+      const body: Record<string, unknown> = {
         name: formData.name,
         studentId: formData.studentId,
         phone: formData.phone,
@@ -295,22 +328,16 @@ function PublicEventPageContent() {
         semester: formData.semester,
         institute: formData.institute
       };
-      if (event?.maxTeamSize && event.maxTeamSize > 1) {
-        if (formData.teamName) {
-          body.teamName = formData.teamName;
-        }
-        if (selectedMembers.length > 0) {
-          body.teamMembers = selectedMembers.map(m => m.email);
-        }
+      if (event.maxTeamSize && event.maxTeamSize > 1) {
+        if (formData.teamName) body.teamName = formData.teamName;
+        if (selectedMembers.length > 0) body.teamMembers = selectedMembers.map(m => m.email);
       }
-      const response = await api<{ registration: any; teamCode?: string }>(
-        `/events/${event!.id}/register`,
+      const response = await api<{ registration: unknown; teamCode?: string }>(
+        `/events/${event.id}/register`,
         { method: "POST", token, body: JSON.stringify(body) }
       );
       setRegistered(true);
-      if (response.teamCode) {
-        setInviteCode(response.teamCode);
-      }
+      if (response.teamCode) setInviteCode(response.teamCode);
       showToast("Registered successfully!", "success");
     } catch (err) {
       showToast(err instanceof Error ? err.message : "Registration failed", "error");
@@ -340,24 +367,23 @@ function PublicEventPageContent() {
     }
   };
 
-  const deadlinePassed = event?.registrationDeadline
-    ? new Date() > new Date(event.registrationDeadline) : false;
-  const isFull = event?.maxCapacity
-    ? event._count.registrations >= event.maxCapacity : false;
-  const capacityPercent = event?.maxCapacity
-    ? Math.min(100, Math.round((event._count.registrations / event.maxCapacity) * 100)) : 0;
-
-  // Countdown to deadline
-  const getTimeLeft = () => {
-    if (!event?.registrationDeadline) return null;
-    const diff = new Date(event.registrationDeadline).getTime() - Date.now();
-    if (diff <= 0) return null;
-    const days = Math.floor(diff / 86400000);
-    const hours = Math.floor((diff % 86400000) / 3600000);
-    const mins = Math.floor((diff % 3600000) / 60000);
-    return { days, hours, mins };
-  };
-  const timeLeft = event ? getTimeLeft() : null;
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const data = await api<{ event: EventDetail }>(`/events/public/${slug}`);
+        setEvent(data.event);
+        if (token && data.event) {
+          const regData = await api<{ registered: boolean }>(`/events/${data.event.id}/is-registered`, { token });
+          setRegistered(regData.registered);
+        }
+      } catch (err) { 
+        setError(err instanceof Error ? err.message : "Event not found"); 
+      } finally { 
+        setLoading(false); 
+      }
+    };
+    load();
+  }, [slug, token]);
 
   if (loading) {
     return (
@@ -382,6 +408,24 @@ function PublicEventPageContent() {
   const themeGradient = event ? (EVENT_THEME_GRADIENTS[event.eventType] || EVENT_THEME_GRADIENTS.general) : "from-black to-black";
   const themeAccent = event ? (EVENT_THEME_ACCENT[event.eventType] || EVENT_THEME_ACCENT.general) : "#CCFF00";
 
+  const deadlinePassed = event.registrationDeadline && nowTimestamp > 0
+    ? nowTimestamp > new Date(event.registrationDeadline).getTime() : false;
+  const isFull = event.maxCapacity
+    ? event._count.registrations >= event.maxCapacity : false;
+  const capacityPercent = event.maxCapacity
+    ? Math.min(100, Math.round((event._count.registrations / event.maxCapacity) * 100)) : 0;
+
+  const getTimeLeft = () => {
+    if (!event.registrationDeadline || nowTimestamp === 0) return null;
+    const diff = new Date(event.registrationDeadline).getTime() - nowTimestamp;
+    if (diff <= 0) return null;
+    const days = Math.floor(diff / 86400000);
+    const hours = Math.floor((diff % 86400000) / 3600000);
+    const mins = Math.floor((diff % 3600000) / 60000);
+    return { days, hours, mins };
+  };
+  const timeLeft = getTimeLeft();
+
   return (
     <div className={`min-h-screen bg-gradient-to-br ${themeGradient}`}>
       {/* Hero Section */}
@@ -404,7 +448,7 @@ function PublicEventPageContent() {
                 <Shield className="w-5 h-5 shadow-[0_0_8px_rgba(239,68,68,0.5)]" style={{ color: themeAccent }} />
                 <span className="text-sm font-semibold font-mono tracking-wider uppercase" style={{ color: themeAccent }}>CyberKavach Club</span>
               </div>
-              <AnimatedTitle text={event.title} accent={themeAccent} />
+              <MatrixTitle title={event.title} accent={themeAccent} />
               <div className="flex flex-wrap items-center gap-3">
                 {event.tags.length > 0 && (
                   <div className="flex flex-wrap gap-2">
@@ -734,7 +778,7 @@ function PublicEventPageContent() {
               if (event.socialLinks) {
                 try { socialLinks = JSON.parse(event.socialLinks); } catch {}
               }
-              const instagramUrl = socialLinks.instagram || "https://instagram.com/cyberkavach";
+              const instagramUrl = socialLinks.instagram || "https://www.instagram.com/chakravyuh.charusat/";
               const linkedinUrl = socialLinks.linkedin || "https://linkedin.com/company/cyberkavach";
               const whatsappUrl = socialLinks.whatsapp || "https://chat.whatsapp.com/cyberkavach";
               return (
@@ -772,10 +816,10 @@ function PublicEventPageContent() {
       </div>
 
       {/* Registration Details Form Modal */}
-      {showFormModal && (
+      {showRegisterModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm animate-fade-in">
           <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="ck-card max-w-md w-full p-6 relative">
-            <button onClick={() => setShowFormModal(false)} className="absolute top-4 right-4 text-slate-400 hover:text-white">✕</button>
+            <button onClick={() => setShowRegisterModal(false)} className="absolute top-4 right-4 text-slate-400 hover:text-white">✕</button>
             
             {registered ? (
               <div className="text-center py-4 space-y-6">
@@ -827,7 +871,7 @@ function PublicEventPageContent() {
                 )}
 
                 <button 
-                  onClick={() => setShowFormModal(false)} 
+                  onClick={() => setShowRegisterModal(false)} 
                   className="ck-btn-primary w-full py-3 font-mono font-bold uppercase tracking-wider text-xs"
                 >
                   Complete

@@ -136,10 +136,10 @@ export default function SettingsPage() {
             <div className="w-2 h-2 rounded-full bg-[var(--ck-lime)] animate-pulse shadow-[0_0_8px_var(--ck-lime)]" />
             <span className="text-[10px] font-mono uppercase tracking-widest text-[var(--ck-lime)]">SYSTEM CONSOLE</span>
           </div>
-          <h1 className="text-3xl font-black font-mono tracking-tighter text-white">
+          <h1 className="text-3xl font-black font-mono tracking-tighter text-[var(--ck-text)]">
             SETTINGS <span className="text-[var(--ck-lime)]">PANEL</span>
           </h1>
-          <p className="text-xs text-zinc-500 mt-1 font-mono">COORDINATOR ACCESS ONLY · NAMESPACE PARAMETERS</p>
+          <p className="text-xs text-[var(--ck-text-muted)] mt-1 font-mono">COORDINATOR ACCESS ONLY · NAMESPACE PARAMETERS</p>
         </div>
         <div className="flex items-center gap-2 px-4 py-2 rounded-xl border border-[var(--ck-lime)]/20 bg-[var(--ck-lime)]/5">
           <Shield className="w-4 h-4 text-[var(--ck-lime)]" />
@@ -156,7 +156,7 @@ export default function SettingsPage() {
             <button key={s.id} onClick={() => setActiveSection(s.id)}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all cursor-pointer ${activeSection === s.id
                 ? "border shadow-[0_0_15px_rgba(0,0,0,0.4)]"
-                : "border border-transparent text-zinc-500 hover:text-zinc-300 hover:bg-white/3"
+                : "border border-transparent text-[var(--ck-text-muted)] hover:text-[var(--ck-text)] hover:bg-white/3"
               }`}
               style={activeSection === s.id ? {
                 background: s.id === "branding" ? "rgba(204,255,0,0.08)" : `${s.color}10`,
@@ -205,7 +205,7 @@ export default function SettingsPage() {
                   <label className="block text-[10px] font-bold uppercase tracking-widest font-mono text-[var(--ck-lime)]">
                     Theme Mode
                   </label>
-                  <p className="text-[11px] text-zinc-500">Toggle default background colors and text contrasts.</p>
+                  <p className="text-[11px] text-[var(--ck-text-muted)]">Toggle default background colors and text contrasts.</p>
                   <div className="flex gap-2">
                     {[
                       { id: "dark", label: "DARK DEEP SPACE" },
@@ -325,10 +325,10 @@ export default function SettingsPage() {
                         className="flex-1 px-4 py-2.5 rounded-xl text-sm border font-mono bg-black/40 focus:outline-none transition-all disabled:opacity-60 disabled:cursor-not-allowed"
                         style={{ borderColor: "rgba(255,255,255,0.08)", color: "var(--ck-text)" }}
                       />
-                      {field.unit && <span className="text-xs text-zinc-500 font-mono shrink-0">{field.unit}</span>}
+                      {field.unit && <span className="text-xs text-[var(--ck-text-muted)] font-mono shrink-0">{field.unit}</span>}
                       {field.disabled && (
                         <div className="shrink-0 w-7 h-7 rounded-lg flex items-center justify-center border border-white/5 bg-white/3">
-                          <Lock className="w-3 h-3 text-zinc-600" />
+                          <Lock className="w-3 h-3 text-[var(--ck-text-muted)]" />
                         </div>
                       )}
                     </div>

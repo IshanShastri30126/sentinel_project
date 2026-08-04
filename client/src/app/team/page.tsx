@@ -366,11 +366,120 @@ const getClearanceLevel = (role: string) => {
   }
 };
 
+interface TeamMemberItem {
+  id: string;
+  name: string;
+  role: string;
+  designation: string;
+  avatarUrl?: string;
+  bio?: string;
+  linkedin?: string;
+  instagram?: string;
+  email?: string;
+}
+
+const ROLE_LABELS: Record<string, string> = {
+  FACULTY: "Faculty Mentor",
+  STUDENT_COORDINATOR: "Coordinator",
+  TECH: "Technical Lead",
+  SOCIAL_MEDIA: "Creative Team",
+  CONTENT: "Creative Team"
+};
+
+const TeamGrid = ({ list, title, tag }: { list: TeamMemberItem[]; title: string; tag: string }) => {
+  if (list.length === 0) return null;
+  return (
+    <div className="mb-24">
+      {/* Section Header with Cyber Line */}
+      <div className="flex items-center gap-4 mb-10 border-b border-white/5 pb-4">
+        <div className="w-1.5 h-6 bg-red-600 rounded-full shadow-[0_0_10px_rgba(220,38,38,0.8)]" />
+        <div>
+          <h2 className="text-xl font-black font-mono tracking-widest text-white uppercase">{title}</h2>
+          <p className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest">{tag}</p>
+        </div>
+      </div>
+
+      {/* Roster Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {list.map((member, idx) => {
+          const linkedInUrl = member.linkedin ? `https://linkedin.com/in/${member.linkedin.trim()}` : `https://linkedin.com/search/results/all/?keywords=${encodeURIComponent(member.name)}`;
+          const instagramUrl = member.instagram ? `https://www.instagram.com/${member.instagram.trim()}/` : `https://www.instagram.com/chakravyuh.charusat/`;
+          const emailUrl = member.email ? `mailto:${member.email}` : `mailto:support@cyberkavach.org`;
+
+          return (
+            <motion.div
+              key={member.id || idx}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: idx * 0.05 }}
+              whileHover={{ y: -6, transition: { duration: 0.2 } }}
+              className="bg-[#050505] border border-zinc-800/80 hover:border-red-600/50 rounded-2xl p-6 relative overflow-hidden group transition-all duration-300 flex flex-col justify-between"
+            >
+              {/* Corner HUD Accent */}
+              <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-red-600/10 to-transparent pointer-events-none group-hover:from-red-600/20 transition-all" />
+              <div className="absolute top-3 right-3 text-[9px] font-mono text-zinc-600 group-hover:text-red-500 transition-colors uppercase tracking-widest font-bold">
+                {getClearanceLevel(member.role)}
+              </div>
+
+              <div>
+                {/* Operative Avatar Block */}
+                <div className="flex items-center gap-4 mb-5">
+                  <div className="relative">
+                    {member.avatarUrl ? (
+                      <img
+                        src={member.avatarUrl}
+                        alt={member.name}
+                        className="w-16 h-16 rounded-xl object-cover border border-zinc-700 group-hover:border-red-500 transition-colors shadow-[0_0_15px_rgba(0,0,0,0.8)]"
+                      />
+                    ) : (
+                      <div className="w-16 h-16 rounded-xl bg-zinc-900 border border-zinc-700 flex items-center justify-center text-zinc-500 font-mono text-xl font-bold group-hover:border-red-500 transition-colors">
+                        {member.name.charAt(0)}
+                      </div>
+                    )}
+                    <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-red-600 rounded-full border-2 border-black flex items-center justify-center">
+                      <div className="w-1.5 h-1.5 bg-white rounded-full animate-ping" />
+                    </div>
+                  </div>
+
+                  <div>
+                    <h3 className="text-lg font-bold text-white group-hover:text-red-400 transition-colors font-mono line-clamp-1">{member.name}</h3>
+                    <p className="text-xs text-red-500 font-mono tracking-wider font-semibold uppercase">{member.designation}</p>
+                    <p className="text-[10px] text-zinc-500 font-mono tracking-widest uppercase mt-0.5">{ROLE_LABELS[member.role] || member.role}</p>
+                  </div>
+                </div>
+
+                {/* Bio Terminal */}
+                <p className="text-xs text-zinc-400 font-mono leading-relaxed line-clamp-3 mb-6 bg-black/40 p-3 rounded-lg border border-white/5">
+                  {member.bio || "Active operative contributing to Chakravyuh Club digital infrastructure, cyber defense ops, and event coordination."}
+                </p>
+              </div>
+
+              {/* Social Channels */}
+              <div className="flex items-center gap-2 pt-4 border-t border-zinc-900">
+                <a href={linkedInUrl} target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded-full border border-white/10 flex items-center justify-center text-zinc-500 hover:text-white hover:border-red-500 hover:bg-red-500/10 hover:shadow-[0_0_10px_rgba(220,38,38,0.4)] transition-all" title="LinkedIn Profile">
+                  <LinkedinIcon className="w-4 h-4" />
+                </a>
+                <a href={instagramUrl} target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded-full border border-white/10 flex items-center justify-center text-zinc-500 hover:text-white hover:border-red-500 hover:bg-red-500/10 hover:shadow-[0_0_10px_rgba(220,38,38,0.4)] transition-all" title="Instagram Profile">
+                  <InstagramIcon className="w-4 h-4" />
+                </a>
+                <a href={emailUrl} className="w-8 h-8 rounded-full border border-white/10 flex items-center justify-center text-zinc-500 hover:text-white hover:border-red-500 hover:bg-red-500/10 hover:shadow-[0_0_10px_rgba(220,38,38,0.4)] transition-all" title="Secure Broadcast Mail">
+                  <Mail className="w-4 h-4" />
+                </a>
+              </div>
+            </motion.div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
 export default function TeamPage() {
-  const [team, setTeam] = useState<any[]>([]);
+  const [team, setTeam] = useState<TeamMemberItem[]>([]);
 
   useEffect(() => {
-    api<any>("/settings/landing-team").then((res) => {
+    api<{ team: TeamMemberItem[] }>("/settings/landing-team").then((res) => {
       if (res.team) setTeam(res.team);
     }).catch(console.error);
   }, []);
@@ -389,101 +498,6 @@ export default function TeamPage() {
     m.role !== "CONTENT"
   );
 
-  const TeamGrid = ({ list, title, tag }: { list: any[]; title: string; tag: string }) => {
-    if (list.length === 0) return null;
-    return (
-      <div className="mb-24">
-        {/* Section Header with Cyber Line */}
-        <div className="flex items-center gap-4 mb-10 border-b border-white/5 pb-4">
-          <div className="w-1.5 h-6 bg-red-600 rounded-full shadow-[0_0_10px_rgba(220,38,38,0.8)]" />
-          <div>
-            <h2 className="text-xl font-black font-mono tracking-widest text-white uppercase">{title}</h2>
-            <p className="text-[10px] font-mono text-zinc-500">{tag}</p>
-          </div>
-        </div>
-
-        {/* Member Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-          {list.map((member, i) => {
-            const gitHubUrl = member.github ? `https://github.com/${member.github.trim()}` : `https://github.com/${member.name.toLowerCase().replace(/[^a-z0-9]/g, '')}`;
-            const linkedInUrl = member.linkedin ? `https://linkedin.com/in/${member.linkedin.trim()}` : `https://linkedin.com/in/${member.name.toLowerCase().replace(/[^a-z0-9]/g, '')}`;
-            const instagramUrl = member.instagram ? `https://instagram.com/${member.instagram.trim()}` : `https://instagram.com/${member.name.toLowerCase().replace(/[^a-z0-9]/g, '')}`;
-            const emailUrl = member.email ? `mailto:${member.email.trim()}` : `mailto:${member.name.toLowerCase().split(' ')[0]}@cyberkavach.com`;
-            
-            return (
-              <motion.div 
-                key={member.id}
-                initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                whileInView={{ opacity: 1, scale: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ type: "spring", stiffness: 100, delay: i * 0.05 }}
-                className="group relative rounded-xl bg-white/[0.01] border border-white/10 hover:border-red-500/40 p-6 text-center hover:bg-white/[0.04] transition-all duration-300 overflow-hidden hover:-translate-y-2 hover:shadow-[0_12px_30px_rgba(220,38,38,0.15)] flex flex-col justify-between"
-              >
-                {/* Cyber Corner Brackets */}
-                <div className="absolute top-0 left-0 w-2 h-2 border-t-2 border-l-2 border-red-500/30 group-hover:border-red-500 transition-colors" />
-                <div className="absolute top-0 right-0 w-2 h-2 border-t-2 border-r-2 border-red-500/30 group-hover:border-red-500 transition-colors" />
-                <div className="absolute bottom-0 left-0 w-2 h-2 border-b-2 border-l-2 border-red-500/30 group-hover:border-red-500 transition-colors" />
-                <div className="absolute bottom-0 right-0 w-2 h-2 border-b-2 border-r-2 border-red-500/30 group-hover:border-red-500 transition-colors" />
-
-                {/* Cyber Glow Backdrop */}
-                <div className="absolute inset-0 bg-gradient-to-b from-red-500/0 to-red-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
-                
-                <div>
-                  {/* Security clearance badge */}
-                  <div className="text-[8px] font-mono text-zinc-500 text-left mb-4 uppercase tracking-widest group-hover:text-red-400/70 transition-colors">
-                    {getClearanceLevel(member.role)}
-                  </div>
-                  
-                  {/* Avatar wrapper with visual scanner */}
-                  <Link href={`/team/${member.id}`} className="block relative z-10 w-28 h-28 mx-auto mb-5 rounded-full overflow-hidden border-2 border-white/10 group-hover:border-red-500 transition-colors shadow-2xl">
-                    {member.imageUrl ? (
-                      <img src={member.imageUrl} alt={member.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                    ) : (
-                      <div className="w-full h-full bg-zinc-900 flex items-center justify-center">
-                        <Users className="w-8 h-8 text-zinc-650" />
-                      </div>
-                    )}
-                    
-                    {/* Floating neon overlay overlay line */}
-                    <div className="absolute inset-0 bg-gradient-to-b from-transparent via-red-500/20 to-transparent translate-y-[-100%] group-hover:translate-y-[100%] transition-transform duration-1000 ease-in-out" />
-                  </Link>
-
-                  <Link href={`/team/${member.id}`}>
-                    <h3 className="relative z-10 text-xl font-bold mb-1 tracking-tight text-white group-hover:text-red-400 transition-colors">{member.name}</h3>
-                  </Link>
-                  <p className="relative z-10 text-[10px] font-mono text-red-500 bg-red-950/20 border border-red-900/30 rounded-full inline-block px-3 py-0.5 uppercase tracking-widest mb-3">{member.role.replace("_", " ")}</p>
-                  <p className="relative z-10 text-xs text-zinc-400 leading-normal mb-2">{member.designation}</p>
-
-                  {/* View Profile Action Link */}
-                  <div className="relative z-10 mb-4 flex justify-center">
-                    <Link href={`/team/${member.id}`} className="text-[9px] font-mono text-zinc-500 hover:text-red-400 uppercase tracking-widest flex items-center gap-1 transition-colors">
-                      <Eye className="w-3 h-3" /> View Profile
-                    </Link>
-                  </div>
-                </div>
-
-                {/* Social Clearance Profile triggers */}
-                <div className="flex justify-center gap-2 mt-auto pt-4 border-t border-white/5 relative z-10">
-                  <a href={gitHubUrl} target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded-full border border-white/10 flex items-center justify-center text-zinc-500 hover:text-white hover:border-red-500 hover:bg-red-500/10 hover:shadow-[0_0_10px_rgba(220,38,38,0.4)] transition-all" title="GitHub Profile">
-                    <GithubIcon className="w-4 h-4" />
-                  </a>
-                  <a href={linkedInUrl} target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded-full border border-white/10 flex items-center justify-center text-zinc-500 hover:text-white hover:border-red-500 hover:bg-red-500/10 hover:shadow-[0_0_10px_rgba(220,38,38,0.4)] transition-all" title="LinkedIn Profile">
-                    <LinkedinIcon className="w-4 h-4" />
-                  </a>
-                  <a href={instagramUrl} target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded-full border border-white/10 flex items-center justify-center text-zinc-500 hover:text-white hover:border-red-500 hover:bg-red-500/10 hover:shadow-[0_0_10px_rgba(220,38,38,0.4)] transition-all" title="Instagram Profile">
-                    <InstagramIcon className="w-4 h-4" />
-                  </a>
-                  <a href={emailUrl} className="w-8 h-8 rounded-full border border-white/10 flex items-center justify-center text-zinc-500 hover:text-white hover:border-red-500 hover:bg-red-500/10 hover:shadow-[0_0_10px_rgba(220,38,38,0.4)] transition-all" title="Secure Broadcast Mail">
-                    <Mail className="w-4 h-4" />
-                  </a>
-                </div>
-              </motion.div>
-            );
-          })}
-        </div>
-      </div>
-    );
-  };
 
   return (
     <div className="min-h-screen bg-black text-white overflow-hidden font-sans relative selection:bg-red-500/30">
@@ -547,10 +561,26 @@ export default function TeamPage() {
             initial={{ opacity: 0 }} 
             animate={{ opacity: 1 }} 
             transition={{ delay: 0.2 }}
-            className="text-lg md:text-xl text-slate-400 max-w-2xl mx-auto"
+            className="text-lg md:text-xl text-slate-400 max-w-2xl mx-auto mb-8"
           >
-            The brilliant minds driving CyberKavach. Click the mesh node constellation in the background to discharge fission/fusion reactions, and hover cards to view security profiles.
+            The strategic minds driving Chakravyuh Club. Hover over member profiles to inspect strategic defense credentials.
           </motion.p>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="flex justify-center"
+          >
+            <Link 
+              href="https://chat.whatsapp.com/chakravyuh" 
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-8 py-3 rounded-full bg-gradient-to-r from-[#FFD700] to-[#D4AF37] text-black font-bold transition-all hover:scale-105 hover:shadow-[0_0_20px_rgba(255,215,0,0.5)] border border-[#FFD700]/50 flex items-center gap-2"
+            >
+              <Users className="w-5 h-5" />
+              Join the Team
+            </Link>
+          </motion.div>
         </div>
 
         {/* Categorized grids */}
@@ -563,7 +593,7 @@ export default function TeamPage() {
       </main>
       
       {/* Footer */}
-      <footer className="border-t border-white/10 bg-black py-12 relative z-10">
+      <footer className="border-t border-[#121F3D] bg-[#030712] py-12 relative z-10">
         <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-2">
             <CyberKavachLogo animateDrawing={false} />
@@ -571,18 +601,18 @@ export default function TeamPage() {
           
           {/* Social Links */}
           <div className="flex items-center gap-4">
-            <a href="https://linkedin.com/company/cyberkavach" target="_blank" rel="noopener noreferrer" className="p-2 rounded-full border border-white/10 hover:border-red-500 hover:text-red-500 hover:bg-red-500/10 transition-all text-slate-400" title="LinkedIn">
+            <a href="https://linkedin.com/company/chakravyuh" target="_blank" rel="noopener noreferrer" className="p-2 rounded-full border border-white/10 hover:border-[#FFD700] hover:text-[#FFD700] hover:bg-[#FFD700]/10 transition-all text-zinc-400" title="LinkedIn">
               <LinkedinIcon className="w-5 h-5" />
             </a>
-            <a href="https://instagram.com/cyberkavach" target="_blank" rel="noopener noreferrer" className="p-2 rounded-full border border-white/10 hover:border-red-500 hover:text-red-500 hover:bg-red-500/10 transition-all text-slate-400" title="Instagram">
+            <a href="https://www.instagram.com/chakravyuh.charusat/" target="_blank" rel="noopener noreferrer" className="p-2 rounded-full border border-white/10 hover:border-[#00F5D4] hover:text-[#00F5D4] hover:bg-[#00F5D4]/10 transition-all text-zinc-400" title="Instagram">
               <InstagramIcon className="w-5 h-5" />
             </a>
-            <a href="https://chat.whatsapp.com/cyberkavach" target="_blank" rel="noopener noreferrer" className="p-2 rounded-full border border-white/10 hover:border-red-500 hover:text-red-500 hover:bg-red-500/10 transition-all text-slate-400" title="WhatsApp Community">
+            <a href="https://chat.whatsapp.com/chakravyuh" target="_blank" rel="noopener noreferrer" className="p-2 rounded-full border border-white/10 hover:border-[#FFD700] hover:text-[#FFD700] hover:bg-[#FFD700]/10 transition-all text-zinc-400" title="WhatsApp Community">
               <WhatsappIcon className="w-5 h-5" />
             </a>
           </div>
 
-          <p className="text-slate-500 text-sm">© {new Date().getFullYear()} CyberKavach. All rights reserved.</p>
+          <p className="text-zinc-500 text-sm">© {new Date().getFullYear()} Chakravyuh Club. All rights reserved.</p>
         </div>
       </footer>
 
@@ -593,7 +623,7 @@ export default function TeamPage() {
            title="CyberKavach LinkedIn">
            <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.779-1.75-1.75s.784-1.75 1.75-1.75 1.75.779 1.75 1.75-.784 1.75-1.75 1.75zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
         </a>
-        <a href="https://instagram.com/cyberkavach" target="_blank" rel="noopener noreferrer"
+        <a href="https://www.instagram.com/chakravyuh.charusat/" target="_blank" rel="noopener noreferrer"
            className="w-11 h-11 rounded-full bg-black/80 border border-zinc-800 flex items-center justify-center hover:border-red-500 text-zinc-400 hover:text-red-500 shadow-[0_0_15px_rgba(0,0,0,0.5)] transition-all hover:scale-110 hover:shadow-[0_0_20px_rgba(239,68,68,0.25)] flex items-center justify-center"
            title="CyberKavach Instagram">
            <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>

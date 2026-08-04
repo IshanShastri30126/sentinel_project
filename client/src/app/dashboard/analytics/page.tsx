@@ -11,12 +11,12 @@ import {
 } from "lucide-react";
 
 const ROLE_COLORS: Record<string, string> = {
-  FACULTY: "#7c3aed",
-  STUDENT_COORDINATOR: "#06b6d4",
-  TECH: "#10b981",
-  CONTENT: "#f59e0b",
-  SOCIAL_MEDIA: "#ec4899",
-  MEMBER: "#6366f1",
+  FACULTY: "#9333ea",
+  STUDENT_COORDINATOR: "#00F5D4",
+  TECH: "#00D2FF",
+  CONTENT: "#FFD700",
+  SOCIAL_MEDIA: "#f43f5e",
+  MEMBER: "#38bdf8",
   GUEST: "#64748b",
 };
 
@@ -73,7 +73,7 @@ function CircleGauge({ value, max, label, color, icon }: { value: number; max: n
       </div>
       <div className="flex items-center gap-1.5">
         <span style={{ color }} className="opacity-80">{icon}</span>
-        <span className="text-xs font-bold uppercase tracking-widest text-zinc-400">{label}</span>
+        <span className="text-xs font-bold uppercase tracking-widest text-[var(--ck-text-secondary)]">{label}</span>
       </div>
     </motion.div>
   );
@@ -89,10 +89,10 @@ function AnimatedBar({ label, count, total, color, delay = 0 }: { label: string;
       className="group"
     >
       <div className="flex justify-between items-center mb-2">
-        <span className="text-xs font-bold uppercase tracking-wider text-zinc-300">{label.replace(/_/g, " ")}</span>
+        <span className="text-xs font-bold uppercase tracking-wider text-[var(--ck-text)]">{label.replace(/_/g, " ")}</span>
         <div className="flex items-center gap-2.5">
           <span className="text-xs font-mono font-bold" style={{ color }}>{count}</span>
-          <span className="text-[10px] text-zinc-600 font-mono bg-white/[0.03] px-1.5 py-0.5 rounded">{pct}%</span>
+          <span className="text-[10px] text-[var(--ck-text-muted)] font-mono bg-white/[0.03] px-1.5 py-0.5 rounded">{pct}%</span>
         </div>
       </div>
       <div className="h-2 rounded-full overflow-hidden bg-white/[0.04] border border-white/[0.03]">
@@ -242,7 +242,7 @@ export default function AnalyticsPage() {
         <div className="w-16 h-16 rounded-full border-2 border-cyan-500/20 border-t-cyan-500 animate-spin" />
         <div className="absolute inset-2 rounded-full border-2 border-violet-500/20 border-b-violet-500 animate-spin" style={{ animationDirection: "reverse", animationDuration: "0.8s" }} />
       </div>
-      <p className="text-xs font-mono uppercase tracking-widest text-zinc-500 animate-pulse">LOADING ANALYTICS ENGINE...</p>
+      <p className="text-xs font-mono uppercase tracking-widest text-[var(--ck-text-muted)] animate-pulse">LOADING ANALYTICS ENGINE...</p>
     </div>
   );
 
@@ -255,7 +255,7 @@ export default function AnalyticsPage() {
             <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_12px_rgba(34,211,238,0.8)]" />
             <span className="text-[10px] font-mono uppercase tracking-widest text-cyan-400">LIVE TELEMETRY FEED</span>
           </div>
-          <h1 className="text-4xl font-black font-mono tracking-tighter text-white">
+          <h1 className="text-4xl font-black font-mono tracking-tighter text-[var(--ck-text)]">
             ANALYTICS <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-[#CCFF00] to-cyan-400">DASHBOARD</span>
           </h1>
           <p className="text-sm text-zinc-550 mt-1 font-mono">CLUB TELEMETRY // ENGAGEMENT METRICS // ADJUDICATION PERFORMANCE</p>
@@ -286,7 +286,7 @@ export default function AnalyticsPage() {
                 {topAchiever.user?.avatarUrl ? (
                   <img src={getFileUrl(topAchiever.user.avatarUrl)} alt={topAchiever.user.name} className="w-full h-full object-cover" />
                 ) : (
-                  <div className="w-full h-full bg-zinc-900 flex items-center justify-center">
+                  <div className="w-full h-full bg-[var(--ck-bg-card)] flex items-center justify-center">
                     <Users className="w-10 h-10 text-zinc-650" />
                   </div>
                 )}
@@ -296,17 +296,17 @@ export default function AnalyticsPage() {
               <div>
                 <div className="flex items-center justify-center md:justify-start gap-2 mb-1.5">
                   <div className="w-2 h-2 rounded-full bg-[#CCFF00] animate-pulse" />
-                  <span className="text-[10px] font-mono text-[#CCFF00] uppercase tracking-widest font-black">HIGH XP LEADER</span>
+                  <span className="text-[10px] font-mono text-[var(--ck-primary)] uppercase tracking-widest font-black">HIGH XP LEADER</span>
                 </div>
-                <h2 className="text-2xl font-black font-mono tracking-tighter text-white uppercase">{topAchiever.user?.name}</h2>
-                <p className="text-xs text-[#FF003C] font-mono uppercase tracking-wider font-semibold mt-0.5">
+                <h2 className="text-2xl font-black font-mono tracking-tighter text-[var(--ck-text)] uppercase">{topAchiever.user?.name}</h2>
+                <p className="text-xs text-[var(--ck-danger)] font-mono uppercase tracking-wider font-semibold mt-0.5">
                   {topAchiever.user?.role?.replace(/_/g, " ")} // SECURITY CLEARANCE
                 </p>
                 
                 {topAchiever.badges && topAchiever.badges.length > 0 && (
                   <div className="flex flex-wrap gap-1.5 mt-3 justify-center md:justify-start">
                     {topAchiever.badges.map((b: any, idx: number) => (
-                      <span key={idx} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white/[0.04] border border-white/[0.06] text-[9px] font-mono text-zinc-400" title={b.description}>
+                      <span key={idx} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white/[0.04] border border-white/[0.06] text-[9px] font-mono text-[var(--ck-text-secondary)]" title={b.description}>
                         <span>🏅</span>
                         <span>{b.name}</span>
                       </span>
@@ -318,18 +318,18 @@ export default function AnalyticsPage() {
 
             <div className="flex gap-5 sm:gap-6 shrink-0 bg-black/40 backdrop-blur-sm border border-white/[0.05] p-5 rounded-xl font-mono text-center md:text-left min-w-[260px] justify-around">
               <div>
-                <p className="text-[9px] text-zinc-500 uppercase tracking-widest mb-1">XP RANK</p>
-                <p className="text-3xl font-black text-[#CCFF00]" style={{ textShadow: "0 0 20px rgba(204,255,0,0.3)" }}>#01</p>
+                <p className="text-[9px] text-[var(--ck-text-muted)] uppercase tracking-widest mb-1">XP RANK</p>
+                <p className="text-3xl font-black text-[var(--ck-primary)]" style={{ textShadow: "0 0 20px rgba(204,255,0,0.3)" }}>#01</p>
               </div>
               <div className="w-px bg-white/[0.06] self-stretch" />
               <div>
-                <p className="text-[9px] text-zinc-500 uppercase tracking-widest mb-1">TOTAL POINTS</p>
-                <p className="text-3xl font-black text-white">{topAchiever.totalPoints}</p>
+                <p className="text-[9px] text-[var(--ck-text-muted)] uppercase tracking-widest mb-1">TOTAL POINTS</p>
+                <p className="text-3xl font-black text-[var(--ck-text)]">{topAchiever.totalPoints}</p>
               </div>
               <div className="w-px bg-white/[0.06] self-stretch" />
               <div>
-                <p className="text-[9px] text-zinc-500 uppercase tracking-widest mb-1">BADGES</p>
-                <p className="text-3xl font-black text-[#FF003C]">{topAchiever.badges?.length || 0}</p>
+                <p className="text-[9px] text-[var(--ck-text-muted)] uppercase tracking-widest mb-1">BADGES</p>
+                <p className="text-3xl font-black text-[var(--ck-danger)]">{topAchiever.badges?.length || 0}</p>
               </div>
             </div>
           </div>
@@ -345,7 +345,7 @@ export default function AnalyticsPage() {
         >
           {/* Top 3 Events */}
           <div className="rounded-2xl border border-white/5 bg-white/2 p-5 space-y-4">
-            <h3 className="text-sm font-black font-mono tracking-widest text-[#CCFF00] uppercase flex items-center gap-2">
+            <h3 className="text-sm font-black font-mono tracking-widest text-[var(--ck-primary)] uppercase flex items-center gap-2">
               <CalendarDays className="w-4.5 h-4.5" /> TOP EVENTS
             </h3>
             <div className="space-y-3">
@@ -353,12 +353,12 @@ export default function AnalyticsPage() {
                 <div key={e.id} className="flex items-center gap-3 p-3 rounded-xl bg-white/3 border border-white/5 group hover:border-[#CCFF00]/30 transition-all">
                   <span className="text-xl shrink-0 font-bold">{MEDALS[idx] || "⭐"}</span>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-bold text-zinc-200 truncate">{e.title}</p>
+                    <p className="text-sm font-bold text-[var(--ck-text)] truncate">{e.title}</p>
                     <p className="text-[10px] text-zinc-550 font-mono uppercase">{e.eventType} · {new Date(e.startDate).toLocaleDateString("en-IN")}</p>
                   </div>
                   <div className="text-right shrink-0">
-                    <span className="text-sm font-black text-[#CCFF00] font-mono">{e.registrations}</span>
-                    <p className="text-[8px] text-zinc-500 uppercase font-mono">REGS</p>
+                    <span className="text-sm font-black text-[var(--ck-primary)] font-mono">{e.registrations}</span>
+                    <p className="text-[8px] text-[var(--ck-text-muted)] uppercase font-mono">REGS</p>
                   </div>
                 </div>
               ))}
@@ -378,18 +378,18 @@ export default function AnalyticsPage() {
                     {m.avatarUrl ? (
                       <img src={getFileUrl(m.avatarUrl)} alt={m.name} className="w-full h-full object-cover" />
                     ) : (
-                      <div className="w-full h-full bg-zinc-900 flex items-center justify-center text-[10px] font-bold text-zinc-400">
+                      <div className="w-full h-full bg-[var(--ck-bg-card)] flex items-center justify-center text-[10px] font-bold text-[var(--ck-text-secondary)]">
                         {m.name[0]}
                       </div>
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-bold text-zinc-200 truncate">{m.name}</p>
+                    <p className="text-sm font-bold text-[var(--ck-text)] truncate">{m.name}</p>
                     <p className="text-[10px] text-zinc-550 font-mono uppercase">{m.role.replace(/_/g, " ")}</p>
                   </div>
                   <div className="text-right shrink-0">
                     <span className="text-sm font-black text-[#06b6d4] font-mono">{m.points}</span>
-                    <p className="text-[8px] text-zinc-500 uppercase font-mono">XP</p>
+                    <p className="text-[8px] text-[var(--ck-text-muted)] uppercase font-mono">XP</p>
                   </div>
                 </div>
               ))}
@@ -398,7 +398,7 @@ export default function AnalyticsPage() {
 
           {/* Top 3 Teams */}
           <div className="rounded-2xl border border-white/5 bg-white/2 p-5 space-y-4">
-            <h3 className="text-sm font-black font-mono tracking-widest text-[#FF003C] uppercase flex items-center gap-2">
+            <h3 className="text-sm font-black font-mono tracking-widest text-[var(--ck-danger)] uppercase flex items-center gap-2">
               <Users2 className="w-4.5 h-4.5" /> TOP TEAMS
             </h3>
             <div className="space-y-3">
@@ -406,12 +406,12 @@ export default function AnalyticsPage() {
                 <div key={t.id} className="flex items-center gap-3 p-3 rounded-xl bg-white/3 border border-white/5 group hover:border-[#FF003C]/30 transition-all">
                   <span className="text-xl shrink-0 font-bold">{MEDALS[idx] || "⭐"}</span>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-bold text-zinc-200 truncate">{t.name}</p>
+                    <p className="text-sm font-bold text-[var(--ck-text)] truncate">{t.name}</p>
                     <p className="text-[10px] text-zinc-550 font-mono uppercase truncate">{t.eventTitle}</p>
                   </div>
                   <div className="text-right shrink-0">
-                    <span className="text-sm font-black text-[#FF003C] font-mono">{t.membersCount}</span>
-                    <p className="text-[8px] text-zinc-500 uppercase font-mono">MEMBERS</p>
+                    <span className="text-sm font-black text-[var(--ck-danger)] font-mono">{t.membersCount}</span>
+                    <p className="text-[8px] text-[var(--ck-text-muted)] uppercase font-mono">MEMBERS</p>
                   </div>
                 </div>
               ))}
@@ -431,9 +431,9 @@ export default function AnalyticsPage() {
           <div className="absolute inset-0 bg-[linear-gradient(rgba(6,182,212,0.02)_1px,transparent_1px)] bg-[size:100%_3px] pointer-events-none" />
           <div className="ck-section-header">
             <Activity className="w-5 h-5 text-violet-400" />
-            <h2 className="text-sm font-black uppercase tracking-widest text-zinc-300">CORE METRICS TELEMETRY</h2>
+            <h2 className="text-sm font-black uppercase tracking-widest text-[var(--ck-text)]">CORE METRICS TELEMETRY</h2>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-8 justify-items-center relative z-10">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 justify-items-center relative z-10">
             {Object.entries(clubData.overview).map(([key, value], i) => {
               const meta = STAT_META[key] || { label: key, icon: <Zap className="w-4 h-4" />, color: "#06b6d4" };
               return (
@@ -455,8 +455,8 @@ export default function AnalyticsPage() {
         >
           <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-5 gap-3">
             <div className="ck-section-header mb-0 pb-0 border-b-0">
-              <BarChart3 className="w-5 h-5 text-[#CCFF00]" />
-              <h2 className="text-sm font-black uppercase tracking-widest text-zinc-300">EVENT PERFORMANCE METRICS</h2>
+              <BarChart3 className="w-5 h-5 text-[var(--ck-primary)]" />
+              <h2 className="text-sm font-black uppercase tracking-widest text-[var(--ck-text)]">EVENT PERFORMANCE METRICS</h2>
             </div>
             
             <div className="flex items-center gap-3">
@@ -467,7 +467,7 @@ export default function AnalyticsPage() {
                   placeholder="Filter events..."
                   value={eventSearch}
                   onChange={(e) => setEventSearch(e.target.value)}
-                  className="bg-black/40 border border-white/10 rounded-xl px-9 py-1.5 text-xs text-zinc-200 outline-none focus:border-[#CCFF00]/50 font-mono w-48 transition-all"
+                  className="bg-black/40 border border-white/10 rounded-xl px-9 py-1.5 text-xs text-[var(--ck-text)] outline-none focus:border-[var(--ck-primary)]/50 font-mono w-48 transition-all"
                 />
               </div>
             </div>
@@ -497,16 +497,16 @@ export default function AnalyticsPage() {
               </thead>
               <tbody>
                 {sortedEvents.map(ev => {
-                  let capColor = "text-zinc-500 bg-zinc-950/20 border-zinc-900";
+                  let capColor = "text-[var(--ck-text-muted)] bg-zinc-950/20 border-[var(--ck-border)]";
                   if (ev.capacityUtilization >= 80) capColor = "text-red-400 bg-red-950/10 border-red-500/20";
                   else if (ev.capacityUtilization >= 50) capColor = "text-amber-400 bg-amber-950/10 border-amber-500/20";
                   else if (ev.capacityUtilization > 0) capColor = "text-lime-400 bg-lime-950/10 border-lime-500/20";
 
                   return (
                     <tr key={ev.id} className="hover:bg-white/2 transition-colors">
-                      <td className="font-bold text-zinc-100 max-w-[200px] truncate">{ev.title}</td>
-                      <td className="text-center font-mono font-bold text-zinc-200">{ev.registrationsCount}</td>
-                      <td className="text-center">
+                      <td className="font-bold text-zinc-100 max-w-[200px] truncate" data-label="Event Name">{ev.title}</td>
+                      <td className="text-center font-mono font-bold text-[var(--ck-text)]" data-label="Registrations">{ev.registrationsCount}</td>
+                      <td className="text-center" data-label="Attendance Rate">
                         <div className="flex flex-col items-center gap-1">
                           <span className="font-mono text-xs text-green-400 font-bold">{ev.attendanceRate}%</span>
                           <div className="w-20 h-1 rounded-full bg-white/5 overflow-hidden">
@@ -514,13 +514,13 @@ export default function AnalyticsPage() {
                           </div>
                         </div>
                       </td>
-                      <td className="text-center">
+                      <td className="text-center" data-label="Capacity Util">
                         <span className={`inline-flex items-center px-2 py-0.5 rounded-md border text-xs font-mono font-bold ${capColor}`}>
                           {ev.capacityUtilization}%
                         </span>
                       </td>
-                      <td className="text-center font-mono font-bold text-zinc-300">{ev.teamCount}</td>
-                      <td className="flex justify-center py-2">
+                      <td className="text-center font-mono font-bold text-[var(--ck-text)]" data-label="Teams">{ev.teamCount}</td>
+                      <td className="flex justify-center py-2" data-label="Reg Trend">
                         <Sparkline data={ev.registrationTrend} />
                       </td>
                     </tr>
@@ -541,7 +541,7 @@ export default function AnalyticsPage() {
         >
           <div className="ck-section-header">
             <Radio className="w-5 h-5 text-[#06b6d4]" />
-            <h2 className="text-sm font-black uppercase tracking-widest text-zinc-300">COORDINATOR OPERATIONS MATRIX</h2>
+            <h2 className="text-sm font-black uppercase tracking-widest text-[var(--ck-text)]">COORDINATOR OPERATIONS MATRIX</h2>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
@@ -554,14 +554,14 @@ export default function AnalyticsPage() {
                       {c.avatarUrl ? (
                         <img src={getFileUrl(c.avatarUrl)} alt={c.name} className="w-full h-full object-cover" />
                       ) : (
-                        <div className="w-full h-full bg-zinc-900 flex items-center justify-center font-bold text-sm text-zinc-400">
+                        <div className="w-full h-full bg-[var(--ck-bg-card)] flex items-center justify-center font-bold text-sm text-[var(--ck-text-secondary)]">
                           {c.name[0]}
                         </div>
                       )}
                     </div>
                     <div className="min-w-0">
                       <p className="text-sm font-bold text-zinc-100 truncate">{c.name}</p>
-                      <p className="text-[10px] text-zinc-500 font-mono uppercase">{c.role.replace(/_/g, " ")}</p>
+                      <p className="text-[10px] text-[var(--ck-text-muted)] font-mono uppercase">{c.role.replace(/_/g, " ")}</p>
                     </div>
                     <div className="ml-auto text-right font-mono shrink-0">
                       <span className="text-[10px] text-zinc-550 uppercase tracking-widest">ACTIVITY</span>
@@ -571,20 +571,20 @@ export default function AnalyticsPage() {
 
                   <div className="grid grid-cols-2 gap-3 pt-3">
                     <div className="p-2 rounded-lg bg-black/30 border border-white/2">
-                      <span className="text-[9px] text-zinc-500 uppercase tracking-wider block font-mono">EVENTS</span>
-                      <span className="text-sm font-black font-mono text-zinc-200">{c.eventsCreated}</span>
+                      <span className="text-[9px] text-[var(--ck-text-muted)] uppercase tracking-wider block font-mono">EVENTS</span>
+                      <span className="text-sm font-black font-mono text-[var(--ck-text)]">{c.eventsCreated}</span>
                     </div>
                     <div className="p-2 rounded-lg bg-black/30 border border-white/2">
-                      <span className="text-[9px] text-zinc-500 uppercase tracking-wider block font-mono">DECISIONS</span>
-                      <span className="text-sm font-black font-mono text-zinc-200">{c.approvalsProcessed}</span>
+                      <span className="text-[9px] text-[var(--ck-text-muted)] uppercase tracking-wider block font-mono">DECISIONS</span>
+                      <span className="text-sm font-black font-mono text-[var(--ck-text)]">{c.approvalsProcessed}</span>
                     </div>
                     <div className="p-2 rounded-lg bg-black/30 border border-white/2">
-                      <span className="text-[9px] text-zinc-500 uppercase tracking-wider block font-mono">XP ISSUED</span>
-                      <span className="text-sm font-black font-mono text-zinc-200">{c.pointsAwardedCount}</span>
+                      <span className="text-[9px] text-[var(--ck-text-muted)] uppercase tracking-wider block font-mono">XP ISSUED</span>
+                      <span className="text-sm font-black font-mono text-[var(--ck-text)]">{c.pointsAwardedCount}</span>
                     </div>
                     <div className="p-2 rounded-lg bg-black/30 border border-white/2">
-                      <span className="text-[9px] text-zinc-500 uppercase tracking-wider block font-mono">CHECK-INS</span>
-                      <span className="text-sm font-black font-mono text-zinc-200">{c.attendanceMarked}</span>
+                      <span className="text-[9px] text-[var(--ck-text-muted)] uppercase tracking-wider block font-mono">CHECK-INS</span>
+                      <span className="text-sm font-black font-mono text-[var(--ck-text)]">{c.attendanceMarked}</span>
                     </div>
                   </div>
                 </div>
@@ -603,7 +603,7 @@ export default function AnalyticsPage() {
             <div className="absolute top-0 right-0 w-40 h-40 bg-amber-500/[0.03] rounded-full blur-3xl" />
             <div className="ck-section-header">
               <ClipboardList className="w-5 h-5 text-amber-400" />
-              <h2 className="text-sm font-black uppercase tracking-widest text-zinc-300">APPROVAL PIPELINE STATE</h2>
+              <h2 className="text-sm font-black uppercase tracking-widest text-[var(--ck-text)]">APPROVAL PIPELINE STATE</h2>
             </div>
             <div className="space-y-4 relative z-10">
               {clubData.approvalStats.map((s: any, i: number) => {
@@ -627,7 +627,7 @@ export default function AnalyticsPage() {
             <div className="absolute top-0 right-0 w-40 h-40 bg-cyan-500/[0.03] rounded-full blur-3xl" />
             <div className="ck-section-header">
               <Users className="w-5 h-5 text-cyan-400" />
-              <h2 className="text-sm font-black uppercase tracking-widest text-zinc-300">OPERATIVE ROLES</h2>
+              <h2 className="text-sm font-black uppercase tracking-widest text-[var(--ck-text)]">OPERATIVE ROLES</h2>
             </div>
             <div className="space-y-4 relative z-10">
               {clubData.roleDistribution.map((r: any, i: number) => {
@@ -649,7 +649,7 @@ export default function AnalyticsPage() {
         >
           <div className="ck-section-header">
             <Target className="w-5 h-5 text-emerald-400" />
-            <h2 className="text-sm font-black uppercase tracking-widest text-zinc-300">RECENT EVENTS ACTIVITY</h2>
+            <h2 className="text-sm font-black uppercase tracking-widest text-[var(--ck-text)]">RECENT EVENTS ACTIVITY</h2>
           </div>
           <div className="space-y-2.5 relative z-10">
             {clubData.recentEvents.map((ev: any, i: number) => (
@@ -661,12 +661,12 @@ export default function AnalyticsPage() {
               >
                 <div className="w-1 h-8 rounded-full bg-gradient-to-b from-emerald-400 to-cyan-500 shrink-0 group-hover:shadow-[0_0_10px_rgba(16,185,129,0.5)] transition-all" />
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-zinc-200 truncate group-hover:text-emerald-400 transition-colors">{ev.title}</p>
-                  <p className="text-[11px] text-zinc-500 font-mono">{new Date(ev.startDate).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</p>
+                  <p className="text-sm font-semibold text-[var(--ck-text)] truncate group-hover:text-emerald-400 transition-colors">{ev.title}</p>
+                  <p className="text-[11px] text-[var(--ck-text-muted)] font-mono">{new Date(ev.startDate).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</p>
                 </div>
                 <div className="text-right shrink-0">
                   <p className="text-lg font-black font-mono text-emerald-400">{ev._count?.registrations || 0}</p>
-                  <p className="text-[9px] text-zinc-500 uppercase tracking-widest">REGS</p>
+                  <p className="text-[9px] text-[var(--ck-text-muted)] uppercase tracking-widest">REGS</p>
                 </div>
               </motion.div>
             ))}
@@ -688,7 +688,7 @@ export default function AnalyticsPage() {
           >
             <span style={{ color: s.color }}>{s.icon}</span>
             <div>
-              <p className="text-[9px] uppercase tracking-widest text-zinc-500">{s.label}</p>
+              <p className="text-[9px] uppercase tracking-widest text-[var(--ck-text-muted)]">{s.label}</p>
               <p className="text-[11px] font-bold font-mono" style={{ color: s.color }}>{s.value}</p>
             </div>
             <motion.div

@@ -24,12 +24,12 @@ interface FetchOptions extends RequestInit {
 }
 
 interface CacheEntry {
-  data: any;
+  data: unknown;
   timestamp: number;
 }
 
 const apiCache = new Map<string, CacheEntry>();
-const activeRequests = new Map<string, Promise<any>>();
+const activeRequests = new Map<string, Promise<unknown>>();
 const CACHE_TTL_MS = 10 * 1000; // 10 seconds
 
 // Core HTTP execution function
@@ -38,7 +38,7 @@ async function executeApiRequest<T>(endpoint: string, options: FetchOptions = {}
 
   const cookieToken = Cookies.get("accessToken");
   const activeToken = cookieToken || token;
-  const activeClubSlug = typeof window !== "undefined" ? localStorage.getItem("ck_active_club_slug") || "cyberkavach" : "cyberkavach";
+  const activeClubSlug = typeof window !== "undefined" ? localStorage.getItem("ck_active_club_slug") || "chakravyuh" : "chakravyuh";
 
   const res = await fetch(`${API_BASE}${endpoint}`, {
     credentials: "include",
@@ -133,7 +133,7 @@ export async function api<T = unknown>(endpoint: string, options: FetchOptions =
 export async function apiUpload<T = unknown>(endpoint: string, formData: FormData, token?: string, method = "POST"): Promise<T> {
   const cookieToken = Cookies.get("accessToken");
   const activeToken = cookieToken || token;
-  const activeClubSlug = typeof window !== "undefined" ? localStorage.getItem("ck_active_club_slug") || "cyberkavach" : "cyberkavach";
+  const activeClubSlug = typeof window !== "undefined" ? localStorage.getItem("ck_active_club_slug") || "chakravyuh" : "chakravyuh";
 
   // Invalidate cache on upload (as it's a mutating action)
   apiCache.clear();

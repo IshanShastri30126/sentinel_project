@@ -32,9 +32,15 @@ const router = Router();
 // GET /api/users — List all users (SC+ only)
 router.get("/", authenticate, requireMinRole("STUDENT_COORDINATOR"), async (req: Request, res: Response) => {
   try {
-    const { search, role, approved } = req.query;
+    const { search, role, approved, page, limit } = req.query;
     
-    const cacheKey = `users:list:${search || "none"}:${role || "all"}:${approved || "all"}`;
+    const pageNum = page ? parseInt(page as string) : undefined;
+    const limitNum = limit ? parseInt(limit as string) : undefined;
+    
+    const pageVal = (pageNum && pageNum > 0) ? pageNum : undefined;
+    const limitVal = (limitNum && limitNum > 0) ? limitNum : undefined;
+    
+    const cacheKey = `users:list:${search || "none"}:${role || "all"}:${approved || "all"}:${page || "all"}:${limit || "all"}`;
     const cached = await redisGet(cacheKey);
     if (cached) {
       res.json(JSON.parse(cached));
@@ -53,6 +59,8 @@ router.get("/", authenticate, requireMinRole("STUDENT_COORDINATOR"), async (req:
     if (role) where.role = role as Role;
     if (approved !== undefined) where.isApproved = approved === "true";
 
+    const total = await prisma.user.count({ where });
+
     const users = await prisma.user.findMany({
       where,
       select: {
@@ -62,10 +70,22 @@ router.get("/", authenticate, requireMinRole("STUDENT_COORDINATOR"), async (req:
         institute: true, semester: true,
       },
       orderBy: { createdAt: "desc" },
+      ...(pageVal && limitVal ? {
+        skip: (pageVal - 1) * limitVal,
+        take: limitVal,
+      } : {}),
     });
     
-    await redisSet(cacheKey, JSON.stringify({ users }), 300); // 5 minutes cache
-    res.json({ users });
+    const responsePayload = {
+      users,
+      total,
+      pages: limitVal ? Math.ceil(total / limitVal) : 1,
+      page: pageVal || 1,
+      limit: limitVal || total,
+    };
+    
+    await redisSet(cacheKey, JSON.stringify(responsePayload), 300); // 5 minutes cache
+    res.json(responsePayload);
   } catch (err) {
     console.error("[Users] List error:", err);
     res.status(500).json({ error: "Internal server error" });

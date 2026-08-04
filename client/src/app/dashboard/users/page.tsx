@@ -30,27 +30,44 @@ const ROLES = ["FACULTY", "STUDENT_COORDINATOR", "TECH", "CONTENT", "SOCIAL_MEDI
 
 export default function UsersPage() {
   const { user, token } = useAuth();
-  const [users, setUsers] = useState<UserEntry[]>([]);
+  const [approvedUsers, setApprovedUsers] = useState<UserEntry[]>([]);
+  const [pendingUsers, setPendingUsers] = useState<UserEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("");
   
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
   const itemsPerPage = 10;
 
   const load = async () => {
     try {
-      let params = "?";
-      if (search) params += `search=${search}&`;
-      if (roleFilter) params += `role=${roleFilter}&`;
-      const data = await api<{ users: UserEntry[] }>(`/users${params}`, { token: token || undefined });
-      setUsers(data.users);
-    } catch (err) { console.error(err); }
-    finally { setLoading(false); }
+      let pendingParams = "?approved=false";
+      if (search) pendingParams += `&search=${search}`;
+
+      let approvedParams = `?approved=true&page=${currentPage}&limit=${itemsPerPage}`;
+      if (search) approvedParams += `&search=${search}`;
+      if (roleFilter) approvedParams += `&role=${roleFilter}`;
+
+      const [pendingData, approvedData] = await Promise.all([
+        api<{ users: UserEntry[] }>(`/users${pendingParams}`, { token: token || undefined }),
+        api<{ users: UserEntry[]; total: number; pages: number }>(`/users${approvedParams}`, { token: token || undefined })
+      ]);
+
+      setPendingUsers(pendingData.users);
+      setApprovedUsers(approvedData.users);
+      setTotalItems(approvedData.total);
+      setTotalPages(approvedData.pages);
+    } catch (err) { 
+      console.error(err); 
+    } finally { 
+      setLoading(false); 
+    }
   };
 
-  useEffect(() => { if (token) load(); }, [token, search, roleFilter]);
+  useEffect(() => { if (token) load(); }, [token, search, roleFilter, currentPage]);
 
   // Reset pagination when search queries or filters change
   useEffect(() => {
@@ -72,13 +89,7 @@ export default function UsersPage() {
     catch (err) { alert(err instanceof Error ? err.message : "Failed"); }
   };
 
-  const pendingUsers = users.filter((u) => !u.isApproved);
-  const approvedUsers = users.filter((u) => u.isApproved);
-  
-  // Pagination Calculations
-  const totalItems = approvedUsers.length;
-  const totalPages = Math.max(1, Math.ceil(totalItems / itemsPerPage));
-  const paginatedUsers = approvedUsers.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+  const paginatedUsers = approvedUsers;
 
   return (
     <div>
@@ -91,20 +102,20 @@ export default function UsersPage() {
 
       {/* Pending Approvals Banner */}
       {pendingUsers.length > 0 && (
-        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="ck-card p-5 mb-6 border-l-4 border-[#FF4D00] relative overflow-hidden bg-[#FF4D00]/5 shadow-[0_0_15px_rgba(255,77,0,0.08)] border-zinc-800">
+        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="ck-card p-5 mb-6 border-l-4 border-[#FF4D00] relative overflow-hidden bg-[#FF4D00]/5 shadow-[0_0_15px_rgba(255,77,0,0.08)] border-[var(--ck-border)]">
           <div className="absolute top-0 right-0 w-32 h-32 bg-[#FF4D00]/5 blur-3xl pointer-events-none" />
-          <h3 className="font-semibold mb-3 flex items-center gap-2 uppercase font-mono tracking-tighter text-[#FF4D00] text-sm">
+          <h3 className="font-semibold mb-3 flex items-center gap-2 uppercase font-mono tracking-tighter text-[var(--ck-accent)] text-sm">
             <UserCheck className="w-5 h-5" /> {pendingUsers.length} PENDING AUTHORIZATION
           </h3>
           <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
             {pendingUsers.map((u) => (
-              <div key={u.id} className="flex items-center justify-between p-3.5 rounded-xl border border-zinc-800 bg-black/40 hover:border-[#FF4D00]/30 transition duration-200">
+              <div key={u.id} className="flex items-center justify-between p-3.5 rounded-xl border border-[var(--ck-border)] bg-black/40 hover:border-[#FF4D00]/30 transition duration-200">
                 <div>
                   <div className="flex items-center gap-2">
-                    <p className="text-sm font-semibold text-white">{u.name}</p>
-                    {u.studentId && <span className="text-[9px] font-mono bg-[#FF4D00]/10 border border-[#FF4D00]/25 px-1.5 py-0.5 rounded text-[#FF4D00]">ID: {u.studentId}</span>}
+                    <p className="text-sm font-semibold text-[var(--ck-text)]">{u.name}</p>
+                    {u.studentId && <span className="text-[9px] font-mono bg-[#FF4D00]/10 border border-[#FF4D00]/25 px-1.5 py-0.5 rounded text-[var(--ck-accent)]">ID: {u.studentId}</span>}
                   </div>
-                  <p className="text-[10px] font-mono mt-1 text-zinc-500 uppercase">
+                  <p className="text-[10px] font-mono mt-1 text-[var(--ck-text-muted)] uppercase">
                     {u.email.toLowerCase()} {u.phone ? `// TEL: ${u.phone}` : ""} {u.department ? `// DEPT: ${u.department}` : ""} {u.semester ? `// SEM: ${u.semester}` : ""}
                   </p>
                 </div>
@@ -136,13 +147,13 @@ export default function UsersPage() {
       ) : approvedUsers.length === 0 ? (
         <div className="ck-card p-12 text-center">
           <Users className="w-12 h-12 mx-auto mb-3 text-zinc-650" />
-          <p className="text-sm font-mono text-zinc-500 uppercase">NO IDENTITY ENTRIES RECORDED</p>
+          <p className="text-sm font-mono text-[var(--ck-text-muted)] uppercase">NO IDENTITY ENTRIES RECORDED</p>
         </div>
       ) : (
         <div className="space-y-4">
-          <div className="ck-card border border-zinc-800">
+          <div className="ck-card border border-[var(--ck-border)]">
             <div className="overflow-x-auto w-full">
-              <table className="ck-table whitespace-nowrap">
+              <table className="ck-table ck-table-responsive whitespace-nowrap">
                 <thead>
                 <tr>
                   <th>Profile & ID</th>
@@ -157,7 +168,7 @@ export default function UsersPage() {
                 {paginatedUsers.map((u) => (
                   <tr key={u.id} className="group hover:bg-violet-500/[0.02]">
                     {/* Profile & ID */}
-                    <td>
+                    <td data-label="Profile & ID">
                       <div className="flex items-center gap-2.5">
                         {u.avatarUrl ? (
                           <img src={getFileUrl(u.avatarUrl)} alt="Avatar" className="w-9 h-9 rounded-lg object-cover border border-violet-500/20" />
@@ -165,8 +176,8 @@ export default function UsersPage() {
                           <DefaultAvatar className="w-9 h-9" />
                         )}
                         <div>
-                          <p className="text-sm font-semibold text-white tracking-wide">{u.name}</p>
-                          <p className="text-[10px] font-mono mt-0.5 text-zinc-500 uppercase">
+                          <p className="text-sm font-semibold text-[var(--ck-text)] tracking-wide">{u.name}</p>
+                          <p className="text-[10px] font-mono mt-0.5 text-[var(--ck-text-muted)] uppercase">
                             {u.studentId ? `STID: ${u.studentId}` : "GUEST / NO ID"}
                           </p>
                         </div>
@@ -174,14 +185,14 @@ export default function UsersPage() {
                     </td>
 
                     {/* Contact Details */}
-                    <td>
+                    <td data-label="Contact Details">
                       <div className="space-y-0.5 font-mono">
-                        <p className="text-xs text-zinc-300 lowercase flex items-center gap-1.5">
-                          <Mail className="w-3.5 h-3.5 text-[#CCFF00]/60" /> {u.email}
+                        <p className="text-xs text-[var(--ck-text)] lowercase flex items-center gap-1.5">
+                          <Mail className="w-3.5 h-3.5 text-[var(--ck-primary)]/60" /> {u.email}
                         </p>
                         {u.phone ? (
-                          <p className="text-[10px] text-zinc-500 flex items-center gap-1.5">
-                            <Phone className="w-3 h-3 text-zinc-600" /> {u.phone}
+                          <p className="text-[10px] text-[var(--ck-text-muted)] flex items-center gap-1.5">
+                            <Phone className="w-3 h-3 text-zinc-650" /> {u.phone}
                           </p>
                         ) : (
                           <p className="text-[10px] text-zinc-650 italic pl-5">No phone number</p>
@@ -190,21 +201,21 @@ export default function UsersPage() {
                     </td>
 
                     {/* Academic Details */}
-                    <td>
+                    <td data-label="Academic Info">
                       <div className="space-y-0.5">
-                        <p className="text-xs font-semibold text-zinc-300 font-mono uppercase flex items-center gap-1.5">
-                          <GraduationCap className="w-3.5 h-3.5 text-[#FF4D00]/60" /> {u.department || "N/A"}
+                        <p className="text-xs font-semibold text-[var(--ck-text)] font-mono uppercase flex items-center gap-1.5">
+                          <GraduationCap className="w-3.5 h-3.5 text-[var(--ck-accent)]/60" /> {u.department || "N/A"}
                         </p>
-                        <p className="text-[10px] text-zinc-500 font-mono uppercase pl-5">
+                        <p className="text-[10px] text-[var(--ck-text-muted)] font-mono uppercase pl-5">
                           {u.semester ? `SEM: ${u.semester}` : "SEM: —"} / {u.institute || "GUEST"}
                         </p>
                       </div>
                     </td>
 
                     {/* Security Role */}
-                    <td>
+                    <td data-label="Security Role">
                       {user?.role && ["FACULTY", "STUDENT_COORDINATOR"].includes(user.role) ? (
-                        <select className="ck-input text-[10px] py-1 px-2.5 w-auto font-mono border-zinc-800 focus:border-cyan-500/40" value={u.role} onChange={(e) => handleRoleChange(u.id, e.target.value)}>
+                        <select className="ck-input text-[10px] py-1 px-2.5 w-auto font-mono border-[var(--ck-border)] focus:border-cyan-500/40" value={u.role} onChange={(e) => handleRoleChange(u.id, e.target.value)}>
                           {ROLES.map((r) => <option key={r} value={r}>{r.replace(/_/g, " ")}</option>)}
                         </select>
                       ) : (
@@ -213,7 +224,7 @@ export default function UsersPage() {
                     </td>
 
                     {/* Operational Status */}
-                    <td>
+                    <td data-label="Operational Status">
                       {u.isActive ? (
                         <span className="ck-badge ck-badge-success text-[10px] tracking-wider">ACTIVE</span>
                       ) : (
@@ -222,14 +233,14 @@ export default function UsersPage() {
                     </td>
 
                     {/* Actions */}
-                    <td>
+                    <td data-label="Actions">
                       {user?.role && ["FACULTY", "STUDENT_COORDINATOR"].includes(user.role) && u.id !== user.id && (
                         <button 
                           onClick={() => handleToggleActive(u.id, u.isActive)} 
                           className={`text-[10px] uppercase font-mono tracking-wider px-3 py-1 rounded border transition-all duration-300 ${
                             u.isActive 
-                              ? "text-rose-450 border-rose-900/30 hover:bg-rose-500/10 hover:border-rose-500/50" 
-                              : "text-emerald-400 border-emerald-900/30 hover:bg-emerald-500/10 hover:border-emerald-500/50"
+                            ? "text-rose-450 border-rose-900/30 hover:bg-rose-500/10 hover:border-rose-500/50" 
+                            : "text-emerald-400 border-emerald-900/30 hover:bg-emerald-500/10 hover:border-emerald-500/50"
                           }`}
                         >
                           {u.isActive ? "Deactivate" : "Activate"}
@@ -245,8 +256,8 @@ export default function UsersPage() {
 
           {/* Pagination Controls */}
           {totalPages > 1 && (
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-4 border border-zinc-800 bg-zinc-950/40 rounded-xl">
-              <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-wider">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-4 border border-[var(--ck-border)] bg-zinc-950/40 rounded-xl">
+              <span className="text-[10px] font-mono text-[var(--ck-text-muted)] uppercase tracking-wider">
                 Showing {((currentPage - 1) * itemsPerPage) + 1} - {Math.min(currentPage * itemsPerPage, totalItems)} of {totalItems} entries
               </span>
               <div className="flex items-center gap-1.5">
@@ -270,7 +281,7 @@ export default function UsersPage() {
                       className={`w-7 h-7 rounded-lg border text-[10px] font-bold font-mono transition-all duration-200 ${
                         isCurrent
                           ? "bg-[#CCFF00] border-[#CCFF00] text-black shadow-[0_0_8px_rgba(204,255,0,0.3)]"
-                          : "border-zinc-800 bg-zinc-900/40 hover:border-zinc-700 text-zinc-400 hover:text-white"
+                          : "border-[var(--ck-border)] bg-zinc-900/40 hover:border-[var(--ck-border)] text-[var(--ck-text-secondary)] hover:text-[var(--ck-text)]"
                       }`}
                     >
                       {pageNum}

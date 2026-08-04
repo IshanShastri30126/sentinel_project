@@ -20,58 +20,52 @@ export const CyberKavachLogo: React.FC<CyberKavachLogoProps> = ({
   const containerVariants = {
     initial: { 
       scale: 1,
-      filter: "drop-shadow(0 0 0px rgba(255, 0, 60, 0)) drop-shadow(0 0 0px rgba(204, 255, 0, 0))"
+      filter: "drop-shadow(0 0 0px rgba(255, 215, 0, 0)) drop-shadow(0 0 0px rgba(0, 245, 212, 0))"
     },
     hover: {
       scale: 1.08,
-      filter: "drop-shadow(0 0 16px rgba(255, 0, 60, 0.4)) drop-shadow(0 0 8px rgba(204, 255, 0, 0.2))",
+      filter: "drop-shadow(0 0 18px rgba(255, 215, 0, 0.5)) drop-shadow(0 0 10px rgba(0, 245, 212, 0.4))",
       transition: { type: "spring" as const, stiffness: 400, damping: 15 }
     }
   } as const;
 
   return (
     <div className={`flex items-center gap-3 select-none ${className}`}>
-      {/* Shield Icon */}
+      {/* Chakravyuh Concentric Ring Emblem */}
       <motion.div
         className="relative shrink-0 flex items-center justify-center w-12 h-12"
         initial="initial"
         whileHover="hover"
         variants={containerVariants}
       >
-        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
+        <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
           <defs>
-            {/* Left half gradient - Tech Deep Grey/Black */}
-            <linearGradient id="shieldLeft" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#1C1C1E" />
-              <stop offset="50%" stopColor="#0F0F10" />
-              <stop offset="100%" stopColor="#050505" />
+            {/* Energetic Green Aura Gradient */}
+            <linearGradient id="goldAura" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#66FF99" />
+              <stop offset="50%" stopColor="#00FF66" />
+              <stop offset="100%" stopColor="#00CC52" />
             </linearGradient>
 
-            {/* Right half gradient - Vibrant Neon Red */}
-            <linearGradient id="shieldRight" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#FF0055" />
-              <stop offset="60%" stopColor="#FF003C" />
-              <stop offset="100%" stopColor="#B3002A" />
+            {/* Electric Blue Power Energy Gradient */}
+            <linearGradient id="cyanPower" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#00E1FF" />
+              <stop offset="50%" stopColor="#00B3FF" />
+              <stop offset="100%" stopColor="#0088FF" />
             </linearGradient>
 
-            {/* Border glow gradient */}
-            <linearGradient id="limeGlow" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#CCFF00" />
-              <stop offset="100%" stopColor="#669900" />
-            </linearGradient>
-
-            {/* Red glow filter */}
-            <filter id="glow-red" x="-20%" y="-20%" width="140%" height="140%">
-              <feGaussianBlur stdDeviation="1.5" result="blur" />
+            {/* Golden glow filter */}
+            <filter id="glow-gold" x="-30%" y="-30%" width="160%" height="160%">
+              <feGaussianBlur stdDeviation="1.8" result="blur" />
               <feMerge>
                 <feMergeNode in="blur" />
                 <feMergeNode in="SourceGraphic" />
               </feMerge>
             </filter>
 
-            {/* Lime glow filter */}
-            <filter id="glow-lime" x="-20%" y="-20%" width="140%" height="140%">
-              <feGaussianBlur stdDeviation="1.2" result="blur" />
+            {/* Cyan glow filter */}
+            <filter id="glow-cyan" x="-30%" y="-30%" width="160%" height="160%">
+              <feGaussianBlur stdDeviation="1.5" result="blur" />
               <feMerge>
                 <feMergeNode in="blur" />
                 <feMergeNode in="SourceGraphic" />
@@ -79,141 +73,75 @@ export const CyberKavachLogo: React.FC<CyberKavachLogoProps> = ({
             </filter>
           </defs>
 
-          {/* Outer tech ring (Spins and brightens on hover) */}
+          {/* Outer Chakravyuh Tier 1 (Golden Ring with notch breaks) */}
           <motion.circle
-            cx="12"
-            cy="12"
-            r="11"
-            stroke="url(#limeGlow)"
-            strokeWidth="0.5"
-            strokeDasharray="4 6"
-            className="opacity-30"
+            cx="16"
+            cy="16"
+            r="14.5"
+            stroke="url(#goldAura)"
+            strokeWidth="1.2"
+            strokeDasharray="18 4 12 4 22 4"
+            filter="url(#glow-gold)"
             variants={{
               hover: {
                 rotate: 360,
-                opacity: 0.8,
-                strokeWidth: 0.75,
-                transition: {
-                  rotate: { repeat: Infinity, duration: 4, ease: "linear" },
-                  opacity: { duration: 0.3 }
-                }
+                transition: { repeat: Infinity, duration: 8, ease: "linear" }
               }
             }}
           />
 
-          {/* Inner tech ring (Spins counter-clockwise on hover) */}
+          {/* Tier 2 (Cyan Power Energy Counter-Rotating Ring) */}
           <motion.circle
-            cx="12"
-            cy="12"
-            r="10"
-            stroke="#FF003C"
-            strokeWidth="0.25"
-            strokeDasharray="1 8"
-            className="opacity-20"
+            cx="16"
+            cy="16"
+            r="12"
+            stroke="url(#cyanPower)"
+            strokeWidth="1"
+            strokeDasharray="10 3 14 3"
+            filter="url(#glow-cyan)"
             variants={{
               hover: {
                 rotate: -360,
-                opacity: 0.6,
-                transition: {
-                  rotate: { repeat: Infinity, duration: 6, ease: "linear" },
-                  opacity: { duration: 0.3 }
-                }
+                transition: { repeat: Infinity, duration: 6, ease: "linear" }
               }
             }}
           />
 
-          {/* Left half - deep tech background with glow */}
-          <path
-            d="M12 3L4 6.8V11.5C4 16.5 7.5 20.2 12 22V3Z"
-            fill="url(#shieldLeft)"
-            filter="drop-shadow(0 0 2px rgba(204,255,0,0.15))"
+          {/* Tier 3 (Golden Inner Defense Ring) */}
+          <motion.circle
+            cx="16"
+            cy="16"
+            r="9.5"
+            stroke="url(#goldAura)"
+            strokeWidth="0.8"
+            strokeDasharray="6 2"
+            opacity="0.8"
           />
 
-          {/* Right half - neon red */}
-          <path
-            d="M12 3L20 6.8V11.5C20 16.5 16.5 20.2 12 22V3Z"
-            fill="url(#shieldRight)"
-            filter="url(#glow-red)"
-          />
-
-          {/* Subtle outer shield border */}
-          <path
-            d="M12 3L4 6.8V11.5C4 16.5 7.5 20.2 12 22C16.5 20.2 20 16.5 20 11.5V6.8L12 3Z"
-            fill="none"
-            stroke="url(#limeGlow)"
+          {/* Tier 4 (Cyan Pulse Ring) */}
+          <motion.circle
+            cx="16"
+            cy="16"
+            r="7"
+            stroke="#00F5D4"
             strokeWidth="0.75"
-            strokeOpacity="0.5"
+            strokeDasharray="4 4"
+            opacity="0.9"
           />
 
-          {/* Interactive Scanning Line (translates down the shield on hover) */}
+          {/* Central Invincible Core (Triangular Energy Spear / Shield Node) */}
           <motion.path
-            d="M 5 8 L 19 8"
-            stroke="#CCFF00"
-            strokeWidth="1"
-            opacity="0"
-            variants={{
-              hover: {
-                y: [0, 10, 0],
-                opacity: [0, 0.7, 0],
-                transition: {
-                  duration: 2,
-                  repeat: Infinity,
-                  ease: "easeInOut"
-                }
-              }
-            }}
+            d="M16 8L22 19H10L16 8Z"
+            fill="url(#goldAura)"
+            filter="url(#glow-gold)"
+            opacity="0.95"
+            initial={animateDrawing ? { scale: 0.8, opacity: 0 } : { scale: 1, opacity: 0.95 }}
+            animate={{ scale: 1, opacity: 0.95 }}
+            transition={{ duration: 0.6 }}
           />
 
-          {/* CK monogram inside (thicker lines + glow trails) */}
-          {/* C - Glow Trail */}
-          <motion.path
-            d="M 10.5 8.5 L 7 10.25 L 7 13.75 L 10.5 15.5"
-            stroke="#CCFF00"
-            strokeWidth="3.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="opacity-20"
-            filter="url(#glow-lime)"
-            initial={animateDrawing ? { pathLength: 0 } : { pathLength: 1 }}
-            animate={{ pathLength: 1 }}
-            transition={{ duration: 1.2, ease: "easeOut", delay: 0.1 }}
-          />
-          {/* C - Sharp Forefront */}
-          <motion.path
-            d="M 10.5 8.5 L 7 10.25 L 7 13.75 L 10.5 15.5"
-            stroke="#FFFFFF"
-            strokeWidth="2.2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            initial={animateDrawing ? { pathLength: 0, opacity: 0 } : { pathLength: 1, opacity: 1 }}
-            animate={{ pathLength: 1, opacity: 1 }}
-            transition={{ duration: 1.2, ease: "easeOut", delay: 0.1 }}
-          />
-
-          {/* K - Glow Trail */}
-          <motion.path
-            d="M 13.5 8.5 L 13.5 15.5 M 17 8.5 L 13.5 12 L 17 15.5"
-            stroke="#FF003C"
-            strokeWidth="3.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="opacity-20"
-            filter="url(#glow-red)"
-            initial={animateDrawing ? { pathLength: 0 } : { pathLength: 1 }}
-            animate={{ pathLength: 1 }}
-            transition={{ duration: 1.2, ease: "easeOut", delay: 0.3 }}
-          />
-          {/* K - Sharp Forefront */}
-          <motion.path
-            d="M 13.5 8.5 L 13.5 15.5 M 17 8.5 L 13.5 12 L 17 15.5"
-            stroke="#FFFFFF"
-            strokeWidth="2.2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            initial={animateDrawing ? { pathLength: 0, opacity: 0 } : { pathLength: 1, opacity: 1 }}
-            animate={{ pathLength: 1, opacity: 1 }}
-            transition={{ duration: 1.2, ease: "easeOut", delay: 0.3 }}
-          />
+          {/* Inner Power Core Eye */}
+          <circle cx="16" cy="16" r="2" fill="#00F5D4" filter="url(#glow-cyan)" />
         </svg>
       </motion.div>
 
@@ -227,28 +155,29 @@ export const CyberKavachLogo: React.FC<CyberKavachLogoProps> = ({
               animate={{ x: 0, opacity: 1 }}
               transition={{ duration: 0.5, delay: 0.2 }}
             >
-              Cyber
+              Chakra
             </motion.span>
             <motion.span
-              className="text-[#FF003C]"
+              className="text-[#00FF66]"
               initial={animateDrawing ? { x: 10, opacity: 0 } : { x: 0, opacity: 1 }}
               animate={{ x: 0, opacity: 1 }}
               transition={{ duration: 0.5, delay: 0.3 }}
-              style={{ textShadow: "0 0 10px rgba(255,0,60,0.5)" }}
+              style={{ textShadow: "0 0 12px rgba(0,255,102,0.6)" }}
             >
-              Kavach
+              vyuh
             </motion.span>
           </div>
           <motion.span
-            className="text-[7.5px] tracking-[0.25em] font-mono uppercase text-[#CCFF00] mt-1 whitespace-nowrap opacity-80"
-            initial={animateDrawing ? { opacity: 0, y: 5 } : { opacity: 0.8, y: 0 }}
-            animate={{ opacity: 0.8, y: 0 }}
+            className="text-[7.5px] tracking-[0.25em] font-mono uppercase text-[#00E1FF] mt-1 whitespace-nowrap opacity-90"
+            initial={animateDrawing ? { opacity: 0, y: 5 } : { opacity: 0.9, y: 0 }}
+            animate={{ opacity: 0.9, y: 0 }}
             transition={{ duration: 0.5, delay: 0.5 }}
           >
-            Cyber Security Club
+            Club • Strategic Defense
           </motion.span>
         </div>
       )}
     </div>
   );
 };
+

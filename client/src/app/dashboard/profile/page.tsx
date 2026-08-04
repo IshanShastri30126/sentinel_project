@@ -124,7 +124,7 @@ export default function ProfilePage() {
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       {/* Profile Header Dossier Card */}
-      <div className="ck-card p-6 sm:p-8 relative overflow-hidden bg-black/40 border border-zinc-800 shadow-md hover:border-[#CCFF00]/25 transition-all">
+      <div className="ck-card p-6 sm:p-8 relative overflow-hidden bg-black/40 border border-[var(--ck-border)] shadow-md hover:border-[#CCFF00]/25 transition-all">
         <div className="absolute top-0 right-0 h-full w-1/3 bg-gradient-to-l from-[#CCFF00]/5 to-transparent pointer-events-none" />
         
         <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 text-center sm:text-left relative z-10">
@@ -140,13 +140,13 @@ export default function ProfilePage() {
               <DefaultAvatar className="w-24 h-24 rounded-2xl border-2 border-[#CCFF00]/20" />
             )}
             <div className="absolute inset-0 rounded-2xl bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity cursor-pointer" onClick={() => setShowEditModal(true)}>
-              <Edit2 className="w-5 h-5 text-white" />
+              <Edit2 className="w-5 h-5 text-[var(--ck-text)]" />
             </div>
           </div>
           
           <div className="flex-1 min-w-0 space-y-1">
             <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-              <h1 className="text-3xl font-extrabold tracking-tight text-white">{user?.name}</h1>
+              <h1 className="text-3xl font-extrabold tracking-tight text-[var(--ck-text)]">{user?.name}</h1>
               <span className="ck-badge ck-badge-primary self-center sm:self-start text-[9px] px-2 py-0.5">
                 {user?.role?.replace(/_/g, " ")}
               </span>
@@ -155,12 +155,12 @@ export default function ProfilePage() {
             
             <div className="flex flex-wrap justify-center sm:justify-start items-center gap-2 mt-3 text-xs font-mono">
               {user?.studentId && (
-                <span className="px-2 py-0.5 rounded bg-zinc-950 border border-zinc-900 text-[var(--ck-text-muted)]">
+                <span className="px-2 py-0.5 rounded bg-[var(--ck-bg)] border border-[var(--ck-border)] text-[var(--ck-text-muted)]">
                   CLEARANCE: {user.studentId}
                 </span>
               )}
               {user?.department && (
-                <span className="px-2 py-0.5 rounded bg-zinc-950 border border-zinc-900 text-[var(--ck-text-muted)]">
+                <span className="px-2 py-0.5 rounded bg-[var(--ck-bg)] border border-[var(--ck-border)] text-[var(--ck-text-muted)]">
                   DEPT: {user.department}
                 </span>
               )}
@@ -183,15 +183,15 @@ export default function ProfilePage() {
         <motion.div
           variants={itemVariants}
           whileHover={{ y: -4, scale: 1.01 }}
-          className="ck-card p-5 bg-gradient-to-br from-zinc-950/60 to-black border-zinc-800 hover:border-[#CCFF00]/30 transition-all duration-300 relative group overflow-hidden"
+          className="ck-card p-5 bg-gradient-to-br from-zinc-950/60 to-black border-[var(--ck-border)] hover:border-[#CCFF00]/30 transition-all duration-300 relative group overflow-hidden"
         >
           <div className="absolute -right-4 -bottom-4 w-12 h-12 rounded-full bg-[#CCFF00]/5 group-hover:bg-[#CCFF00]/10 transition-colors pointer-events-none" />
           <div className="flex items-center gap-4">
-            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[#CCFF00]/15 to-transparent text-[#CCFF00] border border-[#CCFF00]/30 flex items-center justify-center shadow-[0_0_10px_rgba(204,255,0,0.1)]">
+            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[#CCFF00]/15 to-transparent text-[var(--ck-primary)] border border-[#CCFF00]/30 flex items-center justify-center shadow-[0_0_10px_rgba(204,255,0,0.1)]">
               <Star className="w-5 h-5" />
             </div>
             <div>
-              <p className="text-3xl font-extrabold font-mono text-white tracking-tighter">
+              <p className="text-3xl font-extrabold font-mono text-[var(--ck-text)] tracking-tighter">
                 {history?.totalPoints || 0}
               </p>
               <p className="text-[10px] uppercase font-mono tracking-widest text-[var(--ck-text-secondary)] font-bold">Total Points</p>
@@ -203,15 +203,15 @@ export default function ProfilePage() {
         <motion.div
           variants={itemVariants}
           whileHover={{ y: -4, scale: 1.01 }}
-          className="ck-card p-5 bg-gradient-to-br from-zinc-950/60 to-black border-zinc-800 hover:border-[#FF4D00]/30 transition-all duration-300 relative group overflow-hidden"
+          className="ck-card p-5 bg-gradient-to-br from-zinc-950/60 to-black border-[var(--ck-border)] hover:border-[#FF4D00]/30 transition-all duration-300 relative group overflow-hidden"
         >
           <div className="absolute -right-4 -bottom-4 w-12 h-12 rounded-full bg-[#FF4D00]/5 group-hover:bg-[#FF4D00]/10 transition-colors pointer-events-none" />
           <div className="flex items-center gap-4">
-            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[#FF4D00]/15 to-transparent text-[#FF4D00] border border-[#FF4D00]/30 flex items-center justify-center shadow-[0_0_10px_rgba(255,77,0,0.1)]">
+            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[#FF4D00]/15 to-transparent text-[var(--ck-accent)] border border-[#FF4D00]/30 flex items-center justify-center shadow-[0_0_10px_rgba(255,77,0,0.1)]">
               <Award className="w-5 h-5" />
             </div>
             <div>
-              <p className="text-3xl font-extrabold font-mono text-white tracking-tighter">
+              <p className="text-3xl font-extrabold font-mono text-[var(--ck-text)] tracking-tighter">
                 {history?.badges?.length || 0}
               </p>
               <p className="text-[10px] uppercase font-mono tracking-widest text-[var(--ck-text-secondary)] font-bold">Badges unlocked</p>
@@ -223,15 +223,15 @@ export default function ProfilePage() {
         <motion.div
           variants={itemVariants}
           whileHover={{ y: -4, scale: 1.01 }}
-          className="ck-card p-5 bg-gradient-to-br from-zinc-950/60 to-black border-zinc-800 hover:border-[#CCFF00]/30 transition-all duration-300 relative group overflow-hidden"
+          className="ck-card p-5 bg-gradient-to-br from-zinc-950/60 to-black border-[var(--ck-border)] hover:border-[#CCFF00]/30 transition-all duration-300 relative group overflow-hidden"
         >
           <div className="absolute -right-4 -bottom-4 w-12 h-12 rounded-full bg-[#CCFF00]/5 group-hover:bg-[#CCFF00]/10 transition-colors pointer-events-none" />
           <div className="flex items-center gap-4">
-            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[#CCFF00]/15 to-transparent text-[#CCFF00] border border-[#CCFF00]/30 flex items-center justify-center shadow-[0_0_10px_rgba(204,255,0,0.1)]">
+            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[#CCFF00]/15 to-transparent text-[var(--ck-primary)] border border-[#CCFF00]/30 flex items-center justify-center shadow-[0_0_10px_rgba(204,255,0,0.1)]">
               <Calendar className="w-5 h-5" />
             </div>
             <div>
-              <p className="text-3xl font-extrabold font-mono text-white tracking-tighter">
+              <p className="text-3xl font-extrabold font-mono text-[var(--ck-text)] tracking-tighter">
                 {history?.eventParticipation || 0}
               </p>
               <p className="text-[10px] uppercase font-mono tracking-widest text-[var(--ck-text-secondary)] font-bold">Events Participated</p>
@@ -241,86 +241,86 @@ export default function ProfilePage() {
       </motion.div>
 
       {/* Operative Details Grid */}
-      <div className="ck-card p-6 bg-black/30 border border-zinc-800 shadow-md">
-        <h3 className="text-sm font-bold mb-5 flex items-center gap-2 uppercase tracking-tight text-white font-mono border-b border-zinc-850 pb-3">
+      <div className="ck-card p-6 bg-black/30 border border-[var(--ck-border)] shadow-md">
+        <h3 className="text-sm font-bold mb-5 flex items-center gap-2 uppercase tracking-tight text-[var(--ck-text)] font-mono border-b border-zinc-850 pb-3">
           <User className="w-4 h-4" style={{ color: "#CCFF00" }} /> OPERATIVE DOSSIER DETAILS
         </h3>
         
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm font-mono">
           {/* Full Name */}
-          <div className="p-3.5 rounded-xl border border-zinc-900/60 bg-zinc-950/30 flex items-center gap-4 hover:border-zinc-800 transition duration-300">
-            <div className="w-9 h-9 rounded-lg bg-zinc-900 flex items-center justify-center text-[var(--ck-text-secondary)] border border-zinc-850">
+          <div className="p-3.5 rounded-xl border border-zinc-900/60 bg-zinc-950/30 flex items-center gap-4 hover:border-[var(--ck-border)] transition duration-300">
+            <div className="w-9 h-9 rounded-lg bg-[var(--ck-bg-card)] flex items-center justify-center text-[var(--ck-text-secondary)] border border-zinc-850">
               <User className="w-4 h-4" />
             </div>
             <div className="min-w-0">
               <p className="text-[10px] uppercase tracking-wider text-[var(--ck-text-muted)] font-semibold">Full Name</p>
-              <p className="font-bold mt-0.5 text-white truncate">{user?.name}</p>
+              <p className="font-bold mt-0.5 text-[var(--ck-text)] truncate">{user?.name}</p>
             </div>
           </div>
 
           {/* Email */}
-          <div className="p-3.5 rounded-xl border border-zinc-900/60 bg-zinc-950/30 flex items-center gap-4 hover:border-zinc-800 transition duration-300">
-            <div className="w-9 h-9 rounded-lg bg-zinc-900 flex items-center justify-center text-[var(--ck-text-secondary)] border border-zinc-850">
+          <div className="p-3.5 rounded-xl border border-zinc-900/60 bg-zinc-950/30 flex items-center gap-4 hover:border-[var(--ck-border)] transition duration-300">
+            <div className="w-9 h-9 rounded-lg bg-[var(--ck-bg-card)] flex items-center justify-center text-[var(--ck-text-secondary)] border border-zinc-850">
               <Mail className="w-4 h-4" />
             </div>
             <div className="min-w-0">
               <p className="text-[10px] uppercase tracking-wider text-[var(--ck-text-muted)] font-semibold">College Email</p>
-              <p className="font-bold mt-0.5 text-white truncate">{user?.email}</p>
+              <p className="font-bold mt-0.5 text-[var(--ck-text)] truncate">{user?.email}</p>
             </div>
           </div>
 
           {/* Student ID */}
-          <div className="p-3.5 rounded-xl border border-zinc-900/60 bg-zinc-950/30 flex items-center gap-4 hover:border-zinc-800 transition duration-300">
-            <div className="w-9 h-9 rounded-lg bg-zinc-900 flex items-center justify-center text-[var(--ck-text-secondary)] border border-zinc-850">
+          <div className="p-3.5 rounded-xl border border-zinc-900/60 bg-zinc-950/30 flex items-center gap-4 hover:border-[var(--ck-border)] transition duration-300">
+            <div className="w-9 h-9 rounded-lg bg-[var(--ck-bg-card)] flex items-center justify-center text-[var(--ck-text-secondary)] border border-zinc-850">
               <Hash className="w-4 h-4" />
             </div>
             <div className="min-w-0">
               <p className="text-[10px] uppercase tracking-wider text-[var(--ck-text-muted)] font-semibold">Student ID</p>
-              <p className="font-bold mt-0.5 text-white truncate">{user?.studentId || "N/A"}</p>
+              <p className="font-bold mt-0.5 text-[var(--ck-text)] truncate">{user?.studentId || "N/A"}</p>
             </div>
           </div>
 
           {/* Department */}
-          <div className="p-3.5 rounded-xl border border-zinc-900/60 bg-zinc-950/30 flex items-center gap-4 hover:border-zinc-800 transition duration-300">
-            <div className="w-9 h-9 rounded-lg bg-zinc-900 flex items-center justify-center text-[var(--ck-text-secondary)] border border-zinc-850">
+          <div className="p-3.5 rounded-xl border border-zinc-900/60 bg-zinc-950/30 flex items-center gap-4 hover:border-[var(--ck-border)] transition duration-300">
+            <div className="w-9 h-9 rounded-lg bg-[var(--ck-bg-card)] flex items-center justify-center text-[var(--ck-text-secondary)] border border-zinc-850">
               <BookOpen className="w-4 h-4" />
             </div>
             <div className="min-w-0">
               <p className="text-[10px] uppercase tracking-wider text-[var(--ck-text-muted)] font-semibold">Department</p>
-              <p className="font-bold mt-0.5 text-white truncate">{user?.department || "N/A"}</p>
+              <p className="font-bold mt-0.5 text-[var(--ck-text)] truncate">{user?.department || "N/A"}</p>
             </div>
           </div>
 
           {/* Institute */}
-          <div className="p-3.5 rounded-xl border border-zinc-900/60 bg-zinc-950/30 flex items-center gap-4 hover:border-zinc-800 transition duration-300">
-            <div className="w-9 h-9 rounded-lg bg-zinc-900 flex items-center justify-center text-[var(--ck-text-secondary)] border border-zinc-850">
+          <div className="p-3.5 rounded-xl border border-zinc-900/60 bg-zinc-950/30 flex items-center gap-4 hover:border-[var(--ck-border)] transition duration-300">
+            <div className="w-9 h-9 rounded-lg bg-[var(--ck-bg-card)] flex items-center justify-center text-[var(--ck-text-secondary)] border border-zinc-850">
               <Building className="w-4 h-4" />
             </div>
             <div className="min-w-0">
               <p className="text-[10px] uppercase tracking-wider text-[var(--ck-text-muted)] font-semibold">Institute</p>
-              <p className="font-bold mt-0.5 text-white truncate">{user?.institute || "N/A"}</p>
+              <p className="font-bold mt-0.5 text-[var(--ck-text)] truncate">{user?.institute || "N/A"}</p>
             </div>
           </div>
 
           {/* Semester */}
-          <div className="p-3.5 rounded-xl border border-zinc-900/60 bg-zinc-950/30 flex items-center gap-4 hover:border-zinc-800 transition duration-300">
-            <div className="w-9 h-9 rounded-lg bg-zinc-900 flex items-center justify-center text-[var(--ck-text-secondary)] border border-zinc-850">
+          <div className="p-3.5 rounded-xl border border-zinc-900/60 bg-zinc-950/30 flex items-center gap-4 hover:border-[var(--ck-border)] transition duration-300">
+            <div className="w-9 h-9 rounded-lg bg-[var(--ck-bg-card)] flex items-center justify-center text-[var(--ck-text-secondary)] border border-zinc-850">
               <GraduationCap className="w-4 h-4" />
             </div>
             <div className="min-w-0">
               <p className="text-[10px] uppercase tracking-wider text-[var(--ck-text-muted)] font-semibold">Semester</p>
-              <p className="font-bold mt-0.5 text-white truncate">{user?.semester || "N/A"}</p>
+              <p className="font-bold mt-0.5 text-[var(--ck-text)] truncate">{user?.semester || "N/A"}</p>
             </div>
           </div>
 
           {/* Contact info */}
-          <div className="p-3.5 rounded-xl border border-zinc-900/60 bg-zinc-950/30 flex items-center gap-4 hover:border-zinc-800 transition duration-300 sm:col-span-2">
-            <div className="w-9 h-9 rounded-lg bg-zinc-900 flex items-center justify-center text-[var(--ck-text-secondary)] border border-zinc-850">
+          <div className="p-3.5 rounded-xl border border-zinc-900/60 bg-zinc-950/30 flex items-center gap-4 hover:border-[var(--ck-border)] transition duration-300 sm:col-span-2">
+            <div className="w-9 h-9 rounded-lg bg-[var(--ck-bg-card)] flex items-center justify-center text-[var(--ck-text-secondary)] border border-zinc-850">
               <Phone className="w-4 h-4" />
             </div>
             <div className="min-w-0">
               <p className="text-[10px] uppercase tracking-wider text-[var(--ck-text-muted)] font-semibold">Contact Phone</p>
-              <p className="font-bold mt-0.5 text-white truncate">{user?.phone || "N/A"}</p>
+              <p className="font-bold mt-0.5 text-[var(--ck-text)] truncate">{user?.phone || "N/A"}</p>
             </div>
           </div>
         </div>
@@ -328,8 +328,8 @@ export default function ProfilePage() {
 
       {/* Badges showcase section */}
       {history?.badges?.length > 0 && (
-        <div className="ck-card p-6 bg-black/30 border border-zinc-800 shadow-md">
-          <h3 className="text-sm font-bold mb-4 flex items-center gap-2 uppercase tracking-tight text-white font-mono border-b border-zinc-850 pb-3">
+        <div className="ck-card p-6 bg-black/30 border border-[var(--ck-border)] shadow-md">
+          <h3 className="text-sm font-bold mb-4 flex items-center gap-2 uppercase tracking-tight text-[var(--ck-text)] font-mono border-b border-zinc-850 pb-3">
             <Shield className="w-4 h-4" style={{ color: "#FF4D00" }} /> BADGES VAULT
           </h3>
           <div className="flex flex-wrap gap-3">
@@ -339,7 +339,7 @@ export default function ProfilePage() {
                 initial={{ scale: 0.9, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 whileHover={{ scale: 1.05 }}
-                className="p-3.5 rounded-xl text-center border border-zinc-900 bg-zinc-950/40 hover:border-[#CCFF00]/30 min-w-[90px] transition-all cursor-help"
+                className="p-3.5 rounded-xl text-center border border-[var(--ck-border)] bg-zinc-950/40 hover:border-[#CCFF00]/30 min-w-[90px] transition-all cursor-help"
                 title={b.badge.description}
               >
                 <span className="text-3xl drop-shadow-[0_0_8px_rgba(204,255,0,0.35)]">{b.badge.icon}</span>
@@ -352,15 +352,15 @@ export default function ProfilePage() {
 
       {/* Point history list */}
       {history?.points?.length > 0 && (
-        <div className="ck-card p-6 bg-black/30 border border-zinc-800 shadow-md">
-          <h3 className="text-sm font-bold mb-4 flex items-center gap-2 uppercase tracking-tight text-white font-mono border-b border-zinc-850 pb-3">
+        <div className="ck-card p-6 bg-black/30 border border-[var(--ck-border)] shadow-md">
+          <h3 className="text-sm font-bold mb-4 flex items-center gap-2 uppercase tracking-tight text-[var(--ck-text)] font-mono border-b border-zinc-850 pb-3">
             <TrendingUp className="w-4 h-4" style={{ color: "#CCFF00" }} /> CONTRIBUTION LEDGER
           </h3>
           <div className="space-y-2 max-h-[360px] overflow-y-auto pr-1">
             {history.points.slice(0, 20).map((p: any) => (
-              <div key={p.id} className="flex items-center justify-between p-3.5 rounded-xl border border-zinc-900 bg-zinc-950/30 text-xs font-mono">
+              <div key={p.id} className="flex items-center justify-between p-3.5 rounded-xl border border-[var(--ck-border)] bg-zinc-950/30 text-xs font-mono">
                 <div>
-                  <p className="font-bold text-white uppercase">{p.category}</p>
+                  <p className="font-bold text-[var(--ck-text)] uppercase">{p.category}</p>
                   {p.reason && <p className="text-[10px] text-[var(--ck-text-secondary)] mt-0.5">{p.reason}</p>}
                   <p className="text-[9px] text-[var(--ck-text-muted)] mt-0.5">Approved by {p.giver?.name || "System"} · {new Date(p.createdAt).toLocaleDateString()}</p>
                 </div>
@@ -377,11 +377,11 @@ export default function ProfilePage() {
       <AnimatePresence>
         {showEditModal && (
           <div className="ck-modal-overlay">
-            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="ck-card p-6 w-full max-w-lg relative bg-zinc-955/95 border border-zinc-800 shadow-lg">
-              <button onClick={() => setShowEditModal(false)} className="absolute top-4 right-4 text-zinc-500 hover:text-white transition z-20">
+            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="ck-card p-6 w-full max-w-lg relative bg-zinc-955/95 border border-[var(--ck-border)] shadow-lg">
+              <button onClick={() => setShowEditModal(false)} className="absolute top-4 right-4 text-[var(--ck-text-muted)] hover:text-[var(--ck-text)] transition z-20">
                 <X className="w-5 h-5" />
               </button>
-              <h2 className="text-xl font-bold text-white mb-6 uppercase tracking-tight font-mono">Edit Profile Dossier</h2>
+              <h2 className="text-xl font-bold text-[var(--ck-text)] mb-6 uppercase tracking-tight font-mono">Edit Profile Dossier</h2>
               
               <form onSubmit={handleEditSubmit} className="space-y-4 max-h-[75vh] overflow-y-auto pr-2">
                 <div>
@@ -460,14 +460,14 @@ export default function ProfilePage() {
                 animate={{ scale: [0.95, 1.05, 0.95] }}
                 transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
               >
-                <Fingerprint className="w-20 h-20 text-[#CCFF00] drop-shadow-[0_0_15px_rgba(204,255,0,0.5)]" />
+                <Fingerprint className="w-20 h-20 text-[var(--ck-primary)] drop-shadow-[0_0_15px_rgba(204,255,0,0.5)]" />
               </motion.div>
             </div>
             
             <h3 className="text-xl font-bold font-mono uppercase tracking-widest mb-2" style={{ color: "#CCFF00" }}>
               BIOMETRIC VERIFIED
             </h3>
-            <p className="text-[10px] text-zinc-400 font-mono uppercase tracking-wider text-center max-w-sm">
+            <p className="text-[10px] text-[var(--ck-text-secondary)] font-mono uppercase tracking-wider text-center max-w-sm">
               DNA Profile updated successfully. Recalibrating agent credentials.
             </p>
           </motion.div>

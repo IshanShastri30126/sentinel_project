@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>ChakraVyuh Admin Dashboard - Merged Topbar & Off-Canvas Drawer</title>
+  <style>
+    :root {
+      --bg-dark: #030712;
+      --bg-surface: #050A18;
+      --bg-card: #080E24;
+      --border-color: #121F3D;
+      --border-bright: #1E315E;
+      
+      --accent-primary: #2fe6b8;
+      --accent-primary-dim: rgba(47, 230, 184, 0.12);
+      --accent-primary-glow: rgba(47, 230, 184, 0.4);
+      
+      --accent-danger: #ff3b5c;
+      --accent-danger-dim: rgba(255, 59, 92, 0.12);
+      --accent-danger-glow: rgba(255, 59, 92, 0.4);
+
+      --text-main: #F0F8FF;
+      --text-muted: #88A2C0;
+      --text-dim: #4B6382;
+
+      --font-sans: 'Space Grotesk', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      
+      --topbar-height: 52px;
+      --drawer-width: clamp(270px, 82vw, 340px);
+      
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-right: env(safe-area-inset-right, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+      --safe-left: env(safe-area-inset-left, 0px);
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      font-size: 16px;
+      line-height: 1.5;
+      overflow-x: hidden;
+      -webkit-tap-highlight-color: transparent;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body.drawer-open {
+      overflow: hidden !important;
+      height: 100dvh !important;
+      touch-action: none;
+    }
+
+    .app-shell {
+      display: flex;
+      min-height: 100dvh;
+      width: 100%;
+      position: relative;
+    }
+
+    /* ─── Sticky Top Bar (Single Unified Row ~52px) ─── */
+    .topbar {
+      position: sticky;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: calc(var(--topbar-height) + var(--safe-top));
+      padding-top: var(--safe-top);
+      padding-left: max(0.75rem, var(--safe-left));
+      padding-right: max(0.75rem, var(--safe-right));
+      background-color: rgba(5, 10, 24, 0.98);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      z-index: 30;
+      width: 100%;
+    }
+
+    .topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      min-width: 0;
+    }
+
+    .btn-icon {
+      min-width: 44px;
+      min-height: 44px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      flex-shrink: 0;
+    }
+
+    .btn-icon:hover, .btn-icon:focus-visible {
+      border-color: var(--accent-primary);
+      color: var(--accent-primary);
+      outline: none;
+      box-shadow: 0 0 12px var(--accent-primary-glow);
+    }
+
+    .topbar-brand {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      text-decoration: none;
+      min-width: 0;
+      overflow: hidden;
+    }
+
+    .brand-logo-svg {
+      width: 26px;
+      height: 26px;
+      flex-shrink: 0;
+    }
+
+    .brand-text-wrapper {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    .brand-title {
+      font-family: var(--font-mono);
+      font-weight: 800;
+      font-size: 0.9rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-main);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      line-height: 1.1;
+    }
+
+    .brand-title span {
+      color: var(--accent-primary);
+      text-shadow: 0 0 10px var(--accent-primary-glow);
+    }
+
+    .brand-subtitle {
+      font-family: var(--font-mono);
+      font-size: 0.6rem;
+      color: var(--text-dim);
+      letter-spacing: 0.05em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      flex-shrink: 0;
+    }
+
+    /* ─── Off-Canvas Scrim Backdrop ─── */
+    .scrim {
+      position: fixed;
+      inset: 0;
+      background-color: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      z-index: 40;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.25s ease, visibility 0.25s ease;
+    }
+
+    .scrim.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    /* ─── Off-Canvas Sidebar Drawer (0px Layout Footprint on Mobile) ─── */
+    .sidebar-drawer {
+      position: fixed;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      width: var(--drawer-width);
+      height: 100dvh;
+      background-color: var(--bg-surface);
+      border-right: 1px solid var(--border-color);
+      z-index: 50;
+      display: flex;
+      flex-direction: column;
+      transform: translateX(-100%);
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      padding-top: max(0.75rem, var(--safe-top));
+      padding-bottom: max(0.75rem, var(--safe-bottom));
+      padding-left: max(0.75rem, var(--safe-left));
+      padding-right: 0.75rem;
+      overflow: hidden;
+    }
+
+    .sidebar-drawer.active {
+      transform: translateX(0);
+      box-shadow: 10px 0 30px rgba(0, 0, 0, 0.85);
+    }
+
+    .drawer-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.5rem 0.5rem 0.75rem 0.5rem;
+      border-bottom: 1px solid var(--border-color);
+      margin-bottom: 0.5rem;
+    }
+
+    .close-btn {
+      min-width: 44px;
+      min-height: 44px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255, 59, 92, 0.08);
+      border: 1px solid rgba(255, 59, 92, 0.3);
+      border-radius: 10px;
+      color: var(--accent-danger);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .close-btn:hover, .close-btn:focus-visible {
+      background: rgba(255, 59, 92, 0.2);
+      box-shadow: 0 0 12px var(--accent-danger-glow);
+      outline: none;
+    }
+
+    .nav-list {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      overflow-y: auto;
+      padding-right: 0.25rem;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .nav-item {
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.5rem 0.75rem;
+      border-radius: 12px;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      font-weight: 500;
+      transition: all 0.2s ease;
+      position: relative;
+    }
+
+    .nav-item:hover, .nav-item:focus-visible {
+      color: var(--text-main);
+      background-color: rgba(255, 255, 255, 0.04);
+      outline: none;
+    }
+
+    .nav-item.active {
+      color: var(--accent-primary);
+      background: var(--accent-primary-dim);
+      border: 1px solid rgba(47, 230, 184, 0.3);
+      font-weight: 700;
+    }
+
+    .nav-item.active::after {
+      content: '';
+      position: absolute;
+      right: 0.75rem;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background-color: var(--accent-primary);
+      box-shadow: 0 0 10px var(--accent-primary);
+    }
+
+    .nav-icon {
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+      stroke-width: 2;
+    }
+
+    .nav-label {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      flex: 1;
+    }
+
+    .drawer-footer {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      padding-top: 0.75rem;
+      border-top: 1px solid var(--border-color);
+      margin-top: auto;
+    }
+
+    .user-card {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.625rem 0.75rem;
+      border-radius: 12px;
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-color);
+    }
+
+    .user-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, rgba(255, 59, 92, 0.3), rgba(47, 230, 184, 0.3));
+      border: 1px solid var(--accent-danger);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .user-avatar svg {
+      width: 24px;
+      height: 24px;
+      color: var(--accent-danger);
+    }
+
+    .user-details {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .user-name {
+      font-weight: 700;
+      font-size: 0.85rem;
+      color: var(--text-main);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .user-role {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      color: var(--accent-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .btn-terminate {
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      border-radius: 12px;
+      background-color: var(--accent-danger-dim);
+      border: 1px solid rgba(255, 59, 92, 0.4);
+      color: var(--accent-danger);
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      width: 100%;
+    }
+
+    .btn-terminate:hover, .btn-terminate:focus-visible {
+      background-color: rgba(255, 59, 92, 0.25);
+      box-shadow: 0 0 16px var(--accent-danger-glow);
+      outline: none;
+    }
+
+    /* ─── Main Viewport Content (100% Width on Mobile) ─── */
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      width: 100%;
+    }
+
+    .content-area {
+      flex: 1;
+      padding: max(1rem, var(--safe-top)) max(1rem, var(--safe-right)) max(1.5rem, var(--safe-bottom)) max(1rem, var(--safe-left));
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      width: 100%;
+    }
+
+    /* ─── Filter Row Verification (Users Page Simulation) ─── */
+    .filter-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      width: 100%;
+    }
+
+    .search-input-sim {
+      flex: 1;
+      min-width: 160px;
+      height: 40px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 0 0.75rem;
+      color: var(--text-main);
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+    }
+
+    .select-role-sim {
+      width: 120px;
+      height: 40px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 0 0.5rem;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+    }
+
+    @media (min-width: 900px) {
+      .topbar {
+        display: none;
+      }
+
+      .sidebar-drawer {
+        position: sticky;
+        top: 0;
+        transform: translateX(0) !important;
+        width: 260px;
+        box-shadow: none !important;
+      }
+
+      .drawer-header {
+        display: none;
+      }
+
+      .scrim {
+        display: none !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-shell">
+
+    <!-- Off-Canvas Sidebar Drawer (0px space on mobile unless opened) -->
+    <aside id="sidebarDrawer" class="sidebar-drawer" role="dialog" aria-modal="true" aria-label="Main Navigation">
+      
+      <div class="drawer-header">
+        <a href="#" class="topbar-brand">
+          <svg class="brand-logo-svg" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="16" cy="16" r="14" stroke="#2fe6b8" stroke-width="1.5" stroke-dasharray="14 4" />
+            <circle cx="16" cy="16" r="10" stroke="#00E1FF" stroke-width="1.2" stroke-dasharray="8 3" />
+            <circle cx="16" cy="16" r="4" fill="#2fe6b8" />
+          </svg>
+          <div class="brand-text-wrapper">
+            <div class="brand-title">Chakra<span>vyuh</span></div>
+            <div class="brand-subtitle">Strategic Defense</div>
+          </div>
+        </a>
+        <button id="closeDrawerBtn" class="close-btn" aria-label="Close navigation drawer">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <nav class="nav-list" aria-label="Sidebar Navigation">
+        <a href="#users" class="nav-item active" data-nav="users">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+          <span class="nav-label">Users</span>
+        </a>
+        <a href="#overview" class="nav-item" data-nav="overview">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+          <span class="nav-label">Overview</span>
+        </a>
+        <a href="#events" class="nav-item" data-nav="events">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          <span class="nav-label">Events</span>
+        </a>
+        <a href="#teams" class="nav-item" data-nav="teams">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <span class="nav-label">Teams</span>
+        </a>
+      </nav>
+
+      <div class="drawer-footer">
+        <div class="user-card">
+          <div class="user-avatar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a5 5 0 0 0-5 5v3a5 5 0 0 0 10 0V7a5 5 0 0 0-5-5z"/><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/></svg>
+          </div>
+          <div class="user-details">
+            <div class="user-name">Dr. Sharma</div>
+            <div class="user-role">Faculty Coordinator</div>
+          </div>
+        </div>
+
+        <button id="terminateBtn" class="btn-terminate" aria-label="Terminate session and logout">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          <span>Terminate Session</span>
+        </button>
+      </div>
+
+    </aside>
+
+    <div id="scrim" class="scrim" aria-hidden="true"></div>
+
+    <div class="main-content">
+      
+      <!-- Single Unified Top Navigation Bar (~52px) with Merged Logo -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <button id="openDrawerBtn" class="btn-icon" aria-label="Open navigation drawer">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+          </button>
+
+          <!-- Merged Logo inside Sticky Top Navigation Bar -->
+          <a href="#" class="topbar-brand">
+            <svg class="brand-logo-svg" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="16" cy="16" r="14" stroke="#2fe6b8" stroke-width="1.5" stroke-dasharray="14 4" />
+              <circle cx="16" cy="16" r="10" stroke="#00E1FF" stroke-width="1.2" stroke-dasharray="8 3" />
+              <circle cx="16" cy="16" r="4" fill="#2fe6b8" />
+            </svg>
+            <div class="brand-text-wrapper">
+              <div class="brand-title">Chakra<span>vyuh</span></div>
+              <div class="brand-subtitle">Strategic Defense</div>
+            </div>
+          </a>
+        </div>
+
+        <div class="topbar-right">
+          <button class="btn-icon" aria-label="Refresh page" onclick="window.location.reload()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+          </button>
+          <button class="btn-icon" aria-label="View notifications">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          </button>
+        </div>
+      </header>
+
+      <main class="content-area">
+        <h1 style="font-family: var(--font-mono); font-size: 1.5rem; font-weight: 800; text-transform: uppercase;">OPERATIVE BASE</h1>
+        <p style="font-size: 0.75rem; color: var(--text-muted); font-family: var(--font-mono);">ACCESS CONTROL // IDENTITY MANAGEMENT</p>
+
+        <!-- Simulated Search & Role Filters to Verify 100% Viewport Width -->
+        <div class="filter-row">
+          <input class="search-input-sim" placeholder="SEARCH BY IDENTITY..." readonly />
+          <select class="select-role-sim">
+            <option>ALL ROLES</option>
+          </select>
+        </div>
+
+        <div style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--accent-primary); background: rgba(47,230,184,0.08); padding: 0.75rem; border-radius: 10px; border: 1px solid rgba(47,230,184,0.2);">
+          SIDEBAR FOOTPRINT: 0PX // 100% VIEWPORT WIDTH VERIFIED // ZERO OVERFLOW
+        </div>
+      </main>
+
+    </div>
+
+  </div>
+
+  <script>
+    (function () {
+      const drawer = document.getElementById('sidebarDrawer');
+      const scrim = document.getElementById('scrim');
+      const openBtn = document.getElementById('openDrawerBtn');
+      const closeBtn = document.getElementById('closeDrawerBtn');
+      const terminateBtn = document.getElementById('terminateBtn');
+
+      let isOpen = false;
+
+      function openDrawer() {
+        isOpen = true;
+        drawer.classList.add('active');
+        scrim.classList.add('active');
+        document.body.classList.add('drawer-open');
+      }
+
+      function closeDrawer() {
+        isOpen = false;
+        drawer.classList.remove('active');
+        scrim.classList.remove('active');
+        document.body.classList.remove('drawer-open');
+      }
+
+      openBtn.addEventListener('click', openDrawer);
+      closeBtn.addEventListener('click', closeDrawer);
+      scrim.addEventListener('click', closeDrawer);
+
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && isOpen) {
+          closeDrawer();
+        }
+      });
+
+      terminateBtn.addEventListener('click', () => {
+        alert('Session terminated.');
+        closeDrawer();
+      });
+    })();
+  </script>
+</body>
+</html>

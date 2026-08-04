@@ -236,13 +236,13 @@ export default function EventDetailPage() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
         {[
-          { label: "Registrations", value: analytics?.totalRegistrations || 0, icon: <Users className="w-5 h-5" />, color: "from-[#CCFF00] to-[#99BF00] text-black" },
-          { label: "Teams", value: analytics?.totalTeams || 0, icon: <UsersRound className="w-5 h-5" />, color: "from-[#FF4D00] to-[#CC3D00] text-white" },
-          { label: "Checked In", value: analytics?.attendance.checkedIn || 0, icon: <TrendingUp className="w-5 h-5" />, color: "from-[#CCFF00]/15 to-transparent text-[#CCFF00] border border-[#CCFF00]/30" },
+          { label: "Registrations", value: analytics?.totalRegistrations || 0, icon: <Users className="w-5 h-5" />, color: "from-[var(--ck-primary)] to-[#99BF00] text-black" },
+          { label: "Teams", value: analytics?.totalTeams || 0, icon: <UsersRound className="w-5 h-5" />, color: "from-[var(--ck-accent)] to-[#CC3D00] text-white" },
+          { label: "Checked In", value: analytics?.attendance.checkedIn || 0, icon: <TrendingUp className="w-5 h-5" />, color: "from-[var(--ck-primary)]/15 to-transparent text-[var(--ck-primary)] border border-[var(--ck-primary)]/30" },
           { label: "Checked Out", value: analytics?.attendance.checkedOut || 0, icon: <Clock className="w-5 h-5" />, color: "from-zinc-800 to-black text-slate-400 border border-zinc-900" },
-          { label: "Late Arrivals", value: analytics?.attendance.lateArrivals || 0, icon: <Clock className="w-5 h-5" />, color: "from-[#FF003C]/15 to-transparent text-[#FF003C] border border-[#FF003C]/30" },
+          { label: "Late Arrivals", value: analytics?.attendance.lateArrivals || 0, icon: <Clock className="w-5 h-5" />, color: "from-[var(--ck-danger)]/15 to-transparent text-[var(--ck-danger)] border border-[var(--ck-danger)]/30" },
         ].map((s, i) => (
           <motion.div key={s.label} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
             className="ck-card p-4">
@@ -268,7 +268,7 @@ export default function EventDetailPage() {
           <div className="h-4 rounded-full overflow-hidden" style={{ background: "var(--ck-border)" }}>
             <motion.div initial={{ width: 0 }} animate={{ width: `${Math.min(capacityPercent, 100)}%` }}
               transition={{ duration: 1.2 }}
-              className="h-full rounded-full bg-gradient-to-r from-[#FF4D00] to-[#CCFF00] shadow-[0_0_8px_rgba(204,255,0,0.3)]" />
+              className="h-full rounded-full bg-gradient-to-r from-[var(--ck-accent)] to-[var(--ck-primary)] shadow-[0_0_8px_rgba(0,245,212,0.3)]" />
           </div>
         </div>
       )}
@@ -277,7 +277,7 @@ export default function EventDetailPage() {
       <div className="flex gap-1 mb-6 p-1 rounded-xl w-fit" style={{ background: "var(--ck-bg-secondary)" }}>
         {(["overview", "registrations", "teams"] as const).map((t) => (
           <button key={t} onClick={() => setTab(t)}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition ${tab === t ? "bg-[#CCFF00] text-black font-bold shadow" : ""}`}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition ${tab === t ? "bg-[var(--ck-primary)] text-black font-bold shadow" : ""}`}
             style={tab !== t ? { color: "var(--ck-text-secondary)" } : {}}>
             {t.charAt(0).toUpperCase() + t.slice(1)}
           </button>
@@ -290,7 +290,7 @@ export default function EventDetailPage() {
           {/* Registration Timeline */}
           <div className="ck-card p-6">
             <h3 className="text-sm font-semibold mb-4 flex items-center gap-2" style={{ color: "var(--ck-text)" }}>
-              <BarChart3 className="w-4 h-4" style={{ color: "#CCFF00" }} /> Registration Timeline
+              <BarChart3 className="w-4 h-4" style={{ color: "var(--ck-primary)" }} /> Registration Timeline
             </h3>
             {analytics.registrationTimeline.length === 0 ? (
               <p className="text-sm py-4 font-mono text-zinc-500" style={{ color: "var(--ck-text-muted)" }}>No registrations yet</p>
@@ -306,7 +306,7 @@ export default function EventDetailPage() {
                       </span>
                       <div className="flex-1 h-5 rounded-md overflow-hidden bg-black/40 border border-zinc-800/80">
                         <motion.div initial={{ width: 0 }} animate={{ width: `${pct}%` }} transition={{ duration: 0.8 }}
-                          className="h-full rounded-md bg-gradient-to-r from-[#FF4D00] to-[#CCFF00] shadow-[0_0_8px_rgba(204,255,0,0.2)]" />
+                          className="h-full rounded-md bg-gradient-to-r from-[var(--ck-accent)] to-[var(--ck-primary)] shadow-[0_0_8px_rgba(0,245,212,0.2)]" />
                       </div>
                       <span className="text-xs font-mono font-medium w-6 text-right" style={{ color: "var(--ck-text)" }}>{d.count}</span>
                     </div>
@@ -319,7 +319,7 @@ export default function EventDetailPage() {
           {/* Team Size Distribution */}
           <div className="ck-card p-6">
             <h3 className="text-sm font-semibold mb-4 flex items-center gap-2" style={{ color: "var(--ck-text)" }}>
-              <UsersRound className="w-4 h-4" style={{ color: "#FF4D00" }} /> Team Size Distribution
+              <UsersRound className="w-4 h-4" style={{ color: "var(--ck-accent)" }} /> Team Size Distribution
             </h3>
             {analytics.teamSizeDistribution.length === 0 ? (
               <p className="text-sm py-4 font-mono text-zinc-500" style={{ color: "var(--ck-text-muted)" }}>No teams yet</p>
@@ -329,7 +329,7 @@ export default function EventDetailPage() {
                   <div key={d.size} className="flex items-center gap-3">
                     <span className="text-xs w-24 shrink-0 font-mono" style={{ color: "var(--ck-text-secondary)" }}>{d.size} members</span>
                     <div className="flex-1 h-5 rounded-md overflow-hidden bg-black/40 border border-zinc-800/80">
-                      <div className="h-full rounded-md bg-gradient-to-r from-[#FF003C] to-[#FF4D00] shadow-[0_0_8px_rgba(255,77,0,0.2)]"
+                      <div className="h-full rounded-md bg-gradient-to-r from-[var(--ck-danger)] to-[var(--ck-accent)] shadow-[0_0_8px_rgba(0,225,255,0.2)]"
                         style={{ width: `${Math.round((d.count / Math.max(...analytics.teamSizeDistribution.map((t) => t.count))) * 100)}%` }} />
                     </div>
                     <span className="text-xs font-mono font-medium w-6 text-right" style={{ color: "var(--ck-text)" }}>{d.count}</span>
@@ -346,7 +346,7 @@ export default function EventDetailPage() {
         <div className="ck-card overflow-hidden">
           <div className="p-4 flex items-center gap-3 border-b border-zinc-850">
             <div className="relative flex-1 max-w-sm ck-search-container ck-input-icon-wrapper">
-              <Search className="w-4 h-4" style={{ color: "#CCFF00" }} />
+              <Search className="w-4 h-4" style={{ color: "var(--ck-primary)" }} />
               <input className="ck-input ck-search-input" placeholder="Search by name, email, or student ID..." value={search}
                 onChange={(e) => setSearch(e.target.value)} />
             </div>
@@ -356,20 +356,20 @@ export default function EventDetailPage() {
             <span className="text-xs font-mono" style={{ color: "var(--ck-text-muted)" }}>{filteredRegs.length} results</span>
           </div>
           <div className="overflow-x-auto w-full">
-            <table className="ck-table whitespace-nowrap">
+            <table className="ck-table ck-table-responsive whitespace-nowrap">
               <thead>
                 <tr><th>#</th><th>Name</th><th>Email</th><th>Student ID</th><th>Department</th><th>Team</th><th>Registered</th></tr>
               </thead>
               <tbody>
                 {filteredRegs.map((r, i) => (
                   <tr key={r.id}>
-                    <td className="text-xs">{i + 1}</td>
-                    <td className="text-sm font-medium">{r.user.name}</td>
-                    <td className="text-xs">{r.user.email}</td>
-                    <td className="text-xs">{r.user.studentId || "—"}</td>
-                    <td className="text-xs">{r.user.department || "—"}</td>
-                    <td>{r.team ? <span className="ck-badge ck-badge-primary text-[10px]">{r.team.name} ({r.team.teamCode})</span> : <span className="text-xs" style={{ color: "var(--ck-text-muted)" }}>Individual</span>}</td>
-                    <td className="text-xs" style={{ color: "var(--ck-text-muted)" }}>{new Date(r.createdAt).toLocaleDateString()}</td>
+                    <td className="text-xs" data-label="#">{i + 1}</td>
+                    <td className="text-sm font-medium" data-label="Name">{r.user.name}</td>
+                    <td className="text-xs" data-label="Email">{r.user.email}</td>
+                    <td className="text-xs" data-label="Student ID">{r.user.studentId || "—"}</td>
+                    <td className="text-xs" data-label="Department">{r.user.department || "—"}</td>
+                    <td data-label="Team">{r.team ? <span className="ck-badge ck-badge-primary text-[10px]">{r.team.name} ({r.team.teamCode})</span> : <span className="text-xs" style={{ color: "var(--ck-text-muted)" }}>Individual</span>}</td>
+                    <td className="text-xs" style={{ color: "var(--ck-text-muted)" }} data-label="Registered">{new Date(r.createdAt).toLocaleDateString()}</td>
                   </tr>
                 ))}
               </tbody>
@@ -389,18 +389,18 @@ export default function EventDetailPage() {
               }
               return acc;
             }, [] as any[]).map((team: any) => (
-              <div key={team.teamCode} className="ck-card p-4 hover:border-[rgba(204,255,0,0.3)] hover:shadow-[0_0_20px_rgba(204,255,0,0.08)] transition-all">
+              <div key={team.teamCode} className="ck-card p-4 hover:border-[rgba(0,245,212,0.3)] hover:shadow-[0_0_20px_rgba(0,245,212,0.08)] transition-all">
                 <div className="flex items-center justify-between mb-3 border-b border-zinc-850 pb-2">
                   <div>
                     <p className="font-bold tracking-wide text-sm text-[#F0F4FF] font-sans">{team.name}</p>
-                    <code className="text-[10px] font-mono border border-zinc-800 bg-black/45 px-2 py-0.5 rounded uppercase mt-0.5 inline-block" style={{ color: "#CCFF00" }}>{team.teamCode}</code>
+                    <code className="text-[10px] font-mono border border-zinc-800 bg-black/45 px-2 py-0.5 rounded uppercase mt-0.5 inline-block" style={{ color: "var(--ck-primary)" }}>{team.teamCode}</code>
                   </div>
-                  <span className="ck-badge text-[10px]" style={{ borderColor: "rgba(204,255,0,0.3)", color: "#CCFF00", backgroundColor: "rgba(204,255,0,0.1)" }}>{team.members.length} members</span>
+                  <span className="ck-badge text-[10px]" style={{ borderColor: "rgba(0,245,212,0.3)", color: "var(--ck-primary)", backgroundColor: "rgba(0,245,212,0.1)" }}>{team.members.length} members</span>
                 </div>
                 <div className="space-y-1.5 pl-1">
                   {team.members.map((m: any) => (
                     <p key={m.id} className="text-xs flex items-center gap-1.5" style={{ color: "#B3C0D6" }}>
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#FF4D00]/60" />
+                      <span className="w-1.5 h-1.5 rounded-full bg-[var(--ck-accent)]/60" />
                       <span className="font-sans">{m.name}</span>
                       <span className="text-[10px] text-zinc-550 font-mono">({m.email})</span>
                     </p>

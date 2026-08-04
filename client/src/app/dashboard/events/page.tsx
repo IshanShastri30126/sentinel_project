@@ -62,17 +62,17 @@ function MiniCalendar({ selectedDate, onSelect, rangeStart, rangeEnd, label, onC
   const currentTime = sel ? `${String(sel.getHours()).padStart(2, "0")}:${String(sel.getMinutes()).padStart(2, "0")}` : "";
 
   return (
-    <div className="rounded-xl border border-zinc-800 bg-zinc-950/60 backdrop-blur-md overflow-hidden transition-all duration-300 hover:border-zinc-700 shadow-md">
-      <div className="px-3.5 py-2.5 border-b border-zinc-800 bg-zinc-900/40 flex items-center justify-between">
-        <span className="text-[10px] uppercase font-bold tracking-wider text-zinc-500 font-mono">{label}</span>
+    <div className="rounded-xl border border-[var(--ck-border)] bg-zinc-950/60 backdrop-blur-md overflow-hidden transition-all duration-300 hover:border-[var(--ck-border)] shadow-md">
+      <div className="px-3.5 py-2.5 border-b border-[var(--ck-border)] bg-zinc-900/40 flex items-center justify-between">
+        <span className="text-[10px] uppercase font-bold tracking-wider text-[var(--ck-text-muted)] font-mono">{label}</span>
         <div className="flex items-center gap-1">
           {sel && (
-            <span className="text-[10px] font-bold font-mono border px-2 py-0.5 rounded" style={{ color: "#CCFF00", backgroundColor: "rgba(204,255,0,0.1)", borderColor: "rgba(204,255,0,0.25)" }}>
+            <span className="text-[10px] font-bold font-mono border px-2 py-0.5 rounded" style={{ color: "var(--ck-primary)", backgroundColor: "rgba(0,245,212,0.1)", borderColor: "rgba(0,245,212,0.25)" }}>
               {sel.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
             </span>
           )}
           {sel && onClear && (
-            <button type="button" onClick={onClear} className="text-[10px] transition border rounded px-1.5 py-0.5 font-mono" style={{ color: "#CCFF00", borderColor: "rgba(204,255,0,0.25)" }}>
+            <button type="button" onClick={onClear} className="text-[10px] transition border rounded px-1.5 py-0.5 font-mono" style={{ color: "var(--ck-primary)", borderColor: "rgba(0,245,212,0.25)" }}>
               CLEAR
             </button>
           )}
@@ -80,12 +80,12 @@ function MiniCalendar({ selectedDate, onSelect, rangeStart, rangeEnd, label, onC
       </div>
       <div className="p-3">
         <div className="flex items-center justify-between mb-2">
-          <button type="button" onClick={() => setViewDate(new Date(year, month - 1, 1))} className="p-1 rounded-lg hover:bg-zinc-800 text-zinc-400 hover:text-white transition"><ChevronLeft className="w-4 h-4" /></button>
-          <span className="text-xs font-semibold font-mono tracking-wide uppercase text-zinc-300">{MONTHS[month]} {year}</span>
-          <button type="button" onClick={() => setViewDate(new Date(year, month + 1, 1))} className="p-1 rounded-lg hover:bg-zinc-800 text-zinc-400 hover:text-white transition"><ChevronRight className="w-4 h-4" /></button>
+          <button type="button" onClick={() => setViewDate(new Date(year, month - 1, 1))} className="p-1 rounded-lg hover:bg-[var(--ck-bg-elevated)] text-[var(--ck-text-secondary)] hover:text-[var(--ck-text)] transition"><ChevronLeft className="w-4 h-4" /></button>
+          <span className="text-xs font-semibold font-mono tracking-wide uppercase text-[var(--ck-text)]">{MONTHS[month]} {year}</span>
+          <button type="button" onClick={() => setViewDate(new Date(year, month + 1, 1))} className="p-1 rounded-lg hover:bg-[var(--ck-bg-elevated)] text-[var(--ck-text-secondary)] hover:text-[var(--ck-text)] transition"><ChevronRight className="w-4 h-4" /></button>
         </div>
         <div className="grid grid-cols-7 gap-0.5 mb-1">
-          {DAYS.map(d => <div key={d} className="text-center text-[9px] text-zinc-600 font-bold uppercase font-mono py-1">{d}</div>)}
+          {DAYS.map(d => <div key={d} className="text-center text-[9px] text-[var(--ck-text-muted)] font-bold uppercase font-mono py-1">{d}</div>)}
         </div>
         <div className="grid grid-cols-7 gap-1">
           {Array.from({ length: firstDay }).map((_, i) => <div key={`e${i}`} />)}
@@ -99,20 +99,20 @@ function MiniCalendar({ selectedDate, onSelect, rangeStart, rangeEnd, label, onC
               <button key={day} type="button" disabled={isPast}
                 onClick={() => handleDayClick(day)}
                 className={`w-full aspect-square rounded-lg text-xs font-bold font-mono transition-all duration-150 ${
-                  selected ? "bg-[#CCFF00] text-black shadow-[0_0_10px_rgba(204,255,0,0.4)] border border-[#CCFF00]" :
-                  inRange ? "bg-[#CCFF00]/15 text-[#CCFF00] border border-[#CCFF00]/30" :
+                  selected ? "bg-[var(--ck-primary)] text-black shadow-[0_0_10px_rgba(0,245,212,0.4)] border border-[var(--ck-primary)]" :
+                  inRange ? "bg-[var(--ck-primary)]/15 text-[var(--ck-primary)] border border-[var(--ck-primary)]/30" :
                   isPast ? "text-zinc-800 cursor-not-allowed" :
-                  "text-zinc-400 hover:bg-zinc-800 hover:text-white"
+                  "text-[var(--ck-text-secondary)] hover:bg-[var(--ck-bg-elevated)] hover:text-[var(--ck-text)]"
                 }`}>{day}</button>
             );
           })}
         </div>
         {sel && (
           <div className="mt-3 pt-3 border-t border-zinc-800/80 flex items-center gap-2">
-            <Clock className="w-3.5 h-3.5 text-zinc-500" />
-            <span className="text-[10px] text-zinc-500 uppercase font-bold tracking-wider font-mono">Time:</span>
+            <Clock className="w-3.5 h-3.5 text-[var(--ck-text-muted)]" />
+            <span className="text-[10px] text-[var(--ck-text-muted)] uppercase font-bold tracking-wider font-mono">Time:</span>
             <input type="time" value={currentTime} onChange={(e) => handleTimeChange(e.target.value)}
-              className="ck-input py-1 px-2 text-xs flex-1 max-w-[100px] border border-zinc-800 focus:border-[#CCFF00]/50" />
+              className="ck-input py-1 px-2 text-xs flex-1 max-w-[135px] border border-[var(--ck-border)] focus:border-[var(--ck-primary)]/50" />
           </div>
         )}
       </div>
@@ -149,6 +149,24 @@ const EVENT_TYPES = [
 ];
 
 export default function EventsPage() {
+  const handleFormKeyDown = (e: React.KeyboardEvent<HTMLFormElement>) => {
+    if (e.key === "Enter" && (e.target as HTMLElement).tagName === "INPUT") {
+      e.preventDefault();
+    }
+  };
+
+  const handleOrganizerKeyDown = (e: React.KeyboardEvent<HTMLInputElement | HTMLSelectElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      if (!newOrganizer.name || !newOrganizer.role || !newOrganizer.email || !newOrganizer.phone) {
+        alert("Please fill all organizer fields.");
+        return;
+      }
+      setOrganizersList(prev => [...prev, newOrganizer]);
+      setNewOrganizer({ name: "", role: "Student Coordinator", email: "", phone: "" });
+    }
+  };
+
   const { user, token } = useAuth();
   const router = useRouter();
   const [events, setEvents] = useState<Event[]>([]);
@@ -600,14 +618,14 @@ export default function EventsPage() {
       {/* Search + Filters */}
       <div className="flex flex-wrap items-center gap-3 mb-6">
         <div className="relative flex-1 max-w-sm ck-search-container ck-input-icon-wrapper">
-          <Search className="w-4 h-4" style={{ color: "#CCFF00" }} />
+          <Search className="w-4 h-4" style={{ color: "var(--ck-primary)" }} />
           <input className="ck-input ck-search-input" placeholder="Search events..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
         </div>
         {isCoord && (
           <div className="flex gap-1 p-1 rounded-xl bg-black/40 border border-[#1A1E26]">
             {(["all", "published", "draft"] as const).map((s) => (
               <button key={s} onClick={() => setStatusFilter(s)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-mono uppercase tracking-wider transition ${statusFilter === s ? "bg-[#CCFF00] text-black font-bold shadow-[0_0_8px_rgba(204,255,0,0.3)]" : "text-slate-400 hover:text-[#CCFF00]"}`}>
+                className={`px-3 py-1.5 rounded-lg text-xs font-mono uppercase tracking-wider transition ${statusFilter === s ? "bg-[var(--ck-primary)] text-black font-bold shadow-[0_0_8px_rgba(0,245,212,0.3)]" : "text-[var(--ck-text-secondary)] hover:text-[var(--ck-primary)]"}`}>
                 {s}
               </button>
             ))}
@@ -616,7 +634,7 @@ export default function EventsPage() {
         <div className="flex gap-1 p-1 rounded-xl bg-black/40 border border-[#1A1E26]">
           {(["active", "past", "all"] as const).map((t) => (
             <button key={t} onClick={() => setTimeFilter(t)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-mono uppercase tracking-wider transition ${timeFilter === t ? "bg-[#CCFF00] text-black font-bold shadow-[0_0_8px_rgba(204,255,0,0.3)]" : "text-slate-400 hover:text-[#CCFF00]"}`}>
+              className={`px-3 py-1.5 rounded-lg text-xs font-mono uppercase tracking-wider transition ${timeFilter === t ? "bg-[var(--ck-primary)] text-black font-bold shadow-[0_0_8px_rgba(0,245,212,0.3)]" : "text-[var(--ck-text-secondary)] hover:text-[var(--ck-primary)]"}`}>
               {t === "past" ? "archive" : t}
             </button>
           ))}
@@ -630,12 +648,12 @@ export default function EventsPage() {
             <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
               className="ck-card w-full max-w-2xl lg:max-w-4xl flex flex-col relative"
               style={{ maxHeight: "90vh" }}>
-              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#FF4D00] via-[#CCFF00] to-[#FF003C] rounded-t-xl z-10" />
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[var(--ck-accent)] via-[var(--ck-primary)] to-[var(--ck-danger)] rounded-t-xl z-10" />
 
               {/* Header — never scrolls */}
               <div className="flex justify-between items-center px-6 pt-6 pb-0 shrink-0">
                 <h2 className="text-xl font-bold font-mono tracking-wide" style={{ color: "var(--ck-text)" }}>{editingEventId ? "EDIT EVENT" : "CREATE NEW EVENT"}</h2>
-                <button onClick={() => { setShowCreate(false); setStep(1); setEditingEventId(null); }} className="p-2 rounded-lg hover:bg-[#FF003C]/10 text-[#FF003C] transition"><X className="w-5 h-5" /></button>
+                <button onClick={() => { setShowCreate(false); setStep(1); setEditingEventId(null); }} className="p-2 rounded-lg hover:bg-[var(--ck-danger)]/10 text-[var(--ck-danger)] transition"><X className="w-5 h-5" /></button>
               </div>
 
               {/* Timeline Stepper — never scrolls */}
@@ -650,19 +668,19 @@ export default function EventsPage() {
                           onClick={() => { if (isReachable) navigateToStep(s.id); }}
                           className={`flex flex-col items-center gap-1.5 group transition-opacity duration-300 ${isReachable ? "cursor-pointer" : "cursor-not-allowed opacity-40"}`}>
                           <div className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all duration-300 ${
-                            step === s.id ? "border-[#CCFF00] bg-[#CCFF00]/20 shadow-[0_0_15px_rgba(204,255,0,0.3)]"
-                            : s.id < step ? "border-[#FF4D00] bg-[#FF4D00]/20"
-                            : "border-zinc-700 bg-zinc-900"
+                            step === s.id ? "border-[var(--ck-primary)] bg-[var(--ck-primary)]/20 shadow-[0_0_15px_rgba(0,245,212,0.3)]"
+                            : s.id < step ? "border-[var(--ck-accent)] bg-[var(--ck-accent)]/20"
+                            : "border-[var(--ck-border)] bg-[var(--ck-bg-card)]"
                           }`}>
-                            {s.id < step ? <CheckCircle2 className="w-5 h-5" style={{ color: "#FF4D00" }} />
-                              : <s.icon className="w-4 h-4" style={{ color: step === s.id ? "#CCFF00" : "#4B5563" }} />}
+                            {s.id < step ? <CheckCircle2 className="w-5 h-5" style={{ color: "var(--ck-accent)" }} />
+                              : <s.icon className="w-4 h-4" style={{ color: step === s.id ? "var(--ck-primary)" : "#4B5563" }} />}
                           </div>
-                          <span className="text-[11px] font-mono uppercase tracking-wider" style={{ color: step === s.id ? "#CCFF00" : (s.id < step ? "#FF4D00" : "#4B5563") }}>
+                          <span className="text-[11px] font-mono uppercase tracking-wider" style={{ color: step === s.id ? "var(--ck-primary)" : (s.id < step ? "var(--ck-accent)" : "#4B5563") }}>
                             {s.label}
                           </span>
                         </button>
                         {i < STEPS.length - 1 && (
-                          <div className="flex-1 h-0.5 mx-2 rounded transition-colors duration-300" style={{ backgroundColor: s.id < step ? "#FF4D00" : "#1A1E26" }} />
+                          <div className="flex-1 h-0.5 mx-2 rounded transition-colors duration-300" style={{ backgroundColor: s.id < step ? "var(--ck-accent)" : "#1A1E26" }} />
                         )}
                       </React.Fragment>
                     );
@@ -671,7 +689,7 @@ export default function EventsPage() {
               </div>
 
               {/* Scrollable form area */}
-              <form onSubmit={handleCreate} className="flex-1 overflow-y-auto px-6 pb-6 pt-2 min-h-0">
+              <form onSubmit={handleCreate} onKeyDown={handleFormKeyDown} className="flex-1 overflow-y-auto px-6 pb-6 pt-2 min-h-0">
                 <AnimatePresence mode="wait" initial={false}>
                   {/* Step 1: Basic Info */}
                   {step === 1 && (
@@ -689,13 +707,13 @@ export default function EventsPage() {
                         <div className="flex justify-between items-center mb-1">
                           <label className="ck-label mb-0">Event Name *</label>
                           {form.title.length > 0 && (
-                            <span className="text-[10px] font-mono uppercase" style={{ color: form.title.length >= 3 ? "#CCFF00" : "#FF003C" }}>
+                            <span className="text-[10px] font-mono uppercase" style={{ color: form.title.length >= 3 ? "var(--ck-primary)" : "var(--ck-danger)" }}>
                               {form.title.length < 3 ? "Too short (min 3 chars)" : "Acceptable"}
                             </span>
                           )}
                         </div>
                         <input 
-                          className={`ck-input ${form.title.length > 0 && form.title.length < 3 ? "border-[#FF003C]/50 focus:border-[#FF003C] focus:shadow-[0_0_12px_rgba(255,0,60,0.4)]" : ""}`} 
+                          className={`ck-input ${form.title.length > 0 && form.title.length < 3 ? "border-[var(--ck-danger)]/50 focus:border-[var(--ck-danger)] focus:shadow-[0_0_12px_rgba(255,0,85,0.4)]" : ""}`} 
                           placeholder="e.g. CyberHack 3.0" 
                           value={form.title} 
                           onChange={(e) => setForm({ ...form, title: e.target.value })} 
@@ -705,7 +723,7 @@ export default function EventsPage() {
                       <div>
                         <div className="flex justify-between items-center mb-1">
                           <label className="ck-label mb-0">Description</label>
-                          <span className="text-[10px] text-zinc-500 font-mono">{form.description.length} / 10000000 chars</span>
+                          <span className="text-[10px] text-[var(--ck-text-muted)] font-mono">{form.description.length} / 10000000 chars</span>
                         </div>
                         <textarea className="ck-input" rows={4} maxLength={10000000} placeholder="Describe the event, its purpose, and what participants can expect..." value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
                       </div>
@@ -724,26 +742,26 @@ export default function EventsPage() {
                                 onClick={() => setForm({ ...form, eventType: type.value })}
                                 className={`flex flex-col items-start p-3 rounded-xl border text-left transition-all duration-300 relative overflow-hidden group ${
                                   isSelected
-                                    ? "border-[#CCFF00] bg-[#CCFF00]/10 shadow-[0_0_12px_rgba(204,255,0,0.15)]"
-                                    : "border-zinc-800 bg-zinc-950/40 hover:border-zinc-700 hover:bg-zinc-900/30"
+                                    ? "border-[var(--ck-primary)] bg-[var(--ck-primary)]/10 shadow-[0_0_12px_rgba(0,245,212,0.15)]"
+                                    : "border-[var(--ck-border)] bg-zinc-950/40 hover:border-[var(--ck-border)] hover:bg-[var(--ck-bg-card)]/30"
                                 }`}
                               >
                                 <div className="p-2 rounded-lg mb-2 transition-colors duration-300" style={{
-                                  backgroundColor: isSelected ? "rgba(204,255,0,0.1)" : "rgba(0,0,0,0.4)",
-                                  color: isSelected ? "#CCFF00" : "#8892A4"
+                                  backgroundColor: isSelected ? "rgba(0,245,212,0.1)" : "rgba(0,0,0,0.4)",
+                                  color: isSelected ? "var(--ck-primary)" : "#8892A4"
                                 }}>
                                   <IconComp className="w-4 h-4" />
                                 </div>
                                 <span className="text-xs font-semibold uppercase tracking-wider font-mono" style={{
-                                  color: isSelected ? "#CCFF00" : "#F0F4FF"
+                                  color: isSelected ? "var(--ck-primary)" : "#F0F4FF"
                                 }}>
                                   {type.label}
                                 </span>
-                                <span className="text-[10px] text-zinc-500 mt-1 line-clamp-1 group-hover:text-zinc-400 transition-colors">
+                                <span className="text-[10px] text-[var(--ck-text-muted)] mt-1 line-clamp-1 group-hover:text-[var(--ck-text-secondary)] transition-colors">
                                   {type.desc}
                                 </span>
                                 {isSelected && (
-                                  <div className="absolute top-2.5 right-2.5 rounded-full p-0.5" style={{ backgroundColor: "#CCFF00", color: "#000", boxShadow: "0 0 5px #CCFF00" }}>
+                                  <div className="absolute top-2.5 right-2.5 rounded-full p-0.5" style={{ backgroundColor: "var(--ck-primary)", color: "#000", boxShadow: "0 0 5px var(--ck-primary)" }}>
                                     <Check className="w-2.5 h-2.5 text-black" strokeWidth={3} />
                                   </div>
                                 )}
@@ -757,18 +775,18 @@ export default function EventsPage() {
                         <div>
                           <label className="ck-label">Venue</label>
                           <div className="relative">
-                            <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none" style={{ color: "#CCFF00" }} />
+                            <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none" style={{ color: "var(--ck-primary)" }} />
                             <input className="ck-input pl-10" placeholder="e.g. Lab 301, CSPIT" value={form.venue} onChange={(e) => setForm({ ...form, venue: e.target.value })} />
                           </div>
                         </div>
                         {/* Interactive Tag Input */}
                         <div>
                           <label className="ck-label">Tags</label>
-                          <div className="flex flex-wrap gap-2 p-2 rounded-lg border border-zinc-800 bg-black/50 min-h-[44px] mb-1.5 focus-within:border-[#CCFF00]/50 focus-within:ring-1 focus-within:ring-[#CCFF00]/30 transition-all duration-300">
+                          <div className="flex flex-wrap gap-2 p-2 rounded-lg border border-[var(--ck-border)] bg-black/50 min-h-[44px] mb-1.5 focus-within:border-[var(--ck-primary)]/50 focus-within:ring-1 focus-within:ring-[var(--ck-primary)]/30 transition-all duration-300">
                             {tagList.map((tag, idx) => (
                               <span key={idx} className="flex items-center gap-1 px-2 py-0.5 rounded bg-cyan-950/40 border border-cyan-900/30 text-[10px] text-cyan-200 uppercase font-mono tracking-wider transition-all duration-200 hover:bg-cyan-900/30">
                                 {tag}
-                                <button type="button" onClick={() => removeTag(idx)} className="p-0.5 rounded-full transition hover:text-white" style={{ color: "#CCFF00" }}>
+                                <button type="button" onClick={() => removeTag(idx)} className="p-0.5 rounded-full transition hover:text-[var(--ck-text)]" style={{ color: "var(--ck-primary)" }}>
                                   <X className="w-2.5 h-2.5" />
                                 </button>
                               </span>
@@ -776,7 +794,7 @@ export default function EventsPage() {
                             <input
                               type="text"
                               placeholder={tagList.length === 0 ? "cybersecurity, networking, etc. (Press Enter)" : "Add..."}
-                              className="flex-1 min-w-[80px] bg-transparent border-0 outline-none text-xs text-white focus:ring-0 placeholder:text-zinc-600 font-mono py-0.5"
+                              className="flex-1 min-w-[80px] bg-transparent border-0 outline-none text-xs text-[var(--ck-text)] focus:ring-0 placeholder:text-[var(--ck-text-muted)] font-mono py-0.5"
                               onKeyDown={(e) => {
                                   if (e.key === "Enter" || e.key === ",") {
                                     e.preventDefault();
@@ -796,7 +814,7 @@ export default function EventsPage() {
                                 }}
                             />
                           </div>
-                          <span className="text-[10px] text-zinc-600 font-mono">Press Enter or comma to add tag.</span>
+                          <span className="text-[10px] text-[var(--ck-text-muted)] font-mono">Press Enter or comma to add tag.</span>
                         </div>
                       </div>
                     </motion.div>
@@ -829,7 +847,7 @@ export default function EventsPage() {
                       
                       {/* Date Validation Warnings */}
                       {getDateWarnings().length > 0 && (
-                        <div className="p-3.5 rounded-lg bg-[#FF003C]/10 border border-[#FF003C]/20 text-[#FF003C] space-y-1">
+                        <div className="p-3.5 rounded-lg bg-[var(--ck-danger)]/10 border border-[var(--ck-danger)]/20 text-[var(--ck-danger)] space-y-1">
                           {getDateWarnings().map((warn, i) => (
                             <p key={i} className="text-xs font-mono flex items-center gap-2">
                               <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0" />
@@ -840,8 +858,8 @@ export default function EventsPage() {
                       )}
 
                       {form.startDate && form.endDate && getDateWarnings().length === 0 && (
-                        <div className="p-3 rounded-lg bg-[#CCFF00]/10 border border-[#CCFF00]/20">
-                          <p className="text-xs font-mono flex items-center gap-2" style={{ color: "#CCFF00" }}>
+                        <div className="p-3 rounded-lg bg-[var(--ck-primary)]/10 border border-[var(--ck-primary)]/20">
+                          <p className="text-xs font-mono flex items-center gap-2" style={{ color: "var(--ck-primary)" }}>
                             <CheckCircle2 className="w-4 h-4" />
                             <span>
                               {new Date(form.startDate).toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short", year: "numeric" })}
@@ -873,11 +891,11 @@ export default function EventsPage() {
                       <div>
                         <label className="ck-label">Max Capacity</label>
                         <div className="relative">
-                          <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none" style={{ color: "#CCFF00" }} />
+                          <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none" style={{ color: "var(--ck-primary)" }} />
                           <input className="ck-input pl-10" type="number" min="1" placeholder="e.g. 100 (Leave blank for unlimited)" value={form.maxCapacity} onChange={(e) => setForm({ ...form, maxCapacity: e.target.value })} />
                         </div>
                       </div>
-                      <div className="grid grid-cols-2 gap-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
                           <label className="ck-label">Min Team Size</label>
                           <input className="ck-input" type="number" min="1" placeholder="e.g. 2" value={form.minTeamSize} onChange={(e) => setForm({ ...form, minTeamSize: e.target.value })} />
@@ -890,7 +908,7 @@ export default function EventsPage() {
                       
                       {/* Capacity warnings */}
                       {getParticipantWarnings().length > 0 && (
-                        <div className="p-3 rounded-lg bg-[#FF003C]/10 border border-[#FF003C]/20 text-[#FF003C] space-y-1">
+                        <div className="p-3 rounded-lg bg-[var(--ck-danger)]/10 border border-[var(--ck-danger)]/20 text-[var(--ck-danger)] space-y-1">
                           {getParticipantWarnings().map((warn, i) => (
                             <p key={i} className="text-xs font-mono flex items-center gap-2">
                               <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0" />
@@ -901,9 +919,9 @@ export default function EventsPage() {
                       )}
 
                       <div>
-                        <label className="ck-label">Google Form Link <span className="text-zinc-500">(Optional)</span></label>
+                        <label className="ck-label">Google Form Link <span className="text-[var(--ck-text-muted)]">(Optional)</span></label>
                         <div className="relative">
-                          <Link2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none" style={{ color: "#CCFF00" }} />
+                          <Link2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none" style={{ color: "var(--ck-primary)" }} />
                           <input className="ck-input pl-10" type="url" placeholder="https://forms.google.com/..." value={form.googleFormUrl} onChange={(e) => setForm({ ...form, googleFormUrl: e.target.value })} />
                         </div>
                       </div>
@@ -925,7 +943,7 @@ export default function EventsPage() {
                       <div>
                         <div className="flex justify-between items-center mb-1">
                           <label className="ck-label mb-0">Rules & Guidelines</label>
-                          <span className="text-[10px] text-zinc-500 font-mono">{form.rules.length} / 10000000 chars</span>
+                          <span className="text-[10px] text-[var(--ck-text-muted)] font-mono">{form.rules.length} / 10000000 chars</span>
                         </div>
                         <textarea className="ck-input" rows={4} maxLength={10000000} value={form.rules} onChange={(e) => setForm({ ...form, rules: e.target.value })} placeholder="1. All participants must register before the deadline&#10;2. Team leader must be present at check-in&#10;3. ..." />
                       </div>
@@ -939,24 +957,24 @@ export default function EventsPage() {
                             onDrop={handlePosterDrop}
                             className={`border-2 border-dashed rounded-xl p-5 text-center transition-all duration-300 group cursor-pointer relative overflow-hidden ${
                               isPosterDragging 
-                                ? "border-[#CCFF00] bg-[#CCFF00]/5 scale-[1.01] shadow-[0_0_15px_rgba(204,255,0,0.15)]" 
-                                : "border-zinc-800 bg-[#0D0F14]/30 hover:border-[#CCFF00]/40 hover:bg-[#0D0F14]/50"
+                                ? "border-[var(--ck-primary)] bg-[var(--ck-primary)]/5 scale-[1.01] shadow-[0_0_15px_rgba(0,245,212,0.15)]" 
+                                : "border-[var(--ck-border)] bg-[var(--ck-bg-card)]/30 hover:border-[var(--ck-primary)]/40 hover:bg-[var(--ck-bg-card)]/50"
                             }`}
                             onClick={() => document.getElementById("poster-upload")?.click()}>
                             {posterPreview ? (
                               <div className="relative group/preview">
-                                <img src={posterPreview} alt="Preview" className="max-h-40 mx-auto rounded-lg object-contain border border-zinc-800" />
+                                <img src={posterPreview} alt="Preview" className="max-h-40 mx-auto rounded-lg object-contain border border-[var(--ck-border)]" />
                                 <div className="absolute inset-0 bg-black/60 opacity-0 group-hover/preview:opacity-100 transition-opacity flex items-center justify-center rounded-lg">
-                                  <p className="text-xs text-zinc-300 font-mono">Click to replace image</p>
+                                  <p className="text-xs text-[var(--ck-text)] font-mono">Click to replace image</p>
                                 </div>
                                 <button type="button" onClick={(ev) => { ev.stopPropagation(); setPosterFile(null); setPosterPreview(null); }}
-                                  className="absolute top-2 right-2 p-1.5 rounded-full bg-black/80 transition shadow-[0_0_8px_rgba(0,0,0,0.5)] hover:text-white" style={{ color: "#CCFF00" }}><X className="w-4 h-4" /></button>
+                                  className="absolute top-2 right-2 p-1.5 rounded-full bg-black/80 transition shadow-[0_0_8px_rgba(0,0,0,0.5)] hover:text-[var(--ck-text)]" style={{ color: "var(--ck-primary)" }}><X className="w-4 h-4" /></button>
                               </div>
                             ) : (
                               <div className="py-2">
-                                <UploadCloud className={`w-8 h-8 mx-auto mb-2 transition-all duration-300 ${isPosterDragging ? "scale-110 animate-pulse" : "text-zinc-650"}`} style={{ color: "#CCFF00" }} />
-                                <p className="text-xs font-semibold font-mono text-zinc-300">{isPosterDragging ? "Drop your image here!" : "Click or drag & drop event poster"}</p>
-                                <p className="text-[10px] text-zinc-500 mt-1 font-mono">PNG, JPG up to 5MB</p>
+                                <UploadCloud className={`w-8 h-8 mx-auto mb-2 transition-all duration-300 ${isPosterDragging ? "scale-110 animate-pulse" : "text-zinc-650"}`} style={{ color: "var(--ck-primary)" }} />
+                                <p className="text-xs font-semibold font-mono text-[var(--ck-text)]">{isPosterDragging ? "Drop your image here!" : "Click or drag & drop event poster"}</p>
+                                <p className="text-[10px] text-[var(--ck-text-muted)] mt-1 font-mono">PNG, JPG up to 5MB</p>
                               </div>
                             )}
                             <input type="file" accept="image/*" className="hidden" id="poster-upload" onChange={handlePosterChange} />
@@ -964,23 +982,23 @@ export default function EventsPage() {
                         </div>
 
                         <div>
-                          <label className="ck-label">Supporting Documents <span className="text-zinc-500">(Optional Template)</span></label>
+                          <label className="ck-label">Supporting Documents <span className="text-[var(--ck-text-muted)]">(Optional Template)</span></label>
                           <div 
                             onDragOver={handleDocDragOver}
                             onDragLeave={handleDocDragLeave}
                             onDrop={handleDocDrop}
                             className={`border-2 border-dashed rounded-xl p-5 text-center transition-all duration-300 group cursor-pointer relative ${
                               isDocDragging 
-                                ? "border-[#FF4D00] bg-[#FF4D00]/5 scale-[1.01] shadow-[0_0_15px_rgba(255,77,0,0.15)]" 
-                                : "border-zinc-800 bg-[#0D0F14]/30 hover:border-[#FF4D00]/40 hover:bg-[#0D0F14]/50"
+                                ? "border-[var(--ck-accent)] bg-[var(--ck-accent)]/5 scale-[1.01] shadow-[0_0_15px_rgba(0,225,255,0.15)]" 
+                                : "border-[var(--ck-border)] bg-[var(--ck-bg-card)]/30 hover:border-[var(--ck-accent)]/40 hover:bg-[var(--ck-bg-card)]/50"
                             }`}
                             onClick={() => document.getElementById("doc-upload")?.click()}>
                             <div className="py-2">
-                              <FileText className={`w-8 h-8 mx-auto mb-2 transition-all duration-300 ${isDocDragging ? "scale-110 animate-pulse" : "text-zinc-650"}`} style={{ color: "#FF4D00" }} />
-                              <p className="text-xs font-semibold font-mono text-zinc-300">
+                              <FileText className={`w-8 h-8 mx-auto mb-2 transition-all duration-300 ${isDocDragging ? "scale-110 animate-pulse" : "text-zinc-650"}`} style={{ color: "var(--ck-accent)" }} />
+                              <p className="text-xs font-semibold font-mono text-[var(--ck-text)]">
                                 {isDocDragging ? "Drop files here!" : "Click or drag & drop supporting files"}
                               </p>
-                              <p className="text-[10px] text-zinc-500 mt-1 font-mono">PDF, DOC, DOCX, TXT (Multiple allowed)</p>
+                              <p className="text-[10px] text-[var(--ck-text-muted)] mt-1 font-mono">PDF, DOC, DOCX, TXT (Multiple allowed)</p>
                             </div>
                             <input type="file" accept=".pdf,.doc,.docx,.txt" multiple className="hidden" id="doc-upload"
                               onChange={(e) => {
@@ -996,32 +1014,32 @@ export default function EventsPage() {
                       {/* File Lists */}
                       {(existingDocuments.length > 0 || documentFiles.length > 0) && (
                         <div className="p-4 rounded-xl border border-zinc-850 bg-black/40 space-y-3">
-                          <p className="text-xs font-mono font-bold text-[#CCFF00] uppercase tracking-wider">File Clearance List</p>
+                          <p className="text-xs font-mono font-bold text-[var(--ck-primary)] uppercase tracking-wider">File Clearance List</p>
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                             {/* Existing Documents */}
                             {existingDocuments.map((docUrl, idx) => (
-                              <div key={`existing-${idx}`} className="flex items-center justify-between p-2 rounded-lg bg-zinc-900/60 border border-zinc-800">
+                              <div key={`existing-${idx}`} className="flex items-center justify-between p-2 rounded-lg bg-zinc-900/60 border border-[var(--ck-border)]">
                                 <div className="flex items-center gap-2 min-w-0">
-                                  <FileText className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
-                                  <span className="text-xs text-zinc-300 truncate font-mono">{docUrl.split("/").pop()}</span>
-                                  <span className="text-[8px] font-bold font-mono px-1 rounded bg-[#CCFF00]/10 border border-[#CCFF00]/25 text-[#CCFF00] shrink-0">SAVED</span>
+                                  <FileText className="w-3.5 h-3.5 text-[var(--ck-text-secondary)] shrink-0" />
+                                  <span className="text-xs text-[var(--ck-text)] truncate font-mono">{docUrl.split("/").pop()}</span>
+                                  <span className="text-[8px] font-bold font-mono px-1 rounded bg-[var(--ck-primary)]/10 border border-[var(--ck-primary)]/25 text-[var(--ck-primary)] shrink-0">SAVED</span>
                                 </div>
                                 <button type="button" onClick={() => setExistingDocuments(prev => prev.filter((_, i) => i !== idx))}
-                                  className="p-1 rounded hover:bg-white/5 text-zinc-500 hover:text-white transition"><X className="w-3.5 h-3.5" /></button>
+                                  className="p-1 rounded hover:bg-white/5 text-[var(--ck-text-muted)] hover:text-[var(--ck-text)] transition"><X className="w-3.5 h-3.5" /></button>
                               </div>
                             ))}
                             {/* Newly Selected Documents */}
                             {documentFiles.map((file, idx) => (
-                              <div key={`new-${idx}`} className="flex items-center justify-between p-2 rounded-lg bg-zinc-900/60 border border-zinc-800">
+                              <div key={`new-${idx}`} className="flex items-center justify-between p-2 rounded-lg bg-zinc-900/60 border border-[var(--ck-border)]">
                                 <div className="flex items-center gap-2 min-w-0">
-                                  <FileText className="w-3.5 h-3.5 text-[#FF4D00] shrink-0" />
-                                  <span className="text-xs text-zinc-300 truncate font-mono">{file.name}</span>
-                                  <span className="text-[8px] font-bold font-mono px-1 rounded bg-[#FF4D00]/10 border border-[#FF4D00]/25 text-[#FF4D00] shrink-0">
+                                  <FileText className="w-3.5 h-3.5 text-[var(--ck-accent)] shrink-0" />
+                                  <span className="text-xs text-[var(--ck-text)] truncate font-mono">{file.name}</span>
+                                  <span className="text-[8px] font-bold font-mono px-1 rounded bg-[var(--ck-accent)]/10 border border-[var(--ck-accent)]/25 text-[var(--ck-accent)] shrink-0">
                                     {(file.size / (1024 * 1024)).toFixed(2)} MB
                                   </span>
                                 </div>
                                 <button type="button" onClick={() => setDocumentFiles(prev => prev.filter((_, i) => i !== idx))}
-                                  className="p-1 rounded hover:bg-white/5 text-zinc-500 hover:text-white transition"><X className="w-3.5 h-3.5" /></button>
+                                  className="p-1 rounded hover:bg-white/5 text-[var(--ck-text-muted)] hover:text-[var(--ck-text)] transition"><X className="w-3.5 h-3.5" /></button>
                               </div>
                             ))}
                           </div>
@@ -1030,8 +1048,8 @@ export default function EventsPage() {
 
                       {/* Organizing Team Section */}
                       <div className="p-4 rounded-xl border border-zinc-850 bg-black/40 space-y-4">
-                        <div className="flex items-center gap-2 border-b border-zinc-800 pb-2">
-                          <Users className="w-4 h-4 text-[#CCFF00]" />
+                        <div className="flex items-center gap-2 border-b border-[var(--ck-border)] pb-2">
+                          <Users className="w-4 h-4 text-[var(--ck-primary)]" />
                           <h3 className="text-sm font-black font-mono text-zinc-350 uppercase tracking-widest">Organizing Team Setup</h3>
                         </div>
 
@@ -1044,7 +1062,7 @@ export default function EventsPage() {
                           </div>
                           <div>
                             <label className="ck-label text-[10px]">Role / designation *</label>
-                            <select className="ck-input text-xs py-1.5 bg-black" value={newOrganizer.role}
+                            <select className="ck-input text-xs py-1.5 bg-[var(--ck-bg)]" value={newOrganizer.role}
                               onChange={(e) => setNewOrganizer({ ...newOrganizer, role: e.target.value })}>
                               <option value="Faculty Coordinator">Faculty Coordinator</option>
                               <option value="Student Coordinator">Student Coordinator</option>
@@ -1093,11 +1111,11 @@ export default function EventsPage() {
                         {organizersList.length > 0 && (
                           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pt-2">
                             {organizersList.map((org, idx) => (
-                              <div key={idx} className="p-3 rounded-lg border border-zinc-800 bg-zinc-950/80 relative group hover:border-[#CCFF00]/30 transition-all">
+                              <div key={idx} className="p-3 rounded-lg border border-[var(--ck-border)] bg-zinc-950/80 relative group hover:border-[var(--ck-primary)]/30 transition-all">
                                 <button type="button" onClick={() => setOrganizersList(prev => prev.filter((_, i) => i !== idx))}
-                                  className="absolute top-2.5 right-2.5 p-1 rounded hover:bg-white/5 text-zinc-500 hover:text-white transition"><X className="w-3 h-3" /></button>
-                                <p className="text-xs font-bold text-white pr-6 font-mono truncate">{org.name}</p>
-                                <p className="text-[9px] font-bold text-[#CCFF00] uppercase font-mono tracking-wider mt-0.5">{org.role}</p>
+                                  className="absolute top-2.5 right-2.5 p-1 rounded hover:bg-white/5 text-[var(--ck-text-muted)] hover:text-[var(--ck-text)] transition"><X className="w-3 h-3" /></button>
+                                <p className="text-xs font-bold text-[var(--ck-text)] pr-6 font-mono truncate">{org.name}</p>
+                                <p className="text-[9px] font-bold text-[var(--ck-primary)] uppercase font-mono tracking-wider mt-0.5">{org.role}</p>
                                 <div className="mt-2 space-y-0.5 text-[10px] text-zinc-450 font-mono">
                                   <p className="truncate">📧 {org.email}</p>
                                   <p>📞 {org.phone}</p>
@@ -1109,17 +1127,17 @@ export default function EventsPage() {
                       </div>
 
                       {/* Social Links Section */}
-                      <div className="p-4 rounded-xl border border-zinc-800 bg-black/40 space-y-3">
-                        <div className="flex items-center gap-2 border-b border-zinc-800 pb-2">
-                          <Link2 className="w-4 h-4" style={{ color: "#CCFF00" }} />
+                      <div className="p-4 rounded-xl border border-[var(--ck-border)] bg-black/40 space-y-3">
+                        <div className="flex items-center gap-2 border-b border-[var(--ck-border)] pb-2">
+                          <Link2 className="w-4 h-4" style={{ color: "var(--ck-primary)" }} />
                           <h3 className="text-sm font-black font-mono text-zinc-350 uppercase tracking-widest">Event Social Links</h3>
                         </div>
-                        <p className="text-[10px] text-zinc-500 font-mono">Optional. Shown on the public event page for attendees.</p>
+                        <p className="text-[10px] text-[var(--ck-text-muted)] font-mono">Optional. Shown on the public event page for attendees.</p>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                           <div>
                             <label className="ck-label text-[10px]">Instagram URL</label>
                             <div className="relative">
-                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm" style={{ color: "#CCFF00" }}>📸</span>
+                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm" style={{ color: "var(--ck-primary)" }}>📸</span>
                               <input
                                 className="ck-input pl-8 text-xs py-1.5"
                                 type="url"
@@ -1132,7 +1150,7 @@ export default function EventsPage() {
                           <div>
                             <label className="ck-label text-[10px]">LinkedIn URL</label>
                             <div className="relative">
-                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm" style={{ color: "#CCFF00" }}>💼</span>
+                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm" style={{ color: "var(--ck-primary)" }}>💼</span>
                               <input
                                 className="ck-input pl-8 text-xs py-1.5"
                                 type="url"
@@ -1145,7 +1163,7 @@ export default function EventsPage() {
                           <div>
                             <label className="ck-label text-[10px]">WhatsApp Invite URL</label>
                             <div className="relative">
-                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm" style={{ color: "#CCFF00" }}>💬</span>
+                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm" style={{ color: "var(--ck-primary)" }}>💬</span>
                               <input
                                 className="ck-input pl-8 text-xs py-1.5"
                                 type="url"
@@ -1162,7 +1180,7 @@ export default function EventsPage() {
                 </AnimatePresence>
 
                 {/* Navigation Buttons */}
-                <div className="flex items-center justify-between mt-8 pt-4 border-t border-zinc-800 sticky bottom-0 bg-[var(--ck-bg)] pb-1">
+                <div className="flex items-center justify-between mt-8 pt-4 border-t border-[var(--ck-border)] sticky bottom-0 bg-[var(--ck-bg)] pb-1">
                   <div>
                     {step > 1 && (
                       <button type="button" onClick={() => navigateToStep(step - 1)} className="ck-btn-secondary py-2 px-4 text-xs">
@@ -1171,7 +1189,7 @@ export default function EventsPage() {
                     )}
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-wider">Step {step} of {STEPS.length}</span>
+                    <span className="text-[10px] font-mono text-[var(--ck-text-muted)] uppercase tracking-wider">Step {step} of {STEPS.length}</span>
                     {step < STEPS.length ? (
                       <button type="button" onClick={() => { if (canGoNext()) navigateToStep(step + 1); }}
                         disabled={!canGoNext()}
@@ -1199,19 +1217,19 @@ export default function EventsPage() {
                         animate={{ rotate: 360 }} 
                         transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
                         className="absolute inset-0 border-2 border-dashed rounded-full"
-                        style={{ borderColor: "rgba(204,255,0,0.3)" }}
+                        style={{ borderColor: "rgba(0,245,212,0.3)" }}
                       />
                       <motion.div 
                         animate={{ scale: [1, 1.15, 1], opacity: [0.3, 0.6, 0.3] }} 
                         transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
                         className="absolute inset-2 border rounded-full bg-black/20"
-                        style={{ borderColor: "rgba(255,77,0,0.3)" }}
+                        style={{ borderColor: "rgba(0,225,255,0.3)" }}
                       />
                       <motion.div 
                         initial={{ scale: 0.5, rotate: -180, opacity: 0 }}
                         animate={{ scale: 1, rotate: 0, opacity: 1 }}
                         transition={{ type: "spring", damping: 12, stiffness: 100 }}
-                        className="w-20 h-20 rounded-full bg-gradient-to-br from-[#CCFF00] to-[#FF4D00] flex items-center justify-center shadow-[0_0_30px_rgba(204,255,0,0.4)] z-10"
+                        className="w-20 h-20 rounded-full bg-gradient-to-br from-[var(--ck-primary)] to-[var(--ck-accent)] flex items-center justify-center shadow-[0_0_30px_rgba(0,245,212,0.4)] z-10"
                       >
                         <Check className="w-10 h-10 text-black" strokeWidth={3} />
                       </motion.div>
@@ -1222,7 +1240,7 @@ export default function EventsPage() {
                       animate={{ y: 0, opacity: 1 }}
                       transition={{ delay: 0.3 }}
                       className="text-2xl font-bold font-mono tracking-wider mb-2 uppercase"
-                      style={{ color: "#CCFF00" }}
+                      style={{ color: "var(--ck-primary)" }}
                     >
                       Operation Logged
                     </motion.h3>
@@ -1232,7 +1250,7 @@ export default function EventsPage() {
                       animate={{ y: 0, opacity: 1 }}
                       transition={{ delay: 0.5 }}
                       className="text-xs font-mono tracking-widest uppercase max-w-md"
-                      style={{ color: "#FF4D00" }}
+                      style={{ color: "var(--ck-accent)" }}
                     >
                       Event telemetry synchronized with cosmic databases.
                     </motion.p>
@@ -1255,13 +1273,13 @@ export default function EventsPage() {
           {filteredEvents.map((event, i) => (
             <motion.div key={event.id} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}
               onClick={() => isCore ? router.push(`/dashboard/events/${event.id}`) : undefined}
-              className={`ck-card overflow-hidden hover:border-[rgba(204,255,0,0.3)] hover:shadow-[0_0_20px_rgba(204,255,0,0.08)] ${isCore ? "cursor-pointer" : ""} transition-all`}>
+              className={`ck-card overflow-hidden hover:border-[rgba(0,245,212,0.3)] hover:shadow-[0_0_20px_rgba(0,245,212,0.08)] ${isCore ? "cursor-pointer" : ""} transition-all`}>
               {/* Poster/Header */}
               <div className="h-44 bg-gradient-to-br from-[#0D0F14]/50 to-black flex items-center justify-center relative overflow-hidden">
                 {event.posterUrl ? (
                   <img src={getFileUrl(event.posterUrl)} alt={event.title} className="w-full h-full object-cover" />
                 ) : (
-                  <Calendar className="w-12 h-12 opacity-20" style={{ color: "#CCFF00" }} />
+                  <Calendar className="w-12 h-12 opacity-20" style={{ color: "var(--ck-primary)" }} />
                 )}
                 
                 {/* Date Badge */}
@@ -1270,9 +1288,9 @@ export default function EventsPage() {
                   const dateDay = dateObj.getDate();
                   const dateMonth = dateObj.toLocaleDateString("en-IN", { month: "short" }).toUpperCase();
                   return (
-                    <div className="absolute top-3 left-3 bg-black/75 backdrop-blur-md border border-[#CCFF00]/30 rounded-lg px-2 py-1 flex flex-col items-center justify-center min-w-[44px] shadow-[0_0_10px_rgba(204,255,0,0.15)] z-10">
-                      <span className="text-sm font-bold leading-none font-mono" style={{ color: "#CCFF00" }}>{dateDay}</span>
-                      <span className="text-[9px] font-bold tracking-wider font-mono mt-0.5" style={{ color: "#FF4D00" }}>{dateMonth}</span>
+                    <div className="absolute top-3 left-3 bg-black/75 backdrop-blur-md border border-[var(--ck-primary)]/30 rounded-lg px-2 py-1 flex flex-col items-center justify-center min-w-[44px] shadow-[0_0_10px_rgba(0,245,212,0.15)] z-10">
+                      <span className="text-sm font-bold leading-none font-mono" style={{ color: "var(--ck-primary)" }}>{dateDay}</span>
+                      <span className="text-[9px] font-bold tracking-wider font-mono mt-0.5" style={{ color: "var(--ck-accent)" }}>{dateMonth}</span>
                     </div>
                   );
                 })()}
@@ -1282,8 +1300,8 @@ export default function EventsPage() {
                   const typeObj = EVENT_TYPES.find(t => t.value === event.eventType);
                   const TypeIcon = typeObj?.icon || Layers;
                   return (
-                    <span className="absolute bottom-3 left-3 bg-black/75 backdrop-blur-md border text-[9px] px-2 py-0.5 rounded-md flex items-center gap-1 font-mono uppercase tracking-wider z-10" style={{ backgroundColor: "rgba(204,255,0,0.1)", borderColor: "rgba(204,255,0,0.25)", color: "#CCFF00" }}>
-                      <TypeIcon className="w-2.5 h-2.5" style={{ color: "#CCFF00" }} />
+                    <span className="absolute bottom-3 left-3 bg-black/75 backdrop-blur-md border text-[9px] px-2 py-0.5 rounded-md flex items-center gap-1 font-mono uppercase tracking-wider z-10" style={{ backgroundColor: "rgba(0,245,212,0.1)", borderColor: "rgba(0,245,212,0.25)", color: "var(--ck-primary)" }}>
+                      <TypeIcon className="w-2.5 h-2.5" style={{ color: "var(--ck-primary)" }} />
                       {typeObj?.label || event.eventType}
                     </span>
                   );
@@ -1291,7 +1309,7 @@ export default function EventsPage() {
 
                 <div className="absolute top-3 right-3 flex flex-col gap-1 items-end z-10">
                   {!event.isApproved && (
-                    <span className="ck-badge bg-[#FF4D00]/10 border-[#FF4D00] text-[#FF4D00] shadow-[0_0_8px_rgba(255,77,0,0.2)]">
+                    <span className="ck-badge bg-[var(--ck-accent)]/10 border-[var(--ck-accent)] text-[var(--ck-accent)] shadow-[0_0_8px_rgba(0,225,255,0.2)]">
                       Awaiting Approval
                     </span>
                   )}
@@ -1301,7 +1319,7 @@ export default function EventsPage() {
                 {/* Capacity mini-bar */}
                 {event.maxCapacity && (
                   <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-black/40 z-10">
-                    <div className="h-full bg-gradient-to-r from-[#FF4D00] to-[#CCFF00] shadow-[0_0_8px_rgba(204,255,0,0.3)]"
+                    <div className="h-full bg-gradient-to-r from-[var(--ck-accent)] to-[var(--ck-primary)] shadow-[0_0_8px_rgba(0,245,212,0.3)]"
                       style={{ width: `${Math.min(100, Math.round((event._count.registrations / event.maxCapacity) * 100))}%` }} />
                   </div>
                 )}
@@ -1311,15 +1329,15 @@ export default function EventsPage() {
                 {event.description && <p className="text-sm mb-3 line-clamp-2" style={{ color: "var(--ck-text-secondary)" }}>{event.description}</p>}
                 <div className="space-y-1.5 mb-4 font-mono">
                   <p className="text-[10px] flex items-center gap-1.5" style={{ color: "var(--ck-text-muted)" }}>
-                    <Clock className="w-3.5 h-3.5" style={{ color: "#CCFF00" }} /> {new Date(event.startDate).toLocaleDateString()} — {new Date(event.endDate).toLocaleDateString()}
+                    <Clock className="w-3.5 h-3.5" style={{ color: "var(--ck-primary)" }} /> {new Date(event.startDate).toLocaleDateString()} — {new Date(event.endDate).toLocaleDateString()}
                   </p>
-                  {event.venue && <p className="text-[10px] flex items-center gap-1.5" style={{ color: "var(--ck-text-muted)" }}><MapPin className="w-3.5 h-3.5" style={{ color: "#CCFF00" }} /> {event.venue}</p>}
+                  {event.venue && <p className="text-[10px] flex items-center gap-1.5" style={{ color: "var(--ck-text-muted)" }}><MapPin className="w-3.5 h-3.5" style={{ color: "var(--ck-primary)" }} /> {event.venue}</p>}
                   <p className="text-[10px] flex items-center gap-1.5" style={{ color: "var(--ck-text-muted)" }}>
-                    <Users className="w-3.5 h-3.5" style={{ color: "#CCFF00" }} /> {event._count.registrations} / {event.maxCapacity || "∞"} registered
+                    <Users className="w-3.5 h-3.5" style={{ color: "var(--ck-primary)" }} /> {event._count.registrations} / {event.maxCapacity || "∞"} registered
                   </p>
                   {event.registrationDeadline && (
-                    <p className="text-[10px] flex items-center gap-1.5" style={{ color: new Date(event.registrationDeadline) < now ? "#FF003C" : "var(--ck-text-muted)" }}>
-                      <Clock className="w-3.5 h-3.5" style={{ color: "#CCFF00" }} /> Deadline: {new Date(event.registrationDeadline).toLocaleDateString()}
+                    <p className="text-[10px] flex items-center gap-1.5" style={{ color: new Date(event.registrationDeadline) < now ? "var(--ck-danger)" : "var(--ck-text-muted)" }}>
+                      <Clock className="w-3.5 h-3.5" style={{ color: "var(--ck-primary)" }} /> Deadline: {new Date(event.registrationDeadline).toLocaleDateString()}
                       {new Date(event.registrationDeadline) < now && " (Expired)"}
                     </p>
                   )}
@@ -1330,17 +1348,17 @@ export default function EventsPage() {
                     } else { docs = [event.documentUrl]; }
                     return docs.length > 0 ? (
                       <div className="flex flex-col gap-1.5 mt-2.5 pt-2 border-t border-zinc-900/40">
-                        <span className="text-[8px] font-mono uppercase text-zinc-500 tracking-wider">Resources:</span>
+                        <span className="text-[8px] font-mono uppercase text-[var(--ck-text-muted)] tracking-wider">Resources:</span>
                         {docs.map((doc, idx) => (
                           <a
                             key={idx}
                             href={getFileUrl(doc)}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="flex items-center gap-1.5 text-[10px] font-mono text-zinc-450 hover:text-[#CCFF00] transition truncate"
+                            className="flex items-center gap-1.5 text-[10px] font-mono text-zinc-450 hover:text-[var(--ck-primary)] transition truncate"
                             onClick={(e) => e.stopPropagation()}
                           >
-                            <FileText className="w-3.5 h-3.5 text-[#FF4D00] shrink-0" />
+                            <FileText className="w-3.5 h-3.5 text-[var(--ck-accent)] shrink-0" />
                             <span className="truncate">{doc.split("/").pop()}</span>
                           </a>
                         ))}
@@ -1370,7 +1388,7 @@ export default function EventsPage() {
                   {user && user.role === "FACULTY" && !event.isApproved && (
                     <button 
                       onClick={(e) => handleApproveDirectly(event.id, e)} 
-                      className="ck-btn-primary text-xs py-2 shadow-[0_0_10px_rgba(204,255,0,0.3)] border-none" style={{ backgroundColor: "#CCFF00", color: "#000" }}
+                      className="ck-btn-primary text-xs py-2 shadow-[0_0_10px_rgba(0,245,212,0.3)] border-none" style={{ backgroundColor: "var(--ck-primary)", color: "#000" }}
                     >
                       Approve
                     </button>
@@ -1378,7 +1396,7 @@ export default function EventsPage() {
                   {isCoord && event.isApproved && event.isPublished && (
                     <button 
                       onClick={(e) => handleSendEmail(event.id, e)} 
-                      className="ck-btn-secondary text-xs py-2 hover:bg-[#FF003C]/10 hover:text-[#FF003C]"
+                      className="ck-btn-secondary text-xs py-2 hover:bg-[var(--ck-danger)]/10 hover:text-[var(--ck-danger)]"
                       title="Send Email Broadcast"
                     >
                       <Mail className="w-3.5 h-3.5" />

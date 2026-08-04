@@ -1,16 +1,23 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Download, MonitorPlay, X } from "lucide-react";
+import { Download, X } from "lucide-react";
+
+interface BeforeInstallPromptEvent extends Event {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: "accepted" | "dismissed"; platform: string }>;
+}
 
 export function PWARegistration() {
-  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [isInstallable, setIsInstallable] = useState(false);
-  const [isStandalone, setIsStandalone] = useState(false);
+  const [isStandalone, setIsStandalone] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return window.matchMedia("(display-mode: standalone)").matches || Boolean((navigator as unknown as { standalone?: boolean }).standalone);
+  });
   const [isDismissed, setIsDismissed] = useState(false);
 
   useEffect(() => {
-    // 1. Register Service Worker
     if (typeof window !== "undefined" && "serviceWorker" in navigator) {
       window.addEventListener("load", () => {
         navigator.serviceWorker.register("/sw.js").then(
@@ -24,26 +31,33 @@ export function PWARegistration() {
       });
     }
 
-    // 2. Detect if running standalone (installed app)
-    if (typeof window !== "undefined") {
-      const isWindowStandalone = window.matchMedia("(display-mode: standalone)").matches || (navigator as any).standalone;
-      setIsStandalone(!!isWindowStandalone);
+    let matchMedia: MediaQueryList | null = null;
+    let handleChange: ((evt: MediaQueryListEvent) => void) | null = null;
 
-      // Listen for display mode changes
-      window.matchMedia("(display-mode: standalone)").addEventListener("change", (evt) => {
+    if (typeof window !== "undefined") {
+      matchMedia = window.matchMedia("(display-mode: standalone)");
+      handleChange = (evt: MediaQueryListEvent) => {
         setIsStandalone(evt.matches);
-      });
+      };
+      matchMedia.addEventListener("change", handleChange);
     }
 
-    // 3. Track BeforeInstallPrompt event
     const handleBeforeInstall = (e: Event) => {
       e.preventDefault();
-      setDeferredPrompt(e);
+      setDeferredPrompt(e as BeforeInstallPromptEvent);
       setIsInstallable(true);
     };
 
     window.addEventListener("beforeinstallprompt", handleBeforeInstall);
-    return () => window.removeEventListener("beforeinstallprompt", handleBeforeInstall);
+
+    return () => {
+      if (matchMedia && handleChange) {
+        matchMedia.removeEventListener("change", handleChange);
+      }
+      if (typeof window !== "undefined") {
+        window.removeEventListener("beforeinstallprompt", handleBeforeInstall);
+      }
+    };
   }, []);
 
   const handleInstallClick = async () => {
@@ -55,11 +69,10 @@ export function PWARegistration() {
     setIsInstallable(false);
   };
 
-  // Request notifications permission on demand
   const requestNotificationPermission = async () => {
     if (typeof window !== "undefined" && "Notification" in window) {
       const permission = await Notification.requestPermission();
-      console.log(`[PWA] Notification permission result: ${permission}`);
+      console.log(`[PWA] Notification permission: ${permission}`);
     }
   };
 
@@ -68,32 +81,42 @@ export function PWARegistration() {
   }
 
   return (
-    <div className="fixed bottom-6 left-6 z-[60] max-w-xs p-4 rounded-xl border border-[var(--ck-lime)] bg-black/90 shadow-[0_0_20px_rgba(204,255,0,0.15)] flex flex-col gap-2 backdrop-blur-md animate-bounce-short">
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <div className="w-2 h-2 rounded-full bg-[var(--ck-lime)] animate-ping" />
-          <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[var(--ck-lime)]">PWA DETECTED</span>
+    <div className="fixed bottom-4 right-4 z-50 max-w-sm w-full p-4 rounded-xl bg-slate-900/95 border border-[#00F5D4]/30 shadow-2xl backdrop-blur-md font-mono text-xs text-slate-200 animate-in fade-in slide-in-from-bottom-4">
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex gap-3">
+          <div className="p-2 rounded-lg bg-[#00F5D4]/10 border border-[#00F5D4]/30 text-[#00F5D4] shrink-0">
+            <Download className="w-5 h-5" />
+          </div>
+          <div>
+            <h4 className="font-bold text-white uppercase tracking-wider text-sm">INSTALL APP</h4>
+            <p className="text-slate-400 text-[11px] mt-0.5 leading-relaxed font-sans">
+              Install CyberKavach 2.0 for offline telemetry access and instant event updates.
+            </p>
+          </div>
         </div>
-        <button onClick={() => setIsDismissed(true)} className="text-[#8892A4] hover:text-white transition-colors">
-          <X className="w-3.5 h-3.5" />
+        <button
+          onClick={() => setIsDismissed(true)}
+          className="text-slate-400 hover:text-white transition-colors p-1"
+        >
+          <X className="w-4 h-4" />
         </button>
       </div>
-      <p className="text-[11px] text-[#8892A4] leading-relaxed">
-        Install CyberKavach to your home screen for rapid offline check-in capability.
-      </p>
-      <div className="flex gap-2 mt-1">
+
+      <div className="mt-4 flex gap-2 justify-end">
         <button
-          onClick={handleInstallClick}
-          className="flex-1 ck-btn-primary py-1.5 px-3 text-[10px] font-bold flex items-center justify-center gap-1.5"
+          onClick={() => setIsDismissed(true)}
+          className="px-3 py-1.5 rounded-lg border border-slate-700 text-slate-400 hover:text-white hover:border-slate-500 transition-colors uppercase text-[10px]"
         >
-          <Download className="w-3.5 h-3.5" /> INSTALL NOW
+          Later
         </button>
         <button
-          onClick={requestNotificationPermission}
-          className="ck-btn-secondary py-1.5 px-3 text-[10px] font-bold"
-          title="Enable Broadcast Alerts"
+          onClick={() => {
+            handleInstallClick();
+            requestNotificationPermission();
+          }}
+          className="px-3 py-1.5 rounded-lg bg-[#00F5D4] text-slate-950 font-bold hover:bg-[#00E1FF] transition-colors uppercase text-[10px] shadow-[0_0_12px_rgba(0,245,212,0.4)]"
         >
-          NOTIFY
+          Install Now
         </button>
       </div>
     </div>

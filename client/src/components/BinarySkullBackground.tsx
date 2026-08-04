@@ -111,8 +111,15 @@ export function BinarySkullBackground() {
         ctx.save();
         
         // Dark black background as large as login form (approx 480x580)
-        ctx.shadowBlur = 60;
-        ctx.shadowColor = "rgba(255, 0, 0, 0.6)";
+        // Simulated shadow glow using a larger translucent rect (fast)
+        ctx.fillStyle = "rgba(255, 0, 0, 0.08)";
+        ctx.beginPath();
+        if (ctx.roundRect) {
+          ctx.roundRect(px - 255, py - 305, 510, 610, 25);
+        } else {
+          ctx.rect(px - 255, py - 305, 510, 610);
+        }
+        ctx.fill();
         
         ctx.fillStyle = "rgba(0, 0, 0, 0.95)"; // Dark black
         ctx.beginPath();
@@ -128,10 +135,6 @@ export function BinarySkullBackground() {
         ctx.strokeStyle = "rgba(255, 0, 0, 0.4)";
         ctx.stroke();
 
-        // Text shadow
-        ctx.shadowBlur = 15;
-        ctx.shadowColor = "rgba(255, 0, 0, 0.8)";
-        
         ctx.textBaseline = "middle";
 
         // Very large code font
@@ -158,10 +161,6 @@ export function BinarySkullBackground() {
         const lineHeight = 80;
         const startY = py - 60 - ((linesText.length - 1) * lineHeight) / 2; // Shifted up slightly to make room
         
-        // Hollow text (stroke)
-        ctx.strokeStyle = "#ff003c";
-        ctx.lineWidth = 2;
-        
         ctx.textAlign = "left"; // Use left alignment so text doesn't shift
         
         linesText.forEach((lineText, index) => {
@@ -171,6 +170,14 @@ export function BinarySkullBackground() {
           const fullWidth = ctx.measureText(fullLines[index]).width;
           const startX = px - fullWidth / 2;
           
+          // Outer text glow (fast)
+          ctx.strokeStyle = "rgba(255, 0, 0, 0.25)";
+          ctx.lineWidth = 6;
+          ctx.strokeText(lineText, startX, startY + index * lineHeight);
+          
+          // Main text
+          ctx.strokeStyle = "#ff003c";
+          ctx.lineWidth = 2;
           ctx.strokeText(lineText, startX, startY + index * lineHeight);
         });
         
@@ -182,13 +189,23 @@ export function BinarySkullBackground() {
         ctx.save();
         
         // 1. Tech Scanner Brackets (replacing the water effect)
-        ctx.strokeStyle = "rgba(255, 0, 60, 0.8)";
-        ctx.shadowBlur = 10;
-        ctx.shadowColor = "rgba(255, 0, 60, 0.5)";
-        ctx.lineWidth = 3;
         const boxSize = 45;
         const cornerLen = 15;
         
+        // Draw brackets with simulated glow
+        ctx.lineWidth = 6;
+        ctx.strokeStyle = "rgba(255, 0, 60, 0.15)";
+        // Top-left
+        ctx.beginPath(); ctx.moveTo(scanX - boxSize, scanY - boxSize + cornerLen); ctx.lineTo(scanX - boxSize, scanY - boxSize); ctx.lineTo(scanX - boxSize + cornerLen, scanY - boxSize); ctx.stroke();
+        // Top-right
+        ctx.beginPath(); ctx.moveTo(scanX + boxSize - cornerLen, scanY - boxSize); ctx.lineTo(scanX + boxSize, scanY - boxSize); ctx.lineTo(scanX + boxSize, scanY - boxSize + cornerLen); ctx.stroke();
+        // Bottom-left
+        ctx.beginPath(); ctx.moveTo(scanX - boxSize, scanY + boxSize - cornerLen); ctx.lineTo(scanX - boxSize, scanY + boxSize); ctx.lineTo(scanX - boxSize + cornerLen, scanY + boxSize); ctx.stroke();
+        // Bottom-right
+        ctx.beginPath(); ctx.moveTo(scanX + boxSize - cornerLen, scanY + boxSize); ctx.lineTo(scanX + boxSize, scanY + boxSize); ctx.lineTo(scanX + boxSize, scanY + boxSize - cornerLen); ctx.stroke();
+        
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = "rgba(255, 0, 60, 0.8)";
         // Top-left
         ctx.beginPath(); ctx.moveTo(scanX - boxSize, scanY - boxSize + cornerLen); ctx.lineTo(scanX - boxSize, scanY - boxSize); ctx.lineTo(scanX - boxSize + cornerLen, scanY - boxSize); ctx.stroke();
         // Top-right
@@ -199,15 +216,22 @@ export function BinarySkullBackground() {
         ctx.beginPath(); ctx.moveTo(scanX + boxSize - cornerLen, scanY + boxSize); ctx.lineTo(scanX + boxSize, scanY + boxSize); ctx.lineTo(scanX + boxSize, scanY + boxSize - cornerLen); ctx.stroke();
 
         // 2. Abstract fingerprint base (Red techy ridges)
-        ctx.shadowBlur = 15;
-        ctx.shadowColor = "rgba(255, 0, 60, 0.8)";
-        ctx.strokeStyle = "rgba(255, 0, 60, 0.4)";
-        ctx.lineWidth = 2.5;
         ctx.lineCap = "round";
-
+        
+        // Glow layer
+        ctx.strokeStyle = "rgba(255, 0, 60, 0.15)";
+        ctx.lineWidth = 5.0;
         for (let i = 1; i <= 7; i++) {
           ctx.beginPath();
-          // Draw full ellipses for the fingerprint
+          ctx.ellipse(scanX, scanY + 5, i * 4.5, i * 6.5, 0, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+        
+        // Core layer
+        ctx.strokeStyle = "rgba(255, 0, 60, 0.4)";
+        ctx.lineWidth = 2.5;
+        for (let i = 1; i <= 7; i++) {
+          ctx.beginPath();
           ctx.ellipse(scanX, scanY + 5, i * 4.5, i * 6.5, 0, 0, Math.PI * 2);
           ctx.stroke();
         }
@@ -215,13 +239,20 @@ export function BinarySkullBackground() {
         // 3. Scanning laser sweeper
         const laserY = scanY + 5 + Math.sin(time * 3) * 45;
         
-        ctx.shadowBlur = 20;
-        ctx.shadowColor = "rgba(255, 255, 255, 1)"; // Bright white/red glow
-        ctx.strokeStyle = "rgba(255, 0, 60, 1)";
+        // Laser glow
+        ctx.strokeStyle = "rgba(255, 0, 60, 0.25)";
+        ctx.lineWidth = 8;
         ctx.beginPath();
         ctx.moveTo(scanX - boxSize + 5, laserY);
         ctx.lineTo(scanX + boxSize - 5, laserY);
+        ctx.stroke();
+        
+        // Laser core
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.95)";
         ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(scanX - boxSize + 5, laserY);
+        ctx.lineTo(scanX + boxSize - 5, laserY);
         ctx.stroke();
 
         // 4. Laser scan fade trail

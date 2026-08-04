@@ -9,9 +9,9 @@ import { DefaultAvatar } from "@/components/default-avatar";
 interface LeaderboardEntry { rank: number; user: { id: string; name: string; role: string; avatarUrl?: string }; totalPoints: number; badges: { name: string; icon: string }[]; }
 
 const RANK_STYLES = [
-  { bg: "from-[#CCFF00] via-[#99BF00] to-[#668000]", text: "text-black", color: "#CCFF00", shadowColor: "rgba(204,255,0,0.5)", icon: <Trophy className="w-7 h-7 text-black drop-shadow-[0_0_12px_rgba(204,255,0,0.8)]" /> },
-  { bg: "from-[#FF4D00] via-[#CC3D00] to-[#992E00]", text: "text-white", color: "#FF4D00", shadowColor: "rgba(255,77,0,0.5)", icon: <Medal className="w-6 h-6 text-white drop-shadow-[0_0_10px_rgba(255,77,0,0.8)]" /> },
-  { bg: "from-[#FF003C] via-[#CC0030] to-[#990024]", text: "text-white", color: "#FF003C", shadowColor: "rgba(255,0,60,0.5)", icon: <Medal className="w-6 h-6 text-white drop-shadow-[0_0_10px_rgba(255,0,60,0.8)]" /> },
+  { bg: "from-[#FFD700] via-[#D4AF37] to-[#B8860B]", text: "text-black", color: "#FFD700", shadowColor: "rgba(255,215,0,0.5)", icon: <Trophy className="w-7 h-7 text-black drop-shadow-[0_0_12px_rgba(255,215,0,0.8)]" /> },
+  { bg: "from-[#E0E0E0] via-[#C0C0C0] to-[#A0A0A0]", text: "text-black", color: "#C0C0C0", shadowColor: "rgba(192,192,192,0.5)", icon: <Medal className="w-6 h-6 text-black drop-shadow-[0_0_10px_rgba(192,192,192,0.8)]" /> },
+  { bg: "from-[#CD7F32] via-[#B87333] to-[#A0522D]", text: "text-[var(--ck-text)]", color: "#CD7F32", shadowColor: "rgba(205,127,50,0.5)", icon: <Medal className="w-6 h-6 text-[var(--ck-text)] drop-shadow-[0_0_10px_rgba(205,127,50,0.8)]" /> },
 ];
 
 export default function LeaderboardPage() {
@@ -123,13 +123,13 @@ export default function LeaderboardPage() {
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="flex items-start justify-between flex-wrap gap-4">
         <div>
           <div className="flex items-center gap-2.5 mb-1.5">
-            <Crown className="w-4 h-4 text-[#CCFF00]" />
-            <span className="text-[10px] font-mono uppercase tracking-widest text-[#CCFF00]">OPERATIVE RANKINGS</span>
+            <Crown className="w-4 h-4 text-[var(--ck-primary)]" />
+            <span className="text-[10px] font-mono uppercase tracking-widest text-[var(--ck-primary)]">OPERATIVE RANKINGS</span>
           </div>
-          <h1 className="text-3xl font-black font-mono tracking-tighter uppercase text-white">
+          <h1 className="text-3xl font-black font-mono tracking-tighter uppercase text-[var(--ck-text)]">
             RANKING <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#CCFF00] via-[#FF4D00] to-[#FF003C]">MATRIX</span>
           </h1>
-          <p className="mt-1 text-sm text-zinc-500 font-mono">OPERATIVE CREDITS // MISSION ACK</p>
+          <p className="mt-1 text-sm text-[var(--ck-text-muted)] font-mono">OPERATIVE CREDITS // MISSION ACK</p>
         </div>
         <div className="flex gap-2 flex-wrap">
           {isCoord && <button onClick={() => setShowGivePoints(true)} className="ck-btn-primary"><Plus className="w-4 h-4" /> Give Points</button>}
@@ -144,30 +144,30 @@ export default function LeaderboardPage() {
           <div className="ck-modal-overlay">
             <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="ck-glass-card p-6 w-full max-w-md relative overflow-hidden">
               <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-cyan-500 to-transparent opacity-60" />
-              <div className="flex justify-between items-center mb-5"><h2 className="text-xl font-bold font-mono tracking-tighter uppercase text-white">AWARD POINTS</h2><button onClick={() => setShowGivePoints(false)} className="text-zinc-500 hover:text-white transition"><X className="w-5 h-5"/></button></div>
+              <div className="flex justify-between items-center mb-5"><h2 className="text-xl font-bold font-mono tracking-tighter uppercase text-[var(--ck-text)]">AWARD POINTS</h2><button onClick={() => setShowGivePoints(false)} className="text-[var(--ck-text-muted)] hover:text-[var(--ck-text)] transition"><X className="w-5 h-5"/></button></div>
               <form onSubmit={handleGivePoints} className="space-y-4">
                 <div>
                   <label className="ck-label">Select Member</label>
                   {!selectedMember ? (
                     <div className="relative">
-                      <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
+                      <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--ck-text-muted)]" />
                       <input className="ck-input pl-9" placeholder="Search member..." value={memberSearch} onChange={(e) => searchMembers(e.target.value)} />
                       {memberResults.length > 0 && (
                         <div className="mt-1 max-h-40 overflow-y-auto border border-white/[0.06] rounded-lg absolute w-full z-10 backdrop-blur-xl" style={{ background: "rgba(8,10,15,0.95)" }}>
                           {memberResults.map(u => (
-                            <button type="button" key={u.id} onClick={() => { setSelectedMember(u); setMemberResults([]); setMemberSearch(""); }} className="w-full text-left p-2.5 hover:bg-white/[0.04] text-sm text-zinc-400 hover:text-white transition-colors">{u.name} ({u.email})</button>
+                            <button type="button" key={u.id} onClick={() => { setSelectedMember(u); setMemberResults([]); setMemberSearch(""); }} className="w-full text-left p-2.5 hover:bg-white/[0.04] text-sm text-[var(--ck-text-secondary)] hover:text-[var(--ck-text)] transition-colors">{u.name} ({u.email})</button>
                           ))}
                         </div>
                       )}
                     </div>
                   ) : (
                     <div className="flex items-center justify-between p-2.5 rounded-lg border border-white/[0.06] bg-white/[0.02]">
-                      <span className="text-sm font-medium text-white">{selectedMember.name}</span>
+                      <span className="text-sm font-medium text-[var(--ck-text)]">{selectedMember.name}</span>
                       <button type="button" onClick={() => setSelectedMember(null)} className="text-cyan-400 hover:text-cyan-300 text-xs font-mono">Remove</button>
                     </div>
                   )}
                 </div>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div><label className="ck-label">Points</label><input type="number" min="1" max="100" required className="ck-input" value={pointForm.points} onChange={(e) => setPointForm({...pointForm, points: e.target.value})} /></div>
                   <div><label className="ck-label">Category</label>
                     <select required className="ck-input" value={pointForm.category} onChange={(e) => setPointForm({...pointForm, category: e.target.value})}>
@@ -232,7 +232,7 @@ export default function LeaderboardPage() {
                     <h3 className="text-xl font-bold font-mono uppercase tracking-widest mb-1.5 z-10" style={{ color: "#CCFF00" }}>
                       Credits Dispatched
                     </h3>
-                    <p className="text-[10px] text-zinc-400 font-mono uppercase tracking-wider z-10">
+                    <p className="text-[10px] text-[var(--ck-text-secondary)] font-mono uppercase tracking-wider z-10">
                       Operative credentials loaded with point nodes.
                     </p>
                   </motion.div>
@@ -249,25 +249,25 @@ export default function LeaderboardPage() {
           <div className="ck-modal-overlay">
             <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="ck-glass-card p-6 w-full max-w-md relative overflow-hidden border-rose-500/15">
               <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-rose-500 to-transparent opacity-60" />
-              <div className="flex justify-between items-center mb-5"><h2 className="text-xl font-bold text-rose-400 font-mono tracking-tighter uppercase">PENALTY INFL</h2><button onClick={() => setShowDeductPoints(false)} className="text-zinc-500 hover:text-rose-400 transition"><X className="w-5 h-5"/></button></div>
+              <div className="flex justify-between items-center mb-5"><h2 className="text-xl font-bold text-rose-400 font-mono tracking-tighter uppercase">PENALTY INFL</h2><button onClick={() => setShowDeductPoints(false)} className="text-[var(--ck-text-muted)] hover:text-rose-400 transition"><X className="w-5 h-5"/></button></div>
               <form onSubmit={handleDeductPoints} className="space-y-4">
                 <div>
                   <label className="ck-label">Select Member</label>
                   {!selectedMember ? (
                     <div className="relative">
-                      <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
+                      <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--ck-text-muted)]" />
                       <input className="ck-input pl-9" placeholder="Search member..." value={memberSearch} onChange={(e) => searchMembers(e.target.value)} />
                       {memberResults.length > 0 && (
                         <div className="mt-1 max-h-40 overflow-y-auto border border-white/[0.06] rounded-lg absolute w-full z-10 backdrop-blur-xl" style={{ background: "rgba(8,10,15,0.95)" }}>
                           {memberResults.map(u => (
-                            <button type="button" key={u.id} onClick={() => { setSelectedMember(u); setMemberResults([]); setMemberSearch(""); }} className="w-full text-left p-2.5 hover:bg-white/[0.04] text-sm text-zinc-400 hover:text-white transition-colors">{u.name} ({u.email})</button>
+                            <button type="button" key={u.id} onClick={() => { setSelectedMember(u); setMemberResults([]); setMemberSearch(""); }} className="w-full text-left p-2.5 hover:bg-white/[0.04] text-sm text-[var(--ck-text-secondary)] hover:text-[var(--ck-text)] transition-colors">{u.name} ({u.email})</button>
                           ))}
                         </div>
                       )}
                     </div>
                   ) : (
                     <div className="flex items-center justify-between p-2.5 rounded-lg border border-white/[0.06] bg-white/[0.02]">
-                      <span className="text-sm font-medium text-white">{selectedMember.name}</span>
+                      <span className="text-sm font-medium text-[var(--ck-text)]">{selectedMember.name}</span>
                       <button type="button" onClick={() => setSelectedMember(null)} className="text-rose-400 hover:text-rose-300 text-xs font-mono">Remove</button>
                     </div>
                   )}
@@ -287,11 +287,11 @@ export default function LeaderboardPage() {
           <div className="ck-modal-overlay">
             <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="ck-glass-card p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto relative border-cyan-500/15">
               <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-cyan-500 to-transparent opacity-60" />
-              <div className="flex justify-between items-center mb-6"><h2 className="text-xl font-bold font-mono tracking-tighter uppercase text-white">BADGE CONFIG</h2><button onClick={() => setShowManageBadges(false)} className="text-zinc-500 hover:text-cyan-400 transition"><X className="w-5 h-5"/></button></div>
+              <div className="flex justify-between items-center mb-6"><h2 className="text-xl font-bold font-mono tracking-tighter uppercase text-[var(--ck-text)]">BADGE CONFIG</h2><button onClick={() => setShowManageBadges(false)} className="text-[var(--ck-text-muted)] hover:text-cyan-400 transition"><X className="w-5 h-5"/></button></div>
               <div className="mb-6">
                 <h3 className="text-sm font-semibold mb-3 font-mono text-cyan-300">CREATE NEW BADGE</h3>
                 <form onSubmit={handleCreateBadge} className="space-y-3 p-4 border border-white/[0.06] rounded-xl bg-white/[0.02] backdrop-blur-sm">
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div><label className="ck-label">Badge Name</label><input required className="ck-input" value={badgeForm.name} onChange={(e) => setBadgeForm({...badgeForm, name: e.target.value})} /></div>
                     <div><label className="ck-label">Emoji Icon</label><input required className="ck-input" value={badgeForm.icon} onChange={(e) => setBadgeForm({...badgeForm, icon: e.target.value})} /></div>
                   </div>
@@ -307,7 +307,7 @@ export default function LeaderboardPage() {
                     <div key={b.id} className="flex items-center justify-between p-3.5 rounded-xl border border-white/[0.04] bg-white/[0.02] hover:border-white/[0.08] transition-all">
                       <div className="flex items-center gap-3">
                         <span className="text-2xl drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">{b.icon}</span>
-                        <div><p className="text-sm font-bold text-white font-mono">{b.name}</p><p className="text-xs text-zinc-400 font-mono">{b.pointThreshold} PTS REQUIRED</p></div>
+                        <div><p className="text-sm font-bold text-[var(--ck-text)] font-mono">{b.name}</p><p className="text-xs text-[var(--ck-text-secondary)] font-mono">{b.pointThreshold} PTS REQUIRED</p></div>
                       </div>
                     </div>
                   ))}
@@ -323,7 +323,7 @@ export default function LeaderboardPage() {
         <div className="flex gap-1 p-1 rounded-xl bg-black/40 border border-white/[0.04] backdrop-blur-sm">
           {[{ value: "", label: "ALL TIME" }, { value: "month", label: "CURRENT CYCLE" }, { value: "semester", label: "SEMESTER WINDOW" }].map((p) => (
             <button key={p.value} onClick={() => setPeriod(p.value)} 
-              className={`px-4 py-2 rounded-lg text-xs font-mono uppercase tracking-wider transition-all ${period === p.value ? "bg-[#CCFF00] text-black font-bold shadow-[0_0_12px_rgba(204,255,0,0.3)]" : "text-slate-400 hover:text-[#CCFF00] hover:bg-white/[0.03]"}`}>
+              className={`px-4 py-2 rounded-lg text-xs font-mono uppercase tracking-wider transition-all ${period === p.value ? "bg-[#CCFF00] text-black font-bold shadow-[0_0_12px_rgba(204,255,0,0.3)]" : "text-[var(--ck-text-secondary)] hover:text-[var(--ck-primary)] hover:bg-white/[0.03]"}`}>
               {p.label}
             </button>
           ))}
@@ -337,12 +337,12 @@ export default function LeaderboardPage() {
       {loading ? (
         <div className="flex flex-col items-center justify-center py-24 gap-3">
           <div className="w-10 h-10 border-2 border-violet-500/30 border-t-cyan-400 rounded-full animate-spin" />
-          <p className="text-[10px] font-mono uppercase tracking-widest text-zinc-500">LOADING RANKINGS...</p>
+          <p className="text-[10px] font-mono uppercase tracking-widest text-[var(--ck-text-muted)]">LOADING RANKINGS...</p>
         </div>
       ) : filtered.length === 0 ? (
         <div className="text-center py-24">
           <Award className="w-16 h-16 mx-auto mb-4 text-zinc-700" />
-          <p className="text-lg text-zinc-500 font-mono">No data yet</p>
+          <p className="text-lg text-[var(--ck-text-muted)] font-mono">No data yet</p>
         </div>
       ) : (
         <>
@@ -352,7 +352,7 @@ export default function LeaderboardPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.15 }}
-              className="flex items-end justify-center gap-4 sm:gap-6 mb-8 pt-8"
+              className="flex items-end justify-center gap-2 min-[380px]:gap-4 sm:gap-6 mb-8 pt-8"
             >
               {[1, 0, 2].map((idx) => {
                 const entry = filtered[idx];
@@ -367,7 +367,7 @@ export default function LeaderboardPage() {
                     initial={{ opacity: 0, y: 40 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.2 + idx * 0.12, type: "spring" }}
-                    className="text-center relative"
+                    className="text-center relative font-mono"
                   >
                     {/* Light beam behind first place */}
                     {isFirst && (
@@ -375,23 +375,40 @@ export default function LeaderboardPage() {
                     )}
 
                     <motion.div 
-                      className={`${sizes} rounded-2xl bg-gradient-to-br ${style.bg} flex items-center justify-center mx-auto mb-3 border border-white/10 relative`}
+                      className={`${sizes} rounded-2xl bg-gradient-to-br ${style.bg} flex items-center justify-center mx-auto mb-3 border border-white/20 relative p-1`}
                       style={{ boxShadow: `0 0 24px ${style.shadowColor}` }}
                       animate={{ y: isFirst ? [0, -8, 0] : idx === 1 ? [0, -4, 0] : [0, -3, 0] }}
                       transition={{ duration: 3.5 + idx, repeat: Infinity, ease: "easeInOut" }}
                     >
-                      {style.icon}
-                      {isFirst && <Sparkles className="w-3 h-3 text-black/50 absolute -top-1 -right-1" />}
+                      {entry.user?.avatarUrl ? (
+                        <img
+                          src={getFileUrl(entry.user.avatarUrl)}
+                          alt={entry.user.name}
+                          className="w-full h-full rounded-xl object-cover border border-white/10"
+                        />
+                      ) : (
+                        <DefaultAvatar className="w-full h-full rounded-xl" />
+                      )}
+
+                      {/* Rank Crown/Badge Badge Overlay */}
+                      <div 
+                        className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black border border-black/40 shadow-lg"
+                        style={{ background: style.color, color: idx === 0 ? "#000" : "#fff", boxShadow: `0 0 10px ${style.shadowColor}` }}
+                      >
+                        {idx === 0 ? "👑" : idx === 1 ? "2" : "3"}
+                      </div>
+
+                      {isFirst && <Sparkles className="w-4 h-4 text-[#CCFF00] absolute -top-2 -right-2 animate-bounce" style={{ filter: "drop-shadow(0 0 6px #CCFF00)" }} />}
                     </motion.div>
-                    <p className="text-sm font-bold mb-0.5 font-mono tracking-tight text-white uppercase">{entry.user?.name}</p>
-                    <p className="text-xs mb-3 font-mono font-bold" style={{ color: style.color }}>{entry.totalPoints} PTS</p>
+                    <p className="text-xs sm:text-sm font-bold mb-0.5 tracking-tight text-[var(--ck-text)] uppercase truncate max-w-[90px] sm:max-w-none">{entry.user?.name}</p>
+                    <p className="text-[10px] sm:text-xs mb-3 font-bold" style={{ color: style.color }}>{entry.totalPoints} PTS</p>
                     <div
-                      className={`${heights[idx]} w-28 sm:w-32 rounded-t-xl relative overflow-hidden border-x border-t border-white/[0.04]`}
+                      className={`${heights[idx]} w-[88px] min-[380px]:w-28 sm:w-32 rounded-t-xl relative overflow-hidden border-x border-t border-white/[0.04]`}
                       style={{ background: `linear-gradient(180deg, ${style.color}15, transparent)` }}
                     >
                       {/* Rank number inside podium */}
                       <div className="absolute inset-0 flex items-center justify-center">
-                        <span className="text-5xl font-black font-mono opacity-[0.06] text-white">#{idx + 1}</span>
+                        <span className="text-4xl sm:text-5xl font-black opacity-[0.06] text-[var(--ck-text)]">#{idx + 1}</span>
                       </div>
                     </div>
                   </motion.div>
@@ -408,7 +425,7 @@ export default function LeaderboardPage() {
             className="ck-glass-card overflow-hidden"
           >
             <div className="overflow-x-auto w-full">
-              <table className="ck-table whitespace-nowrap">
+              <table className="ck-table ck-table-responsive whitespace-nowrap">
                 <thead><tr><th>Rank</th><th>Member</th><th>Points</th><th>Badges</th></tr></thead>
                 <tbody>
                   {filtered.map((entry, i) => {
@@ -423,7 +440,7 @@ export default function LeaderboardPage() {
                         className={isTop3 ? "hover:bg-white/[0.03]" : ""}
                         style={isTop3 && rankStyle ? { borderLeft: `3px solid ${rankStyle.color}` } : undefined}
                       >
-                        <td className="font-mono">
+                        <td className="font-mono" data-label="Rank">
                           <span className="font-bold font-mono text-sm" style={{
                             color: entry.rank === 1 ? "#CCFF00" :
                                    entry.rank === 2 ? "#FF4D00" :
@@ -433,7 +450,7 @@ export default function LeaderboardPage() {
                             #{entry.rank}
                           </span>
                         </td>
-                        <td>
+                        <td data-label="Member">
                           <div className="flex items-center gap-3">
                             <div className="relative">
                               {entry.user?.avatarUrl ? (
@@ -448,18 +465,18 @@ export default function LeaderboardPage() {
                               )}
                             </div>
                             <div>
-                              <p className="text-sm font-medium text-white">{entry.user?.name}</p>
-                              <p className="text-[10px] uppercase tracking-widest text-zinc-500 font-mono">{entry.user?.role?.replace(/_/g, " ")}</p>
+                              <p className="text-sm font-medium text-[var(--ck-text)]">{entry.user?.name}</p>
+                              <p className="text-[10px] uppercase tracking-widest text-[var(--ck-text-muted)] font-mono">{entry.user?.role?.replace(/_/g, " ")}</p>
                             </div>
                           </div>
                         </td>
-                        <td>
-                          <span className="font-semibold flex items-center gap-1.5 font-mono text-white">
-                            <Star className="w-4 h-4 text-[#CCFF00] fill-[#CCFF00]/20 drop-shadow-[0_0_6px_rgba(204,255,0,0.5)]" />
+                        <td data-label="Points">
+                          <span className="font-semibold flex items-center gap-1.5 font-mono text-[var(--ck-text)]">
+                            <Star className="w-4 h-4 text-[var(--ck-primary)] fill-[#CCFF00]/20 drop-shadow-[0_0_6px_rgba(204,255,0,0.5)]" />
                             {String(entry.totalPoints).padStart(2, '0')}
                           </span>
                         </td>
-                        <td>
+                        <td data-label="Badges">
                           <div className="flex gap-1">
                             {entry.badges.map((b, bi) => (
                               <span key={bi} title={b.name} className="text-xl drop-shadow-[0_0_4px_rgba(255,255,255,0.3)] hover:scale-125 transition-transform cursor-default">{b.icon}</span>

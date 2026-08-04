@@ -69,10 +69,10 @@ export default function NotificationsPage() {
             <Radio className="w-3.5 h-3.5 text-cyan-400 animate-pulse" />
             <span className="text-[10px] font-mono uppercase tracking-widest text-cyan-400">SYSTEM BROADCAST FEED</span>
           </div>
-          <h1 className="text-3xl font-black font-mono tracking-tighter text-white">
+          <h1 className="text-3xl font-black font-mono tracking-tighter text-[var(--ck-text)]">
             NOTIFICATIONS
           </h1>
-          <p className="text-xs text-zinc-500 mt-1 font-mono">
+          <p className="text-xs text-[var(--ck-text-muted)] mt-1 font-mono">
             {unreadCount > 0 ? (
               <span className="text-amber-400">{unreadCount} UNREAD BROADCASTS</span>
             ) : (
@@ -93,7 +93,7 @@ export default function NotificationsPage() {
       >
         {(["ALL", "UNREAD"] as const).map((f) => (
           <button key={f} onClick={() => setFilter(f)}
-            className={`px-5 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all ${filter === f ? "bg-cyan-500/20 border border-cyan-500/30 text-cyan-300 shadow-[0_0_10px_rgba(6,182,212,0.2)]" : "text-zinc-500 hover:text-zinc-300"}`}
+            className={`px-5 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all ${filter === f ? "bg-cyan-500/20 border border-cyan-500/30 text-cyan-300 shadow-[0_0_10px_rgba(6,182,212,0.2)]" : "text-[var(--ck-text-muted)] hover:text-[var(--ck-text)]"}`}
           >
             {f} {f === "UNREAD" && unreadCount > 0 && <span className="ml-1 px-1.5 py-0.5 rounded-full bg-amber-500/20 text-amber-400 text-[10px]">{unreadCount}</span>}
           </button>
@@ -106,7 +106,7 @@ export default function NotificationsPage() {
           <div className="relative">
             <div className="w-12 h-12 rounded-full border-2 border-cyan-500/20 border-t-cyan-500 animate-spin" />
           </div>
-          <p className="text-xs font-mono text-zinc-600 animate-pulse uppercase tracking-widest">FETCHING BROADCASTS...</p>
+          <p className="text-xs font-mono text-[var(--ck-text-muted)] animate-pulse uppercase tracking-widest">FETCHING BROADCASTS...</p>
         </div>
       ) : displayed.length === 0 ? (
         <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.2 }}
@@ -119,8 +119,8 @@ export default function NotificationsPage() {
             </div>
           </div>
           <div className="text-center">
-            <p className="text-sm font-black uppercase tracking-widest text-zinc-400">SECURE MATRIX ACTIVE</p>
-            <p className="text-xs text-zinc-600 mt-1">Zero unacknowledged broadcasts detected.</p>
+            <p className="text-sm font-black uppercase tracking-widest text-[var(--ck-text-secondary)]">SECURE MATRIX ACTIVE</p>
+            <p className="text-xs text-[var(--ck-text-muted)] mt-1">Zero unacknowledged broadcasts detected.</p>
           </div>
         </motion.div>
       ) : (
@@ -149,7 +149,7 @@ export default function NotificationsPage() {
                     {/* Icon dot */}
                     <div className="shrink-0 mt-0.5">
                       <div className="w-8 h-8 rounded-lg flex items-center justify-center border" style={{ background: `${cfg.color}15`, borderColor: `${cfg.color}30` }}>
-                        {!n.isRead ? <Bell className="w-3.5 h-3.5" style={{ color: cfg.color }} /> : <Inbox className="w-3.5 h-3.5 text-zinc-500" />}
+                        {!n.isRead ? <Bell className="w-3.5 h-3.5" style={{ color: cfg.color }} /> : <Inbox className="w-3.5 h-3.5 text-[var(--ck-text-muted)]" />}
                       </div>
                     </div>
 
@@ -158,16 +158,16 @@ export default function NotificationsPage() {
                       <div className="flex items-start justify-between gap-2">
                         <p className="text-sm font-bold text-zinc-100 leading-snug">{n.title}</p>
                         <div className="flex items-center gap-1 shrink-0">
-                          <Clock className="w-3 h-3 text-zinc-600" />
-                          <span className="text-[10px] font-mono text-zinc-600">{timeAgo(n.createdAt)}</span>
+                          <Clock className="w-3 h-3 text-[var(--ck-text-muted)]" />
+                          <span className="text-[10px] font-mono text-[var(--ck-text-muted)]">{timeAgo(n.createdAt)}</span>
                         </div>
                       </div>
-                      <p className="text-xs text-zinc-400 mt-0.5 leading-relaxed">{n.message}</p>
+                      <p className="text-xs text-[var(--ck-text-secondary)] mt-0.5 leading-relaxed">{n.message}</p>
                       <div className="flex items-center gap-2 mt-2.5">
                         <span className="text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full border font-mono" style={{ color: cfg.color, borderColor: `${cfg.color}30`, background: `${cfg.color}10` }}>
                           {n.type}
                         </span>
-                        <span className="text-[10px] text-zinc-600 font-mono">{new Date(n.createdAt).toLocaleString()}</span>
+                        <span className="text-[10px] text-[var(--ck-text-muted)] font-mono">{new Date(n.createdAt).toLocaleString()}</span>
                       </div>
                     </div>
 
@@ -175,14 +175,14 @@ export default function NotificationsPage() {
                     <div className="flex flex-col gap-1.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
                       {!n.isRead && (
                         <button onClick={() => markRead(n.id)}
-                          className="p-1.5 rounded-lg border border-white/10 bg-white/5 hover:bg-green-950/40 hover:border-green-500/30 text-zinc-500 hover:text-green-400 transition-all"
+                          className="p-1.5 rounded-lg border border-white/10 bg-white/5 hover:bg-green-950/40 hover:border-green-500/30 text-[var(--ck-text-muted)] hover:text-green-400 transition-all"
                           title="Mark as read"
                         >
                           <Check className="w-3.5 h-3.5" />
                         </button>
                       )}
                       <button onClick={() => dismiss(n.id)}
-                        className="p-1.5 rounded-lg border border-white/10 bg-white/5 hover:bg-red-950/40 hover:border-red-500/30 text-zinc-500 hover:text-red-400 transition-all"
+                        className="p-1.5 rounded-lg border border-white/10 bg-white/5 hover:bg-red-950/40 hover:border-red-500/30 text-[var(--ck-text-muted)] hover:text-red-400 transition-all"
                         title="Dismiss"
                       >
                         <X className="w-3.5 h-3.5" />

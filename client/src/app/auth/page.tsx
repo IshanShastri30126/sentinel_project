@@ -3,11 +3,12 @@
 import React, { useState, useEffect, Suspense } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { Shield, Mail, Lock, User, ArrowRight, Eye, EyeOff, AlertCircle, CheckCircle } from "lucide-react";
-import Image from "next/image";
+import { ArrowLeft, Shield, Mail, Lock, User, ArrowRight, Eye, EyeOff, AlertCircle, CheckCircle, Smartphone, Building, GraduationCap, Sparkles } from "lucide-react";
 import { GoogleLogin } from "@react-oauth/google";
-import { BinarySkullBackground } from "@/components/BinarySkullBackground";
+import PlexusBackground from "@/components/PlexusBackground";
+import { CyberKavachLogo } from "@/components/CyberKavachLogo";
 import { api } from "@/lib/api";
 
 function LoginPageContent() {
@@ -94,21 +95,19 @@ function LoginPageContent() {
 
   if (registeredPending) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden bg-black text-white">
-        <BinarySkullBackground />
-        <div className="absolute top-20 left-20 w-72 h-72 bg-red-500/10 rounded-full blur-3xl animate-pulse" />
+      <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden bg-[#030712] text-white">
+        <PlexusBackground />
         <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="w-full max-w-md relative z-10">
-          <div className="ck-glass rounded-2xl p-8 shadow-2xl text-center border-red-900">
-            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-red-900 via-red-600 to-orange-500 flex items-center justify-center mx-auto mb-4 shadow-[0_0_15px_rgba(255,0,0,0.5)] border border-red-500/30">
-              <CheckCircle className="w-8 h-8 text-white" />
+          <div className="bg-[#050A18]/90 backdrop-blur-xl rounded-2xl p-8 shadow-2xl text-center border border-[#121F3D]">
+            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#FFD700] via-[#D4AF37] to-[#00F5D4] flex items-center justify-center mx-auto mb-4 shadow-[0_0_20px_rgba(255,215,0,0.5)] border border-[#FFD700]/50 text-black">
+              <CheckCircle className="w-8 h-8" />
             </div>
-            <h2 className="text-xl font-bold text-white mb-2">Registration Successful!</h2>
-            <p className="text-slate-400 text-sm mb-6">
-              Your account has been created and is pending coordinator approval.
-              You&apos;ll be notified once your account is activated.
+            <h2 className="text-xl font-bold text-[#FFD700] font-mono mb-2">OPERATIVE REGISTRATION COMPLETE</h2>
+            <p className="text-slate-300 text-sm mb-6">
+              Your account has been initialized and is pending coordinator clearance. You&apos;ll receive confirmation once clearance is granted.
             </p>
-            <button onClick={() => { setIsLogin(true); resetForm(); }} className="ck-btn-primary w-full">
-              Back to Sign In
+            <button onClick={() => { setIsLogin(true); resetForm(); }} className="w-full py-3 rounded-xl bg-gradient-to-r from-[#FFD700] to-[#D4AF37] text-black font-bold font-mono text-sm hover:opacity-95 transition-all shadow-[0_0_15px_rgba(255,215,0,0.3)] cursor-pointer">
+              Return to Sign In
             </button>
           </div>
         </motion.div>
@@ -117,232 +116,300 @@ function LoginPageContent() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center lg:justify-end p-4 lg:pr-32 relative overflow-hidden bg-black text-white">
-      <BinarySkullBackground />
-      <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, ease: "easeOut" }} className={`w-full ${isLogin ? "max-w-md" : "max-w-xl"} transition-all duration-300 relative z-10`}>
-        {/* Logo */}
-        <div className="flex justify-center mb-8">
-          <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: 0.2, duration: 0.5 }} className="inline-flex items-center gap-4">
-            <div className="w-16 h-16 relative">
-              <Image src="/ck-logo.svg" alt="CyberKavach Logo" fill className="object-contain" priority />
-            </div>
-            <div className="flex flex-col items-start justify-center pt-1">
-              <span className="text-3xl font-black tracking-[0.15em] font-mono leading-none">
-                <span className="text-white">CYBER</span><span className="text-[#FF003C]">KAVACH</span>
-              </span>
-              <span className="text-[11px] font-bold text-[#CCFF00] tracking-[0.25em] font-mono mt-2">
-                CYBER SECURITY CLUB
-              </span>
-            </div>
-          </motion.div>
+    <div className="min-h-screen flex flex-col justify-between p-4 sm:p-6 lg:p-12 relative overflow-hidden bg-[#030712] text-white font-sans">
+      {/* 7-Tier Rotating Chakravyuh Canvas */}
+      <PlexusBackground />
+
+      {/* Top Header */}
+      <div className="relative z-10 flex items-center justify-between max-w-7xl mx-auto w-full mb-6">
+        <div className="flex items-center gap-3">
+          <Link href="/" className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-[#121F3D] bg-black/40 hover:border-[#00F5D4]/40 hover:text-[#00F5D4] transition-all font-mono text-[10px] text-zinc-400 font-bold">
+            <ArrowLeft className="w-3.5 h-3.5" /> Back to Terminal
+          </Link>
+          <CyberKavachLogo animateDrawing={false} />
         </div>
+        <div className="hidden sm:flex items-center gap-2 text-xs font-mono text-[#00F5D4] bg-black/40 px-3 py-1.5 rounded-full border border-[#00F5D4]/30 backdrop-blur">
+          <Shield className="w-3.5 h-3.5 text-[#00F5D4]" />
+          <span>CYBER DEFENSE GATEWAY</span>
+        </div>
+      </div>
 
-        {/* Card */}
-        <div className="ck-glass rounded-xl p-5 sm:p-8 shadow-2xl relative overflow-hidden border border-red-900/30">
-          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-red-500 to-transparent opacity-50" />
-          
-          {/* Tab Toggle */}
-          <div className="flex gap-1 p-1 rounded-lg bg-black/40 mb-6 border border-red-900/30">
-            <button onClick={() => { setIsLogin(true); resetForm(); }} className={`flex-1 py-2.5 rounded-md text-sm font-semibold transition-all duration-200 font-mono tracking-widest ${isLogin ? "bg-red-950/80 text-white shadow-[0_0_10px_rgba(255,0,0,0.4)] border border-red-500/50" : "text-slate-400 hover:text-red-400"}`}>
-              SIGN IN
-            </button>
-            <button onClick={() => { setIsLogin(false); resetForm(); }} className={`flex-1 py-2.5 rounded-md text-sm font-semibold transition-all duration-200 font-mono tracking-widest ${!isLogin ? "bg-red-950/80 text-white shadow-[0_0_10px_rgba(255,0,0,0.4)] border border-red-500/50" : "text-slate-400 hover:text-red-400"}`}>
-              REGISTER
-            </button>
-          </div>
+      {/* Central Login Card */}
+      <div className="relative z-10 flex flex-col items-center justify-center my-auto">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }} 
+          animate={{ opacity: 1, y: 0 }} 
+          transition={{ duration: 0.5, ease: "easeOut" }} 
+          className={`w-full ${isLogin ? "max-w-md" : "max-w-xl"} transition-all duration-300`}
+        >
+          {/* Card Wrapper */}
+          <div className="bg-[#050A18]/90 backdrop-blur-xl rounded-2xl p-6 sm:p-8 shadow-2xl relative border border-[#121F3D] hover:border-[#FFD700]/30 transition-all">
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[#FFD700] to-transparent opacity-70" />
+            
+            {/* Title Header */}
+            <div className="text-center mb-6">
+              <h1 className="text-2xl sm:text-3xl font-extrabold tracking-wider font-mono bg-gradient-to-r from-[#FFD700] via-[#F0F8FF] to-[#00F5D4] bg-clip-text text-transparent">
+                CHAKRAVYUH CLUB
+              </h1>
+              <p className="text-xs font-mono text-[#00F5D4] uppercase tracking-widest mt-1">
+                {isLogin ? "[// STRATEGIC ACCESS GATEWAY]" : "[// NEW OPERATIVE INITIALIZATION]"}
+              </p>
+            </div>
 
-          <AnimatePresence mode="wait">
-            <motion.form key={isLogin ? "login" : "register"} initial={{ opacity: 0, x: isLogin ? -20 : 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: isLogin ? 20 : -20 }} transition={{ duration: 0.3 }} onSubmit={handleSubmit} className="space-y-4">
-              {!isLogin && (
-                <>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="ck-label">Full Name</label>
-                      <div className="ck-input-icon-wrapper">
-                        <User className="w-4 h-4 text-red-500/70" />
-                        <input type="text" placeholder="USER IDENTIFIER" value={name} onChange={(e) => setName(e.target.value)} required={!isLogin} className="ck-input ck-input-with-icon" />
-                      </div>
-                    </div>
-                    <div>
-                      <label className="ck-label">Student ID</label>
-                      <div className="ck-input-icon-wrapper">
-                        <User className="w-4 h-4 text-red-500/70" />
-                        <input type="text" placeholder="e.g. 22CS101" value={studentId} onChange={(e) => setStudentId(e.target.value)} required={!isLogin} className="ck-input ck-input-with-icon" />
-                      </div>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="ck-label">Department</label>
-                      <div className="ck-input-icon-wrapper">
-                        <User className="w-4 h-4 text-red-500/70" />
-                        <input type="text" placeholder="e.g. CSE, IT" value={department} onChange={(e) => setDepartment(e.target.value)} required={!isLogin} className="ck-input ck-input-with-icon" />
-                      </div>
-                    </div>
-                    <div>
-                      <label className="ck-label">Institute</label>
-                      <div className="ck-input-icon-wrapper">
-                        <User className="w-4 h-4 text-red-500/70" />
-                        <input type="text" placeholder="e.g. CSPIT, DEPSTAR" value={institute} onChange={(e) => setInstitute(e.target.value)} required={!isLogin} className="ck-input ck-input-with-icon" />
-                      </div>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="ck-label">Semester</label>
-                      <div className="ck-input-icon-wrapper">
-                        <User className="w-4 h-4 text-red-500/70" />
-                        <input type="text" placeholder="e.g. 1-8" value={semester} onChange={(e) => setSemester(e.target.value)} required={!isLogin} className="ck-input ck-input-with-icon" />
-                      </div>
-                    </div>
-                    <div>
-                      <label className="ck-label">Contact Info / Phone</label>
-                      <div className="ck-input-icon-wrapper">
-                        <User className="w-4 h-4 text-red-500/70" />
-                        <input type="text" placeholder="Phone number" value={phone} onChange={(e) => setPhone(e.target.value)} required={!isLogin} className="ck-input ck-input-with-icon" />
-                      </div>
-                    </div>
-                  </div>
+            {/* Tab Toggle */}
+            <div className="flex gap-1 p-1 rounded-xl bg-black/60 mb-6 border border-[#121F3D]">
+              <button 
+                type="button"
+                onClick={() => { setIsLogin(true); resetForm(); }} 
+                className={`flex-1 py-2.5 rounded-lg text-xs font-bold font-mono tracking-widest transition-all duration-200 cursor-pointer ${
+                  isLogin 
+                    ? "bg-gradient-to-r from-[#FFD700] to-[#D4AF37] text-black shadow-[0_0_15px_rgba(255,215,0,0.4)]" 
+                    : "text-slate-400 hover:text-slate-200"
+                }`}
+              >
+                SIGN IN
+              </button>
+              <button 
+                type="button"
+                onClick={() => { setIsLogin(false); resetForm(); }} 
+                className={`flex-1 py-2.5 rounded-lg text-xs font-bold font-mono tracking-widest transition-all duration-200 cursor-pointer ${
+                  !isLogin 
+                    ? "bg-gradient-to-r from-[#FFD700] to-[#D4AF37] text-black shadow-[0_0_15px_rgba(255,215,0,0.4)]" 
+                    : "text-slate-400 hover:text-slate-200"
+                }`}
+              >
+                REGISTER
+              </button>
+            </div>
 
-                  <div className="border-t border-red-900/30 pt-4 mt-2">
-                    <div className="flex items-center justify-between mb-2">
-                      <label className="ck-label font-bold text-red-400">Club Namespace</label>
-                      <button
-                        type="button"
-                        onClick={() => setRegisterNewClub(!registerNewClub)}
-                        className="text-xs text-orange-400 hover:text-orange-300 font-mono"
-                      >
-                        {registerNewClub ? "Join Existing Club" : "Register New Club"}
-                      </button>
-                    </div>
-
-                    {!registerNewClub ? (
+            <AnimatePresence mode="wait">
+              <motion.form 
+                key={isLogin ? "login" : "register"} 
+                initial={{ opacity: 0, x: isLogin ? -20 : 20 }} 
+                animate={{ opacity: 1, x: 0 }} 
+                exit={{ opacity: 0, x: isLogin ? 20 : -20 }} 
+                transition={{ duration: 0.3 }} 
+                onSubmit={handleSubmit} 
+                className="space-y-4"
+              >
+                {!isLogin && (
+                  <>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                       <div>
-                        <label className="ck-label text-xs">Select Club to Join</label>
-                        <select
-                          value={selectedClubId}
-                          onChange={(e) => setSelectedClubId(e.target.value)}
-                          className="ck-input w-full bg-black/60 border border-red-900/50 rounded-lg p-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-red-500"
+                        <label className="block text-[10px] font-mono text-[#FFD700] uppercase tracking-wider mb-1">Full Name</label>
+                        <div className="relative">
+                          <User className="w-4 h-4 text-[#00F5D4] absolute left-3 top-1/2 -translate-y-1/2" />
+                          <input type="text" placeholder="Operative Name" value={name} onChange={(e) => setName(e.target.value)} required={!isLogin} className="w-full bg-[#080E24] border border-[#121F3D] focus:border-[#FFD700] focus:outline-none rounded-xl text-xs text-white pl-9 pr-3 py-2.5 font-mono" />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-mono text-[#FFD700] uppercase tracking-wider mb-1">Student ID</label>
+                        <div className="relative">
+                          <GraduationCap className="w-4 h-4 text-[#00F5D4] absolute left-3 top-1/2 -translate-y-1/2" />
+                          <input type="text" placeholder="e.g. 24CS101" value={studentId} onChange={(e) => setStudentId(e.target.value)} required={!isLogin} className="w-full bg-[#080E24] border border-[#121F3D] focus:border-[#FFD700] focus:outline-none rounded-xl text-xs text-white pl-9 pr-3 py-2.5 font-mono" />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                      <div>
+                        <label className="block text-[10px] font-mono text-[#FFD700] uppercase tracking-wider mb-1">Department</label>
+                        <div className="relative">
+                          <Building className="w-4 h-4 text-[#00F5D4] absolute left-3 top-1/2 -translate-y-1/2" />
+                          <input type="text" placeholder="e.g. CSE, IT" value={department} onChange={(e) => setDepartment(e.target.value)} required={!isLogin} className="w-full bg-[#080E24] border border-[#121F3D] focus:border-[#FFD700] focus:outline-none rounded-xl text-xs text-white pl-9 pr-3 py-2.5 font-mono" />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-mono text-[#FFD700] uppercase tracking-wider mb-1">Institute</label>
+                        <div className="relative">
+                          <Building className="w-4 h-4 text-[#00F5D4] absolute left-3 top-1/2 -translate-y-1/2" />
+                          <input type="text" placeholder="e.g. CSPIT, DEPSTAR" value={institute} onChange={(e) => setInstitute(e.target.value)} required={!isLogin} className="w-full bg-[#080E24] border border-[#121F3D] focus:border-[#FFD700] focus:outline-none rounded-xl text-xs text-white pl-9 pr-3 py-2.5 font-mono" />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                      <div>
+                        <label className="block text-[10px] font-mono text-[#FFD700] uppercase tracking-wider mb-1">Semester</label>
+                        <div className="relative">
+                          <GraduationCap className="w-4 h-4 text-[#00F5D4] absolute left-3 top-1/2 -translate-y-1/2" />
+                          <input type="text" placeholder="e.g. 1-8" value={semester} onChange={(e) => setSemester(e.target.value)} required={!isLogin} className="w-full bg-[#080E24] border border-[#121F3D] focus:border-[#FFD700] focus:outline-none rounded-xl text-xs text-white pl-9 pr-3 py-2.5 font-mono" />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-mono text-[#FFD700] uppercase tracking-wider mb-1">Phone Number</label>
+                        <div className="relative">
+                          <Smartphone className="w-4 h-4 text-[#00F5D4] absolute left-3 top-1/2 -translate-y-1/2" />
+                          <input type="text" placeholder="Contact number" value={phone} onChange={(e) => setPhone(e.target.value)} required={!isLogin} className="w-full bg-[#080E24] border border-[#121F3D] focus:border-[#FFD700] focus:outline-none rounded-xl text-xs text-white pl-9 pr-3 py-2.5 font-mono" />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="border-t border-[#121F3D] pt-3.5 mt-2">
+                      <div className="flex items-center justify-between mb-2">
+                        <label className="block text-[10px] font-mono font-bold text-[#FFD700] uppercase">Club Namespace</label>
+                        <button
+                          type="button"
+                          onClick={() => setRegisterNewClub(!registerNewClub)}
+                          className="text-[10px] text-[#00F5D4] hover:underline font-mono"
                         >
-                          {clubs.map((c) => (
-                            <option key={c.id} value={c.id} className="bg-black text-white">
-                              {c.name} ({c.slug})
-                            </option>
-                          ))}
-                        </select>
+                          {registerNewClub ? "Join Existing Club" : "Register New Club"}
+                        </button>
                       </div>
-                    ) : (
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+                      {!registerNewClub ? (
                         <div>
-                          <label className="ck-label text-xs">New Club Name</label>
-                          <input
-                            type="text"
-                            placeholder="e.g. Cyber Security Club"
-                            value={newClubName}
-                            onChange={(e) => {
-                              setNewClubName(e.target.value);
-                              // Auto-generate slug
-                              setNewClubSlug(e.target.value.toLowerCase().replace(/[^a-z0-9]/g, "-").replace(/-+/g, "-"));
-                            }}
-                            required={!isLogin && registerNewClub}
-                            className="ck-input"
-                          />
+                          <select
+                            value={selectedClubId}
+                            onChange={(e) => setSelectedClubId(e.target.value)}
+                            className="w-full bg-[#080E24] border border-[#121F3D] focus:border-[#FFD700] rounded-xl p-2.5 text-xs text-white font-mono focus:outline-none"
+                          >
+                            {clubs.map((c) => (
+                              <option key={c.id} value={c.id} className="bg-[#050A18] text-white">
+                                {c.name} ({c.slug})
+                              </option>
+                            ))}
+                          </select>
                         </div>
-                        <div>
-                          <label className="ck-label text-xs">New Club Slug</label>
-                          <input
-                            type="text"
-                            placeholder="e.g. csc"
-                            value={newClubSlug}
-                            onChange={(e) => setNewClubSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))}
-                            required={!isLogin && registerNewClub}
-                            className="ck-input font-mono"
-                          />
+                      ) : (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div>
+                            <input
+                              type="text"
+                              placeholder="New Club Name"
+                              value={newClubName}
+                              onChange={(e) => {
+                                setNewClubName(e.target.value);
+                                setNewClubSlug(e.target.value.toLowerCase().replace(/[^a-z0-9]/g, "-").replace(/-+/g, "-"));
+                              }}
+                              required={!isLogin && registerNewClub}
+                              className="w-full bg-[#080E24] border border-[#121F3D] focus:border-[#FFD700] rounded-xl p-2.5 text-xs text-white font-mono"
+                            />
+                          </div>
+                          <div>
+                            <input
+                              type="text"
+                              placeholder="Club Slug"
+                              value={newClubSlug}
+                              onChange={(e) => setNewClubSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))}
+                              required={!isLogin && registerNewClub}
+                              className="w-full bg-[#080E24] border border-[#121F3D] focus:border-[#FFD700] rounded-xl p-2.5 text-xs text-white font-mono"
+                            />
+                          </div>
                         </div>
-                      </div>
+                      )}
+                    </div>
+                  </>
+                )}
+
+                <div>
+                  <label className="block text-[10px] font-mono text-[#FFD700] uppercase tracking-wider mb-1">
+                    {isLogin ? "Email Address" : "College Email ID"}
+                  </label>
+                  <div className="relative">
+                    <Mail className="w-4 h-4 text-[#00F5D4] absolute left-3 top-1/2 -translate-y-1/2" />
+                    <input 
+                      type="email" 
+                      placeholder="user@chakravyuh.edu" 
+                      value={email} 
+                      onChange={(e) => setEmail(e.target.value)} 
+                      required 
+                      className="w-full bg-[#080E24] border border-[#121F3D] focus:border-[#FFD700] focus:outline-none rounded-xl text-xs text-white pl-9 pr-3 py-2.5 font-mono" 
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <div className="flex justify-between items-center mb-1">
+                    <label className="block text-[10px] font-mono text-[#FFD700] uppercase tracking-wider">Password</label>
+                    {isLogin && (
+                      <a href="/auth/forgot-password" className="text-[10px] text-[#00F5D4] hover:underline font-mono">
+                        Forgot Password?
+                      </a>
                     )}
                   </div>
-                </>
-              )}
-
-              <div>
-                <label className="ck-label">{isLogin ? "Email" : "College Email ID"}</label>
-                <div className="ck-input-icon-wrapper">
-                  <Mail className="w-4 h-4 text-red-500/70" />
-                  <input type="email" placeholder="NODE@NETWORK.LOCAL" value={email} onChange={(e) => setEmail(e.target.value)} required className="ck-input ck-input-with-icon" />
+                  <div className="relative">
+                    <Lock className="w-4 h-4 text-[#00F5D4] absolute left-3 top-1/2 -translate-y-1/2" />
+                    <input 
+                      type={showPassword ? "text" : "password"} 
+                      placeholder="••••••••••••" 
+                      value={password} 
+                      onChange={(e) => setPassword(e.target.value)} 
+                      required 
+                      minLength={6} 
+                      className="w-full bg-[#080E24] border border-[#121F3D] focus:border-[#FFD700] focus:outline-none rounded-xl text-xs text-white pl-9 pr-10 py-2.5 font-mono" 
+                    />
+                    <button 
+                      type="button" 
+                      onClick={() => setShowPassword(!showPassword)} 
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-[#00F5D4] transition cursor-pointer"
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
                 </div>
-              </div>
 
-              <div>
-                <div className="flex justify-between items-center mb-1">
-                  <label className="ck-label !mb-0">Password</label>
-                  {isLogin && (
-                    <a href="/auth/forgot-password" className="text-xs text-red-400 hover:text-red-300 font-mono transition-colors">
-                      Forgot Password?
-                    </a>
-                  )}
-                </div>
-                <div className="ck-input-icon-wrapper">
-                  <Lock className="w-4 h-4 text-red-500/70" />
-                  <input type={showPassword ? "text" : "password"} placeholder="[ENCRYPTED_KEY]" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} className="ck-input ck-input-with-icon border-red-900/50 focus:border-red-500" style={{ paddingRight: "3rem" }} />
-                  <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-red-500/70 hover:text-red-400 transition z-10">
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
-                </div>
-              </div>
-
-              {error && (
-                <motion.div initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} className="flex items-center gap-2 text-sm text-red-500 bg-red-950/50 border border-red-900/50 px-4 py-3 rounded-lg">
-                  <AlertCircle className="w-4 h-4 shrink-0" />
-                  {error}
-                </motion.div>
-              )}
-
-              <button type="submit" disabled={loading} className="ck-btn-primary w-full mt-2">
-                {loading ? (
-                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                ) : (
-                  <>{isLogin ? "AUTHENTICATE" : "INITIALIZE"}<ArrowRight className="w-4 h-4" /></>
+                {error && (
+                  <motion.div initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} className="flex items-center gap-2 text-xs text-red-400 bg-red-950/60 border border-red-800/50 p-3 rounded-xl font-mono">
+                    <AlertCircle className="w-4 h-4 shrink-0 text-red-400" />
+                    {error}
+                  </motion.div>
                 )}
-              </button>
-            </motion.form>
-          </AnimatePresence>
 
-          <div className="mt-6">
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-white/10" />
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-transparent text-slate-400">Or continue with</span>
-              </div>
-            </div>
+                <button 
+                  type="submit" 
+                  disabled={loading} 
+                  className="w-full py-3 rounded-xl bg-gradient-to-r from-[#FFD700] to-[#D4AF37] text-black font-bold font-mono text-xs uppercase tracking-widest hover:opacity-95 transition-all shadow-[0_0_15px_rgba(255,215,0,0.3)] disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer mt-2"
+                >
+                  {loading ? (
+                    <div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />
+                  ) : (
+                    <>{isLogin ? "AUTHENTICATE GATEWAY" : "INITIALIZE OPERATIVE"}<ArrowRight className="w-4 h-4" /></>
+                  )}
+                </button>
+              </motion.form>
+            </AnimatePresence>
 
-            <div className="mt-6 flex justify-center">
-              <GoogleLogin
-                onSuccess={async (credentialResponse) => {
-                  if (credentialResponse.credential) {
-                    setLoading(true);
-                    try {
-                      await loginWithGoogle(credentialResponse.credential);
-                      router.push(redirectTarget);
-                    } catch (err: unknown) {
-                      setError(err instanceof Error ? err.message : "Google Login Failed");
-                    } finally {
-                      setLoading(false);
+            {/* Google OAuth Section */}
+            <div className="mt-6">
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-[#121F3D]" />
+                </div>
+                <div className="relative flex justify-center text-[10px] font-mono uppercase tracking-widest">
+                  <span className="px-3 bg-[#050A18] text-slate-400">Or continue with</span>
+                </div>
+              </div>
+
+              <div className="mt-4 flex justify-center">
+                <GoogleLogin
+                  onSuccess={async (credentialResponse) => {
+                    if (credentialResponse.credential) {
+                      setLoading(true);
+                      try {
+                        await loginWithGoogle(credentialResponse.credential);
+                        router.push(redirectTarget);
+                      } catch (err: unknown) {
+                        setError(err instanceof Error ? err.message : "Google Login Failed");
+                      } finally {
+                        setLoading(false);
+                      }
                     }
-                  }
-                }}
-                onError={() => setError("Google Login Failed")}
-                theme="filled_black"
-                shape="pill"
-              />
+                  }}
+                  onError={() => setError("Google Login Failed")}
+                  theme="filled_black"
+                  shape="pill"
+                />
+              </div>
             </div>
           </div>
-        </div>
+        </motion.div>
+      </div>
 
-
-      </motion.div>
+      {/* Footer */}
+      <div className="relative z-10 text-center py-2 text-[10px] font-mono text-zinc-500">
+        © {new Date().getFullYear()} Chakravyuh Club • Strategic Defense Network
+      </div>
     </div>
   );
 }
@@ -350,8 +417,8 @@ function LoginPageContent() {
 export default function LoginPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center bg-black text-white">
-        <div className="w-10 h-10 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+      <div className="min-h-screen flex items-center justify-center bg-[#030712] text-[#FFD700] font-mono text-xs">
+        <div className="w-8 h-8 border-2 border-[#FFD700]/30 border-t-[#FFD700] rounded-full animate-spin" />
       </div>
     }>
       <LoginPageContent />

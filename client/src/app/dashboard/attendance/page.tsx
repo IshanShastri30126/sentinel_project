@@ -2,7 +2,8 @@
 
 import React, { useEffect, useState, useRef } from "react";
 import { useAuth } from "@/lib/auth-context";
-import { api } from "@/lib/api";
+import { api, getFileUrl } from "@/lib/api";
+import { DefaultAvatar } from "@/components/default-avatar";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSearchParams } from "next/navigation";
 import {
@@ -14,12 +15,22 @@ import {
 import { Html5QrcodeScanner } from "html5-qrcode";
 import { io, Socket } from "socket.io-client";
 
+interface EventItem {
+  id: string;
+  title: string;
+  description?: string;
+  type: string;
+  startDate: string;
+  endDate?: string;
+  venue?: string;
+}
+
 /* ── helpers ─────────────────────────────────────── */
-function getEventStatus(ev: any) {
+function getEventStatus(ev: EventItem) {
   const now = new Date(), start = new Date(ev.startDate), end = new Date(ev.endDate || ev.startDate);
-  if (now >= start && now <= end) return { label: "LIVE", color: "#CCFF00", dot: true };
-  if (now < start) return { label: "UPCOMING", color: "#FF4D00", dot: false };
-  return { label: "ENDED", color: "#4B5563", dot: false };
+  if (now >= start && now <= end) return { label: "LIVE", color: "#00F5D4", dot: true };
+  if (now < start) return { label: "UPCOMING", color: "#FFD700", dot: false };
+  return { label: "ENDED", color: "#4B6382", dot: false };
 }
 
 /* ─── Stat tile ─────────────────────────────────── */
@@ -48,15 +59,42 @@ function StatTile({ label, value, icon, accent }: { label: string; value: number
   );
 }
 
+
+
+interface AttendanceRecordItem {
+  id: string;
+  type: "CHECK_IN" | "CHECK_OUT";
+  timestamp: string;
+  user?: {
+    id?: string;
+    name?: string;
+    email?: string;
+    avatarUrl?: string;
+    role?: string;
+  };
+  teamCode?: string;
+  isLate?: boolean;
+  isEarly?: boolean;
+}
+
+interface AttendanceStatsItem {
+  currentlyPresent: number;
+  totalRegistered: number;
+  totalCheckedOut: number;
+  pendingArrival: number;
+  lateArrivals?: number;
+  earlyExits?: number;
+}
+
 export default function AttendancePage() {
   const { user, token } = useAuth();
   const searchParams = useSearchParams();
   const queryEventId = searchParams?.get("eventId") || "";
 
-  const [events, setEvents] = useState<any[]>([]);
+  const [events, setEvents] = useState<EventItem[]>([]);
   const [selectedEvent, setSelectedEvent] = useState("");
-  const [stats, setStats] = useState<any>(null);
-  const [records, setRecords] = useState<any[]>([]);
+  const [stats, setStats] = useState<AttendanceStatsItem | null>(null);
+  const [records, setRecords] = useState<AttendanceRecordItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [qrInput, setQrInput] = useState("");
   const [checkinType, setCheckinType] = useState<"CHECK_IN" | "CHECK_OUT">("CHECK_IN");
@@ -67,7 +105,7 @@ export default function AttendancePage() {
   const [showScanner, setShowScanner] = useState(false);
   const scannerRef = useRef<Html5QrcodeScanner | null>(null);
   const socketRef = useRef<Socket | null>(null);
-  const isCoord = user && ["FACULTY", "STUDENT_COORDINATOR", "TECH"].includes(user.role);
+  const isCoord = Boolean(user && ["FACULTY", "STUDENT_COORDINATOR", "TECH"].includes(user.role));
 
   // Participant attendance states
   const [participantCheckedIn, setParticipantCheckedIn] = useState(false);
@@ -77,7 +115,28 @@ export default function AttendancePage() {
   const [agreeAttended, setAgreeAttended] = useState(false);
   const [loadingStatus, setLoadingStatus] = useState(false);
 
-  const checkMyStatus = async (eventId: string) => {
+  // PWA Offline states
+  const [isOnline, setIsOnline] = useState(typeof window !== "undefined" ? navigator.onLine : true);
+  const [offlineCount, setOfflineCount] = useState(0);
+
+  const showToast = (message: string, type: "success" | "error" = "success") => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 4000);
+  };
+
+  const loadAttendance = React.useCallback(async (eventId: string) => {
+    if (!eventId) return;
+    setLoading(true);
+    try {
+      const data = await api<{ records: AttendanceRecordItem[]; stats: AttendanceStatsItem }>(`/attendance/event/${eventId}`, { token: token || undefined });
+      setStats(data.stats);
+      setRecords(data.records);
+    } catch {
+      showToast("FAILED TO LOAD DATA", "error");
+    } finally { setLoading(false); }
+  }, [token]);
+
+  const checkMyStatus = React.useCallback(async (eventId: string) => {
     if (!token) return;
     setLoadingStatus(true);
     try {
@@ -88,82 +147,15 @@ export default function AttendancePage() {
     } finally {
       setLoadingStatus(false);
     }
-  };
+  }, [token]);
 
-  useEffect(() => {
-    if (selectedEvent && !isCoord && token) {
-      checkMyStatus(selectedEvent);
-    }
-  }, [selectedEvent, isCoord, token]);
-
-  const handleSubmitAttendance = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!agreeAttended) {
-      showToast("PLEASE CONFIRM ATTENDANCE CHECKBOX", "error");
-      return;
-    }
-    setSubmittingAttendance(true);
-    try {
-      await api("/attendance", {
-        method: "POST",
-        token: token || undefined,
-        body: JSON.stringify({
-          eventId: selectedEvent,
-          type: "CHECK_IN"
-        })
-      });
-      showToast("ATTENDANCE SUBMITTED SUCCESSFULLY", "success");
-      setParticipantCheckedIn(true);
-    } catch (err: any) {
-      showToast(err.message || "SUBMISSION FAILED", "error");
-    } finally {
-      setSubmittingAttendance(false);
-    }
-  };
-
-  const showToast = (message: string, type: "success" | "error" = "success") => {
-    setToast({ message, type });
-    setTimeout(() => setToast(null), 4000);
-  };
-
-  // PWA Offline states and status updates
-  const [isOnline, setIsOnline] = useState(typeof window !== "undefined" ? navigator.onLine : true);
-  const [offlineCount, setOfflineCount] = useState(0);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    const updateOnlineStatus = () => {
-      setIsOnline(navigator.onLine);
-    };
-
-    window.addEventListener("online", updateOnlineStatus);
-    window.addEventListener("offline", updateOnlineStatus);
-
-    // Initial count from localStorage
-    const saved = localStorage.getItem("ck_offline_checkins");
-    if (saved) {
-      try {
-        const queue = JSON.parse(saved);
-        setOfflineCount(queue.length);
-      } catch {
-        setOfflineCount(0);
-      }
-    }
-
-    return () => {
-      window.removeEventListener("online", updateOnlineStatus);
-      window.removeEventListener("offline", updateOnlineStatus);
-    };
-  }, []);
-
-  const syncOfflineCheckins = async () => {
+  const syncOfflineCheckins = React.useCallback(async () => {
     if (typeof window === "undefined") return;
     const saved = localStorage.getItem("ck_offline_checkins");
     if (!saved) return;
     try {
       const queue = JSON.parse(saved);
-      if (queue.length === 0) return;
+      if (!Array.isArray(queue) || queue.length === 0) return;
 
       let successCount = 0;
       for (const item of queue) {
@@ -192,37 +184,136 @@ export default function AttendancePage() {
     } catch (err) {
       console.error("Error parsing offline checkins:", err);
     }
+  }, [token, selectedEvent, loadAttendance]);
+
+  const handleCheckIn = React.useCallback(async (override?: string) => {
+    const code = override || qrInput;
+    if (!code && !qrInput.trim()) return;
+
+    const payload = {
+      eventId: selectedEvent,
+      type: checkinType,
+      teamCode: code || undefined,
+      timestamp: new Date().toISOString()
+    };
+
+    if (!isOnline) {
+      try {
+        const saved = localStorage.getItem("ck_offline_checkins") || "[]";
+        const queue = JSON.parse(saved);
+        queue.push(payload);
+        localStorage.setItem("ck_offline_checkins", JSON.stringify(queue));
+        setOfflineCount(queue.length);
+        setQrInput("");
+        showToast(`OFFLINE: Check-in cached locally (${queue.length} pending)`, "success");
+        
+        const mockRecord: AttendanceRecordItem = {
+          id: `offline-${Date.now()}`,
+          type: checkinType,
+          timestamp: payload.timestamp,
+          teamCode: code,
+          user: {
+            name: "Offline Check-in",
+            email: "Cached in LocalStorage"
+          }
+        };
+        setRecords(prev => [mockRecord, ...prev]);
+      } catch {
+        showToast("FAILED TO CACHE OFFLINE CHECK-IN", "error");
+      }
+      return;
+    }
+
+    try {
+      const body: { eventId: string; type: string; teamCode?: string } = { eventId: selectedEvent, type: checkinType };
+      if (code) body.teamCode = code;
+      await api("/attendance", { method: "POST", token: token || undefined, body: JSON.stringify(body) });
+      setQrInput("");
+      showToast(`${checkinType === "CHECK_IN" ? "CHECK-IN" : "CHECK-OUT"} RECORDED`, "success");
+      if (!override) loadAttendance(selectedEvent);
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : "FAILED", "error");
+      if (override) throw err;
+    }
+  }, [qrInput, selectedEvent, checkinType, isOnline, token, loadAttendance]);
+
+  useEffect(() => {
+    if (selectedEvent && !isCoord && token) {
+      checkMyStatus(selectedEvent);
+    }
+  }, [selectedEvent, isCoord, token, checkMyStatus]);
+
+  const handleSubmitAttendance = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!agreeAttended) {
+      showToast("PLEASE CONFIRM ATTENDANCE CHECKBOX", "error");
+      return;
+    }
+    setSubmittingAttendance(true);
+    try {
+      await api("/attendance", {
+        method: "POST",
+        token: token || undefined,
+        body: JSON.stringify({
+          eventId: selectedEvent,
+          type: "CHECK_IN"
+        })
+      });
+      showToast("ATTENDANCE SUBMITTED SUCCESSFULLY", "success");
+      setParticipantCheckedIn(true);
+    } catch (err: unknown) {
+      showToast(err instanceof Error ? err.message : "SUBMISSION FAILED", "error");
+    } finally {
+      setSubmittingAttendance(false);
+    }
   };
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const updateOnlineStatus = () => {
+      setIsOnline(navigator.onLine);
+    };
+
+    window.addEventListener("online", updateOnlineStatus);
+    window.addEventListener("offline", updateOnlineStatus);
+
+    const saved = localStorage.getItem("ck_offline_checkins");
+    if (saved) {
+      try {
+        const queue = JSON.parse(saved);
+        if (Array.isArray(queue)) {
+          setOfflineCount(queue.length);
+        }
+      } catch {
+        setOfflineCount(0);
+      }
+    }
+
+    return () => {
+      window.removeEventListener("online", updateOnlineStatus);
+      window.removeEventListener("offline", updateOnlineStatus);
+    };
+  }, []);
 
   useEffect(() => {
     if (isOnline && token) {
       syncOfflineCheckins();
     }
-  }, [isOnline, token]);
+  }, [isOnline, token, syncOfflineCheckins]);
 
   useEffect(() => {
     if (!token) return;
     const endpoint = isCoord ? "/events/all" : "/events/registered";
-    api<{ events: any[] }>(endpoint, { token })
+    api<{ events: EventItem[] }>(endpoint, { token })
       .then(d => {
         setEvents(d.events || []);
-        if (queryEventId && d.events?.some((e: any) => e.id === queryEventId)) {
+        if (queryEventId && d.events?.some((e) => e.id === queryEventId)) {
           setSelectedEvent(queryEventId);
         }
       })
       .catch(console.error);
   }, [token, isCoord, queryEventId]);
-
-  const loadAttendance = async (eventId: string) => {
-    setLoading(true);
-    try {
-      const data = await api<{ records: any[]; stats: any }>(`/attendance/event/${eventId}`, { token: token || undefined });
-      setStats(data.stats);
-      setRecords(data.records);
-    } catch (err) {
-      showToast("FAILED TO LOAD DATA", "error");
-    } finally { setLoading(false); }
-  };
 
   useEffect(() => {
     if (!selectedEvent || !token) return;
@@ -231,9 +322,9 @@ export default function AttendancePage() {
     const SERVER_BASE = process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:4000";
     socketRef.current = io(SERVER_BASE, { auth: { token } });
     socketRef.current.emit("join-event", selectedEvent);
-    socketRef.current.on("attendance:new", (record: any) => {
+    socketRef.current.on("attendance:new", (record: AttendanceRecordItem) => {
       setRecords(prev => [record, ...prev]);
-      setStats((prev: any) => prev ? {
+      setStats((prev) => prev ? {
         ...prev,
         currentlyPresent: record.type === "CHECK_IN" ? (prev.currentlyPresent || 0) + 1 : Math.max(0, (prev.currentlyPresent || 0) - 1),
         totalCheckedOut: record.type === "CHECK_OUT" ? (prev.totalCheckedOut || 0) + 1 : (prev.totalCheckedOut || 0),
@@ -245,7 +336,7 @@ export default function AttendancePage() {
         socketRef.current.disconnect();
       }
     };
-  }, [selectedEvent, token]);
+  }, [selectedEvent, token, loadAttendance]);
 
   useEffect(() => {
     if (showScanner && selectedEvent) {
@@ -263,60 +354,9 @@ export default function AttendancePage() {
       scannerRef.current = null;
     }
     return () => { scannerRef.current?.clear().catch(console.error); };
-  }, [showScanner, selectedEvent]);
+  }, [showScanner, selectedEvent, handleCheckIn]);
 
-  const handleCheckIn = async (override?: string) => {
-    const code = override || qrInput;
-    if (!code && !qrInput.trim()) return;
 
-    const payload = {
-      eventId: selectedEvent,
-      type: checkinType,
-      teamCode: code || undefined,
-      timestamp: new Date().toISOString()
-    };
-
-    if (!isOnline) {
-      // Offline mode: save to queue
-      try {
-        const saved = localStorage.getItem("ck_offline_checkins") || "[]";
-        const queue = JSON.parse(saved);
-        queue.push(payload);
-        localStorage.setItem("ck_offline_checkins", JSON.stringify(queue));
-        setOfflineCount(queue.length);
-        setQrInput("");
-        showToast(`OFFLINE: Check-in cached locally (${queue.length} pending)`, "success");
-        
-        // Add a mock record to local UI log stream for visual feedback
-        const mockRecord = {
-          id: `offline-${Date.now()}`,
-          type: checkinType,
-          timestamp: payload.timestamp,
-          teamCode: code,
-          user: {
-            name: "Offline Check-in",
-            email: "Cached in LocalStorage"
-          }
-        };
-        setRecords(prev => [mockRecord, ...prev]);
-      } catch (err) {
-        showToast("FAILED TO CACHE OFFLINE CHECK-IN", "error");
-      }
-      return;
-    }
-
-    try {
-      const body: any = { eventId: selectedEvent, type: checkinType };
-      if (code) body.teamCode = code;
-      await api("/attendance", { method: "POST", token: token || undefined, body: JSON.stringify(body) });
-      setQrInput("");
-      showToast(`${checkinType === "CHECK_IN" ? "CHECK-IN" : "CHECK-OUT"} RECORDED`, "success");
-      if (!override) loadAttendance(selectedEvent);
-    } catch (err) {
-      showToast(err instanceof Error ? err.message : "FAILED", "error");
-      if (override) throw err;
-    }
-  };
 
   const handleExportCSV = () => {
     if (!records.length) return;
@@ -398,7 +438,7 @@ export default function AttendancePage() {
               {selectedEvent ? "MISSION ACTIVE" : "SELECT MISSION"}
             </span>
           </div>
-          <h1 className="text-3xl font-black tracking-tight text-white" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+          <h1 className="text-3xl font-black tracking-tight text-[var(--ck-text)]" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
             ATTENDANCE <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#CCFF00] to-[#99BF00]">STREAM</span>
           </h1>
         </div>
@@ -424,12 +464,12 @@ export default function AttendancePage() {
         }`}
       >
         <div className="flex items-center gap-2.5">
-          {isOnline ? <Wifi className="w-4 h-4 text-[#CCFF00]" /> : <WifiOff className="w-4 h-4 text-[#FF003C]" />}
+          {isOnline ? <Wifi className="w-4 h-4 text-[var(--ck-primary)]" /> : <WifiOff className="w-4 h-4 text-[var(--ck-danger)]" />}
           <div className={`w-2 h-2 rounded-full ${!isOnline || offlineCount > 0 ? "animate-pulse" : ""}`} style={{ 
             background: isOnline ? "#CCFF00" : "#FF003C", 
             boxShadow: `0 0 8px ${isOnline ? "#CCFF00" : "#FF003C"}` 
           }} />
-          <span className={isOnline ? "text-slate-300" : "text-red-400"}>
+          <span className={isOnline ? "text-[var(--ck-text)]" : "text-red-400"}>
             NETWORK: {isOnline ? "ONLINE" : "OFFLINE"}
           </span>
         </div>
@@ -439,7 +479,7 @@ export default function AttendancePage() {
               {offlineCount} CACHED PENDING SYNC
             </span>
           )}
-          <span className="text-[10px] text-slate-500">
+          <span className="text-[10px] text-[var(--ck-text-muted)]">
             {isOnline ? "Real-time sync active" : "Entries cached locally"}
           </span>
         </div>
@@ -462,52 +502,108 @@ export default function AttendancePage() {
           {filteredEvents.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-24 gap-4">
               <div className="w-16 h-16 rounded-2xl border border-white/[0.04] bg-white/[0.02] flex items-center justify-center">
-                <AlertTriangle className="w-7 h-7 text-zinc-600" />
+                <AlertTriangle className="w-7 h-7 text-[var(--ck-text-muted)]" />
               </div>
-              <p className="text-sm font-mono text-zinc-500 uppercase tracking-widest">NO EVENTS FOUND</p>
+              <p className="text-sm font-mono text-[var(--ck-text-muted)] uppercase tracking-widest">NO EVENTS FOUND</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredEvents.map((ev, i) => {
-                const status = getEventStatus(ev);
-                return (
-                  <motion.button
-                    key={ev.id}
-                    initial={{ opacity: 0, y: 15 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: i * 0.04 }}
-                    whileHover={{ y: -3, transition: { duration: 0.2 } }}
-                    onClick={() => setSelectedEvent(ev.id)}
-                    className="text-left p-5 rounded-xl ck-glass-card group cursor-pointer"
-                  >
-                    {/* Status badge */}
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-1.5">
-                        {status.dot && (
-                          <motion.span
-                            className="w-1.5 h-1.5 rounded-full"
-                            style={{ background: status.color, boxShadow: `0 0 8px ${status.color}` }}
-                            animate={{ opacity: [1, 0.4, 1] }}
-                            transition={{ duration: 1.5, repeat: Infinity }}
-                          />
-                        )}
-                        <span className="text-[9px] font-mono font-bold uppercase tracking-widest" style={{ color: status.color }}>{status.label}</span>
-                      </div>
-                      <span className="text-[9px] font-mono text-[#4B5563]">{ev.type === "TEAM" ? "TEAM MODE" : "SOLO MODE"}</span>
-                    </div>
+            <div className="space-y-6">
+              {/* Top 3 Events Section */}
+              <div>
+                <div className="flex items-center gap-2 mb-3 text-xs font-mono font-bold uppercase tracking-widest text-[#00F5D4]">
+                  <Zap className="w-3.5 h-3.5" />
+                  <span>TOP 3 ACTIVE EVENTS</span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {filteredEvents.slice(0, 3).map((ev, i) => {
+                    const status = getEventStatus(ev);
+                    return (
+                      <motion.button
+                        key={ev.id}
+                        initial={{ opacity: 0, y: 15 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: i * 0.05 }}
+                        whileHover={{ y: -3, scale: 1.01 }}
+                        onClick={() => setSelectedEvent(ev.id)}
+                        className="text-left p-5 rounded-xl ck-glass-card group cursor-pointer border border-[#00F5D4]/30 hover:border-[#00F5D4] shadow-[0_0_15px_rgba(0,245,212,0.08)] relative overflow-hidden"
+                      >
+                        <div className="absolute top-0 right-0 px-2 py-0.5 bg-[#00F5D4]/10 border-b border-l border-[#00F5D4]/30 text-[8px] font-mono font-bold text-[#00F5D4]">TOP {i + 1}</div>
+                        {/* Status badge */}
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center gap-1.5">
+                            {status.dot && (
+                              <motion.span
+                                className="w-1.5 h-1.5 rounded-full"
+                                style={{ background: status.color, boxShadow: `0 0 8px ${status.color}` }}
+                                animate={{ opacity: [1, 0.4, 1] }}
+                                transition={{ duration: 1.5, repeat: Infinity }}
+                              />
+                            )}
+                            <span className="text-[9px] font-mono font-bold uppercase tracking-widest" style={{ color: status.color }}>{status.label}</span>
+                          </div>
+                          <span className="text-[9px] font-mono text-[#4B5563]">{ev.type === "TEAM" ? "TEAM MODE" : "SOLO MODE"}</span>
+                        </div>
 
-                    <h3 className="font-bold text-white mb-2 line-clamp-2 leading-snug group-hover:text-[#CCFF00] transition-colors" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
-                      {ev.title}
-                    </h3>
-                    <p className="text-xs text-[#4B5563] line-clamp-2 mb-4 font-mono">{ev.description || "No description."}</p>
+                        <h3 className="font-bold text-[var(--ck-text)] mb-2 line-clamp-2 leading-snug group-hover:text-[var(--ck-primary)] transition-colors" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+                          {ev.title}
+                        </h3>
+                        <p className="text-xs text-[#4B5563] line-clamp-2 mb-4 font-mono">{ev.description || "No description."}</p>
 
-                    <div className="flex items-center justify-between border-t border-white/[0.04] pt-3">
-                      <span className="text-[10px] font-mono text-[#4B5563]">{new Date(ev.startDate).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</span>
-                      <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" style={{ color: "#CCFF00" }} />
-                    </div>
-                  </motion.button>
-                );
-              })}
+                        <div className="flex items-center justify-between border-t border-white/[0.04] pt-3">
+                          <span className="text-[10px] font-mono text-[#4B5563]">{new Date(ev.startDate).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</span>
+                          <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" style={{ color: "#CCFF00" }} />
+                        </div>
+                      </motion.button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Other Events Section */}
+              {filteredEvents.length > 3 && (
+                <div>
+                  <div className="flex items-center gap-2 mb-3 text-xs font-mono font-bold uppercase tracking-widest text-[#8892A4]">
+                    <Activity className="w-3.5 h-3.5" />
+                    <span>OTHER SCHEDULED EVENTS ({filteredEvents.length - 3})</span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {filteredEvents.slice(3).map((ev, i) => {
+                      const status = getEventStatus(ev);
+                      return (
+                        <motion.button
+                          key={ev.id}
+                          initial={{ opacity: 0, y: 15 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: i * 0.04 }}
+                          whileHover={{ y: -3, transition: { duration: 0.2 } }}
+                          onClick={() => setSelectedEvent(ev.id)}
+                          className="text-left p-5 rounded-xl ck-glass-card group cursor-pointer opacity-90 hover:opacity-100"
+                        >
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center gap-1.5">
+                              {status.dot && (
+                                <span className="w-1.5 h-1.5 rounded-full" style={{ background: status.color }} />
+                              )}
+                              <span className="text-[9px] font-mono font-bold uppercase tracking-widest" style={{ color: status.color }}>{status.label}</span>
+                            </div>
+                            <span className="text-[9px] font-mono text-[#4B5563]">{ev.type === "TEAM" ? "TEAM MODE" : "SOLO MODE"}</span>
+                          </div>
+
+                          <h3 className="font-bold text-[var(--ck-text)] mb-2 line-clamp-2 leading-snug group-hover:text-[var(--ck-primary)] transition-colors" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+                            {ev.title}
+                          </h3>
+                          <p className="text-xs text-[#4B5563] line-clamp-2 mb-4 font-mono">{ev.description || "No description."}</p>
+
+                          <div className="flex items-center justify-between border-t border-white/[0.04] pt-3">
+                            <span className="text-[10px] font-mono text-[#4B5563]">{new Date(ev.startDate).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</span>
+                            <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" style={{ color: "#CCFF00" }} />
+                          </div>
+                        </motion.button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -525,13 +621,13 @@ export default function AttendancePage() {
               <div className="flex items-center gap-3">
                 <button
                   onClick={() => { setSelectedEvent(""); }}
-                  className="flex items-center justify-center w-8 h-8 rounded-lg border border-white/[0.06] bg-black/40 text-[#8892A4] hover:border-[rgba(204,255,0,0.3)] hover:text-[#CCFF00] transition-all"
+                  className="flex items-center justify-center w-8 h-8 rounded-lg border border-white/[0.06] bg-black/40 text-[#8892A4] hover:border-[rgba(204,255,0,0.3)] hover:text-[var(--ck-primary)] transition-all"
                 >
                   <ArrowLeft className="w-4 h-4" />
                 </button>
                 <div>
                   <p className="text-[9px] font-mono uppercase tracking-widest" style={{ color: "#CCFF00" }}>MY REGISTERED MISSION</p>
-                  <h2 className="font-bold text-white text-sm" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+                  <h2 className="font-bold text-[var(--ck-text)] text-sm" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
                     {events.find(e => e.id === selectedEvent)?.title}
                   </h2>
                 </div>
@@ -564,7 +660,7 @@ export default function AttendancePage() {
                   <CheckCircle className="w-8 h-8" style={{ color: "#CCFF00" }} />
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-white uppercase font-mono tracking-wider">Attendance Verified</h3>
+                  <h3 className="text-lg font-bold text-[var(--ck-text)] uppercase font-mono tracking-wider">Attendance Verified</h3>
                   <p className="text-xs text-[#8892A4] mt-2 leading-relaxed" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
                     Your attendance telemetry has been successfully synchronized with the operations database. Thank you for participating!
                   </p>
@@ -580,7 +676,7 @@ export default function AttendancePage() {
               /* Unverified / Submit attendance form */
               (() => {
                 const activeEvent = events.find(e => e.id === selectedEvent);
-                const hasEnded = activeEvent ? new Date() >= new Date(activeEvent.endDate) : false;
+                const hasEnded = activeEvent && activeEvent.endDate ? new Date() >= new Date(activeEvent.endDate) : false;
                 
                 if (!hasEnded) {
                   return (
@@ -598,15 +694,15 @@ export default function AttendancePage() {
                         <Clock className="w-8 h-8" style={{ color: "#FF4D00" }} />
                       </div>
                       <div>
-                        <h3 className="text-lg font-bold text-white uppercase font-mono tracking-wider">Attendance Portal Locked</h3>
+                        <h3 className="text-lg font-bold text-[var(--ck-text)] uppercase font-mono tracking-wider">Attendance Portal Locked</h3>
                         <p className="text-xs text-[#8892A4] mt-2 leading-relaxed" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
                           This attendance form will automatically unlock once the event has concluded. 
                         </p>
                         {activeEvent && (
                           <div className="mt-4 p-3 rounded-lg bg-black/40 border border-white/[0.04] text-[11px] font-mono text-left space-y-1 max-w-sm mx-auto">
-                            <p className="text-white"><span className="text-[#FF4D00]">START:</span> {new Date(activeEvent.startDate).toLocaleString()}</p>
-                            <p className="text-white"><span className="text-[#FF4D00]">END:</span> {new Date(activeEvent.endDate).toLocaleString()}</p>
-                            {activeEvent.venue && <p className="text-white"><span className="text-[#FF4D00]">VENUE:</span> {activeEvent.venue}</p>}
+                            <p className="text-[var(--ck-text)]"><span className="text-[var(--ck-accent)]">START:</span> {new Date(activeEvent.startDate).toLocaleString()}</p>
+                            <p className="text-[var(--ck-text)]"><span className="text-[var(--ck-accent)]">END:</span> {activeEvent.endDate ? new Date(activeEvent.endDate).toLocaleString() : "TBD"}</p>
+                            {activeEvent.venue && <p className="text-[var(--ck-text)]"><span className="text-[var(--ck-accent)]">VENUE:</span> {activeEvent.venue}</p>}
                           </div>
                         )}
                       </div>
@@ -628,15 +724,15 @@ export default function AttendancePage() {
                     className="ck-glass-card p-6 max-w-xl mx-auto w-full"
                   >
                     <div className="border-b border-white/[0.04] pb-4 mb-5">
-                      <h3 className="text-base font-bold text-white font-mono uppercase tracking-wide">Submit Attendance Clearance</h3>
+                      <h3 className="text-base font-bold text-[var(--ck-text)] font-mono uppercase tracking-wide">Submit Attendance Clearance</h3>
                       <p className="text-xs text-[#8892A4] mt-1">Please confirm your attendance and provide event feedback.</p>
                     </div>
 
                     <form onSubmit={handleSubmitAttendance} className="space-y-5">
                       {/* Event Details Summary */}
                       <div className="p-3.5 rounded-xl border border-[#CCFF00]/15 bg-[#CCFF00]/[0.02] text-xs font-mono space-y-1.5">
-                        <p className="text-white"><span className="text-[rgba(204,255,0,0.7)]">EVENT:</span> {activeEvent?.title}</p>
-                        <p className="text-white"><span className="text-[rgba(204,255,0,0.7)]">CONCLUDED:</span> {activeEvent && new Date(activeEvent.endDate).toLocaleString()}</p>
+                        <p className="text-[var(--ck-text)]"><span className="text-[rgba(204,255,0,0.7)]">EVENT:</span> {activeEvent?.title}</p>
+                        <p className="text-[var(--ck-text)]"><span className="text-[rgba(204,255,0,0.7)]">CONCLUDED:</span> {activeEvent && activeEvent.endDate ? new Date(activeEvent.endDate).toLocaleString() : "Recently"}</p>
                       </div>
 
                       {/* Feedback Rating */}
@@ -676,10 +772,10 @@ export default function AttendancePage() {
                           type="checkbox"
                           checked={agreeAttended}
                           onChange={(e) => setAgreeAttended(e.target.checked)}
-                          className="w-4.5 h-4.5 rounded border-white/[0.08] bg-black text-[#CCFF00] focus:ring-0 cursor-pointer mt-0.5"
+                          className="w-4.5 h-4.5 rounded border-white/[0.08] bg-[var(--ck-bg)] text-[var(--ck-primary)] focus:ring-0 cursor-pointer mt-0.5"
                           style={{ accentColor: "#CCFF00" }}
                         />
-                        <span className="text-xs text-slate-300 leading-relaxed font-sans">
+                        <span className="text-xs text-[var(--ck-text)] leading-relaxed font-sans">
                           I confirm that I attended this event and that my feedback is accurate.
                         </span>
                       </label>
@@ -716,13 +812,13 @@ export default function AttendancePage() {
               <div className="flex items-center gap-3">
                 <button
                   onClick={() => { setSelectedEvent(""); setStats(null); setRecords([]); }}
-                  className="flex items-center justify-center w-8 h-8 rounded-lg border border-white/[0.06] bg-black/40 text-[#8892A4] hover:border-[rgba(204,255,0,0.3)] hover:text-[#CCFF00] transition-all"
+                  className="flex items-center justify-center w-8 h-8 rounded-lg border border-white/[0.06] bg-black/40 text-[#8892A4] hover:border-[rgba(204,255,0,0.3)] hover:text-[var(--ck-primary)] transition-all"
                 >
                   <ArrowLeft className="w-4 h-4" />
                 </button>
                 <div>
                   <p className="text-[9px] font-mono uppercase tracking-widest" style={{ color: "#CCFF00" }}>ACTIVE MISSION</p>
-                  <h2 className="font-bold text-white text-sm" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+                  <h2 className="font-bold text-[var(--ck-text)] text-sm" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
                     {events.find(e => e.id === selectedEvent)?.title}
                   </h2>
                 </div>
@@ -766,17 +862,17 @@ export default function AttendancePage() {
                     </div>
                     <div>
                       <p className="text-[10px] font-mono uppercase tracking-widest text-[#4B5563] mb-1">ATTENDANCE RATE</p>
-                      <p className="text-sm font-bold text-white" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+                      <p className="text-sm font-bold text-[var(--ck-text)]" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
                         {stats.currentlyPresent + stats.totalCheckedOut} / {stats.totalRegistered} <span className="text-[#4B5563] font-normal">registered</span>
                       </p>
-                      {(stats.lateArrivals > 0 || stats.earlyExits > 0) && (
+                      {((stats.lateArrivals ?? 0) > 0 || (stats.earlyExits ?? 0) > 0) && (
                         <div className="flex gap-3 mt-2">
-                          {stats.lateArrivals > 0 && (
+                          {(stats.lateArrivals ?? 0) > 0 && (
                             <span className="text-[9px] font-mono px-2 py-0.5 rounded-full border" style={{ color: "#FF4D00", borderColor: "rgba(255,77,0,0.2)", background: "rgba(255,77,0,0.05)" }}>
                               LATE: {stats.lateArrivals}
                             </span>
                           )}
-                          {stats.earlyExits > 0 && (
+                          {(stats.earlyExits ?? 0) > 0 && (
                             <span className="text-[9px] font-mono px-2 py-0.5 rounded-full border" style={{ color: "#FF003C", borderColor: "rgba(255,0,60,0.2)", background: "rgba(255,0,60,0.05)" }}>
                               EARLY EXIT: {stats.earlyExits}
                             </span>
@@ -789,11 +885,33 @@ export default function AttendancePage() {
 
                 {/* Stat grid */}
                 {stats && (
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                    <StatTile label="PRESENT" value={stats.currentlyPresent} icon={<UserCheck className="w-4 h-4" />} accent="#CCFF00" />
-                    <StatTile label="PENDING" value={stats.pendingArrival} icon={<Clock className="w-4 h-4" />} accent="#FF4D00" />
-                    <StatTile label="CHECKED OUT" value={stats.totalCheckedOut} icon={<UserMinus className="w-4 h-4" />} accent="#8892A4" />
-                    <StatTile label="TOTAL REGS" value={stats.totalRegistered} icon={<Users className="w-4 h-4" />} accent="#FF003C" />
+                  <div className="space-y-4">
+                    {/* Top 3 Primary Cards */}
+                    <div>
+                      <div className="text-[10px] font-mono text-[#00F5D4] uppercase tracking-widest mb-2 flex items-center gap-1.5 font-bold">
+                        <Zap className="w-3 h-3 text-[#00F5D4]" />
+                        <span>TOP 3 PRIMARY METRICS</span>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <StatTile label="PRESENT" value={stats.currentlyPresent} icon={<UserCheck className="w-4 h-4" />} accent="#00F5D4" />
+                        <StatTile label="TOTAL REGISTERED" value={stats.totalRegistered} icon={<Users className="w-4 h-4" />} accent="#00E1FF" />
+                        <StatTile label="CHECKED OUT" value={stats.totalCheckedOut} icon={<UserMinus className="w-4 h-4" />} accent="#8892A4" />
+                      </div>
+                    </div>
+
+                    {/* Other Stat Cards */}
+                    <div>
+                      <div className="text-[10px] font-mono text-[#8892A4] uppercase tracking-widest mb-2 flex items-center gap-1.5">
+                        <Activity className="w-3 h-3 text-[#8892A4]" />
+                        <span>OTHER TELEMETRY COUNTS</span>
+                      </div>
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        <StatTile label="PENDING ARRIVAL" value={stats.pendingArrival} icon={<Clock className="w-4 h-4" />} accent="#FFD700" />
+                        <StatTile label="LATE ARRIVALS" value={stats.lateArrivals || 0} icon={<AlertTriangle className="w-4 h-4" />} accent="#FF4D00" />
+                        <StatTile label="EARLY EXITS" value={stats.earlyExits || 0} icon={<Clock className="w-4 h-4" />} accent="#FF003C" />
+                        <StatTile label="ANOMALIES" value={(stats.lateArrivals || 0) + (stats.earlyExits || 0)} icon={<Zap className="w-4 h-4" />} accent="#A855F7" />
+                      </div>
+                    </div>
                   </div>
                 )}
 
@@ -807,7 +925,7 @@ export default function AttendancePage() {
                         <span className="w-2.5 h-2.5 rounded-full bg-[#FF4D00]/80" />
                         <span className="w-2.5 h-2.5 rounded-full bg-[#CCFF00]/80" />
                       </div>
-                      <span className="text-[10px] font-mono uppercase tracking-widest text-white font-semibold">LIVE LOG STREAM</span>
+                      <span className="text-[10px] font-mono uppercase tracking-widest text-[var(--ck-text)] font-semibold">LIVE LOG STREAM</span>
                     </div>
                     <span className="text-[9px] font-mono text-[#4B5563]">{filteredRecords.length} / {records.length} ENTRIES</span>
                   </div>
@@ -830,7 +948,7 @@ export default function AttendancePage() {
                         value={logSearchQuery}
                         onChange={e => setLogSearchQuery(e.target.value)}
                         placeholder="Filter logs..."
-                        className="w-full bg-black/40 border border-white/[0.04] rounded-lg text-[11px] font-mono text-white pl-7 pr-3 py-1.5 outline-none focus:border-[rgba(204,255,0,0.2)] placeholder-[#4B5563] transition-colors"
+                        className="w-full bg-black/40 border border-white/[0.04] rounded-lg text-[11px] font-mono text-[var(--ck-text)] pl-7 pr-3 py-1.5 outline-none focus:border-[rgba(204,255,0,0.2)] placeholder-[#4B5563] transition-colors"
                       />
                     </div>
                   </div>
@@ -862,7 +980,8 @@ export default function AttendancePage() {
                           }}>
                             {r.type === "CHECK_IN" ? "→ IN" : "← OUT"}
                           </span>
-                          <span className="text-[11px] text-white font-semibold truncate">{r.user?.name || "Unknown"}</span>
+                          <DefaultAvatar src={r.user?.avatarUrl ? getFileUrl(r.user.avatarUrl) : null} alt={r.user?.name} className="w-6 h-6 shrink-0" />
+                          <span className="text-[11px] text-[var(--ck-text)] font-semibold truncate">{r.user?.name || "Unknown"}</span>
                           <span className="text-[10px] text-[#4B5563] truncate hidden sm:block">{r.user?.email}</span>
                           {r.teamCode && (
                             <span className="text-[9px] font-mono px-1.5 py-0.5 rounded-full border shrink-0" style={{ color: "#FF4D00", borderColor: "rgba(255,77,0,0.2)", background: "rgba(255,77,0,0.04)" }}>T_{r.teamCode}</span>
@@ -891,7 +1010,7 @@ export default function AttendancePage() {
                     <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.04]">
                       <div className="flex items-center gap-2">
                         <QrCode className="w-4 h-4" style={{ color: "#CCFF00" }} />
-                        <span className="text-[10px] font-mono uppercase tracking-widest text-white font-bold">SCAN CORE</span>
+                        <span className="text-[10px] font-mono uppercase tracking-widest text-[var(--ck-text)] font-bold">SCAN CORE</span>
                       </div>
                       <button
                         onClick={() => setShowScanner(!showScanner)}
@@ -924,7 +1043,7 @@ export default function AttendancePage() {
 
                       {/* QR scanner area */}
                       {showScanner && (
-                        <div className="relative rounded-xl border overflow-hidden bg-black" style={{ borderColor: "rgba(204,255,0,0.15)" }}>
+                        <div className="relative rounded-xl border overflow-hidden bg-[var(--ck-bg)]" style={{ borderColor: "rgba(204,255,0,0.15)" }}>
                           {/* Corner HUD */}
                           {["tl","tr","bl","br"].map(c => (
                             <div key={c} className="absolute w-3.5 h-3.5"
@@ -955,7 +1074,7 @@ export default function AttendancePage() {
                             onChange={e => setQrInput(e.target.value)}
                             onKeyDown={e => { if (e.key === "Enter" && qrInput.trim()) handleCheckIn(); }}
                             placeholder="Team code or ID..."
-                            className="w-full bg-black/40 border border-white/[0.04] rounded-lg text-[11px] font-mono text-white pl-8 pr-3 py-2.5 outline-none focus:border-[rgba(204,255,0,0.2)] placeholder-[#4B5563] transition-colors"
+                            className="w-full bg-black/40 border border-white/[0.04] rounded-lg text-[11px] font-mono text-[var(--ck-text)] pl-8 pr-3 py-2.5 outline-none focus:border-[rgba(204,255,0,0.2)] placeholder-[#4B5563] transition-colors"
                           />
                         </div>
                       </div>

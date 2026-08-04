@@ -109,15 +109,15 @@ export default function ApprovalsPage() {
             <div className="w-2 h-2 rounded-full bg-amber-400 animate-pulse shadow-[0_0_8px_rgba(245,158,11,0.8)]" />
             <span className="text-[10px] font-mono uppercase tracking-widest text-amber-400">APPROVAL PIPELINE</span>
           </div>
-          <h1 className="text-4xl font-black font-mono tracking-tighter text-white">
+          <h1 className="text-4xl font-black font-mono tracking-tighter text-[var(--ck-text)]">
             APPROVALS <span className="text-amber-400">HUB</span>
           </h1>
-          <p className="text-xs text-zinc-500 mt-1 font-mono">
+          <p className="text-xs text-[var(--ck-text-muted)] mt-1 font-mono">
             {pendingCount > 0 ? <span className="text-amber-400">{pendingCount} REQUESTS AWAITING DECISION</span> : "ALL REQUESTS RESOLVED"}
           </p>
         </div>
         <button onClick={() => setShowCreate(true)}
-          className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-600/80 to-amber-500/80 border border-amber-500/40 text-white text-xs font-black uppercase tracking-widest hover:from-amber-500 hover:to-amber-400 transition-all shadow-[0_4px_20px_rgba(245,158,11,0.25)] hover:shadow-[0_4px_30px_rgba(245,158,11,0.4)]"
+          className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-600/80 to-amber-500/80 border border-amber-500/40 text-[var(--ck-text)] text-xs font-black uppercase tracking-widest hover:from-amber-500 hover:to-amber-400 transition-all shadow-[0_4px_20px_rgba(245,158,11,0.25)] hover:shadow-[0_4px_30px_rgba(245,158,11,0.4)]"
         >
           <Plus className="w-4 h-4" /> NEW REQUEST
         </button>
@@ -132,8 +132,8 @@ export default function ApprovalsPage() {
           return (
             <button key={f} onClick={() => setFilter(f)}
               className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all font-mono ${filter === f
-                ? cfg ? `border shadow-[0_0_10px_${cfg.color}30]` : "bg-white/10 border border-white/15 text-white"
-                : "text-zinc-500 hover:text-zinc-300"
+                ? cfg ? `border shadow-[0_0_10px_${cfg.color}30]` : "bg-white/10 border border-white/15 text-[var(--ck-text)]"
+                : "text-[var(--ck-text-muted)] hover:text-[var(--ck-text)]"
               }`}
               style={filter === f && cfg ? { background: cfg.bg, borderColor: cfg.border, color: cfg.color } : {}}
             >
@@ -164,14 +164,14 @@ export default function ApprovalsPage() {
       {loading ? (
         <div className="flex flex-col items-center justify-center py-24 gap-4">
           <div className="w-12 h-12 rounded-full border-2 border-amber-500/20 border-t-amber-500 animate-spin" />
-          <p className="text-xs font-mono text-zinc-600 animate-pulse uppercase tracking-widest">LOADING PIPELINE...</p>
+          <p className="text-xs font-mono text-[var(--ck-text-muted)] animate-pulse uppercase tracking-widest">LOADING PIPELINE...</p>
         </div>
       ) : approvals.length === 0 ? (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center justify-center py-24 gap-4">
           <div className="w-20 h-20 rounded-2xl border border-amber-500/15 bg-amber-950/10 flex items-center justify-center">
             <ClipboardList className="w-9 h-9 text-amber-500/40" />
           </div>
-          <p className="text-sm font-black uppercase tracking-widest text-zinc-500">NO REQUESTS IN PIPELINE</p>
+          <p className="text-sm font-black uppercase tracking-widest text-[var(--ck-text-muted)]">NO REQUESTS IN PIPELINE</p>
         </motion.div>
       ) : (
         <div className="space-y-4">
@@ -204,15 +204,15 @@ export default function ApprovalsPage() {
                       <StatusBadge status={ap.status} />
                     </div>
                     <div className="flex items-center gap-2 mt-1 flex-wrap">
-                      <span className="text-sm text-zinc-500 font-mono uppercase">{typeInfo?.label || ap.type}</span>
+                      <span className="text-sm text-[var(--ck-text-muted)] font-mono uppercase">{typeInfo?.label || ap.type}</span>
                       <span className="text-zinc-700">·</span>
-                      <span className="text-sm text-zinc-500 font-mono">{ap.requester.name}</span>
+                      <span className="text-sm text-[var(--ck-text-muted)] font-mono">{ap.requester.name}</span>
                       <span className="text-zinc-700">·</span>
-                      <span className="text-sm text-zinc-600 font-mono">{new Date(ap.createdAt).toLocaleDateString("en-IN")}</span>
+                      <span className="text-sm text-[var(--ck-text-muted)] font-mono">{new Date(ap.createdAt).toLocaleDateString("en-IN")}</span>
                     </div>
                   </div>
 
-                  <div className="shrink-0 text-zinc-600 hover:text-zinc-400 transition-colors">
+                  <div className="shrink-0 text-[var(--ck-text-muted)] hover:text-[var(--ck-text-secondary)] transition-colors">
                     {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
                   </div>
                 </button>
@@ -229,12 +229,12 @@ export default function ApprovalsPage() {
                     >
                       <div className="px-6 pb-6 space-y-5 border-t border-white/5 pt-6">
                         {ap.description && (
-                          <p className="text-base text-zinc-400 leading-relaxed bg-white/3 rounded-xl p-4 border border-white/5">{ap.description}</p>
+                          <p className="text-base text-[var(--ck-text-secondary)] leading-relaxed bg-white/3 rounded-xl p-4 border border-white/5">{ap.description}</p>
                         )}
 
                         {/* Steps Timeline */}
                         <div>
-                          <p className="text-xs text-zinc-500 uppercase tracking-widest font-mono mb-3">APPROVAL CHAIN</p>
+                          <p className="text-xs text-[var(--ck-text-muted)] uppercase tracking-widest font-mono mb-3">APPROVAL CHAIN</p>
                           <div className="space-y-2">
                             {ap.steps.map((step, si) => {
                               const stepCfg = STATUS_CONFIG[step.status] || STATUS_CONFIG.PENDING;
@@ -250,11 +250,11 @@ export default function ApprovalsPage() {
                                   </div>
                                   <div className="flex-1 pb-2">
                                     <div className="flex items-center gap-2">
-                                      <span className="text-sm font-bold text-zinc-300">{step.role.replace(/_/g, " ")}</span>
+                                      <span className="text-sm font-bold text-[var(--ck-text)]">{step.role.replace(/_/g, " ")}</span>
                                       <span className="text-xs font-mono uppercase tracking-widest px-1.5 py-0.5 rounded" style={{ color: stepCfg.color, background: stepCfg.bg }}>{step.status}</span>
                                     </div>
-                                    {step.approver && <p className="text-xs text-zinc-500 font-mono">{step.approver.name}</p>}
-                                    {step.comment && <p className="text-sm text-zinc-400 mt-1.5 italic">&ldquo;{step.comment}&rdquo;</p>}
+                                    {step.approver && <p className="text-xs text-[var(--ck-text-muted)] font-mono">{step.approver.name}</p>}
+                                    {step.comment && <p className="text-sm text-[var(--ck-text-secondary)] mt-1.5 italic">&ldquo;{step.comment}&rdquo;</p>}
                                   </div>
                                 </div>
                               );
@@ -265,12 +265,12 @@ export default function ApprovalsPage() {
                         {/* Decision Section */}
                         {canDecide && (
                           <div className="border-t border-white/5 pt-4 space-y-3">
-                            <p className="text-xs text-zinc-500 uppercase tracking-widest font-mono">ADJUDICATE REQUEST</p>
+                            <p className="text-xs text-[var(--ck-text-muted)] uppercase tracking-widest font-mono">ADJUDICATE REQUEST</p>
                             <textarea
                               value={decisionComment}
                               onChange={e => setDecisionComment(e.target.value)}
                               placeholder="Add decision comment (optional)..."
-                              className="w-full px-4 py-3 rounded-xl text-base text-zinc-200 border border-white/10 bg-white/3 placeholder-zinc-600 focus:outline-none focus:border-cyan-500/40 focus:bg-black/50 resize-none transition-all"
+                              className="w-full px-4 py-3 rounded-xl text-base text-[var(--ck-text)] border border-white/10 bg-white/3 placeholder-zinc-600 focus:outline-none focus:border-cyan-500/40 focus:bg-black/50 resize-none transition-all"
                               rows={2}
                             />
                             <div className="flex gap-2">
@@ -320,9 +320,9 @@ export default function ApprovalsPage() {
                       <Zap className="w-4 h-4 text-amber-400" />
                       <span className="text-[10px] font-mono uppercase tracking-widest text-amber-400">ROUTE NEW REQUEST</span>
                     </div>
-                    <h3 className="text-lg font-black font-mono tracking-tight text-white">NEW APPROVAL REQUEST</h3>
+                    <h3 className="text-lg font-black font-mono tracking-tight text-[var(--ck-text)]">NEW APPROVAL REQUEST</h3>
                   </div>
-                  <button onClick={() => setShowCreate(false)} className="w-8 h-8 rounded-lg border border-white/10 bg-white/5 flex items-center justify-center text-zinc-500 hover:text-white hover:border-white/20 transition-all">
+                  <button onClick={() => setShowCreate(false)} className="w-8 h-8 rounded-lg border border-white/10 bg-white/5 flex items-center justify-center text-[var(--ck-text-muted)] hover:text-[var(--ck-text)] hover:border-white/20 transition-all">
                     <X className="w-4 h-4" />
                   </button>
                 </div>
@@ -330,14 +330,14 @@ export default function ApprovalsPage() {
                 <form onSubmit={handleCreate} className="p-6 space-y-4">
                   {/* Type selector */}
                   <div>
-                    <label className="block text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-2 font-mono">REQUEST TYPE</label>
-                    <div className="grid grid-cols-2 gap-2">
+                    <label className="block text-[10px] font-bold uppercase tracking-widest text-[var(--ck-text-muted)] mb-2 font-mono">REQUEST TYPE</label>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                       {APPROVAL_TYPES.map(t => (
                         <button key={t.value} type="button"
                           onClick={() => setForm(f => ({ ...f, type: t.value }))}
                           className={`flex items-center gap-2 p-3 rounded-xl text-left text-xs transition-all border ${form.type === t.value
                             ? "border-amber-500/40 bg-amber-950/25 text-amber-200"
-                            : "border-white/5 bg-white/3 text-zinc-500 hover:border-white/10 hover:text-zinc-300"}`}
+                            : "border-white/5 bg-white/3 text-[var(--ck-text-muted)] hover:border-white/10 hover:text-[var(--ck-text)]"}`}
                         >
                           <span className="text-base">{t.icon}</span>
                           <span className="font-semibold leading-tight">{t.label}</span>
@@ -348,7 +348,7 @@ export default function ApprovalsPage() {
 
                   {/* Title */}
                   <div>
-                    <label className="block text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-2 font-mono">REQUEST TITLE *</label>
+                    <label className="block text-[10px] font-bold uppercase tracking-widest text-[var(--ck-text-muted)] mb-2 font-mono">REQUEST TITLE *</label>
                     <input
                       required value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
                       placeholder="Brief, descriptive title..."
@@ -358,7 +358,7 @@ export default function ApprovalsPage() {
 
                   {/* Description */}
                   <div>
-                    <label className="block text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-2 font-mono">DESCRIPTION</label>
+                    <label className="block text-[10px] font-bold uppercase tracking-widest text-[var(--ck-text-muted)] mb-2 font-mono">DESCRIPTION</label>
                     <textarea
                       value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
                       placeholder="Provide context, justification, and any supporting details..."
@@ -369,10 +369,10 @@ export default function ApprovalsPage() {
 
                   {/* Attachment */}
                   <div>
-                    <label className="block text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-2 font-mono">ATTACHMENT (OPTIONAL)</label>
+                    <label className="block text-[10px] font-bold uppercase tracking-widest text-[var(--ck-text-muted)] mb-2 font-mono">ATTACHMENT (OPTIONAL)</label>
                     <label className={`flex items-center gap-3 px-4 py-3 rounded-xl border cursor-pointer transition-all ${attachment ? "border-amber-500/30 bg-amber-950/15" : "border-white/10 bg-white/3 hover:border-white/15"}`}>
-                      <Paperclip className={`w-4 h-4 ${attachment ? "text-amber-400" : "text-zinc-500"}`} />
-                      <span className="text-xs text-zinc-400 flex-1 truncate">{attachment ? attachment.name : "Attach supporting document..."}</span>
+                      <Paperclip className={`w-4 h-4 ${attachment ? "text-amber-400" : "text-[var(--ck-text-muted)]"}`} />
+                      <span className="text-xs text-[var(--ck-text-secondary)] flex-1 truncate">{attachment ? attachment.name : "Attach supporting document..."}</span>
                       <input type="file" className="hidden" onChange={e => setAttachment(e.target.files?.[0] || null)} />
                     </label>
                   </div>
@@ -380,12 +380,12 @@ export default function ApprovalsPage() {
                   {/* Submit */}
                   <div className="flex gap-3 pt-2">
                     <button type="button" onClick={() => setShowCreate(false)}
-                      className="flex-1 py-3 rounded-xl border border-white/10 text-zinc-500 text-sm font-bold hover:border-white/20 hover:text-zinc-300 transition-all"
+                      className="flex-1 py-3 rounded-xl border border-white/10 text-[var(--ck-text-muted)] text-sm font-bold hover:border-white/20 hover:text-[var(--ck-text)] transition-all"
                     >
                       CANCEL
                     </button>
                     <button type="submit" disabled={creating}
-                      className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-gradient-to-r from-amber-600 to-amber-500 text-white text-sm font-black uppercase tracking-wider hover:from-amber-500 hover:to-amber-400 transition-all shadow-[0_4px_20px_rgba(245,158,11,0.3)] disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-gradient-to-r from-amber-600 to-amber-500 text-[var(--ck-text)] text-sm font-black uppercase tracking-wider hover:from-amber-500 hover:to-amber-400 transition-all shadow-[0_4px_20px_rgba(245,158,11,0.3)] disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {creating ? (
                         <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
