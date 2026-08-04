@@ -50,28 +50,31 @@ const WhatsappIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
   </svg>
 );
 
+const WORDS = ["Defensive Warfare.", "Strategic Shield.", "Digital Realm.", "Unbreakable Formation."];
+
 const TypingText = () => {
-  const words = ["Defensive Warfare.", "Strategic Shield.", "Digital Realm.", "Unbreakable Formation."];
   const [index, setIndex] = useState(0);
   const [subIndex, setSubIndex] = useState(0);
   const [isDeleting, setIsDeleting] = useState(false);
   const [text, setText] = useState("");
 
   useEffect(() => {
-    if (subIndex === words[index].length + 1 && !isDeleting) {
+    if (subIndex === WORDS[index].length + 1 && !isDeleting) {
       const timeout = setTimeout(() => setIsDeleting(true), 1500);
       return () => clearTimeout(timeout);
     }
 
     if (subIndex === 0 && isDeleting) {
-      setIsDeleting(false);
-      setIndex((prev) => (prev + 1) % words.length);
-      return;
+      const timeout = setTimeout(() => {
+        setIsDeleting(false);
+        setIndex((prev) => (prev + 1) % WORDS.length);
+      }, 50);
+      return () => clearTimeout(timeout);
     }
 
     const timeout = setTimeout(() => {
       setSubIndex((prev) => prev + (isDeleting ? -1 : 1));
-      setText(words[index].substring(0, subIndex + (isDeleting ? -1 : 1)));
+      setText(WORDS[index].substring(0, subIndex + (isDeleting ? -1 : 1)));
     }, isDeleting ? 40 : 90);
 
     return () => clearTimeout(timeout);

@@ -2,12 +2,11 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { api, getFileUrl } from "@/lib/api";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { 
   BarChart3, Users, Calendar, FileCheck, Award, TrendingUp, 
-  ClipboardList, Activity, Zap, Shield, Radio, Target, Cpu, 
-  Search, ArrowUpRight, AwardIcon, Sparkles, Star, Users2,
-  CalendarDays, TrendingDown
+  ClipboardList, Activity, Radio, Star, Users2, Zap, Search, Target,
+  Cpu, Shield
 } from "lucide-react";
 
 const ROLE_COLORS: Record<string, string> = {
@@ -59,54 +58,34 @@ function CircleGauge({ value, max, label, color, icon }: { value: number; max: n
             opacity={0.6}
           />
         </svg>
-        <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <motion.span
-            className="text-2xl font-black font-mono"
-            style={{ color }}
-            initial={{ opacity: 0, scale: 0.5 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.3, type: "spring" }}
-          >
-            {value}
-          </motion.span>
+        <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+          <div className="text-[var(--ck-text-muted)] mt-1">{icon}</div>
+          <span className="text-lg font-black font-mono tracking-tighter text-[var(--ck-text)] mt-0.5">{value}</span>
+          <span className="text-[8px] font-mono text-zinc-550 uppercase tracking-wider">{label}</span>
         </div>
-      </div>
-      <div className="flex items-center gap-1.5">
-        <span style={{ color }} className="opacity-80">{icon}</span>
-        <span className="text-xs font-bold uppercase tracking-widest text-[var(--ck-text-secondary)]">{label}</span>
       </div>
     </motion.div>
   );
 }
 
-function AnimatedBar({ label, count, total, color, delay = 0 }: { label: string; count: number; total: number; color: string; delay?: number }) {
-  const pct = Math.round((count / Math.max(total, 1)) * 100);
+function AnimatedBar({ label, count, total, color, delay }: { label: string; count: number; total: number; color: string; delay: number }) {
+  const pct = Math.min((count / Math.max(total, 1)) * 100, 100);
   return (
-    <motion.div
-      initial={{ opacity: 0, x: -20 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ delay, duration: 0.5 }}
-      className="group"
-    >
-      <div className="flex justify-between items-center mb-2">
-        <span className="text-xs font-bold uppercase tracking-wider text-[var(--ck-text)]">{label.replace(/_/g, " ")}</span>
-        <div className="flex items-center gap-2.5">
-          <span className="text-xs font-mono font-bold" style={{ color }}>{count}</span>
-          <span className="text-[10px] text-[var(--ck-text-muted)] font-mono bg-white/[0.03] px-1.5 py-0.5 rounded">{pct}%</span>
-        </div>
+    <div className="space-y-1.5 font-mono">
+      <div className="flex justify-between text-xs font-semibold">
+        <span className="text-[var(--ck-text-secondary)] uppercase tracking-wide truncate max-w-[150px]">{label.replace(/_/g, " ")}</span>
+        <span className="text-[var(--ck-text)] font-bold">{count}</span>
       </div>
-      <div className="h-2 rounded-full overflow-hidden bg-white/[0.04] border border-white/[0.03]">
+      <div className="h-2 rounded bg-black/60 relative overflow-hidden border border-white/[0.03]">
         <motion.div
           initial={{ width: 0 }}
           animate={{ width: `${pct}%` }}
-          transition={{ duration: 1.4, ease: "easeOut", delay }}
-          className="h-full rounded-full relative overflow-hidden"
-          style={{ background: `linear-gradient(90deg, ${color}80, ${color})`, boxShadow: `0 0 12px ${color}40` }}
-        >
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent" style={{ animation: "shimmer 2.5s ease-in-out infinite" }} />
-        </motion.div>
+          transition={{ duration: 1.2, delay, ease: "easeOut" }}
+          style={{ backgroundColor: color, boxShadow: `0 0 8px ${color}80` }}
+          className="h-full rounded"
+        />
       </div>
-    </motion.div>
+    </div>
   );
 }
 
@@ -146,17 +125,76 @@ const STAT_META: Record<string, { label: string; icon: React.ReactNode; color: s
   totalBadges: { label: "Badges", icon: <Award className="w-4 h-4" />, color: "#a78bfa" },
 };
 
+interface ClubData {
+  metrics?: {
+    totalEvents: number;
+    totalTeams: number;
+    totalRegistrations: number;
+    attendanceRate: number;
+    appreciationPoints: number;
+  };
+  overview?: Record<string, number>;
+  registrationsTrend?: Array<{ date: string; count: number }>;
+  attendanceTrend?: Array<{ date: string; rate: number }>;
+  categoryDistribution?: Array<{ category: string; count: number }>;
+  roleDistribution?: Array<{ role: string; count: number }>;
+  upcomingMilestones?: Array<{ title: string; date: string }>;
+  approvalStats?: Array<{ status: string; count: number }>;
+  recentEvents?: Array<{ id: string; title: string; startDate: string; _count: { registrations: number } }>;
+}
+
+interface LeaderboardAchiever {
+  user: {
+    name: string;
+    email: string;
+    avatarUrl?: string | null;
+    role: string;
+  };
+  totalPoints: number;
+  badges: Array<{ name: string; description?: string }>;
+}
+
+interface Top3Data {
+  events: Array<{ id: string; title: string; eventType: string; startDate: string; registrations: number }>;
+  members: Array<{ id: string; name: string; avatarUrl?: string | null; role: string; points: number }>;
+  teams: Array<{ id: string; name: string; eventTitle: string; membersCount: number }>;
+}
+
+interface EventAnalysisItem {
+  id: string;
+  title: string;
+  startDate: string;
+  eventType: string;
+  registrationsCount: number;
+  attendanceCount: number;
+  attendanceRate: number;
+  capacityUtilization: number;
+  teamCount: number;
+  registrationTrend: Array<{ date: string; count: number }>;
+  [key: string]: any; // Index signature for sorting key access
+}
+
+interface CoordinatorActivityItem {
+  id: string;
+  name: string;
+  role: string;
+  avatarUrl?: string | null;
+  eventsCreated: number;
+  approvalsProcessed: number;
+  pointsAwardedCount: number;
+  attendanceMarked: number;
+}
+
 export default function AnalyticsPage() {
   const { user, token } = useAuth();
-  const [clubData, setClubData] = useState<any>(null);
-  const [topAchiever, setTopAchiever] = useState<any>(null);
+  const [clubData, setClubData] = useState<ClubData | null>(null);
+  const [topAchiever, setTopAchiever] = useState<LeaderboardAchiever | null>(null);
   const [loading, setLoading] = useState(true);
-  const [pulse, setPulse] = useState(false);
 
   // Expanded analytics state
-  const [top3Data, setTop3Data] = useState<any>(null);
-  const [eventsAnalysis, setEventsAnalysis] = useState<any[]>([]);
-  const [coordinatorActivity, setCoordinatorActivity] = useState<any[]>([]);
+  const [top3Data, setTop3Data] = useState<Top3Data | null>(null);
+  const [eventsAnalysis, setEventsAnalysis] = useState<EventAnalysisItem[]>([]);
+  const [coordinatorActivity, setCoordinatorActivity] = useState<CoordinatorActivityItem[]>([]);
   
   // Search & sorting state
   const [eventSearch, setEventSearch] = useState("");
@@ -170,21 +208,21 @@ export default function AnalyticsPage() {
         const isCoordinator = user?.role && ["FACULTY", "STUDENT_COORDINATOR"].includes(user.role);
         if (isCoordinator) {
           const [data, top3, analysis, activity] = await Promise.all([
-            api<any>("/analytics/club", { token }),
-            api<any>("/analytics/top3", { token }),
-            api<any>("/analytics/events-analysis", { token }),
-            api<any>("/analytics/coordinator-activity", { token }),
+            api<ClubData>("/analytics/club", { token }),
+            api<Top3Data>("/analytics/top3", { token }),
+            api<EventAnalysisItem[]>("/analytics/events-analysis", { token }),
+            api<CoordinatorActivityItem[]>("/analytics/coordinator-activity", { token }),
           ]);
           setClubData(data);
           setTop3Data(top3);
           setEventsAnalysis(analysis || []);
           setCoordinatorActivity(activity || []);
         } else {
-          const data = await api<any>("/analytics/operations", { token });
+          const data = await api<ClubData>("/analytics/operations", { token });
           setClubData(data);
         }
 
-        const leaderboardData = await api<any>("/appreciation/leaderboard", { token });
+        const leaderboardData = await api<{ leaderboard: LeaderboardAchiever[] }>("/appreciation/leaderboard", { token });
         if (leaderboardData?.leaderboard && leaderboardData.leaderboard.length > 0) {
           setTopAchiever(leaderboardData.leaderboard[0]);
         }
@@ -192,7 +230,6 @@ export default function AnalyticsPage() {
         console.error(err); 
       } finally { 
         setLoading(false); 
-        setPulse(true); 
       }
     };
     load();
@@ -224,7 +261,7 @@ export default function AnalyticsPage() {
     result.sort((a, b) => {
       let aVal = a[eventSortField];
       let bVal = b[eventSortField];
-      if (typeof aVal === "string") {
+      if (typeof aVal === "string" && typeof bVal === "string") {
         aVal = aVal.toLowerCase();
         bVal = bVal.toLowerCase();
       }
@@ -300,12 +337,12 @@ export default function AnalyticsPage() {
                 </div>
                 <h2 className="text-2xl font-black font-mono tracking-tighter text-[var(--ck-text)] uppercase">{topAchiever.user?.name}</h2>
                 <p className="text-xs text-[var(--ck-danger)] font-mono uppercase tracking-wider font-semibold mt-0.5">
-                  {topAchiever.user?.role?.replace(/_/g, " ")} // SECURITY CLEARANCE
+                  {topAchiever.user?.role?.replace(/_/g, " ")} {"// SECURITY CLEARANCE"}
                 </p>
                 
                 {topAchiever.badges && topAchiever.badges.length > 0 && (
                   <div className="flex flex-wrap gap-1.5 mt-3 justify-center md:justify-start">
-                    {topAchiever.badges.map((b: any, idx: number) => (
+                    {topAchiever.badges.map((b, idx: number) => (
                       <span key={idx} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white/[0.04] border border-white/[0.06] text-[9px] font-mono text-[var(--ck-text-secondary)]" title={b.description}>
                         <span>🏅</span>
                         <span>{b.name}</span>
@@ -346,10 +383,10 @@ export default function AnalyticsPage() {
           {/* Top 3 Events */}
           <div className="rounded-2xl border border-white/5 bg-white/2 p-5 space-y-4">
             <h3 className="text-sm font-black font-mono tracking-widest text-[var(--ck-primary)] uppercase flex items-center gap-2">
-              <CalendarDays className="w-4.5 h-4.5" /> TOP EVENTS
+              <Calendar className="w-4.5 h-4.5" /> TOP EVENTS
             </h3>
             <div className="space-y-3">
-              {top3Data.events.map((e: any, idx: number) => (
+              {top3Data.events.map((e, idx: number) => (
                 <div key={e.id} className="flex items-center gap-3 p-3 rounded-xl bg-white/3 border border-white/5 group hover:border-[#CCFF00]/30 transition-all">
                   <span className="text-xl shrink-0 font-bold">{MEDALS[idx] || "⭐"}</span>
                   <div className="flex-1 min-w-0">
@@ -371,7 +408,7 @@ export default function AnalyticsPage() {
               <Star className="w-4.5 h-4.5" /> TOP OPERATIVES
             </h3>
             <div className="space-y-3">
-              {top3Data.members.map((m: any, idx: number) => (
+              {top3Data.members.map((m, idx: number) => (
                 <div key={m.id} className="flex items-center gap-3 p-3 rounded-xl bg-white/3 border border-white/5 group hover:border-[#06b6d4]/30 transition-all">
                   <span className="text-xl shrink-0 font-bold">{MEDALS[idx] || "⭐"}</span>
                   <div className="relative w-8 h-8 rounded-full border border-white/10 overflow-hidden shrink-0">
@@ -402,7 +439,7 @@ export default function AnalyticsPage() {
               <Users2 className="w-4.5 h-4.5" /> TOP TEAMS
             </h3>
             <div className="space-y-3">
-              {top3Data.teams.map((t: any, idx: number) => (
+              {top3Data.teams.map((t, idx: number) => (
                 <div key={t.id} className="flex items-center gap-3 p-3 rounded-xl bg-white/3 border border-white/5 group hover:border-[#FF003C]/30 transition-all">
                   <span className="text-xl shrink-0 font-bold">{MEDALS[idx] || "⭐"}</span>
                   <div className="flex-1 min-w-0">
@@ -606,16 +643,19 @@ export default function AnalyticsPage() {
               <h2 className="text-sm font-black uppercase tracking-widest text-[var(--ck-text)]">APPROVAL PIPELINE STATE</h2>
             </div>
             <div className="space-y-4 relative z-10">
-              {clubData.approvalStats.map((s: any, i: number) => {
-                const total = clubData.approvalStats.reduce((sum: number, a: any) => sum + a.count, 0) || 1;
-                const colorMap: Record<string, string> = {
-                  APPROVED: "#10b981", REJECTED: "#ef4444", PENDING: "#f59e0b", UNDER_REVIEW: "#06b6d4"
-                };
-                return (
-                  <AnimatedBar key={s.status} label={s.status} count={s.count} total={total}
-                    color={colorMap[s.status] || "#7c3aed"} delay={i * 0.1} />
-                );
-              })}
+              {(() => {
+                const stats = clubData.approvalStats || [];
+                return stats.map((s, i: number) => {
+                  const total = stats.reduce((sum: number, a) => sum + a.count, 0) || 1;
+                  const colorMap: Record<string, string> = {
+                    APPROVED: "#10b981", REJECTED: "#ef4444", PENDING: "#f59e0b", UNDER_REVIEW: "#06b6d4"
+                  };
+                  return (
+                    <AnimatedBar key={s.status} label={s.status} count={s.count} total={total}
+                      color={colorMap[s.status] || "#7c3aed"} delay={i * 0.1} />
+                  );
+                });
+              })()}
             </div>
           </motion.div>
         )}
@@ -630,13 +670,16 @@ export default function AnalyticsPage() {
               <h2 className="text-sm font-black uppercase tracking-widest text-[var(--ck-text)]">OPERATIVE ROLES</h2>
             </div>
             <div className="space-y-4 relative z-10">
-              {clubData.roleDistribution.map((r: any, i: number) => {
-                const total = clubData.roleDistribution.reduce((sum: number, a: any) => sum + a.count, 0) || 1;
-                return (
-                  <AnimatedBar key={r.role} label={r.role} count={r.count} total={total}
-                    color={ROLE_COLORS[r.role] || "#7c3aed"} delay={i * 0.1} />
-                );
-              })}
+              {(() => {
+                const roles = clubData.roleDistribution || [];
+                return roles.map((r, i: number) => {
+                  const total = roles.reduce((sum: number, a) => sum + a.count, 0) || 1;
+                  return (
+                    <AnimatedBar key={r.role} label={r.role} count={r.count} total={total}
+                      color={ROLE_COLORS[r.role] || "#7c3aed"} delay={i * 0.1} />
+                  );
+                });
+              })()}
             </div>
           </motion.div>
         )}
@@ -652,7 +695,7 @@ export default function AnalyticsPage() {
             <h2 className="text-sm font-black uppercase tracking-widest text-[var(--ck-text)]">RECENT EVENTS ACTIVITY</h2>
           </div>
           <div className="space-y-2.5 relative z-10">
-            {clubData.recentEvents.map((ev: any, i: number) => (
+            {clubData.recentEvents.map((ev, i: number) => (
               <motion.div key={ev.id}
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}

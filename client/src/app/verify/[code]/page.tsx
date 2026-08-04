@@ -3,8 +3,24 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { api } from "@/lib/api";
-import { ShieldCheck, ShieldX, Shield, Calendar, Award, Copy, Check, Download, ExternalLink, RefreshCw } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { ShieldCheck, ShieldX, Shield, Award, Copy, Check, RefreshCw } from "lucide-react";
+
+interface VerificationResult {
+  valid: boolean;
+  tampered?: boolean;
+  certificate?: {
+    id: string;
+    uniqueCode: string;
+    recipientName: string;
+    recipientEmail?: string | null;
+    eventTitle: string;
+    eventDate: string;
+    generatedAt: string;
+    issuingAuthority?: string;
+    fileUrl?: string | null;
+    checksum?: string | null;
+  };
+}
 
 const LinkedinIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
   <svg viewBox="0 0 24 24" fill="currentColor" className={className} style={{ width: '1em', height: '1em' }}>
@@ -49,7 +65,7 @@ const DecryptedText = ({ text, delay = 35 }: { text: string; delay?: number }) =
 export default function VerifyPage() {
   const params = useParams();
   const code = params.code as string;
-  const [result, setResult] = useState<any>(null);
+  const [result, setResult] = useState<VerificationResult | null>(null);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
   
@@ -61,7 +77,7 @@ export default function VerifyPage() {
   useEffect(() => {
     const verify = async () => {
       try {
-        const data = await api<any>(`/certificates/verify/${code}`);
+        const data = await api<VerificationResult>(`/certificates/verify/${code}`);
         setResult(data);
       } catch { 
         setResult({ valid: false }); 
@@ -114,7 +130,7 @@ export default function VerifyPage() {
   const getLinkedInShareUrl = () => {
     if (!result?.certificate) return "#";
     const cert = result.certificate;
-    const date = new Date(cert.generatedAt || Date.now());
+    const date = cert.generatedAt ? new Date(cert.generatedAt) : new Date(1767225600000);
     const year = date.getFullYear();
     const month = date.getMonth() + 1;
     
@@ -198,14 +214,14 @@ export default function VerifyPage() {
                   <div className="space-y-0.5">
                     <span className="text-[9px] font-mono text-slate-500 uppercase tracking-wider">CERTIFICATE HOLDER</span>
                     <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-white capitalize">
-                      <DecryptedText text={result.certificate.recipientName} />
+                      <DecryptedText text={result.certificate!.recipientName} />
                     </h2>
                   </div>
                   
                   <div className="space-y-0.5">
                     <span className="text-[9px] font-mono text-slate-500 uppercase tracking-wider">FOR OUTSTANDING ACHIEVEMENT IN</span>
                     <p className="text-xs sm:text-sm font-mono text-slate-300 font-bold uppercase tracking-wide truncate">
-                      {result.certificate.eventTitle}
+                      {result.certificate!.eventTitle}
                     </p>
                   </div>
                 </div>
@@ -215,14 +231,14 @@ export default function VerifyPage() {
                   <div>
                     <span className="text-[8px] font-mono text-slate-500 uppercase">DATE ISSUED</span>
                     <p className="text-[10px] font-mono text-slate-300">
-                      {new Date(result.certificate.eventDate).toLocaleDateString("en-IN", {
+                      {new Date(result.certificate!.eventDate).toLocaleDateString("en-IN", {
                         day: "numeric", month: "long", year: "numeric"
                       }).toUpperCase()}
                     </p>
                   </div>
                   <div className="text-right">
                     <span className="text-[8px] font-mono text-slate-500 uppercase">VERIFICATION ID</span>
-                    <p className="text-[10px] font-mono text-red-400 font-bold">{result.certificate.uniqueCode}</p>
+                    <p className="text-[10px] font-mono text-red-400 font-bold">{result.certificate!.uniqueCode}</p>
                   </div>
                 </div>
               </div>
@@ -240,11 +256,11 @@ export default function VerifyPage() {
                 <div className="grid grid-cols-2 gap-4 text-xs font-mono bg-zinc-950/40 p-4 rounded-xl border border-zinc-900">
                   <div>
                     <span className="text-slate-500">AUTHORITY:</span>
-                    <p className="text-slate-300 font-bold">{result.certificate.issuingAuthority}</p>
+                    <p className="text-slate-300 font-bold">{result.certificate!.issuingAuthority}</p>
                   </div>
                   <div>
                     <span className="text-slate-500">VERIFIED AT:</span>
-                    <p className="text-slate-300 font-bold">{new Date(result.certificate.generatedAt).toLocaleString()}</p>
+                    <p className="text-slate-300 font-bold">{new Date(result.certificate!.generatedAt).toLocaleString()}</p>
                   </div>
                 </div>
 
@@ -289,7 +305,7 @@ export default function VerifyPage() {
                   : "NO CREDENTIAL RECORD CORRESPONDING TO THIS UNIQUE CODE EXISTS IN THE VAULT."}
               </p>
               <div className="text-[10px] font-mono text-slate-600 bg-red-950/10 p-3 rounded-lg border border-red-950/20">
-                Error Code: Validation Checksum Mismatch // ID: {code}
+                Error Code: Validation Checksum Mismatch {"// ID:"} {code}
               </div>
             </div>
           )}

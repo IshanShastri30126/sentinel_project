@@ -239,7 +239,10 @@ export default function AttendancePage() {
 
   useEffect(() => {
     if (selectedEvent && !isCoord && token) {
-      checkMyStatus(selectedEvent);
+      const timeout = setTimeout(() => {
+        checkMyStatus(selectedEvent);
+      }, 50);
+      return () => clearTimeout(timeout);
     }
   }, [selectedEvent, isCoord, token, checkMyStatus]);
 
@@ -278,27 +281,33 @@ export default function AttendancePage() {
     window.addEventListener("online", updateOnlineStatus);
     window.addEventListener("offline", updateOnlineStatus);
 
-    const saved = localStorage.getItem("ck_offline_checkins");
-    if (saved) {
-      try {
-        const queue = JSON.parse(saved);
-        if (Array.isArray(queue)) {
-          setOfflineCount(queue.length);
+    const timeout = setTimeout(() => {
+      const saved = localStorage.getItem("ck_offline_checkins");
+      if (saved) {
+        try {
+          const queue = JSON.parse(saved);
+          if (Array.isArray(queue)) {
+            setOfflineCount(queue.length);
+          }
+        } catch {
+          setOfflineCount(0);
         }
-      } catch {
-        setOfflineCount(0);
       }
-    }
+    }, 50);
 
     return () => {
       window.removeEventListener("online", updateOnlineStatus);
       window.removeEventListener("offline", updateOnlineStatus);
+      clearTimeout(timeout);
     };
   }, []);
 
   useEffect(() => {
     if (isOnline && token) {
-      syncOfflineCheckins();
+      const timeout = setTimeout(() => {
+        syncOfflineCheckins();
+      }, 50);
+      return () => clearTimeout(timeout);
     }
   }, [isOnline, token, syncOfflineCheckins]);
 
@@ -317,7 +326,10 @@ export default function AttendancePage() {
 
   useEffect(() => {
     if (!selectedEvent || !token) return;
-    loadAttendance(selectedEvent);
+    
+    const timeout = setTimeout(() => {
+      loadAttendance(selectedEvent);
+    }, 50);
 
     const SERVER_BASE = process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:4000";
     socketRef.current = io(SERVER_BASE, { auth: { token } });
@@ -331,6 +343,7 @@ export default function AttendancePage() {
       } : prev);
     });
     return () => {
+      clearTimeout(timeout);
       if (socketRef.current) {
         socketRef.current.emit("leave-event", selectedEvent);
         socketRef.current.disconnect();

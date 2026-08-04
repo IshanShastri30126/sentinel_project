@@ -237,9 +237,13 @@ export default function DashboardPage() {
   // Time greeting inside useEffect to prevent hydration mismatches
   useEffect(() => {
     const hr = new Date().getHours();
-    if (hr < 12) setGreeting("Good morning");
-    else if (hr < 17) setGreeting("Good afternoon");
-    else setGreeting("Good evening");
+    let computedGreeting = "Good evening";
+    if (hr < 12) computedGreeting = "Good morning";
+    else if (hr < 17) computedGreeting = "Good afternoon";
+    const timeout = setTimeout(() => {
+      setGreeting(computedGreeting);
+    }, 50);
+    return () => clearTimeout(timeout);
   }, []);
 
   // Blinking green dot effect to simulate active scanning feed updates
@@ -344,10 +348,13 @@ export default function DashboardPage() {
 
   const totalPages = Math.max(1, Math.ceil(filteredMembers.length / ROWS_PER_PAGE));
   const paginatedMembers = filteredMembers.slice((tablePage - 1) * ROWS_PER_PAGE, tablePage * ROWS_PER_PAGE);
-
+  
   // Reset page when filters change
   useEffect(() => {
-    setTablePage(1);
+    const timeout = setTimeout(() => {
+      setTablePage(1);
+    }, 50);
+    return () => clearTimeout(timeout);
   }, [tableSearch, tableRoleFilter]);
 
   const handleSort = (key: SortKey) => {
@@ -359,7 +366,7 @@ export default function DashboardPage() {
     }
   };
 
-  const SortIcon = ({ colKey }: { colKey: SortKey }) => {
+  const renderSortIcon = (colKey: SortKey) => {
     if (tableSortKey !== colKey) return <ChevronsUpDown className="w-3 h-3 sort-icon" />;
     return tableSortDir === "asc"
       ? <ChevronUp className="w-3 h-3 sort-icon" />
@@ -376,7 +383,7 @@ export default function DashboardPage() {
     setRegisteringId(eventId);
     try {
       await api(`/events/${eventId}/register`, { method: "POST", token });
-      showNotification(`Successfully registered for ${eventTitle}! 🎉`);
+      showNotification(`Successfully registered for ${eventTitle}!`, "success");
       // Update registration status local state
       setMemberEvents((prev) =>
         prev.map((e) =>
@@ -385,9 +392,10 @@ export default function DashboardPage() {
             : e
         )
       );
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
-      showNotification(err.message || "Failed to register.", "error");
+      const msg = err instanceof Error ? err.message : "Failed to register.";
+      showNotification(msg, "error");
     } finally {
       setRegisteringId(null);
     }
@@ -796,25 +804,25 @@ export default function DashboardPage() {
                 <thead>
                   <tr>
                     <th className={`sortable ${tableSortKey === "id" ? "sort-active" : ""}`} onClick={() => handleSort("id")}>
-                      ID <SortIcon colKey="id" />
+                      ID {renderSortIcon("id")}
                     </th>
                     <th className={`sortable ${tableSortKey === "name" ? "sort-active" : ""}`} onClick={() => handleSort("name")}>
-                      Name <SortIcon colKey="name" />
+                      Name {renderSortIcon("name")}
                     </th>
                     <th className={`sortable ${tableSortKey === "email" ? "sort-active" : ""}`} onClick={() => handleSort("email")}>
-                      Email <SortIcon colKey="email" />
+                      Email {renderSortIcon("email")}
                     </th>
                     <th className={`sortable ${tableSortKey === "role" ? "sort-active" : ""}`} onClick={() => handleSort("role")}>
-                      Role <SortIcon colKey="role" />
+                      Role {renderSortIcon("role")}
                     </th>
                     <th className={`sortable ${tableSortKey === "status" ? "sort-active" : ""}`} onClick={() => handleSort("status")}>
-                      Status <SortIcon colKey="status" />
+                      Status {renderSortIcon("status")}
                     </th>
                     <th className={`sortable ${tableSortKey === "points" ? "sort-active" : ""}`} onClick={() => handleSort("points")}>
-                      Points <SortIcon colKey="points" />
+                      Points {renderSortIcon("points")}
                     </th>
                     <th className={`sortable ${tableSortKey === "joinedDate" ? "sort-active" : ""}`} onClick={() => handleSort("joinedDate")}>
-                      Joined <SortIcon colKey="joinedDate" />
+                      Joined {renderSortIcon("joinedDate")}
                     </th>
                   </tr>
                 </thead>
