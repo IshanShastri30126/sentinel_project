@@ -7,11 +7,11 @@
 
 <br />
 
-# 🛡️ Chakravyuh CLub
+# 🌀 Chakravyuh Club
 
-**[Live Deployment: cyberkavach2-0.vercel.app](https://cyberkavach2-0.vercel.app/)**
+**[Live Deployment: chakravyuh.vercel.app](https://chakravyuh.vercel.app/)**
 
-**CyberKavach 2.0** is an advanced, high-performance web platform designed to manage the operations, events, and members of the Cyber Security Club. Featuring a sleek, futuristic UI and a highly optimized backend, it acts as the central intelligence hub for all club activities.
+**Chakravyuh 2.0** is an advanced, high-performance web platform designed to manage the operations, events, and members of the Cyber Security & Operations Club. Featuring a sleek, futuristic UI and a highly optimized backend, it acts as the central intelligence hub for all club activities.
 
 ---
 
@@ -53,7 +53,7 @@
 ## 📂 Project Structure
 
 ```text
-cyberkavach2.0/
+chakravyuh2.0/
 ├── client/                 # Next.js Frontend Application
 │   ├── public/             # Static assets, Service Worker (PWA)
 │   ├── src/
@@ -80,7 +80,7 @@ To run the project locally, create a `.env` file in both the `client` and `serve
 ### `server/.env`
 ```env
 # Database
-DATABASE_URL="postgresql://user:password@localhost:5432/cyberkavach"
+DATABASE_URL="postgresql://user:password@localhost:5432/chakravyuh"
 
 # Redis Cache
 REDIS_URL="redis://localhost:6379"
@@ -151,6 +151,22 @@ The application should now be running at `http://localhost:3000`.
 
 ---
 
+## 🔑 Demo Access Credentials
+
+The database comes pre-seeded with the following default operative accounts. All demo accounts use the default security password: `Demo@CV_$2026`.
+
+| Operative Role | Email Identity |
+|---|---|
+| **Faculty Coordinator** | `faculty@chakravyah.com` |
+| **Student Coordinator** | `sc@chakravyah.com` |
+| **Tech Lead** | `tech@chakravyah.com` |
+| **Content Strategist** | `content@chakravyah.com` |
+| **Social Media Manager** | `social@chakravyah.com` |
+| **General Member** | `member@chakravyah.com` |
+| **Guest Operator** | `guest@chakravyah.com` |
+
+---
+
 ## 📜 Available Scripts
 
 ### Client
@@ -167,5 +183,5 @@ The application should now be running at `http://localhost:3000`.
 ---
 
 <div align="center">
-  <i>Developed with ❤️ for CyberKavach.</i>
+  <i>Developed with ❤️ for Chakravyuh.</i>
 </div>
