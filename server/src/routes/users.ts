@@ -155,7 +155,32 @@ router.patch("/:id/approve", authenticate, requireMinRole("STUDENT_COORDINATOR")
   }
 });
 
-// PATCH /api/users/:id/reject — Reject or revoke user account access (SC+ only)
+async function deleteUserCascade(userId: string) {
+  const userRequests = await prisma.approvalRequest.findMany({
+    where: { requesterId: userId },
+    select: { id: true },
+  });
+  const reqIds = userRequests.map((r) => r.id);
+
+  return prisma.$transaction([
+    prisma.notification.deleteMany({ where: { userId } }),
+    prisma.auditLog.deleteMany({ where: { userId } }),
+    prisma.userBadge.deleteMany({ where: { userId } }),
+    prisma.appreciationPoint.deleteMany({ where: { OR: [{ giverId: userId }, { receiverId: userId }] } }),
+    prisma.attendance.deleteMany({ where: { userId } }),
+    prisma.eventRegistration.deleteMany({ where: { userId } }),
+    prisma.teamMember.deleteMany({ where: { userId } }),
+    prisma.team.deleteMany({ where: { leaderId: userId } }),
+    prisma.approvalStep.updateMany({ where: { approverId: userId }, data: { approverId: null } }),
+    prisma.approvalStep.deleteMany({ where: { requestId: { in: reqIds } } }),
+    prisma.approvalRequest.deleteMany({ where: { requesterId: userId } }),
+    prisma.certificateTemplate.deleteMany({ where: { createdById: userId } }),
+    prisma.event.deleteMany({ where: { creatorId: userId } }),
+    prisma.user.delete({ where: { id: userId } }),
+  ]);
+}
+
+// PATCH /api/users/:id/reject — Reject & permanently remove candidate from portal (SC+ only)
 router.patch("/:id/reject", authenticate, requireMinRole("STUDENT_COORDINATOR"), auditLog("USER_REJECTED"), async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
@@ -165,25 +190,43 @@ router.patch("/:id/reject", authenticate, requireMinRole("STUDENT_COORDINATOR"),
       return;
     }
 
-    const updated = await prisma.user.update({
-      where: { id },
-      data: { isApproved: false, role: "GUEST" },
-      select: { id: true, name: true, email: true, role: true, isApproved: true },
-    });
+    if (id === req.user!.userId) {
+      res.status(400).json({ error: "Cannot reject your own account" });
+      return;
+    }
 
-    await sendNotification({
-      userId: user.id,
-      type: "SYSTEM",
-      title: "Account Access Rejected",
-      message: "Your account registration or clearance access has been rejected by an administrator.",
-    });
-
+    await deleteUserCascade(id);
     await clearUsersCache();
 
-    res.json({ user: updated, message: "User access rejected successfully" });
+    res.json({ success: true, message: `Candidate ${user.name} and all associated data permanently removed from portal.` });
   } catch (err) {
     console.error("[Users] Reject error:", err);
-    res.status(500).json({ error: "Internal server error" });
+    res.status(500).json({ error: "Failed to remove candidate data from portal" });
+  }
+});
+
+// DELETE /api/users/:id — Delete user and remove all associated data (SC+ only)
+router.delete("/:id", authenticate, requireMinRole("STUDENT_COORDINATOR"), auditLog("USER_DELETED"), async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const user = await prisma.user.findUnique({ where: { id } });
+    if (!user) {
+      res.status(404).json({ error: "User not found" });
+      return;
+    }
+
+    if (id === req.user!.userId) {
+      res.status(400).json({ error: "Cannot delete your own account" });
+      return;
+    }
+
+    await deleteUserCascade(id);
+    await clearUsersCache();
+
+    res.json({ success: true, message: `Candidate ${user.name} and all associated data permanently removed from portal.` });
+  } catch (err) {
+    console.error("[Users] Delete user error:", err);
+    res.status(500).json({ error: "Failed to delete user" });
   }
 });
 

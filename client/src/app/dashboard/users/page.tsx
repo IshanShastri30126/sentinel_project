@@ -80,7 +80,7 @@ export default function UsersPage() {
   };
 
   const handleReject = async (id: string) => {
-    if (!confirm("Are you sure you want to reject access for this user?")) return;
+    if (!confirm("Are you sure you want to reject access and permanently remove this candidate and all their data from the portal?")) return;
     try { await api(`/users/${id}/reject`, { method: "PATCH", token: token || undefined }); load(); }
     catch (err) { alert(err instanceof Error ? err.message : "Failed"); }
   };
