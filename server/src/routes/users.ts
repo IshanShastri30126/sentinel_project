@@ -155,6 +155,38 @@ router.patch("/:id/approve", authenticate, requireMinRole("STUDENT_COORDINATOR")
   }
 });
 
+// PATCH /api/users/:id/reject — Reject or revoke user account access (SC+ only)
+router.patch("/:id/reject", authenticate, requireMinRole("STUDENT_COORDINATOR"), auditLog("USER_REJECTED"), async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const user = await prisma.user.findUnique({ where: { id } });
+    if (!user) {
+      res.status(404).json({ error: "User not found" });
+      return;
+    }
+
+    const updated = await prisma.user.update({
+      where: { id },
+      data: { isApproved: false, role: "GUEST" },
+      select: { id: true, name: true, email: true, role: true, isApproved: true },
+    });
+
+    await sendNotification({
+      userId: user.id,
+      type: "SYSTEM",
+      title: "Account Access Rejected",
+      message: "Your account registration or clearance access has been rejected by an administrator.",
+    });
+
+    await clearUsersCache();
+
+    res.json({ user: updated, message: "User access rejected successfully" });
+  } catch (err) {
+    console.error("[Users] Reject error:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 // PATCH /api/users/:id/role — Update user role (Faculty only)
 router.patch("/:id/role", authenticate, requireRole("FACULTY", "STUDENT_COORDINATOR"), auditLog("USER_ROLE_UPDATED"), async (req: Request, res: Response) => {
   try {

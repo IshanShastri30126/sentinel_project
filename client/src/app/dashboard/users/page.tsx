@@ -79,6 +79,12 @@ export default function UsersPage() {
     catch (err) { alert(err instanceof Error ? err.message : "Failed"); }
   };
 
+  const handleReject = async (id: string) => {
+    if (!confirm("Are you sure you want to reject access for this user?")) return;
+    try { await api(`/users/${id}/reject`, { method: "PATCH", token: token || undefined }); load(); }
+    catch (err) { alert(err instanceof Error ? err.message : "Failed"); }
+  };
+
   const handleRoleChange = async (id: string, role: string) => {
     try { await api(`/users/${id}/role`, { method: "PATCH", token: token || undefined, body: JSON.stringify({ role }) }); load(); }
     catch (err) { alert(err instanceof Error ? err.message : "Failed"); }
@@ -119,9 +125,17 @@ export default function UsersPage() {
                     {u.email.toLowerCase()} {u.phone ? `// TEL: ${u.phone}` : ""} {u.department ? `// DEPT: ${u.department}` : ""} {u.semester ? `// SEM: ${u.semester}` : ""}
                   </p>
                 </div>
-                <button onClick={() => handleApprove(u.id)} className="ck-btn-primary text-[10px] py-1.5 px-3.5 font-mono">
-                  GRANT ACCESS
-                </button>
+                <div className="flex items-center gap-2">
+                  <button onClick={() => handleApprove(u.id)} className="ck-btn-primary text-[10px] py-1.5 px-3 font-mono flex items-center gap-1">
+                    <UserCheck className="w-3.5 h-3.5" /> GRANT ACCESS
+                  </button>
+                  <button 
+                    onClick={() => handleReject(u.id)} 
+                    className="px-3 py-1.5 rounded-lg border border-rose-500/40 bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 text-[10px] font-mono font-bold uppercase transition flex items-center gap-1 cursor-pointer"
+                  >
+                    <UserX className="w-3.5 h-3.5" /> REJECT ACCESS
+                  </button>
+                </div>
               </div>
             ))}
           </div>
@@ -235,16 +249,25 @@ export default function UsersPage() {
                     {/* Actions */}
                     <td data-label="Actions">
                       {user?.role && ["FACULTY", "STUDENT_COORDINATOR"].includes(user.role) && u.id !== user.id && (
-                        <button 
-                          onClick={() => handleToggleActive(u.id, u.isActive)} 
-                          className={`text-[10px] uppercase font-mono tracking-wider px-3 py-1 rounded border transition-all duration-300 ${
-                            u.isActive 
-                            ? "text-rose-450 border-rose-900/30 hover:bg-rose-500/10 hover:border-rose-500/50" 
-                            : "text-emerald-400 border-emerald-900/30 hover:bg-emerald-500/10 hover:border-emerald-500/50"
-                          }`}
-                        >
-                          {u.isActive ? "Deactivate" : "Activate"}
-                        </button>
+                        <div className="flex items-center gap-2">
+                          <button 
+                            onClick={() => handleToggleActive(u.id, u.isActive)} 
+                            className={`text-[10px] uppercase font-mono tracking-wider px-2.5 py-1 rounded border transition-all duration-300 ${
+                              u.isActive 
+                              ? "text-amber-400 border-amber-900/30 hover:bg-amber-500/10 hover:border-amber-500/50" 
+                              : "text-emerald-400 border-emerald-900/30 hover:bg-emerald-500/10 hover:border-emerald-500/50"
+                            }`}
+                          >
+                            {u.isActive ? "Deactivate" : "Activate"}
+                          </button>
+                          <button
+                            onClick={() => handleReject(u.id)}
+                            className="text-[10px] uppercase font-mono tracking-wider px-2.5 py-1 rounded border text-rose-400 border-rose-900/30 hover:bg-rose-500/10 hover:border-rose-500/50 transition-all duration-300 flex items-center gap-1 cursor-pointer"
+                            title="Reject or Revoke Access"
+                          >
+                            <UserX className="w-3 h-3" /> Reject Access
+                          </button>
+                        </div>
                       )}
                     </td>
                   </tr>
