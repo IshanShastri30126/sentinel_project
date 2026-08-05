@@ -576,7 +576,7 @@ export async function sendRoleUpdatedEmail(
       Your clearance level within the Chakravyuh Club has been updated.
     </p>
     
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background: rgba(255, 255, 255, 1); border: 1px solid #262626; border-radius: 10px; margin-bottom: 24px;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background: rgba(0, 0, 0, 0.5); border: 1px solid #262626; border-radius: 10px; margin-bottom: 24px;">
       <tr>
         <td style="padding: 20px 24px;">
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
