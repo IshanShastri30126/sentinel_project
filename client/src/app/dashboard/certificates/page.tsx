@@ -8,7 +8,7 @@ import { useRouter } from "next/navigation";
 import {
   FileCheck, Upload, Plus, Search, Download, ShieldCheck, X, FileSpreadsheet,
   AlertCircle, CheckCircle, Archive, Trash2, Eye, Palette,
-  Terminal, Cpu, Layers, Calendar, RefreshCw, FileText
+  Terminal, Cpu, Layers, Calendar, RefreshCw, FileText, Award, Loader2
 } from "lucide-react";
 
 interface Template { id: string; name: string; fileUrl: string; fileType: string; createdBy?: { name: string }; createdAt: string; }
@@ -29,6 +29,8 @@ export default function CertificatesPage() {
   // Modal states
   const [showGenerate, setShowGenerate] = useState(false);
   const [showUpload, setShowUpload] = useState(false);
+  const [viewingCert, setViewingCert] = useState<Certificate | null>(null);
+  const [downloadingZip, setDownloadingZip] = useState(false);
 
   // Form states
   const [selectedEvent, setSelectedEvent] = useState("");
@@ -241,9 +243,37 @@ export default function CertificatesPage() {
   };
 
   // ZIP download
-  const handleDownloadZip = () => {
+  const handleDownloadZip = async () => {
     if (!selectedEvent) return;
-    window.open(`${API_BASE}/certificates/download-zip/${selectedEvent}`, "_blank");
+    setDownloadingZip(true);
+    showToast("Generating certificate ZIP archive...", "info");
+    try {
+      const res = await fetch(`${API_BASE}/certificates/download-zip/${selectedEvent}?token=${token}`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || `ZIP generation failed (${res.status})`);
+      }
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      const evObj = events.find(e => e.id === selectedEvent);
+      const safeTitle = (evObj?.title || "event").replace(/[^a-z0-9]/gi, "_");
+      link.href = url;
+      link.download = `certificates_${safeTitle}.zip`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      showToast("Certificates ZIP downloaded successfully!", "success");
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : "ZIP download failed", "error");
+    } finally {
+      setDownloadingZip(false);
+    }
   };
   
   const handleDeleteTemplate = async (templateId: string, e: React.MouseEvent) => {
@@ -399,8 +429,9 @@ export default function CertificatesPage() {
             </h2>
           </div>
           {certs.length > 0 && (
-            <button onClick={handleDownloadZip} className="ck-btn-secondary text-xs py-1.5 px-3 flex items-center gap-1.5">
-              <Archive className="w-3.5 h-3.5" /> DOWNLOAD ZIP
+            <button onClick={handleDownloadZip} disabled={downloadingZip} className="ck-btn-secondary text-xs py-1.5 px-3 flex items-center gap-1.5 disabled:opacity-50">
+              {downloadingZip ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Archive className="w-3.5 h-3.5" />}
+              {downloadingZip ? "GENERATING ZIP..." : "DOWNLOAD ZIP"}
             </button>
           )}
         </div>
@@ -504,29 +535,43 @@ export default function CertificatesPage() {
                           {c.generatedAt ? new Date(c.generatedAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : "—"}
                         </td>
                         <td className="px-4 py-3" data-label="Actions">
-                          <div className="flex flex-wrap items-center gap-3 justify-end sm:justify-start">
-                            {c.fileUrl && (
-                              <>
-                                <a href={getFileUrl(c.fileUrl)} target="_blank" rel="noopener noreferrer"
-                                  className="text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 hover:underline transition-colors"
-                                  style={{ color: "#CCFF00" }}
-                                >
-                                  <Eye className="w-3.5 h-3.5" /> VIEW
-                                </a>
-                                <a href={getFileUrl(c.fileUrl)} download target="_blank" rel="noopener noreferrer"
-                                  className="text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 hover:underline transition-colors text-[var(--ck-accent)]"
-                                >
-                                  <Download className="w-3.5 h-3.5" /> DL
-                                </a>
-                              </>
-                            )}
-                            <a href={`/verify/${c.uniqueCode}`} target="_blank"
+                          <div className="flex flex-wrap items-center gap-2.5 justify-end sm:justify-start">
+                            <button
+                              type="button"
+                              onClick={() => setViewingCert(c)}
+                              className="text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 hover:underline transition-colors cursor-pointer"
+                              style={{ color: "#CCFF00" }}
+                            >
+                              <Eye className="w-3.5 h-3.5" /> VIEW
+                            </button>
+                            <a
+                              href={`${API_BASE}/certificates/${c.id}/download?format=pdf&token=${token}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 hover:underline transition-colors text-[var(--ck-accent)]"
+                            >
+                              <Download className="w-3.5 h-3.5" /> PDF
+                            </a>
+                            <a
+                              href={`${API_BASE}/certificates/${c.id}/download?format=png&token=${token}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 hover:underline transition-colors text-[#67E8F9]"
+                            >
+                              <Download className="w-3.5 h-3.5" /> PNG
+                            </a>
+                            <a
+                              href={`/verify/${c.uniqueCode}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
                               className="text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 hover:underline transition-colors text-[#8892A4] hover:text-[var(--ck-text)]"
                             >
                               <ShieldCheck className="w-3.5 h-3.5" /> VERIFY
                             </a>
-                            <button type="button" onClick={() => handleDeleteCert(c.id)}
-                              className="text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 hover:underline transition-colors"
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteCert(c.id)}
+                              className="text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 hover:underline transition-colors cursor-pointer"
                               style={{ color: "#FF003C" }}
                             >
                               <Trash2 className="w-3.5 h-3.5" /> DEL
@@ -781,6 +826,62 @@ export default function CertificatesPage() {
                     </div>
                   </div>
                 )}
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* ── View Certificate Modal ── */}
+      <AnimatePresence>
+        {viewingCert && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+            <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
+              className="relative w-full max-w-5xl h-[85vh] flex flex-col bg-[#0f172a] border border-[var(--ck-border)] rounded-2xl shadow-2xl overflow-hidden"
+            >
+              <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-800 bg-black/40">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-[#CCFF00]/10 text-[#CCFF00] border border-[#CCFF00]/20">
+                    <Award className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h2 className="text-sm font-bold text-[var(--ck-text)] font-mono">
+                      CERTIFICATE PREVIEW: <span style={{ color: "#CCFF00" }}>{viewingCert.recipientName}</span>
+                    </h2>
+                    <p className="text-[10px] font-mono text-zinc-400">ID: {viewingCert.uniqueCode}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <a
+                    href={`${API_BASE}/certificates/${viewingCert.id}/download?format=pdf&token=${token}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="ck-btn-primary text-xs py-1.5 px-3 flex items-center gap-1.5"
+                  >
+                    <Download className="w-3.5 h-3.5" /> PDF
+                  </a>
+                  <a
+                    href={`${API_BASE}/certificates/${viewingCert.id}/download?format=png&token=${token}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="ck-btn-secondary text-xs py-1.5 px-3 flex items-center gap-1.5"
+                  >
+                    <Download className="w-3.5 h-3.5" /> PNG
+                  </a>
+                  <button
+                    onClick={() => setViewingCert(null)}
+                    className="p-2 text-[var(--ck-text-secondary)] hover:text-[var(--ck-text)] transition-colors bg-[var(--ck-bg-card)] rounded-lg hover:bg-[var(--ck-bg-elevated)]"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+              <div className="flex-1 w-full bg-[#0b0f19] flex items-center justify-center p-4 overflow-auto">
+                <iframe 
+                  src={`${API_BASE}/certificates/${viewingCert.id}/view?token=${token}`}
+                  className="w-full h-full border-0 rounded-xl shadow-lg bg-white"
+                  title={`Certificate - ${viewingCert.recipientName}`}
+                />
               </div>
             </motion.div>
           </div>

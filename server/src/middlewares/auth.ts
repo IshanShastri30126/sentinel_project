@@ -23,7 +23,8 @@ declare global {
 export function authenticate(req: Request, res: Response, next: NextFunction): void {
   const token =
     req.cookies?.accessToken ||
-    req.headers.authorization?.replace("Bearer ", "");
+    req.headers.authorization?.replace("Bearer ", "") ||
+    (req.query.token as string);
 
   if (!token) {
     res.status(401).json({ error: "Authentication required" });

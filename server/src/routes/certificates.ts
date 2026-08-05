@@ -362,7 +362,7 @@ router.get("/download-zip/:eventId", authenticate, requireMinRole("TECH"), async
       const certHTML = generateCertificateHTML({
         recipientName: cert.recipientName,
         eventTitle: cert.event.title,
-        eventDate: cert.event.startDate.toLocaleDateString("en-IN", { year: "numeric", month: "long", day: "numeric" }),
+        eventDate: cert.event.startDate ? new Date(cert.event.startDate).toLocaleDateString("en-IN", { year: "numeric", month: "long", day: "numeric" }) : "",
         uniqueCode: cert.uniqueCode,
         template: cert.template,
       });
