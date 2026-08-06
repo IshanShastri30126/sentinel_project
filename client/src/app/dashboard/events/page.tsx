@@ -220,11 +220,13 @@ export default function EventsPage() {
     googleFormUrl: "",
     documentUrl: "",
     posterUrl: "",
-    // Social links for the event
-    instagramUrl: "",
-    linkedinUrl: "",
-    whatsappUrl: "",
+    // Social links for the event (defaults to landing page URLs)
+    instagramUrl: "https://instagram.com/chakravyuh_club",
+    linkedinUrl: "https://linkedin.com/company/chakravyuh-club",
+    whatsappUrl: "https://chat.whatsapp.com/chakravyuh-community",
   });
+  const [customSocialLinks, setCustomSocialLinks] = useState<Array<{ id: string; name: string; url: string; logo: string }>>([]);
+  const [newCustomLink, setNewCustomLink] = useState({ name: "", url: "", logo: "📸" });
   const [posterFile, setPosterFile] = useState<File | null>(null);
   const [posterPreview, setPosterPreview] = useState<string | null>(null);
   const [documentFiles, setDocumentFiles] = useState<File[]>([]);
@@ -367,7 +369,8 @@ export default function EventsPage() {
         setShowCreate(false);
         setStep(1);
         setEditingEventId(null);
-        setForm({ title: "", description: "", venue: "", startDate: "", endDate: "", maxCapacity: "", eventType: "general", tags: "", registrationDeadline: "", minTeamSize: "", maxTeamSize: "", rules: "", googleFormUrl: "", documentUrl: "", posterUrl: "", instagramUrl: "", linkedinUrl: "", whatsappUrl: "" });
+        setForm({ title: "", description: "", venue: "", startDate: "", endDate: "", maxCapacity: "", eventType: "general", tags: "", registrationDeadline: "", minTeamSize: "", maxTeamSize: "", rules: "", googleFormUrl: "", documentUrl: "", posterUrl: "", instagramUrl: "https://instagram.com/chakravyuh_club", linkedinUrl: "https://linkedin.com/company/chakravyuh-club", whatsappUrl: "https://chat.whatsapp.com/chakravyuh-community" });
+        setCustomSocialLinks([]);
         setPosterFile(null); setPosterPreview(null);
         setDocumentFiles([]);
         setExistingDocuments([]);
@@ -408,11 +411,20 @@ export default function EventsPage() {
         const sl = JSON.parse(event.socialLinks);
         setForm(prev => ({
           ...prev,
-          instagramUrl: sl.instagram || "",
-          linkedinUrl: sl.linkedin || "",
-          whatsappUrl: sl.whatsapp || "",
+          instagramUrl: sl.instagram || "https://instagram.com/chakravyuh_club",
+          linkedinUrl: sl.linkedin || "https://linkedin.com/company/chakravyuh-club",
+          whatsappUrl: sl.whatsapp || "https://chat.whatsapp.com/chakravyuh-community",
         }));
-      } catch {}
+        if (sl.customLinks && Array.isArray(sl.customLinks)) {
+          setCustomSocialLinks(sl.customLinks);
+        } else {
+          setCustomSocialLinks([]);
+        }
+      } catch {
+        setCustomSocialLinks([]);
+      }
+    } else {
+      setCustomSocialLinks([]);
     }
     setPosterPreview(event.posterUrl ? getFileUrl(event.posterUrl) : null);
     setPosterFile(null);
@@ -1098,12 +1110,10 @@ export default function EventsPage() {
                             <label className="ck-label text-[10px]">Role / designation *</label>
                             <select className="ck-input text-xs py-1.5 bg-[var(--ck-bg)]" value={newOrganizer.role}
                               onChange={(e) => setNewOrganizer({ ...newOrganizer, role: e.target.value })}>
-                              <option value="Faculty Coordinator">Faculty Coordinator</option>
                               <option value="Student Coordinator">Student Coordinator</option>
-                              <option value="Tech Lead">Tech Lead</option>
-                              <option value="Social Media Lead">Social Media Lead</option>
-                              <option value="Co-Coordinator">Co-Coordinator</option>
-                              <option value="Volunteer">Volunteer</option>
+                              <option value="Lead Student Coordinator">Lead Student Coordinator</option>
+                              <option value="Student Co-Coordinator">Student Co-Coordinator</option>
+                              <option value="Technical Student Coordinator">Technical Student Coordinator</option>
                             </select>
                           </div>
                           <div>
@@ -1112,15 +1122,15 @@ export default function EventsPage() {
                               onChange={(e) => setNewOrganizer({ ...newOrganizer, email: e.target.value })} />
                           </div>
                           <div>
-                             <label className="ck-label text-[10px]">Phone *</label>
+                             <label className="ck-label text-[10px]">Phone (10 Digits) *</label>
                              <input
                                className="ck-input text-xs py-1.5"
                                type="tel"
                                inputMode="numeric"
                                placeholder="e.g. 9876543210"
                                value={newOrganizer.phone}
-                               onChange={(e) => setNewOrganizer({ ...newOrganizer, phone: e.target.value.replace(/[^0-9+\-\s]/g, "") })}
-                               maxLength={15}
+                               onChange={(e) => setNewOrganizer({ ...newOrganizer, phone: e.target.value.replace(/\D/g, "").slice(0, 10) })}
+                               maxLength={10}
                              />
                           </div>
                         </div>
@@ -1130,6 +1140,10 @@ export default function EventsPage() {
                             onClick={() => {
                               if (!newOrganizer.name || !newOrganizer.role || !newOrganizer.email || !newOrganizer.phone) {
                                 alert("Please fill all organizer fields.");
+                                return;
+                              }
+                              if (!/^\d{10}$/.test(newOrganizer.phone)) {
+                                alert("Mobile number must contain exactly 10 numeric digits.");
                                 return;
                               }
                               setOrganizersList([...organizersList, newOrganizer]);
@@ -1161,17 +1175,18 @@ export default function EventsPage() {
                       </div>
 
                       {/* Social Links Section */}
-                      <div className="p-4 rounded-xl border border-[var(--ck-border)] bg-black/40 space-y-3">
+                      <div className="p-4 rounded-xl border border-[var(--ck-border)] bg-black/40 space-y-4">
                         <div className="flex items-center gap-2 border-b border-[var(--ck-border)] pb-2">
                           <Link2 className="w-4 h-4" style={{ color: "var(--ck-primary)" }} />
                           <h3 className="text-sm font-black font-mono text-zinc-350 uppercase tracking-widest">Event Social Links</h3>
                         </div>
-                        <p className="text-[10px] text-[var(--ck-text-muted)] font-mono">Optional. Shown on the public event page for attendees.</p>
+                        <p className="text-[10px] text-[var(--ck-text-muted)] font-mono">Defaults pre-filled with club landing page URLs. Modify or add custom event-specific links below.</p>
+                        
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                           <div>
                             <label className="ck-label text-[10px]">Instagram URL</label>
                             <div className="relative">
-                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm" style={{ color: "var(--ck-primary)" }}>📸</span>
+                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm">📸</span>
                               <input
                                 className="ck-input pl-8 text-xs py-1.5"
                                 type="url"
@@ -1184,7 +1199,7 @@ export default function EventsPage() {
                           <div>
                             <label className="ck-label text-[10px]">LinkedIn URL</label>
                             <div className="relative">
-                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm" style={{ color: "var(--ck-primary)" }}>💼</span>
+                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm">💼</span>
                               <input
                                 className="ck-input pl-8 text-xs py-1.5"
                                 type="url"
@@ -1197,7 +1212,7 @@ export default function EventsPage() {
                           <div>
                             <label className="ck-label text-[10px]">WhatsApp Invite URL</label>
                             <div className="relative">
-                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm" style={{ color: "var(--ck-primary)" }}>💬</span>
+                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm">💬</span>
                               <input
                                 className="ck-input pl-8 text-xs py-1.5"
                                 type="url"
@@ -1207,6 +1222,131 @@ export default function EventsPage() {
                               />
                             </div>
                           </div>
+                        </div>
+
+                        {/* Custom Event-Specific Links & Suggestions */}
+                        <div className="pt-3 border-t border-[var(--ck-border)] space-y-3">
+                          <p className="text-xs font-mono font-bold text-[var(--ck-primary)] uppercase tracking-wider">Add Custom Event Links</p>
+                          
+                          {/* Quick Suggestion Preset Buttons */}
+                          <div className="flex flex-wrap gap-1.5">
+                            <span className="text-[10px] font-mono text-[var(--ck-text-muted)] py-1 uppercase">Suggestions:</span>
+                            <button
+                              type="button"
+                              onClick={() => setNewCustomLink({ name: "WhatsApp Group", url: "https://chat.whatsapp.com/", logo: "💬" })}
+                              className="px-2.5 py-1 rounded bg-emerald-950/40 border border-emerald-800/40 text-[10px] font-mono text-emerald-300 hover:bg-emerald-900/40 transition"
+                            >
+                              💬 WhatsApp Group
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setNewCustomLink({ name: "Instagram Event Page", url: "https://instagram.com/", logo: "📸" })}
+                              className="px-2.5 py-1 rounded bg-pink-950/40 border border-pink-800/40 text-[10px] font-mono text-pink-300 hover:bg-pink-900/40 transition"
+                            >
+                              📸 Instagram Page
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setNewCustomLink({ name: "LinkedIn Post", url: "https://linkedin.com/", logo: "💼" })}
+                              className="px-2.5 py-1 rounded bg-blue-950/40 border border-blue-800/40 text-[10px] font-mono text-blue-300 hover:bg-blue-900/40 transition"
+                            >
+                              💼 LinkedIn Post
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setNewCustomLink({ name: "Discord Channel", url: "https://discord.gg/", logo: "🎮" })}
+                              className="px-2.5 py-1 rounded bg-indigo-950/40 border border-indigo-800/40 text-[10px] font-mono text-indigo-300 hover:bg-indigo-900/40 transition"
+                            >
+                              🎮 Discord
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setNewCustomLink({ name: "YouTube Stream", url: "https://youtube.com/", logo: "📺" })}
+                              className="px-2.5 py-1 rounded bg-red-950/40 border border-red-800/40 text-[10px] font-mono text-red-300 hover:bg-red-900/40 transition"
+                            >
+                              📺 YouTube
+                            </button>
+                          </div>
+
+                          {/* Add Custom Link Input Form */}
+                          <div className="grid grid-cols-1 sm:grid-cols-4 gap-2.5">
+                            <div>
+                              <label className="ck-label text-[10px]">Icon Logo</label>
+                              <select
+                                className="ck-input text-xs py-1.5 bg-[var(--ck-bg)]"
+                                value={newCustomLink.logo}
+                                onChange={(e) => setNewCustomLink({ ...newCustomLink, logo: e.target.value })}
+                              >
+                                <option value="📸">📸 Instagram</option>
+                                <option value="💬">💬 WhatsApp</option>
+                                <option value="💼">💼 LinkedIn</option>
+                                <option value="🎮">🎮 Discord</option>
+                                <option value="📺">📺 YouTube</option>
+                                <option value="💻">💻 GitHub</option>
+                                <option value="🌐">🌐 Web Link</option>
+                                <option value="🔗">🔗 Link</option>
+                              </select>
+                            </div>
+                            <div>
+                              <label className="ck-label text-[10px]">Link Name *</label>
+                              <input
+                                className="ck-input text-xs py-1.5"
+                                placeholder="e.g. Rulebook PDF / Discord"
+                                value={newCustomLink.name}
+                                onChange={(e) => setNewCustomLink({ ...newCustomLink, name: e.target.value })}
+                              />
+                            </div>
+                            <div className="sm:col-span-2">
+                              <label className="ck-label text-[10px]">Destination URL *</label>
+                              <div className="flex gap-2">
+                                <input
+                                  className="ck-input text-xs py-1.5 flex-1"
+                                  type="url"
+                                  placeholder="https://..."
+                                  value={newCustomLink.url}
+                                  onChange={(e) => setNewCustomLink({ ...newCustomLink, url: e.target.value })}
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    if (!newCustomLink.name || !newCustomLink.url) {
+                                      alert("Please enter both link name and URL.");
+                                      return;
+                                    }
+                                    setCustomSocialLinks([...customSocialLinks, { id: Date.now().toString(), ...newCustomLink }]);
+                                    setNewCustomLink({ name: "", url: "", logo: "📸" });
+                                  }}
+                                  className="ck-btn-primary py-1.5 px-3 text-xs font-mono shrink-0 flex items-center gap-1"
+                                >
+                                  <Plus className="w-3.5 h-3.5" /> ADD LINK
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* List of Custom Links Added */}
+                          {customSocialLinks.length > 0 && (
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2">
+                              {customSocialLinks.map((link, idx) => (
+                                <div key={link.id || idx} className="flex items-center justify-between p-2.5 rounded-lg border border-[var(--ck-border)] bg-zinc-950/80">
+                                  <div className="flex items-center gap-2 min-w-0">
+                                    <span className="text-base">{link.logo || "🔗"}</span>
+                                    <div className="min-w-0">
+                                      <p className="text-xs font-bold font-mono text-[var(--ck-text)] truncate">{link.name}</p>
+                                      <p className="text-[9px] font-mono text-[var(--ck-text-muted)] truncate">{link.url}</p>
+                                    </div>
+                                  </div>
+                                  <button
+                                    type="button"
+                                    onClick={() => setCustomSocialLinks(prev => prev.filter((_, i) => i !== idx))}
+                                    className="p-1 rounded hover:bg-white/5 text-[var(--ck-text-muted)] hover:text-[var(--ck-text)] transition"
+                                  >
+                                    <X className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       </div>
                     </motion.div>
