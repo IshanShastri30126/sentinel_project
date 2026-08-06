@@ -37,54 +37,15 @@ export async function authenticate(req: Request, res: Response, next: NextFuncti
 
   try {
     const payload = jwt.verify(token, config.jwt.secret) as AuthPayload;
-    const clientFingerprint = (req.headers["x-device-fingerprint"] as string) || req.cookies?.deviceFingerprint;
 
-    // Session Hijacking Prevention (Points 5 & 10)
-    if (payload.deviceFingerprint && clientFingerprint && payload.deviceFingerprint !== clientFingerprint) {
-      await logAuditEvent({
-        action: "SESSION_HIJACKING_ATTEMPT_REJECTED",
-        userId: payload.userId,
-        outcome: "REJECTED",
-        context: {
-          reason: "Device fingerprint mismatch",
-          tokenFingerprint: payload.deviceFingerprint,
-          clientFingerprint,
-        },
-        req,
-      });
+    const dbUser = await prisma.user.findUnique({
+      where: { id: payload.userId },
+      select: { isActive: true },
+    });
 
-      res.status(401).json({ error: "Session security error: Device signature mismatch. Please log in again." });
+    if (!dbUser || !dbUser.isActive) {
+      res.status(401).json({ error: "Account inactive or unauthorized" });
       return;
-    }
-
-    // Device Binding Enforcement for Tech Team & Faculty Coordinators (Point 10)
-    const boundRoles: Role[] = ["TECH", "FACULTY", "STUDENT_COORDINATOR"];
-    if (boundRoles.includes(payload.role) && clientFingerprint) {
-      const dbUser = await prisma.user.findUnique({
-        where: { id: payload.userId },
-        select: { deviceFingerprint: true, isActive: true },
-      });
-
-      if (!dbUser || !dbUser.isActive) {
-        res.status(401).json({ error: "Account inactive or unauthorized" });
-        return;
-      }
-
-      if (dbUser.deviceFingerprint && dbUser.deviceFingerprint !== clientFingerprint) {
-        await logAuditEvent({
-          action: "UNAUTHORIZED_DEVICE_ACCESS_BLOCKED",
-          userId: payload.userId,
-          outcome: "REJECTED",
-          context: {
-            boundDevice: dbUser.deviceFingerprint,
-            attemptedDevice: clientFingerprint,
-          },
-          req,
-        });
-
-        res.status(403).json({ error: "Access Denied: This account is bound to another authorized device." });
-        return;
-      }
     }
 
     req.user = payload;

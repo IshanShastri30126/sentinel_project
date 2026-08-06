@@ -210,40 +210,15 @@ router.post("/login", validate(loginSchema), async (req: Request, res: Response)
       return;
     }
 
-    // Device Binding Check for Technical Team and Faculty Coordinators (Point 10)
-    const boundRoles: Role[] = ["TECH", "FACULTY", "STUDENT_COORDINATOR"];
-    if (boundRoles.includes(user.role)) {
-      if (clientFingerprint) {
-        if (!user.deviceFingerprint) {
-          // Bind device on first login
-          await prisma.user.update({
-            where: { id: user.id },
-            data: { deviceFingerprint: clientFingerprint, boundDeviceId: clientFingerprint },
-          });
-        } else if (user.deviceFingerprint !== clientFingerprint) {
-          await logAuditEvent({
-            action: "UNAUTHORIZED_DEVICE_LOGIN_ATTEMPT",
-            userId: user.id,
-            outcome: "REJECTED",
-            context: {
-              boundDevice: user.deviceFingerprint,
-              attemptedDevice: clientFingerprint,
-            },
-            req,
-          });
-          res.status(403).json({
-            error: "Access Denied: Account bound to a different authorized device.",
-          });
-          return;
-        }
-      }
-    }
-
     // Update last active timestamp
-    await prisma.user.update({
-      where: { id: user.id },
-      data: { lastActiveAt: new Date() },
-    });
+    try {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { lastActiveAt: new Date() },
+      });
+    } catch (e) {
+      console.warn("[Auth] lastActiveAt update skipped:", e);
+    }
 
     const payload: AuthPayload = {
       userId: user.id,
@@ -449,38 +424,6 @@ router.post("/google", async (req: Request, res: Response) => {
         req,
       });
     } else {
-      // Device Binding check for existing bound accounts
-      const boundRoles: Role[] = ["TECH", "FACULTY", "STUDENT_COORDINATOR"];
-      if (boundRoles.includes(user.role)) {
-        if (clientFingerprint) {
-          if (!user.deviceFingerprint) {
-            try {
-              await prisma.user.update({
-                where: { id: user.id },
-                data: { deviceFingerprint: clientFingerprint, boundDeviceId: clientFingerprint },
-              });
-            } catch (e) {
-              console.warn("[Auth] Device binding update skipped:", e);
-            }
-          } else if (user.deviceFingerprint !== clientFingerprint) {
-            await logAuditEvent({
-              action: "UNAUTHORIZED_DEVICE_GOOGLE_LOGIN_ATTEMPT",
-              userId: user.id,
-              outcome: "REJECTED",
-              context: {
-                boundDevice: user.deviceFingerprint,
-                attemptedDevice: clientFingerprint,
-              },
-              req,
-            });
-            res.status(403).json({
-              error: "Access Denied: Account bound to a different authorized device.",
-            });
-            return;
-          }
-        }
-      }
-
       try {
         await prisma.user.update({
           where: { id: user.id },
