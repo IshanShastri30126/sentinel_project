@@ -90,8 +90,22 @@ function createCloudinaryMiddleware(fieldName: string, folder?: string) {
 
         next();
       } catch (uploadErr) {
-        console.error("[Upload] Cloudinary upload failed:", uploadErr);
-        res.status(500).json({ error: "File upload failed" });
+        console.warn("[Upload] Cloudinary upload failed, using disk fallback:", uploadErr);
+        try {
+          const uploadDir = path.resolve(config.uploadDir);
+          if (!fs.existsSync(uploadDir)) {
+            fs.mkdirSync(uploadDir, { recursive: true });
+          }
+          const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+          const filename = uniqueSuffix + path.extname(req.file.originalname);
+          const filePath = path.join(uploadDir, filename);
+          fs.writeFileSync(filePath, req.file.buffer);
+          req.file.filename = filename;
+          next();
+        } catch (diskErr) {
+          console.error("[Upload] Disk fallback failed:", diskErr);
+          res.status(500).json({ error: "File upload failed" });
+        }
       }
     });
   };

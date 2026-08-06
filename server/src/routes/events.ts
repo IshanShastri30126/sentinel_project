@@ -424,17 +424,26 @@ router.patch("/:id/publish", authenticate, requireMinRole("STUDENT_COORDINATOR")
   } catch (err) { console.error("[Events] Publish error:", err); res.status(500).json({ error: "Internal server error" }); }
 });
 
-// DELETE /api/events/:id — Soft delete (archive)
+// DELETE /api/events/:id — Permanent delete event
 router.delete("/:id", authenticate, requireMinRole("STUDENT_COORDINATOR"), auditLog("EVENT_DELETED"), async (req: Request, res: Response) => {
   try {
     const event = await prisma.event.findUnique({ where: { id: req.params.id } });
     if (!event) { res.status(404).json({ error: "Event not found" }); return; }
-    const updated = await prisma.event.update({
-      where: { id: req.params.id }, data: { isPublished: false, isDraft: true },
-    });
+    
+    await prisma.$transaction([
+      prisma.attendance.deleteMany({ where: { eventId: req.params.id } }),
+      prisma.eventRegistration.deleteMany({ where: { eventId: req.params.id } }),
+      prisma.teamMember.deleteMany({ where: { team: { eventId: req.params.id } } }),
+      prisma.team.deleteMany({ where: { eventId: req.params.id } }),
+      prisma.event.delete({ where: { id: req.params.id } }),
+    ]);
+
     await clearEventsCache();
-    res.json({ message: "Event archived", event: updated });
-  } catch (err) { console.error("[Events] Delete error:", err); res.status(500).json({ error: "Internal server error" }); }
+    res.json({ message: "Event deleted successfully", id: req.params.id });
+  } catch (err) {
+    console.error("[Events] Delete error:", err);
+    res.status(500).json({ error: err instanceof Error ? err.message : "Internal server error" });
+  }
 });
 
 // POST /api/events/:id/register — Individual or Team registration

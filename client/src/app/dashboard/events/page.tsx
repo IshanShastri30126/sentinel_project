@@ -9,7 +9,7 @@ import {
   Calendar, Plus, X, ExternalLink, Users, MapPin, Clock, Eye, EyeOff,
   Search, Upload, ChevronRight, ChevronLeft, Image, FileText,
   Link2, BookOpen, UserPlus, Info, CheckCircle2, ChevronDown,
-  Terminal, Award, Presentation, AlertTriangle, Check, UploadCloud, Layers, Edit, Mail
+  Terminal, Award, Presentation, AlertTriangle, Check, UploadCloud, Layers, Edit, Mail, Trash2
 } from "lucide-react";
 
 // ─── Mini Calendar Component ────────────────────────────────
@@ -108,11 +108,33 @@ function MiniCalendar({ selectedDate, onSelect, rangeStart, rangeEnd, label, onC
           })}
         </div>
         {sel && (
-          <div className="mt-3 pt-3 border-t border-zinc-800/80 flex items-center gap-2">
-            <Clock className="w-3.5 h-3.5 text-[var(--ck-text-muted)]" />
-            <span className="text-[10px] text-[var(--ck-text-muted)] uppercase font-bold tracking-wider font-mono">Time:</span>
+          <div className="mt-3 pt-3 border-t border-zinc-800/80 flex flex-col gap-2">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-1.5 text-[10px] text-[var(--ck-text-muted)] uppercase font-bold tracking-wider font-mono">
+                <Clock className="w-3.5 h-3.5" style={{ color: "var(--ck-primary)" }} /> Time:
+              </div>
+              <select
+                onChange={(e) => { if (e.target.value) handleTimeChange(e.target.value); }}
+                className="ck-input py-1 px-2 text-[10px] bg-zinc-900 border border-[var(--ck-border)] focus:border-[var(--ck-primary)] font-mono text-[var(--ck-text)] rounded"
+              >
+                <option value="">-- Presets --</option>
+                <option value="08:00">08:00 AM</option>
+                <option value="09:00">09:00 AM</option>
+                <option value="10:00">10:00 AM</option>
+                <option value="11:00">11:00 AM</option>
+                <option value="12:00">12:00 PM</option>
+                <option value="13:00">01:00 PM</option>
+                <option value="14:00">02:00 PM</option>
+                <option value="15:00">03:00 PM</option>
+                <option value="16:00">04:00 PM</option>
+                <option value="17:00">05:00 PM</option>
+                <option value="18:00">06:00 PM</option>
+                <option value="19:00">07:00 PM</option>
+                <option value="20:00">08:00 PM</option>
+              </select>
+            </div>
             <input type="time" value={currentTime} onChange={(e) => handleTimeChange(e.target.value)}
-              className="ck-input py-1 px-2 text-xs flex-1 max-w-[135px] border border-[var(--ck-border)] focus:border-[var(--ck-primary)]/50" />
+              className="ck-input py-1 px-2 text-xs w-full border border-[var(--ck-border)] focus:border-[var(--ck-primary)]/50" />
           </div>
         )}
       </div>
@@ -452,6 +474,18 @@ export default function EventsPage() {
       alert("Email notifications sent successfully!");
     } catch (err) {
       alert(err instanceof Error ? err.message : "Failed to send emails");
+    }
+  };
+
+  const handleDeleteEvent = async (id: string, title: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!confirm(`Are you sure you want to PERMANENTLY DELETE event "${title}"? This action cannot be undone.`)) return;
+    try {
+      await api(`/events/${id}`, { method: "DELETE", token: token || undefined });
+      alert("Event deleted successfully!");
+      load();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Failed to delete event");
     }
   };
 
@@ -1405,6 +1439,11 @@ export default function EventsPage() {
                   {isCoord && (
                     <button onClick={(e) => { e.stopPropagation(); handleStartEdit(event); }} className="ck-btn-secondary text-xs py-2">
                       <Edit className="w-3.5 h-3.5" /> Edit
+                    </button>
+                  )}
+                  {isCoord && (
+                    <button onClick={(e) => handleDeleteEvent(event.id, event.title, e)} className="ck-btn-secondary text-xs py-2 hover:bg-red-950/40 hover:text-red-400 hover:border-red-800/50" title="Delete Event">
+                      <Trash2 className="w-3.5 h-3.5 text-red-400" />
                     </button>
                   )}
                   {event.isPublished && (
