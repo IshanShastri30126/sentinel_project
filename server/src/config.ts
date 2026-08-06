@@ -22,7 +22,7 @@ export const config = {
     from: process.env.SMTP_FROM || "Chakravyuh Club <noreply@chakravyuhclub.com>",
   },
   google: {
-    clientId: process.env.GOOGLE_CLIENT_ID || "",
+    clientId: process.env.GOOGLE_CLIENT_ID || "148457849994-vefjhnvu6kku18kuab45fctarf8gp404.apps.googleusercontent.com",
   },
   uploadDir: process.env.UPLOAD_DIR || "./uploads",
   escalationThresholdHours: parseInt(process.env.ESCALATION_THRESHOLD_HOURS || "48", 10),
