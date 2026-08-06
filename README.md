@@ -151,21 +151,7 @@ The application should now be running at `http://localhost:3000`.
 
 ---
 
-## 🔑 Demo Access Credentials
 
-The database comes pre-seeded with the following default operative accounts. All demo accounts use the default security password: `Demo@CV_$2026`.
-
-| Operative Role | Email Identity |
-|---|---|
-| **Faculty Coordinator** | `faculty@chakravyuhclub.com` |
-| **Student Coordinator** | `sc@chakravyuhclub.com` |
-| **Tech Lead** | `tech@chakravyuhclub.com` |
-| **Content Strategist** | `content@chakravyuhclub.com` |
-| **Social Media Manager** | `social@chakravyuhclub.com` |
-| **General Member** | `member@chakravyuhclub.com` |
-| **Guest Operator** | `guest@chakravyuhclub.com` |
-
----
 
 ## 📜 Available Scripts
 
