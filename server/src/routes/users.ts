@@ -381,4 +381,41 @@ router.patch("/profile", authenticate, upload.single("avatar"), async (req: Requ
   }
 });
 
+// GET /api/users/audit-logs — List system audit logs (SC+ only)
+router.get("/audit-logs", authenticate, requireMinRole("STUDENT_COORDINATOR"), async (req: Request, res: Response) => {
+  try {
+    const { action, outcome, page, limit } = req.query;
+    const pageNum = page ? parseInt(page as string) : 1;
+    const limitNum = limit ? parseInt(limit as string) : 50;
+
+    const where: any = {};
+    if (action) where.action = action as string;
+    if (outcome) where.outcome = outcome as string;
+
+    const total = await prisma.auditLog.count({ where });
+    const logs = await prisma.auditLog.findMany({
+      where,
+      include: {
+        user: {
+          select: { id: true, name: true, email: true, role: true },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+      skip: (pageNum - 1) * limitNum,
+      take: limitNum,
+    });
+
+    res.json({
+      logs,
+      total,
+      page: pageNum,
+      limit: limitNum,
+      pages: Math.ceil(total / limitNum),
+    });
+  } catch (err) {
+    console.error("[Users] Audit logs fetch error:", err);
+    res.status(500).json({ error: "Failed to fetch audit logs" });
+  }
+});
+
 export default router;

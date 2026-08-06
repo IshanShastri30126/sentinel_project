@@ -1,27 +1,24 @@
 import { Request, Response, NextFunction } from "express";
-import prisma from "../lib/prisma";
+import { logAuditEvent } from "../lib/auditLogger";
 
 export function auditLog(action: string) {
-  return async (req: Request, _res: Response, next: NextFunction) => {
-    // Log after the response is sent (non-blocking)
-    _res.on("finish", async () => {
+  return (req: Request, res: Response, next: NextFunction): void => {
+    res.on("finish", async () => {
       try {
-        if (req.user) {
-          await prisma.auditLog.create({
-            data: {
-              action,
-              userId: req.user.userId,
-              context: {
-                method: req.method,
-                path: req.originalUrl,
-                ip: req.ip,
-                statusCode: _res.statusCode,
-              },
-            },
-          });
-        }
+        const outcome = res.statusCode < 400 ? "SUCCESS" : "FAILED";
+        await logAuditEvent({
+          action,
+          userId: req.user?.userId || null,
+          outcome,
+          context: {
+            method: req.method,
+            path: req.originalUrl,
+            statusCode: res.statusCode,
+          },
+          req,
+        });
       } catch (err) {
-        console.error("[AuditLog] Error:", err);
+        console.error("[AuditLog Middleware] Error:", err);
       }
     });
     next();

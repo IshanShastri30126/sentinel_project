@@ -9,7 +9,7 @@ async function main() {
 
   const password = await bcrypt.hash("Demo@CV_$2026", 10);
 
-  // ─── Seed Users ────────────────────────────────────────────
+  // ─── Authorized Role Accounts ONLY (Point 3: User Management) ──
   const seedUsers = [
     { name: "Dr. Sharma (Faculty)", email: "faculty@chakravyuhclub.com", role: "FACULTY" as Role },
     { name: "Aarav Patel (SC)", email: "sc@chakravyuhclub.com", role: "STUDENT_COORDINATOR" as Role },
@@ -17,16 +17,40 @@ async function main() {
     { name: "Riya Singh (Content)", email: "content@chakravyuhclub.com", role: "CONTENT" as Role },
     { name: "Karan Mehta (Social)", email: "social@chakravyuhclub.com", role: "SOCIAL_MEDIA" as Role },
     { name: "Ananya Gupta (Member)", email: "member@chakravyuhclub.com", role: "MEMBER" as Role },
-    { name: "Guest User", email: "guest@chakravyuhclub.com", role: "GUEST" as Role },
   ];
 
   for (const u of seedUsers) {
     await prisma.user.upsert({
       where: { email: u.email },
-      update: { passwordHash: password },
+      update: { passwordHash: password, isApproved: true, isActive: true },
       create: { name: u.name, email: u.email, passwordHash: password, role: u.role, isApproved: true, isActive: true },
     });
     console.log(`  ✅ ${u.role}: ${u.email}`);
+  }
+
+  // Find GUEST user IDs for clean deletion
+  const guestUsers = await prisma.user.findMany({
+    where: { role: "GUEST" },
+    select: { id: true },
+  });
+
+  const guestIds = guestUsers.map((u) => u.id);
+
+  if (guestIds.length > 0) {
+    await prisma.notification.deleteMany({ where: { userId: { in: guestIds } } });
+    await prisma.auditLog.deleteMany({ where: { userId: { in: guestIds } } });
+    await prisma.appreciationPoint.deleteMany({
+      where: { OR: [{ giverId: { in: guestIds } }, { receiverId: { in: guestIds } }] },
+    });
+    await prisma.userBadge.deleteMany({ where: { userId: { in: guestIds } } });
+    await prisma.eventRegistration.deleteMany({ where: { userId: { in: guestIds } } });
+    await prisma.teamMember.deleteMany({ where: { userId: { in: guestIds } } });
+    await prisma.team.deleteMany({ where: { leaderId: { in: guestIds } } });
+    await prisma.attendance.deleteMany({ where: { userId: { in: guestIds } } });
+    await prisma.certificateTemplate.deleteMany({ where: { createdById: { in: guestIds } } });
+    await prisma.event.deleteMany({ where: { creatorId: { in: guestIds } } });
+    await prisma.user.deleteMany({ where: { id: { in: guestIds } } });
+    console.log(`  🧹 Cleaned up ${guestIds.length} GUEST accounts and associated records.`);
   }
 
   // ─── Seed Badges ──────────────────────────────────────────
@@ -53,6 +77,7 @@ async function main() {
     { key: "escalation_threshold_hours", value: { hours: 48 } },
     { key: "event_categories", value: { categories: ["Workshop", "Hackathon", "Seminar", "Competition", "Social", "Technical", "Other"] } },
     { key: "point_policies", value: { maxPerEvent: 50, deductionRequiresReason: true } },
+    { key: "allow_public_registration", value: { enabled: false } },
   ];
 
   for (const s of settings) {
@@ -64,7 +89,7 @@ async function main() {
     console.log(`  ⚙️  Setting: ${s.key}`);
   }
 
-  console.log("\n🎉 Seed complete! All demo accounts use password: Demo@CV_$2026");
+  console.log("\n🎉 Seed complete! Authorized accounts created with secure credentials.");
 }
 
 main()

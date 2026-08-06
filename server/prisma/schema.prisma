@@ -83,6 +83,9 @@ model User {
   firstLoginEmailSent Boolean @default(false)
   resetToken          String?   @unique
   resetTokenExpiry    DateTime?
+  deviceFingerprint   String?
+  boundDeviceId       String?
+  lastActiveAt        DateTime?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
@@ -372,12 +375,16 @@ model Notification {
 model AuditLog {
   id        String   @id @default(uuid())
   action    String
+  outcome   String   @default("SUCCESS")
+  ipAddress String?
+  userAgent String?
   context   Json?
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
   createdAt DateTime @default(now())
 
   @@index([userId, createdAt])
+  @@index([action, createdAt])
   @@map("audit_logs")
 }
 

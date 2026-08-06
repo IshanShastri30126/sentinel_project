@@ -7,11 +7,12 @@ import { redisSet, redisDel } from "../lib/redis";
 import { config } from "../config";
 import { authenticate, AuthPayload } from "../middlewares/auth";
 import { validate } from "../middlewares/validate";
-import { auditLog } from "../middlewares/auditLog";
+import { logAuditEvent } from "../lib/auditLogger";
 import { sendNotification } from "../lib/notificationService";
 import { sendWelcomeEmail, sendLoginNotificationEmail, sendPasswordResetEmail } from "../lib/emailService";
 import { OAuth2Client } from "google-auth-library";
 import crypto from "crypto";
+import { Role } from "@prisma/client";
 
 const router = Router();
 const googleClient = new OAuth2Client(config.google.clientId);
@@ -27,26 +28,28 @@ const registerSchema = z.object({
   department: z.string().min(1, "Department is required"),
   institute: z.string().min(1, "Institute is required"),
   semester: z.string().min(1, "Semester is required"),
+  deviceFingerprint: z.string().optional(),
 });
 
 const loginSchema = z.object({
   email: z.string().email(),
   password: z.string().min(1),
+  deviceFingerprint: z.string().optional(),
 });
 
 // ─── Helpers ───────────────────────────────────────────────
 
 function generateTokens(payload: AuthPayload) {
   const accessToken = jwt.sign(payload, config.jwt.secret, {
-    expiresIn: config.jwt.expiry,
+    expiresIn: config.jwt.expiry || "15m",
   } as jwt.SignOptions);
   const refreshToken = jwt.sign(payload, config.jwt.refreshSecret, {
-    expiresIn: config.jwt.refreshExpiry,
+    expiresIn: config.jwt.refreshExpiry || "7d",
   } as jwt.SignOptions);
   return { accessToken, refreshToken };
 }
 
-function setTokenCookies(res: Response, accessToken: string, refreshToken: string) {
+function setTokenCookies(res: Response, accessToken: string, refreshToken: string, deviceFingerprint?: string) {
   const isProduction = process.env.NODE_ENV === "production";
   res.cookie("accessToken", accessToken, {
     httpOnly: true,
@@ -60,16 +63,31 @@ function setTokenCookies(res: Response, accessToken: string, refreshToken: strin
     sameSite: isProduction ? "none" : "lax",
     maxAge: 7 * 24 * 60 * 60 * 1000,
   });
+  if (deviceFingerprint) {
+    res.cookie("deviceFingerprint", deviceFingerprint, {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: isProduction ? "none" : "lax",
+      maxAge: 365 * 24 * 60 * 60 * 1000,
+    });
+  }
 }
 
 // ─── POST /api/auth/register ───────────────────────────────
 
 router.post("/register", validate(registerSchema), async (req: Request, res: Response) => {
   try {
-    const { name, email, password, studentId, phone, department, institute, semester } = req.body;
+    const { name, email, password, studentId, phone, department, institute, semester, deviceFingerprint } = req.body;
+    const clientFingerprint = deviceFingerprint || (req.headers["x-device-fingerprint"] as string);
 
     const existing = await prisma.user.findUnique({ where: { email } });
     if (existing) {
+      await logAuditEvent({
+        action: "USER_REGISTER_FAILED",
+        outcome: "FAILED",
+        context: { email, reason: "Email already registered" },
+        req,
+      });
       res.status(409).json({ error: "Email already registered" });
       return;
     }
@@ -77,6 +95,12 @@ router.post("/register", validate(registerSchema), async (req: Request, res: Res
     if (studentId) {
       const existingStudent = await prisma.user.findUnique({ where: { studentId } });
       if (existingStudent) {
+        await logAuditEvent({
+          action: "USER_REGISTER_FAILED",
+          outcome: "FAILED",
+          context: { studentId, reason: "Student ID already registered" },
+          req,
+        });
         res.status(409).json({ error: "Student ID already registered" });
         return;
       }
@@ -95,19 +119,28 @@ router.post("/register", validate(registerSchema), async (req: Request, res: Res
         semester: semester || null,
         role: "GUEST",
         isApproved: false,
+        deviceFingerprint: clientFingerprint || null,
+        lastActiveAt: new Date(),
       },
     });
 
-    const payload: AuthPayload = { userId: user.id, email: user.email, role: user.role };
+    const payload: AuthPayload = {
+      userId: user.id,
+      email: user.email,
+      role: user.role,
+      deviceFingerprint: clientFingerprint,
+    };
     const { accessToken, refreshToken } = generateTokens(payload);
 
     await redisSet(`session:${user.id}`, JSON.stringify(payload), 7 * 24 * 3600);
+    setTokenCookies(res, accessToken, refreshToken, clientFingerprint);
 
-    setTokenCookies(res, accessToken, refreshToken);
-
-    // Audit log
-    await prisma.auditLog.create({
-      data: { action: "USER_REGISTER", userId: user.id, context: { email } },
+    await logAuditEvent({
+      action: "USER_REGISTER",
+      userId: user.id,
+      outcome: "SUCCESS",
+      context: { email, role: user.role },
+      req,
     });
 
     // Notify coordinators about new registration
@@ -125,15 +158,17 @@ router.post("/register", validate(registerSchema), async (req: Request, res: Res
       });
     }
 
-    // Send welcome email
     sendWelcomeEmail({ name, email, role: "GUEST" }).catch((err) =>
       console.error("[Auth] Welcome email failed:", err)
     );
 
     res.status(201).json({
       user: {
-        id: user.id, name: user.name, email: user.email,
-        role: user.role, isApproved: user.isApproved,
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        isApproved: user.isApproved,
       },
       accessToken,
     });
@@ -147,39 +182,94 @@ router.post("/register", validate(registerSchema), async (req: Request, res: Res
 
 router.post("/login", validate(loginSchema), async (req: Request, res: Response) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, deviceFingerprint } = req.body;
+    const clientFingerprint = deviceFingerprint || (req.headers["x-device-fingerprint"] as string);
 
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user || !user.isActive) {
+      await logAuditEvent({
+        action: "USER_LOGIN_FAILED",
+        outcome: "FAILED",
+        context: { email, reason: "User not found or inactive" },
+        req,
+      });
       res.status(401).json({ error: "Invalid credentials" });
       return;
     }
 
     const valid = await bcrypt.compare(password, user.passwordHash);
     if (!valid) {
+      await logAuditEvent({
+        action: "USER_LOGIN_FAILED",
+        userId: user.id,
+        outcome: "FAILED",
+        context: { email, reason: "Incorrect password" },
+        req,
+      });
       res.status(401).json({ error: "Invalid credentials" });
       return;
     }
 
-    const payload: AuthPayload = { userId: user.id, email: user.email, role: user.role };
-    const { accessToken, refreshToken } = generateTokens(payload);
+    // Device Binding Check for Technical Team and Faculty Coordinators (Point 10)
+    const boundRoles: Role[] = ["TECH", "FACULTY", "STUDENT_COORDINATOR"];
+    if (boundRoles.includes(user.role)) {
+      if (clientFingerprint) {
+        if (!user.deviceFingerprint) {
+          // Bind device on first login
+          await prisma.user.update({
+            where: { id: user.id },
+            data: { deviceFingerprint: clientFingerprint, boundDeviceId: clientFingerprint },
+          });
+        } else if (user.deviceFingerprint !== clientFingerprint) {
+          await logAuditEvent({
+            action: "UNAUTHORIZED_DEVICE_LOGIN_ATTEMPT",
+            userId: user.id,
+            outcome: "REJECTED",
+            context: {
+              boundDevice: user.deviceFingerprint,
+              attemptedDevice: clientFingerprint,
+            },
+            req,
+          });
+          res.status(403).json({
+            error: "Access Denied: Account bound to a different authorized device.",
+          });
+          return;
+        }
+      }
+    }
 
-    await redisSet(`session:${user.id}`, JSON.stringify(payload), 7 * 24 * 3600);
-
-    setTokenCookies(res, accessToken, refreshToken);
-
-    await prisma.auditLog.create({
-      data: { action: "USER_LOGIN", userId: user.id, context: { email } },
+    // Update last active timestamp
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { lastActiveAt: new Date() },
     });
 
-    // Send login notification email only on FIRST login
+    const payload: AuthPayload = {
+      userId: user.id,
+      email: user.email,
+      role: user.role,
+      deviceFingerprint: clientFingerprint || user.deviceFingerprint || undefined,
+    };
+
+    const { accessToken, refreshToken } = generateTokens(payload);
+    await redisSet(`session:${user.id}`, JSON.stringify(payload), 7 * 24 * 3600);
+    setTokenCookies(res, accessToken, refreshToken, clientFingerprint);
+
+    await logAuditEvent({
+      action: "USER_LOGIN",
+      userId: user.id,
+      outcome: "SUCCESS",
+      context: { email, role: user.role, deviceFingerprint: clientFingerprint },
+      req,
+    });
+
     if (!user.firstLoginEmailSent) {
       sendLoginNotificationEmail(
         { name: user.name, email: user.email },
         { ip: req.ip || req.socket.remoteAddress, userAgent: req.headers["user-agent"] }
       ).catch((err) => console.error("[Auth] Login email failed:", err));
 
-      // Mark first login email as sent
       prisma.user.update({
         where: { id: user.id },
         data: { firstLoginEmailSent: true },
@@ -188,9 +278,13 @@ router.post("/login", validate(loginSchema), async (req: Request, res: Response)
 
     res.json({
       user: {
-        id: user.id, name: user.name, email: user.email,
-        role: user.role, isApproved: user.isApproved,
-        avatarUrl: user.avatarUrl, studentId: user.studentId,
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        isApproved: user.isApproved,
+        avatarUrl: user.avatarUrl,
+        studentId: user.studentId,
       },
       accessToken,
     });
@@ -212,7 +306,6 @@ router.post("/forgot-password", async (req: Request, res: Response) => {
 
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user || !user.isActive) {
-      // Return a success response to prevent email enumeration attacks
       res.json({ message: "If that email exists, a reset link has been sent." });
       return;
     }
@@ -225,8 +318,15 @@ router.post("/forgot-password", async (req: Request, res: Response) => {
       data: { resetToken, resetTokenExpiry },
     });
 
-    await sendPasswordResetEmail({ email: user.email }, resetToken);
+    await logAuditEvent({
+      action: "FORGOT_PASSWORD_REQUEST",
+      userId: user.id,
+      outcome: "SUCCESS",
+      context: { email },
+      req,
+    });
 
+    await sendPasswordResetEmail({ email: user.email }, resetToken);
     res.json({ message: "If that email exists, a reset link has been sent." });
   } catch (err) {
     console.error("[Auth] Forgot password error:", err);
@@ -262,8 +362,12 @@ router.post("/reset-password", async (req: Request, res: Response) => {
       },
     });
 
-    await prisma.auditLog.create({
-      data: { action: "USER_PASSWORD_RESET", userId: user.id, context: {} },
+    await logAuditEvent({
+      action: "USER_PASSWORD_RESET",
+      userId: user.id,
+      outcome: "SUCCESS",
+      context: { email: user.email },
+      req,
     });
 
     res.json({ message: "Password updated successfully" });
@@ -277,18 +381,19 @@ router.post("/reset-password", async (req: Request, res: Response) => {
 
 router.post("/google", async (req: Request, res: Response) => {
   try {
-    const { credential } = req.body;
+    const { credential, deviceFingerprint } = req.body;
+    const clientFingerprint = deviceFingerprint || (req.headers["x-device-fingerprint"] as string);
+
     if (!credential) {
       res.status(400).json({ error: "Missing Google credential" });
       return;
     }
 
-    // Verify token
     const ticket = await googleClient.verifyIdToken({
       idToken: credential,
       audience: config.google.clientId,
     });
-    
+
     const payload = ticket.getPayload();
     if (!payload || !payload.email) {
       res.status(400).json({ error: "Invalid Google token payload" });
@@ -302,20 +407,24 @@ router.post("/google", async (req: Request, res: Response) => {
     let user = await prisma.user.findUnique({ where: { email } });
 
     if (!user) {
-      // Auto-register as GUEST, but let's pre-approve them for ease of use
       user = await prisma.user.create({
         data: {
           email,
           name,
           avatarUrl,
-          passwordHash: "", // No password needed for Google
+          passwordHash: "",
           role: "GUEST",
-          isApproved: true, // Auto-approved for Google logins
+          isApproved: true,
+          deviceFingerprint: clientFingerprint || null,
         },
       });
 
-      await prisma.auditLog.create({
-        data: { action: "USER_REGISTER_GOOGLE", userId: user.id, context: { email } },
+      await logAuditEvent({
+        action: "USER_REGISTER_GOOGLE",
+        userId: user.id,
+        outcome: "SUCCESS",
+        context: { email },
+        req,
       });
     }
 
@@ -324,35 +433,34 @@ router.post("/google", async (req: Request, res: Response) => {
       return;
     }
 
-    // Generate tokens
-    const authPayload: AuthPayload = { userId: user.id, email: user.email, role: user.role };
+    const authPayload: AuthPayload = {
+      userId: user.id,
+      email: user.email,
+      role: user.role,
+      deviceFingerprint: clientFingerprint || user.deviceFingerprint || undefined,
+    };
     const { accessToken, refreshToken } = generateTokens(authPayload);
 
     await redisSet(`session:${user.id}`, JSON.stringify(authPayload), 7 * 24 * 3600);
-    setTokenCookies(res, accessToken, refreshToken);
+    setTokenCookies(res, accessToken, refreshToken, clientFingerprint);
 
-    await prisma.auditLog.create({
-      data: { action: "USER_LOGIN_GOOGLE", userId: user.id, context: { email } },
+    await logAuditEvent({
+      action: "USER_LOGIN_GOOGLE",
+      userId: user.id,
+      outcome: "SUCCESS",
+      context: { email, role: user.role },
+      req,
     });
-
-    // Send login notification email only on FIRST login (for Google login)
-    if (!user.firstLoginEmailSent) {
-      sendLoginNotificationEmail(
-        { name: user.name, email: user.email },
-        { ip: req.ip || req.socket.remoteAddress, userAgent: req.headers["user-agent"] }
-      ).catch((err) => console.error("[Auth] Google login email failed:", err));
-
-      prisma.user.update({
-        where: { id: user.id },
-        data: { firstLoginEmailSent: true },
-      }).catch((err) => console.error("[Auth] Failed to update firstLoginEmailSent:", err));
-    }
 
     res.json({
       user: {
-        id: user.id, name: user.name, email: user.email,
-        role: user.role, isApproved: user.isApproved,
-        avatarUrl: user.avatarUrl, studentId: user.studentId,
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        isApproved: user.isApproved,
+        avatarUrl: user.avatarUrl,
+        studentId: user.studentId,
       },
       accessToken,
     });
@@ -367,6 +475,8 @@ router.post("/google", async (req: Request, res: Response) => {
 router.post("/refresh", async (req: Request, res: Response) => {
   try {
     const token = req.cookies?.refreshToken;
+    const clientFingerprint = (req.headers["x-device-fingerprint"] as string) || req.cookies?.deviceFingerprint;
+
     if (!token) {
       res.status(401).json({ error: "No refresh token" });
       return;
@@ -379,12 +489,16 @@ router.post("/refresh", async (req: Request, res: Response) => {
       return;
     }
 
-    const newPayload: AuthPayload = { userId: user.id, email: user.email, role: user.role };
+    const newPayload: AuthPayload = {
+      userId: user.id,
+      email: user.email,
+      role: user.role,
+      deviceFingerprint: clientFingerprint || payload.deviceFingerprint,
+    };
     const { accessToken, refreshToken } = generateTokens(newPayload);
 
     await redisSet(`session:${user.id}`, JSON.stringify(newPayload), 7 * 24 * 3600);
-
-    setTokenCookies(res, accessToken, refreshToken);
+    setTokenCookies(res, accessToken, refreshToken, clientFingerprint);
     res.json({ accessToken });
   } catch {
     res.status(401).json({ error: "Invalid refresh token" });
@@ -393,13 +507,21 @@ router.post("/refresh", async (req: Request, res: Response) => {
 
 // ─── POST /api/auth/logout ─────────────────────────────────
 
-router.post("/logout", authenticate, auditLog("USER_LOGOUT"), async (req: Request, res: Response) => {
+router.post("/logout", authenticate, async (req: Request, res: Response) => {
   try {
     if (req.user) {
       await redisDel(`session:${req.user.userId}`);
+      await logAuditEvent({
+        action: "USER_LOGOUT",
+        userId: req.user.userId,
+        outcome: "SUCCESS",
+        context: { email: req.user.email },
+        req,
+      });
     }
     res.clearCookie("accessToken");
     res.clearCookie("refreshToken");
+    res.clearCookie("deviceFingerprint");
     res.json({ message: "Logged out successfully" });
   } catch (err) {
     console.error("[Auth] Logout error:", err);
@@ -414,10 +536,20 @@ router.get("/me", authenticate, async (req: Request, res: Response) => {
     const user = await prisma.user.findUnique({
       where: { id: req.user!.userId },
       select: {
-        id: true, name: true, email: true, role: true,
-        avatarUrl: true, studentId: true, phone: true,
-        department: true, isApproved: true, isActive: true, createdAt: true,
-        institute: true, semester: true,
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        avatarUrl: true,
+        studentId: true,
+        phone: true,
+        department: true,
+        isApproved: true,
+        isActive: true,
+        createdAt: true,
+        institute: true,
+        semester: true,
+        deviceFingerprint: true,
       },
     });
     if (!user) {

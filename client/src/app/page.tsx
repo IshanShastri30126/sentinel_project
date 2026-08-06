@@ -17,7 +17,9 @@ import {
   FileText 
 } from "lucide-react";
 import { api, getFileUrl } from "@/lib/api";
-import PlexusBackground from "@/components/PlexusBackground";
+import dynamic from "next/dynamic";
+
+const PlexusBackground = dynamic(() => import("@/components/PlexusBackground"), { ssr: false });
 
 
 interface EventItem {

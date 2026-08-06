@@ -1,4 +1,5 @@
 import Cookies from "js-cookie";
+import { getDeviceFingerprint } from "@/lib/deviceFingerprint";
 
 export const SERVER_BASE_URL = process.env.NEXT_PUBLIC_WS_URL || "http://localhost:4000";
 export const API_BASE = process.env.NEXT_PUBLIC_API_URL || `${SERVER_BASE_URL}/api`;
@@ -39,6 +40,7 @@ async function executeApiRequest<T>(endpoint: string, options: FetchOptions = {}
   const cookieToken = Cookies.get("accessToken");
   const activeToken = cookieToken || token;
   const activeClubSlug = typeof window !== "undefined" ? localStorage.getItem("ck_active_club_slug") || "chakravyuh" : "chakravyuh";
+  const deviceFingerprint = typeof window !== "undefined" ? getDeviceFingerprint() : "";
 
   const res = await fetch(`${API_BASE}${endpoint}`, {
     credentials: "include",
@@ -46,6 +48,7 @@ async function executeApiRequest<T>(endpoint: string, options: FetchOptions = {}
       "Content-Type": "application/json",
       ...(activeToken ? { Authorization: `Bearer ${activeToken}` } : {}),
       "X-Club-Slug": activeClubSlug,
+      ...(deviceFingerprint ? { "X-Device-Fingerprint": deviceFingerprint } : {}),
       ...headers,
     },
     ...rest,
