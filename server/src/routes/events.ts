@@ -51,8 +51,10 @@ const createEventSchema = z.object({
   maxTeamSize: z.number().int().positive().nullable().optional(),
   maxCapacity: z.number().int().positive().nullable().optional(),
   eventType: z.string().optional(),
-  googleFormUrl: z.string().url().nullable().optional().or(z.literal("")),
+  googleFormUrl: z.string().nullable().optional(),
   documentUrl: z.string().nullable().optional(),
+  organizers: z.string().nullable().optional(),
+  socialLinks: z.string().nullable().optional(),
 });
 
 // POST /api/events — Create event
@@ -70,6 +72,8 @@ router.post("/", authenticate, requireMinRole("STUDENT_COORDINATOR"), validate(c
         maxCapacity: data.maxCapacity, eventType: data.eventType || "general",
         googleFormUrl: data.googleFormUrl || null,
         documentUrl: data.documentUrl || null,
+        organizers: data.organizers || null,
+        socialLinks: data.socialLinks || null,
         slug: generateSlug(data.title), isDraft: true, isPublished: false, 
         isApproved, creatorId: req.user!.userId,
       },
@@ -351,6 +355,8 @@ router.patch("/:id", authenticate, requireMinRole("STUDENT_COORDINATOR"), auditL
     if (d.eventType !== undefined) u.eventType = d.eventType;
     if (d.googleFormUrl !== undefined) u.googleFormUrl = d.googleFormUrl || null;
     if (d.documentUrl !== undefined) u.documentUrl = d.documentUrl || null;
+    if (d.organizers !== undefined) u.organizers = d.organizers || null;
+    if (d.socialLinks !== undefined) u.socialLinks = d.socialLinks || null;
 
     if (req.user!.role === "STUDENT_COORDINATOR") {
       u.isApproved = false;
