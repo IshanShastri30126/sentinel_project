@@ -1,15 +1,14 @@
 const CACHE_NAME = "chakravyuh-v2-cache";
 const OFFLINE_URLS = [
   "/dashboard/attendance",
-  "/favicon.ico",
-  "/file.svg"
+  "/favicon.ico"
 ];
 
 // Install Event - cache core pages
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(OFFLINE_URLS);
+      return cache.addAll(OFFLINE_URLS).catch(() => {/* ignore missing files during install */});
     })
   );
   self.skipWaiting();
@@ -35,16 +34,15 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
   const url = new URL(event.request.url);
 
-  // Skip POST requests and external APIs
-  if (event.request.method !== "GET" || url.pathname.startsWith("/api/")) {
+  // Skip non-GET, chrome-extension, and API endpoints
+  if (event.request.method !== "GET" || url.pathname.startsWith("/api/") || !url.protocol.startsWith("http")) {
     return;
   }
 
   event.respondWith(
     fetch(event.request)
       .then((response) => {
-        // Cache successful requests dynamically
-        if (response.status === 200) {
+        if (response && response.status === 200 && response.type === "basic") {
           const responseClone = response.clone();
           caches.open(CACHE_NAME).then((cache) => {
             cache.put(event.request, responseClone);
@@ -53,14 +51,16 @@ self.addEventListener("fetch", (event) => {
         return response;
       })
       .catch(() => {
-        // Fallback to cache if network fails
         return caches.match(event.request).then((cachedResponse) => {
           if (cachedResponse) return cachedResponse;
-          
-          // Custom offline fallback if matching dashboard page
           if (url.pathname.includes("/attendance")) {
             return caches.match("/dashboard/attendance");
           }
+          return new Response("Offline resource unavailable", {
+            status: 503,
+            statusText: "Service Unavailable",
+            headers: new Headers({ "Content-Type": "text/plain" })
+          });
         });
       })
   );
@@ -79,8 +79,8 @@ self.addEventListener("push", (event) => {
 
   const options = {
     body: data.body,
-    icon: "/file.svg",
-    badge: "/file.svg",
+    icon: "/favicon.ico",
+    badge: "/favicon.ico",
     vibrate: [100, 50, 100],
     data: {
       dateOfArrival: Date.now(),

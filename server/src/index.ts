@@ -32,7 +32,8 @@ initSocket(httpServer);
 // ─── Global Middleware ─────────────────────────────────────
 // Security headers
 app.use(helmet({
-  crossOriginResourcePolicy: { policy: "cross-origin" } // needed to serve images/files
+  crossOriginResourcePolicy: { policy: "cross-origin" }, // needed to serve images/files
+  crossOriginOpenerPolicy: { policy: "same-origin-allow-popups" }, // allows Google Sign-In popup postMessage
 }));
 
 // Rate limiting

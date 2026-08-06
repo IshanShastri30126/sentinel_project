@@ -62,6 +62,10 @@ async function executeApiRequest<T>(endpoint: string, options: FetchOptions = {}
         const refreshRes = await fetch(`${API_BASE}/auth/refresh`, {
           method: "POST",
           credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+            ...(deviceFingerprint ? { "X-Device-Fingerprint": deviceFingerprint } : {}),
+          },
         });
         if (refreshRes.ok) {
           const refreshData = await refreshRes.json();
@@ -75,6 +79,7 @@ async function executeApiRequest<T>(endpoint: string, options: FetchOptions = {}
               "Content-Type": "application/json",
               Authorization: `Bearer ${newAccessToken}`,
               "X-Club-Slug": activeClubSlug,
+              ...(deviceFingerprint ? { "X-Device-Fingerprint": deviceFingerprint } : {}),
               ...headers,
             },
             ...rest,
@@ -137,6 +142,7 @@ export async function apiUpload<T = unknown>(endpoint: string, formData: FormDat
   const cookieToken = Cookies.get("accessToken");
   const activeToken = cookieToken || token;
   const activeClubSlug = typeof window !== "undefined" ? localStorage.getItem("ck_active_club_slug") || "chakravyuh" : "chakravyuh";
+  const deviceFingerprint = typeof window !== "undefined" ? getDeviceFingerprint() : "";
 
   // Invalidate cache on upload (as it's a mutating action)
   apiCache.clear();
@@ -148,6 +154,7 @@ export async function apiUpload<T = unknown>(endpoint: string, formData: FormDat
       headers: {
         ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
         "X-Club-Slug": activeClubSlug,
+        ...(deviceFingerprint ? { "X-Device-Fingerprint": deviceFingerprint } : {}),
       },
       body: formData,
     });
@@ -159,6 +166,10 @@ export async function apiUpload<T = unknown>(endpoint: string, formData: FormDat
       const refreshRes = await fetch(`${API_BASE}/auth/refresh`, {
         method: "POST",
         credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          ...(deviceFingerprint ? { "X-Device-Fingerprint": deviceFingerprint } : {}),
+        },
       });
       if (refreshRes.ok) {
         const refreshData = await refreshRes.json();

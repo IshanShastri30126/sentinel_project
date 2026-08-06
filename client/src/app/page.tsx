@@ -96,6 +96,7 @@ const TypingText = () => {
 
 function EventCard({ ev, i }: { ev: EventItem; i: number }) {
   const cardRef = useRef<HTMLDivElement>(null);
+  const [posterError, setPosterError] = useState(false);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!cardRef.current) return;
@@ -141,8 +142,13 @@ function EventCard({ ev, i }: { ev: EventItem; i: number }) {
       
       {/* Cover image or fallback */}
       <div className="h-44 bg-[#050A18] relative overflow-hidden border-b border-white/5 z-10">
-        {ev.posterUrl ? (
-          <img src={getFileUrl(ev.posterUrl)} alt={ev.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-80 group-hover:opacity-95" />
+        {ev.posterUrl && !posterError ? (
+          <img
+            src={getFileUrl(ev.posterUrl)}
+            alt={ev.title}
+            onError={() => setPosterError(true)}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-80 group-hover:opacity-95"
+          />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center bg-[#030712] group-hover:scale-105 transition-transform duration-500">
             <div className="absolute inset-0 opacity-10" style={{ backgroundImage: "linear-gradient(#00F5D4 1px, transparent 1px), linear-gradient(90deg, #00F5D4 1px, transparent 1px)", backgroundSize: "30px 30px" }} />

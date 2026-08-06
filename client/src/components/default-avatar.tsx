@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 
 interface DefaultAvatarProps {
   className?: string;
@@ -7,22 +7,21 @@ interface DefaultAvatarProps {
 }
 
 export function DefaultAvatar({ className = "w-10 h-10", src, alt = "Participant Avatar" }: DefaultAvatarProps) {
-  // If a profile image URL is passed, display the participant's custom image
-  if (src) {
+  const [imgError, setImgError] = useState(false);
+
+  // If a profile image URL is passed and valid, display the participant's custom image
+  if (src && !imgError) {
     return (
       <img
         src={src}
         alt={alt}
         className={`${className} rounded-xl object-cover border border-[#00F5D4]/40 shadow-[0_0_12px_rgba(0,245,212,0.3)] shrink-0`}
-        onError={(e) => {
-          // Fallback to default hooded hacker avatar on image load error
-          (e.target as HTMLElement).style.display = "none";
-        }}
+        onError={() => setImgError(true)}
       />
     );
   }
 
-  // Default Cyberpunk Hooded Hacker Avatar with Green + Bluish Glow and 100% Transparent Background (No White Background)
+  // Default Cyberpunk Hooded Hacker Avatar with Green + Bluish Glow
   return (
     <div className={`relative inline-flex items-center justify-center rounded-xl bg-[#040814]/90 border border-[#00F5D4]/40 shadow-[0_0_14px_rgba(0,245,212,0.3)] overflow-hidden shrink-0 ${className}`}>
       <svg 
