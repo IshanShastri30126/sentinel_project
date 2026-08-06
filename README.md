@@ -9,7 +9,6 @@
 
 # 🌀 Chakravyuh Club
 
-**[Live Deployment: chakravyuh.vercel.app](https://chakravyuhclub-0.vercel.app/)**
 
 **Chakravyuh 2.0** is an advanced, high-performance web platform designed to manage the operations, events, and members of the Cyber Security & Operations Club. Featuring a sleek, futuristic UI and a highly optimized backend, it acts as the central intelligence hub for all club activities.
 
