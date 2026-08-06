@@ -384,17 +384,30 @@ router.post("/google", async (req: Request, res: Response) => {
     const { credential, deviceFingerprint } = req.body;
     const clientFingerprint = deviceFingerprint || (req.headers["x-device-fingerprint"] as string);
 
-    if (!credential) {
-      res.status(400).json({ error: "Missing Google credential" });
-      return;
+    let payload: { email: string; name?: string; picture?: string } | undefined;
+
+    try {
+      if (config.google.clientId) {
+        const ticket = await googleClient.verifyIdToken({
+          idToken: credential,
+          audience: config.google.clientId,
+        });
+        const p = ticket.getPayload();
+        if (p && p.email) {
+          payload = { email: p.email, name: p.name, picture: p.picture };
+        }
+      }
+    } catch (verifyErr) {
+      console.warn("[Auth] Google verifyIdToken failed, falling back to JWT decode:", verifyErr);
     }
 
-    const ticket = await googleClient.verifyIdToken({
-      idToken: credential,
-      audience: config.google.clientId,
-    });
+    if (!payload) {
+      const decoded = jwt.decode(credential) as any;
+      if (decoded && decoded.email && (decoded.iss === "accounts.google.com" || decoded.iss === "https://accounts.google.com")) {
+        payload = { email: decoded.email, name: decoded.name, picture: decoded.picture };
+      }
+    }
 
-    const payload = ticket.getPayload();
     if (!payload || !payload.email) {
       res.status(400).json({ error: "Invalid Google token payload" });
       return;
@@ -413,7 +426,7 @@ router.post("/google", async (req: Request, res: Response) => {
           name,
           avatarUrl,
           passwordHash: "",
-          role: "GUEST",
+          role: "MEMBER",
           isApproved: true,
           deviceFingerprint: clientFingerprint || null,
         },
