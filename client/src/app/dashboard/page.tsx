@@ -13,8 +13,6 @@ import {
   TrendingUp,
   ClipboardList,
   Clock,
-  ArrowUpRight,
-  UserCheck,
   UsersRound,
   Activity,
   ChevronRight,
@@ -913,7 +911,7 @@ export default function DashboardPage() {
               { value: memberHistory?.totalPoints ?? 0, label: "Contribution Points", icon: <Star className="w-5 h-5" />, accent: STAT_ACCENTS[1], bgIcon: <Sparkles className="w-5 h-5" /> },
               { value: memberHistory?.badges?.length ?? 0, label: "Badges Earned", icon: <Award className="w-5 h-5" />, accent: STAT_ACCENTS[2], bgIcon: <Shield className="w-5 h-5" /> },
               { value: memberHistory?.eventParticipation ?? 0, label: "Events Participated", icon: <Calendar className="w-5 h-5" />, accent: STAT_ACCENTS[0], bgIcon: <Activity className="w-5 h-5" /> },
-            ].map((stat, i) => (
+            ].map((stat) => (
               <motion.div
                 key={stat.label}
                 whileHover={{ scale: 1.03, y: -4 }}
@@ -969,6 +967,7 @@ export default function DashboardPage() {
                           {/* Image Poster with Status Badge */}
                           <div className="h-32 sm:h-40 relative overflow-hidden">
                             {event.posterUrl ? (
+                              /* eslint-disable-next-line @next/next/no-img-element */
                               <img
                                 src={getFileUrl(event.posterUrl)}
                                 alt={event.title}
@@ -1095,7 +1094,6 @@ export default function DashboardPage() {
                 ) : (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
                     {memberEvents.map((event) => {
-                      const { day, month } = formatDateBadge(event.startDate);
                       return (
                         <motion.div
                           key={event.id}
@@ -1106,6 +1104,7 @@ export default function DashboardPage() {
                           {/* Image Poster with Category Badge */}
                           <div className="h-32 sm:h-40 relative overflow-hidden">
                             {event.posterUrl ? (
+                              /* eslint-disable-next-line @next/next/no-img-element */
                               <img
                                 src={getFileUrl(event.posterUrl)}
                                 alt={event.title}
@@ -1167,10 +1166,11 @@ export default function DashboardPage() {
                             </div>
 
                             <button
-                              onClick={() => router.push(`/events/${event.slug}`)}
-                              className="w-full ck-btn-primary py-2.5 text-xs mt-4 sm:mt-5 flex items-center justify-center gap-1.5 font-bold font-mono tracking-wider uppercase"
+                              onClick={() => handleQuickRegister(event.id, event.title)}
+                              disabled={registeringId === event.id}
+                              className="w-full ck-btn-primary py-2.5 text-xs mt-4 sm:mt-5 flex items-center justify-center gap-1.5 font-bold font-mono tracking-wider uppercase disabled:opacity-50"
                             >
-                              <Zap className="w-3.5 h-3.5" /> Register to Participate
+                              <Zap className="w-3.5 h-3.5" /> {registeringId === event.id ? "Registering..." : "Quick Register"}
                             </button>
                           </div>
                         </motion.div>
