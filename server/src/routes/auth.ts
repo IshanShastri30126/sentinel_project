@@ -438,7 +438,6 @@ router.post("/google", async (req: Request, res: Response) => {
           role: "MEMBER",
           isApproved: true,
           deviceFingerprint: clientFingerprint || null,
-          lastActiveAt: new Date(),
         },
       });
 
@@ -455,10 +454,14 @@ router.post("/google", async (req: Request, res: Response) => {
       if (boundRoles.includes(user.role)) {
         if (clientFingerprint) {
           if (!user.deviceFingerprint) {
-            await prisma.user.update({
-              where: { id: user.id },
-              data: { deviceFingerprint: clientFingerprint, boundDeviceId: clientFingerprint },
-            });
+            try {
+              await prisma.user.update({
+                where: { id: user.id },
+                data: { deviceFingerprint: clientFingerprint, boundDeviceId: clientFingerprint },
+              });
+            } catch (e) {
+              console.warn("[Auth] Device binding update skipped:", e);
+            }
           } else if (user.deviceFingerprint !== clientFingerprint) {
             await logAuditEvent({
               action: "UNAUTHORIZED_DEVICE_GOOGLE_LOGIN_ATTEMPT",
@@ -478,10 +481,14 @@ router.post("/google", async (req: Request, res: Response) => {
         }
       }
 
-      await prisma.user.update({
-        where: { id: user.id },
-        data: { lastActiveAt: new Date() },
-      });
+      try {
+        await prisma.user.update({
+          where: { id: user.id },
+          data: { lastActiveAt: new Date() },
+        });
+      } catch (e) {
+        console.warn("[Auth] lastActiveAt update skipped:", e);
+      }
     }
 
     if (!user.isActive) {
