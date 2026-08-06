@@ -384,27 +384,36 @@ router.post("/google", async (req: Request, res: Response) => {
     const { credential, deviceFingerprint } = req.body;
     const clientFingerprint = deviceFingerprint || (req.headers["x-device-fingerprint"] as string);
 
-    let payload: { email: string; name?: string; picture?: string } | undefined;
-
-    try {
-      if (config.google.clientId) {
-        const ticket = await googleClient.verifyIdToken({
-          idToken: credential,
-          audience: config.google.clientId,
-        });
-        const p = ticket.getPayload();
-        if (p && p.email) {
-          payload = { email: p.email, name: p.name, picture: p.picture };
-        }
-      }
-    } catch (verifyErr) {
-      console.warn("[Auth] Google verifyIdToken failed, falling back to JWT decode:", verifyErr);
+    if (!credential) {
+      res.status(400).json({ error: "Missing Google credential token" });
+      return;
     }
 
+    let payload: { email: string; name?: string; picture?: string } | undefined;
+
+    // 1. Attempt verification via google-auth-library
+    try {
+      const ticket = await googleClient.verifyIdToken({
+        idToken: credential,
+        ...(config.google.clientId ? { audience: config.google.clientId } : {}),
+      });
+      const p = ticket.getPayload();
+      if (p && p.email) {
+        payload = { email: p.email, name: p.name, picture: p.picture };
+      }
+    } catch (verifyErr) {
+      console.warn("[Auth] Google verifyIdToken failed, attempting fallback decode:", verifyErr);
+    }
+
+    // 2. Fallback JWT decoding if verifyIdToken is unconfigured or failed
     if (!payload) {
-      const decoded = jwt.decode(credential) as any;
-      if (decoded && decoded.email && (decoded.iss === "accounts.google.com" || decoded.iss === "https://accounts.google.com")) {
-        payload = { email: decoded.email, name: decoded.name, picture: decoded.picture };
+      try {
+        const decoded = jwt.decode(credential) as any;
+        if (decoded && decoded.email && (decoded.iss === "accounts.google.com" || decoded.iss === "https://accounts.google.com")) {
+          payload = { email: decoded.email, name: decoded.name, picture: decoded.picture };
+        }
+      } catch (decodeErr) {
+        console.warn("[Auth] JWT decode of Google credential failed:", decodeErr);
       }
     }
 
@@ -429,6 +438,7 @@ router.post("/google", async (req: Request, res: Response) => {
           role: "MEMBER",
           isApproved: true,
           deviceFingerprint: clientFingerprint || null,
+          lastActiveAt: new Date(),
         },
       });
 
@@ -438,6 +448,39 @@ router.post("/google", async (req: Request, res: Response) => {
         outcome: "SUCCESS",
         context: { email },
         req,
+      });
+    } else {
+      // Device Binding check for existing bound accounts
+      const boundRoles: Role[] = ["TECH", "FACULTY", "STUDENT_COORDINATOR"];
+      if (boundRoles.includes(user.role)) {
+        if (clientFingerprint) {
+          if (!user.deviceFingerprint) {
+            await prisma.user.update({
+              where: { id: user.id },
+              data: { deviceFingerprint: clientFingerprint, boundDeviceId: clientFingerprint },
+            });
+          } else if (user.deviceFingerprint !== clientFingerprint) {
+            await logAuditEvent({
+              action: "UNAUTHORIZED_DEVICE_GOOGLE_LOGIN_ATTEMPT",
+              userId: user.id,
+              outcome: "REJECTED",
+              context: {
+                boundDevice: user.deviceFingerprint,
+                attemptedDevice: clientFingerprint,
+              },
+              req,
+            });
+            res.status(403).json({
+              error: "Access Denied: Account bound to a different authorized device.",
+            });
+            return;
+          }
+        }
+      }
+
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { lastActiveAt: new Date() },
       });
     }
 
@@ -477,9 +520,9 @@ router.post("/google", async (req: Request, res: Response) => {
       },
       accessToken,
     });
-  } catch (err) {
+  } catch (err: any) {
     console.error("[Auth] Google Login error:", err);
-    res.status(500).json({ error: "Internal server error during Google login" });
+    res.status(500).json({ error: err?.message || "Internal server error during Google login" });
   }
 });
 
