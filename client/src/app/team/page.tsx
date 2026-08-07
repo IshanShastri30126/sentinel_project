@@ -2,9 +2,10 @@
 
 import React, { useEffect, useState, useRef } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Shield, ArrowLeft, Users, Mail, Info, LogIn, Eye } from "lucide-react";
-import { api } from "@/lib/api";
+import { api, getFileUrl } from "@/lib/api";
 import { CyberKavachLogo } from "@/components/CyberKavachLogo";
 
 const GithubIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
@@ -387,7 +388,9 @@ const ROLE_LABELS: Record<string, string> = {
 };
 
 const TeamGrid = ({ list, title, tag }: { list: TeamMemberItem[]; title: string; tag: string }) => {
+  const router = useRouter();
   if (list.length === 0) return null;
+
   return (
     <div className="mb-24">
       {/* Section Header with Cyber Line */}
@@ -405,6 +408,7 @@ const TeamGrid = ({ list, title, tag }: { list: TeamMemberItem[]; title: string;
           const linkedInUrl = member.linkedin ? `https://linkedin.com/in/${member.linkedin.trim()}` : `https://linkedin.com/search/results/all/?keywords=${encodeURIComponent(member.name)}`;
           const instagramUrl = member.instagram ? `https://www.instagram.com/${member.instagram.trim()}/` : `https://www.instagram.com/chakravyuh.charusat/`;
           const emailUrl = member.email ? `mailto:${member.email}` : `mailto:support@chakravyuhclub.com`;
+          const avatarSrc = member.avatarUrl ? getFileUrl(member.avatarUrl) : null;
 
           return (
             <motion.div
@@ -414,58 +418,89 @@ const TeamGrid = ({ list, title, tag }: { list: TeamMemberItem[]; title: string;
               viewport={{ once: true }}
               transition={{ delay: idx * 0.05 }}
               whileHover={{ y: -6, transition: { duration: 0.2 } }}
-              className="bg-[#050505] border border-zinc-800/80 hover:border-red-600/50 rounded-2xl p-6 relative overflow-hidden group transition-all duration-300 flex flex-col justify-between"
+              onClick={() => router.push(`/team/${member.id}`)}
+              className="bg-[#050505] border border-zinc-800/80 hover:border-red-600/60 rounded-2xl relative overflow-hidden group transition-all duration-300 flex flex-col justify-between shadow-2xl hover:shadow-[0_0_30px_rgba(220,38,38,0.2)] cursor-pointer min-h-[380px]"
             >
-              {/* Corner HUD Accent */}
-              <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-red-600/10 to-transparent pointer-events-none group-hover:from-red-600/20 transition-all" />
-              <div className="absolute top-3 right-3 text-[9px] font-mono text-zinc-600 group-hover:text-red-500 transition-colors uppercase tracking-widest font-bold">
-                {getClearanceLevel(member.role)}
-              </div>
-
-              <div>
-                {/* Operative Avatar Block */}
-                <div className="flex items-center gap-4 mb-5">
-                  <div className="relative">
-                    {member.avatarUrl ? (
-                      <img
-                        src={member.avatarUrl}
-                        alt={member.name}
-                        className="w-16 h-16 rounded-xl object-cover border border-zinc-700 group-hover:border-red-500 transition-colors shadow-[0_0_15px_rgba(0,0,0,0.8)]"
-                      />
-                    ) : (
-                      <div className="w-16 h-16 rounded-xl bg-zinc-900 border border-zinc-700 flex items-center justify-center text-zinc-500 font-mono text-xl font-bold group-hover:border-red-500 transition-colors">
-                        {member.name.charAt(0)}
-                      </div>
-                    )}
-                    <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-red-600 rounded-full border-2 border-black flex items-center justify-center">
-                      <div className="w-1.5 h-1.5 bg-white rounded-full animate-ping" />
+              {/* Full Card Cover Image Background */}
+              <div className="relative h-64 sm:h-72 w-full overflow-hidden bg-zinc-950">
+                {avatarSrc ? (
+                  <img
+                    src={avatarSrc}
+                    alt={member.name}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-br from-zinc-900 via-zinc-950 to-black flex items-center justify-center relative">
+                    <div className="w-24 h-24 rounded-2xl bg-red-600/10 border-2 border-red-500/30 flex items-center justify-center text-red-500 font-mono text-4xl font-extrabold shadow-[0_0_30px_rgba(220,38,38,0.2)]">
+                      {member.name.charAt(0)}
                     </div>
                   </div>
+                )}
 
-                  <div>
-                    <h3 className="text-lg font-bold text-white group-hover:text-red-400 transition-colors font-mono line-clamp-1">{member.name}</h3>
-                    <p className="text-xs text-red-500 font-mono tracking-wider font-semibold uppercase">{member.designation}</p>
-                    <p className="text-[10px] text-zinc-500 font-mono tracking-widest uppercase mt-0.5">{ROLE_LABELS[member.role] || member.role}</p>
-                  </div>
+                {/* Gradient Fade to Black at Card Bottom */}
+                <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/50 to-transparent pointer-events-none" />
+
+                {/* Clearance Tag at Top Right */}
+                <div className="absolute top-3 right-3 text-[9px] font-mono text-zinc-400 bg-black/80 border border-zinc-800 group-hover:border-red-500/50 group-hover:text-red-400 px-2.5 py-1 rounded-full uppercase tracking-widest font-bold backdrop-blur-md z-10 shadow-md transition-colors">
+                  {getClearanceLevel(member.role)}
                 </div>
 
-                {/* Bio Terminal */}
-                <p className="text-xs text-zinc-400 font-mono leading-relaxed line-clamp-3 mb-6 bg-black/40 p-3 rounded-lg border border-white/5">
-                  {member.bio || "Active operative contributing to Chakravyuh Club digital infrastructure, cyber defense ops, and event coordination."}
-                </p>
+                {/* Operative Header Info Overlaid on Image */}
+                <div className="absolute bottom-3 left-4 right-4 z-10">
+                  <h3 className="text-xl font-bold text-white group-hover:text-red-400 transition-colors font-mono line-clamp-1">
+                    {member.name}
+                  </h3>
+                  <p className="text-xs text-red-500 font-mono tracking-wider font-semibold uppercase mt-0.5">
+                    {member.designation}
+                  </p>
+                  <p className="text-[10px] text-zinc-400 font-mono tracking-widest uppercase mt-0.5">
+                    {ROLE_LABELS[member.role] || member.role}
+                  </p>
+                </div>
               </div>
 
-              {/* Social Channels */}
-              <div className="flex items-center gap-2 pt-4 border-t border-zinc-900">
-                <a href={linkedInUrl} target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded-full border border-white/10 flex items-center justify-center text-zinc-500 hover:text-white hover:border-red-500 hover:bg-red-500/10 hover:shadow-[0_0_10px_rgba(220,38,38,0.4)] transition-all" title="LinkedIn Profile">
-                  <LinkedinIcon className="w-4 h-4" />
-                </a>
-                <a href={instagramUrl} target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded-full border border-white/10 flex items-center justify-center text-zinc-500 hover:text-white hover:border-red-500 hover:bg-red-500/10 hover:shadow-[0_0_10px_rgba(220,38,38,0.4)] transition-all" title="Instagram Profile">
-                  <InstagramIcon className="w-4 h-4" />
-                </a>
-                <a href={emailUrl} className="w-8 h-8 rounded-full border border-white/10 flex items-center justify-center text-zinc-500 hover:text-white hover:border-red-500 hover:bg-red-500/10 hover:shadow-[0_0_10px_rgba(220,38,38,0.4)] transition-all" title="Secure Broadcast Mail">
-                  <Mail className="w-4 h-4" />
-                </a>
+              {/* Bottom Profile Info & Public Link / Social Buttons */}
+              <div className="p-4 pt-1 space-y-3">
+                <p className="text-xs text-zinc-400 font-mono leading-relaxed line-clamp-2 bg-black/50 p-2.5 rounded-lg border border-white/5 group-hover:border-red-950/40 transition-colors">
+                  {member.bio || "Active operative contributing to Chakravyuh Club digital infrastructure, cyber defense ops, and event coordination."}
+                </p>
+
+                <div className="flex items-center justify-between pt-2.5 border-t border-zinc-900">
+                  {/* Public Profile View Link */}
+                  <div className="flex items-center gap-1.5 text-xs font-mono text-zinc-400 group-hover:text-red-400 transition-colors font-bold uppercase tracking-wider">
+                    <Eye className="w-4 h-4 text-red-500" />
+                    <span>View Profile</span>
+                  </div>
+
+                  {/* External Social Icons */}
+                  <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                    <a
+                      href={linkedInUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-7 h-7 rounded-full border border-white/10 flex items-center justify-center text-zinc-400 hover:text-white hover:border-red-500 hover:bg-red-500/10 hover:shadow-[0_0_10px_rgba(220,38,38,0.4)] transition-all"
+                      title="LinkedIn Profile"
+                    >
+                      <LinkedinIcon className="w-3.5 h-3.5" />
+                    </a>
+                    <a
+                      href={instagramUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-7 h-7 rounded-full border border-white/10 flex items-center justify-center text-zinc-400 hover:text-white hover:border-red-500 hover:bg-red-500/10 hover:shadow-[0_0_10px_rgba(220,38,38,0.4)] transition-all"
+                      title="Instagram Profile"
+                    >
+                      <InstagramIcon className="w-3.5 h-3.5" />
+                    </a>
+                    <a
+                      href={emailUrl}
+                      className="w-7 h-7 rounded-full border border-white/10 flex items-center justify-center text-zinc-400 hover:text-white hover:border-red-500 hover:bg-red-500/10 hover:shadow-[0_0_10px_rgba(220,38,38,0.4)] transition-all"
+                      title="Secure Broadcast Mail"
+                    >
+                      <Mail className="w-3.5 h-3.5" />
+                    </a>
+                  </div>
+                </div>
               </div>
             </motion.div>
           );
