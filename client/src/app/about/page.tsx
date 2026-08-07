@@ -4,6 +4,7 @@ import React from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Shield, ArrowLeft, ShieldAlert, Trophy, Terminal, Heart, Info, Users, LogIn } from "lucide-react";
+import { CyberKavachLogo } from "@/components/CyberKavachLogo";
 
 const LinkedinIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
   <svg viewBox="0 0 24 24" fill="currentColor" className={className} style={{ width: "1em", height: "1em" }}>
@@ -81,10 +82,7 @@ export default function AboutPage() {
           </Link>
           <div className="flex items-center gap-3">
             <Link href="/" className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#FFD700] to-[#D4AF37] flex items-center justify-center shadow-[0_0_20px_rgba(255,215,0,0.5)] border border-[#FFD700]/50">
-                <Shield className="w-6 h-6 text-black shrink-0" />
-              </div>
-              <span className="text-xl font-bold tracking-widest font-mono hidden sm:inline-block text-[#FFD700]">CHAKRAVYUH</span>
+              <CyberKavachLogo animateDrawing={true} />
             </Link>
           </div>
         </motion.div>
@@ -203,8 +201,7 @@ export default function AboutPage() {
       <footer className="border-t border-[#121F3D] bg-[#030712] py-12 relative z-10">
         <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-2">
-            <Shield className="w-5 h-5 text-[#FFD700]" />
-            <span className="font-bold tracking-widest font-mono text-white">CHAKRAVYUH</span>
+            <CyberKavachLogo collapsed={true} showText={true} />
           </div>
           
           {/* Social Links */}
