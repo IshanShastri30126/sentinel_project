@@ -9,6 +9,7 @@ import { ArrowLeft, Shield, Mail, Lock, User, ArrowRight, Eye, EyeOff, AlertCirc
 import { GoogleLogin } from "@react-oauth/google";
 import PlexusBackground from "@/components/PlexusBackground";
 import { CyberKavachLogo } from "@/components/CyberKavachLogo";
+import { api } from "@/lib/api";
 export const INSTITUTES = ["CSPIT", "DEPSTAR", "PDPIAS", "CMPICA", "IIIM"] as const;
 
 export const INSTITUTE_DEPARTMENTS: Record<string, string[]> = {
