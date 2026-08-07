@@ -8,6 +8,8 @@ interface BeforeInstallPromptEvent extends Event {
   userChoice: Promise<{ outcome: "accepted" | "dismissed"; platform: string }>;
 }
 
+const STORAGE_KEY = "pwa_prompt_dismissed";
+
 export function PWARegistration() {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [isInstallable, setIsInstallable] = useState(false);
@@ -15,7 +17,10 @@ export function PWARegistration() {
     if (typeof window === "undefined") return false;
     return window.matchMedia("(display-mode: standalone)").matches || Boolean((navigator as unknown as { standalone?: boolean }).standalone);
   });
-  const [isDismissed, setIsDismissed] = useState(false);
+  const [isDismissed, setIsDismissed] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return localStorage.getItem(STORAGE_KEY) === "true";
+  });
 
   useEffect(() => {
     if (typeof window !== "undefined" && "serviceWorker" in navigator) {
@@ -45,7 +50,9 @@ export function PWARegistration() {
     const handleBeforeInstall = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
-      setIsInstallable(true);
+      if (localStorage.getItem(STORAGE_KEY) !== "true") {
+        setIsInstallable(true);
+      }
     };
 
     window.addEventListener("beforeinstallprompt", handleBeforeInstall);
@@ -60,6 +67,13 @@ export function PWARegistration() {
     };
   }, []);
 
+  const handleDismiss = () => {
+    setIsDismissed(true);
+    if (typeof window !== "undefined") {
+      localStorage.setItem(STORAGE_KEY, "true");
+    }
+  };
+
   const handleInstallClick = async () => {
     if (!deferredPrompt) return;
     deferredPrompt.prompt();
@@ -67,6 +81,7 @@ export function PWARegistration() {
     console.log(`[PWA] User response to install prompt: ${outcome}`);
     setDeferredPrompt(null);
     setIsInstallable(false);
+    handleDismiss();
   };
 
   const requestNotificationPermission = async () => {
@@ -95,8 +110,9 @@ export function PWARegistration() {
           </div>
         </div>
         <button
-          onClick={() => setIsDismissed(true)}
+          onClick={handleDismiss}
           className="text-slate-400 hover:text-white transition-colors p-1"
+          aria-label="Close Install App Popup"
         >
           <X className="w-4 h-4" />
         </button>
@@ -104,7 +120,7 @@ export function PWARegistration() {
 
       <div className="mt-4 flex gap-2 justify-end">
         <button
-          onClick={() => setIsDismissed(true)}
+          onClick={handleDismiss}
           className="px-3 py-1.5 rounded-lg border border-slate-700 text-slate-400 hover:text-white hover:border-slate-500 transition-colors uppercase text-[10px]"
         >
           Later
