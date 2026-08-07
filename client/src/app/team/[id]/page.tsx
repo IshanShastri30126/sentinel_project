@@ -296,7 +296,9 @@ export default function MemberProfilePage() {
                   <div className="flex items-center gap-3 text-zinc-350">
                     <IdCard className="w-4 h-4 text-[#FF003C]" />
                     <div>
-                      <p className="text-[9px] uppercase text-zinc-500">Access ID</p>
+                      <p className="text-[9px] uppercase text-zinc-500">
+                        {member.role === "FACULTY" ? "Employee ID" : "Access ID"}
+                      </p>
                       <p className="text-white">{member.studentId}</p>
                     </div>
                   </div>

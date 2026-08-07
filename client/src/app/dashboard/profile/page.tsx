@@ -289,13 +289,15 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          {/* Student ID */}
+          {/* Student / Employee ID */}
           <div className="p-3.5 rounded-xl border border-zinc-900/60 bg-zinc-950/30 flex items-center gap-4 hover:border-[var(--ck-border)] transition duration-300">
             <div className="w-9 h-9 rounded-lg bg-[var(--ck-bg-card)] flex items-center justify-center text-[var(--ck-text-secondary)] border border-zinc-850">
               <Hash className="w-4 h-4" />
             </div>
             <div className="min-w-0">
-              <p className="text-[10px] uppercase tracking-wider text-[var(--ck-text-muted)] font-semibold">Student ID</p>
+              <p className="text-[10px] uppercase tracking-wider text-[var(--ck-text-muted)] font-semibold">
+                {user?.role === "FACULTY" ? "Employee ID" : "Student ID"}
+              </p>
               <p className="font-bold mt-0.5 text-[var(--ck-text)] truncate">{user?.studentId || "N/A"}</p>
             </div>
           </div>
@@ -322,16 +324,18 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          {/* Semester */}
-          <div className="p-3.5 rounded-xl border border-zinc-900/60 bg-zinc-950/30 flex items-center gap-4 hover:border-[var(--ck-border)] transition duration-300">
-            <div className="w-9 h-9 rounded-lg bg-[var(--ck-bg-card)] flex items-center justify-center text-[var(--ck-text-secondary)] border border-zinc-850">
-              <GraduationCap className="w-4 h-4" />
+          {/* Semester (Removed for Faculty) */}
+          {user?.role !== "FACULTY" && (
+            <div className="p-3.5 rounded-xl border border-zinc-900/60 bg-zinc-950/30 flex items-center gap-4 hover:border-[var(--ck-border)] transition duration-300">
+              <div className="w-9 h-9 rounded-lg bg-[var(--ck-bg-card)] flex items-center justify-center text-[var(--ck-text-secondary)] border border-zinc-850">
+                <GraduationCap className="w-4 h-4" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-[10px] uppercase tracking-wider text-[var(--ck-text-muted)] font-semibold">Semester</p>
+                <p className="font-bold mt-0.5 text-[var(--ck-text)] truncate">{user?.semester || "N/A"}</p>
+              </div>
             </div>
-            <div className="min-w-0">
-              <p className="text-[10px] uppercase tracking-wider text-[var(--ck-text-muted)] font-semibold">Semester</p>
-              <p className="font-bold mt-0.5 text-[var(--ck-text)] truncate">{user?.semester || "N/A"}</p>
-            </div>
-          </div>
+          )}
 
           {/* Contact info */}
           <div className="p-3.5 rounded-xl border border-zinc-900/60 bg-zinc-950/30 flex items-center gap-4 hover:border-[var(--ck-border)] transition duration-300 sm:col-span-2">
@@ -411,24 +415,32 @@ export default function ProfilePage() {
                 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="ck-label">Student ID</label>
+                    <label className="ck-label">{user?.role === "FACULTY" ? "Employee ID" : "Student ID"}</label>
                     <input className="ck-input" value={editStudentId} onChange={(e) => setEditStudentId(e.target.value)} required />
                   </div>
                   <div>
-                    <label className="ck-label">Contact / Phone</label>
-                    <input className="ck-input" value={editPhone} onChange={(e) => setEditPhone(e.target.value)} required />
+                    <label className="ck-label">Mobile Number (10 Digits)</label>
+                    <input 
+                      className="ck-input" 
+                      value={editPhone} 
+                      maxLength={10}
+                      onChange={(e) => setEditPhone(e.target.value.replace(/\D/g, "").slice(0, 10))} 
+                      required 
+                    />
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <div className="sm:col-span-2">
+                <div className={`grid grid-cols-1 ${user?.role === "FACULTY" ? "sm:grid-cols-1" : "sm:grid-cols-3"} gap-4`}>
+                  <div className={user?.role === "FACULTY" ? "sm:col-span-1" : "sm:col-span-2"}>
                     <label className="ck-label">Department</label>
                     <input className="ck-input" value={editDepartment} onChange={(e) => setEditDepartment(e.target.value)} required />
                   </div>
-                  <div>
-                    <label className="ck-label">Semester</label>
-                    <input className="ck-input" value={editSemester} onChange={(e) => setEditSemester(e.target.value)} required />
-                  </div>
+                  {user?.role !== "FACULTY" && (
+                    <div>
+                      <label className="ck-label">Semester</label>
+                      <input className="ck-input" value={editSemester} onChange={(e) => setEditSemester(e.target.value)} required />
+                    </div>
+                  )}
                 </div>
 
                 <div>

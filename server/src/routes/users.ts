@@ -341,10 +341,22 @@ router.patch("/profile", authenticate, upload.single("avatar"), async (req: Requ
         updateData.studentId = null;
       }
     }
-    if (phone !== undefined) updateData.phone = phone || null;
+    if (phone !== undefined) {
+      if (phone && !/^\d{10}$/.test(phone)) {
+        res.status(400).json({ error: "Mobile number must be exactly 10 digits" });
+        return;
+      }
+      updateData.phone = phone || null;
+    }
     if (department !== undefined) updateData.department = department || null;
     if (institute !== undefined) updateData.institute = institute || null;
-    if (semester !== undefined) updateData.semester = semester || null;
+
+    const currentUser = await prisma.user.findUnique({ where: { id: userId }, select: { role: true } });
+    if (currentUser?.role === "FACULTY") {
+      updateData.semester = null;
+    } else if (semester !== undefined) {
+      updateData.semester = semester || null;
+    }
 
     if (Object.keys(updateData).length === 0) {
       res.status(400).json({ error: "No update fields provided" });

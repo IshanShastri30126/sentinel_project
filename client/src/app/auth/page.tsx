@@ -200,10 +200,10 @@ function LoginPageContent() {
                         </div>
                       </div>
                       <div>
-                        <label className="block text-[10px] font-mono text-[#FFD700] uppercase tracking-wider mb-1">Student ID</label>
+                        <label className="block text-[10px] font-mono text-[#FFD700] uppercase tracking-wider mb-1">Student / Employee ID</label>
                         <div className="relative">
                           <GraduationCap className="w-4 h-4 text-[#00F5D4] absolute left-3 top-1/2 -translate-y-1/2" />
-                          <input type="text" placeholder="e.g. 24CS101" value={studentId} onChange={(e) => setStudentId(e.target.value)} required={!isLogin} className="w-full bg-[#080E24] border border-[#121F3D] focus:border-[#FFD700] focus:outline-none rounded-xl text-xs text-white pl-9 pr-3 py-2.5 font-mono" />
+                          <input type="text" placeholder="e.g. 24CS101 or EMP101" value={studentId} onChange={(e) => setStudentId(e.target.value)} required={!isLogin} className="w-full bg-[#080E24] border border-[#121F3D] focus:border-[#FFD700] focus:outline-none rounded-xl text-xs text-white pl-9 pr-3 py-2.5 font-mono" />
                         </div>
                       </div>
                     </div>
@@ -227,17 +227,25 @@ function LoginPageContent() {
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                       <div>
-                        <label className="block text-[10px] font-mono text-[#FFD700] uppercase tracking-wider mb-1">Semester</label>
+                        <label className="block text-[10px] font-mono text-[#FFD700] uppercase tracking-wider mb-1">Semester (Students)</label>
                         <div className="relative">
                           <GraduationCap className="w-4 h-4 text-[#00F5D4] absolute left-3 top-1/2 -translate-y-1/2" />
-                          <input type="text" placeholder="e.g. 1-8" value={semester} onChange={(e) => setSemester(e.target.value)} required={!isLogin} className="w-full bg-[#080E24] border border-[#121F3D] focus:border-[#FFD700] focus:outline-none rounded-xl text-xs text-white pl-9 pr-3 py-2.5 font-mono" />
+                          <input type="text" placeholder="e.g. 1-8 (Faculty leave blank)" value={semester} onChange={(e) => setSemester(e.target.value)} className="w-full bg-[#080E24] border border-[#121F3D] focus:border-[#FFD700] focus:outline-none rounded-xl text-xs text-white pl-9 pr-3 py-2.5 font-mono" />
                         </div>
                       </div>
                       <div>
-                        <label className="block text-[10px] font-mono text-[#FFD700] uppercase tracking-wider mb-1">Phone Number</label>
+                        <label className="block text-[10px] font-mono text-[#FFD700] uppercase tracking-wider mb-1">Mobile Number (10 Digits)</label>
                         <div className="relative">
                           <Smartphone className="w-4 h-4 text-[#00F5D4] absolute left-3 top-1/2 -translate-y-1/2" />
-                          <input type="text" placeholder="Contact number" value={phone} onChange={(e) => setPhone(e.target.value)} required={!isLogin} className="w-full bg-[#080E24] border border-[#121F3D] focus:border-[#FFD700] focus:outline-none rounded-xl text-xs text-white pl-9 pr-3 py-2.5 font-mono" />
+                          <input 
+                            type="text" 
+                            placeholder="10-digit mobile number" 
+                            value={phone} 
+                            maxLength={10}
+                            onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))} 
+                            required={!isLogin} 
+                            className="w-full bg-[#080E24] border border-[#121F3D] focus:border-[#FFD700] focus:outline-none rounded-xl text-xs text-white pl-9 pr-3 py-2.5 font-mono" 
+                          />
                         </div>
                       </div>
                     </div>

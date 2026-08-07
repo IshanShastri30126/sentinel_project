@@ -192,7 +192,7 @@ export default function UsersPage() {
                         <div>
                           <p className="text-sm font-semibold text-[var(--ck-text)] tracking-wide">{u.name}</p>
                           <p className="text-[10px] font-mono mt-0.5 text-[var(--ck-text-muted)] uppercase">
-                            {u.studentId ? `STID: ${u.studentId}` : "GUEST / NO ID"}
+                            {u.studentId ? (u.role === "FACULTY" ? `EMPID: ${u.studentId}` : `STID: ${u.studentId}`) : "GUEST / NO ID"}
                           </p>
                         </div>
                       </div>
@@ -221,7 +221,7 @@ export default function UsersPage() {
                           <GraduationCap className="w-3.5 h-3.5 text-[var(--ck-accent)]/60" /> {u.department || "N/A"}
                         </p>
                         <p className="text-[10px] text-[var(--ck-text-muted)] font-mono uppercase pl-5">
-                          {u.semester ? `SEM: ${u.semester}` : "SEM: —"} / {u.institute || "GUEST"}
+                          {u.role === "FACULTY" ? (u.institute || "FACULTY") : `${u.semester ? `SEM: ${u.semester}` : "SEM: —"} / ${u.institute || "GUEST"}`}
                         </p>
                       </div>
                     </td>

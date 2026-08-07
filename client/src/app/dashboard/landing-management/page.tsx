@@ -407,33 +407,36 @@ export default function LandingManagementPage() {
                       />
                     </div>
                     <div>
-                      <label className="text-[10px] uppercase font-mono text-[var(--ck-text-muted)] font-bold">Student ID</label>
+                      <label className="text-[10px] uppercase font-mono text-[var(--ck-text-muted)] font-bold">
+                        {activeMember.role === "FACULTY" ? "Employee ID" : "Student ID"}
+                      </label>
                       <input 
                         type="text"
                         className="ck-input w-full mt-1"
-                        value={activeMember.studentId} 
+                        value={activeMember.studentId || ""} 
                         onChange={(e) => setActiveMember({ ...activeMember, studentId: e.target.value })}
-                        placeholder="e.g. 22DCS116"
+                        placeholder={activeMember.role === "FACULTY" ? "e.g. EMP101" : "e.g. 22DCS116"}
                       />
                     </div>
                     <div>
-                      <label className="text-[10px] uppercase font-mono text-[var(--ck-text-muted)] font-bold">Email Address</label>
+                      <label className="text-[10px] uppercase font-mono text-[var(--ck-text-muted)] font-bold">College Email Address</label>
                       <input 
                         type="email"
                         className="ck-input w-full mt-1"
-                        value={activeMember.email} 
+                        value={activeMember.email || ""} 
                         onChange={(e) => setActiveMember({ ...activeMember, email: e.target.value })}
                         placeholder="e.g. hitansh@gmail.com"
                       />
                     </div>
                     <div>
-                      <label className="text-[10px] uppercase font-mono text-[var(--ck-text-muted)] font-bold">Phone Number</label>
+                      <label className="text-[10px] uppercase font-mono text-[var(--ck-text-muted)] font-bold">Mobile Number (10 Digits)</label>
                       <input 
                         type="text"
                         className="ck-input w-full mt-1"
-                        value={activeMember.phone} 
-                        onChange={(e) => setActiveMember({ ...activeMember, phone: e.target.value })}
-                        placeholder="e.g. +91 99999 88888"
+                        maxLength={10}
+                        value={activeMember.phone || ""} 
+                        onChange={(e) => setActiveMember({ ...activeMember, phone: e.target.value.replace(/\D/g, "").slice(0, 10) })}
+                        placeholder="e.g. 9999988888"
                       />
                     </div>
                   </div>
