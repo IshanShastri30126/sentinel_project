@@ -178,33 +178,7 @@ interface MemberRow {
   points: number;
 }
 
-const MOCK_MEMBERS: MemberRow[] = [
-  { id: "CK-001", name: "Aarav Sharma", email: "aarav.s@university.edu", role: "Tech", status: "active", joinedDate: "2025-01-15", points: 340 },
-  { id: "CK-002", name: "Priya Patel", email: "priya.p@university.edu", role: "Content", status: "active", joinedDate: "2025-02-03", points: 285 },
-  { id: "CK-003", name: "Rohan Gupta", email: "rohan.g@university.edu", role: "Member", status: "active", joinedDate: "2025-01-22", points: 192 },
-  { id: "CK-004", name: "Ananya Iyer", email: "ananya.i@university.edu", role: "Social Media", status: "active", joinedDate: "2025-03-11", points: 420 },
-  { id: "CK-005", name: "Vikram Singh", email: "vikram.s@university.edu", role: "Tech", status: "inactive", joinedDate: "2024-11-05", points: 88 },
-  { id: "CK-006", name: "Neha Reddy", email: "neha.r@university.edu", role: "Member", status: "active", joinedDate: "2025-04-19", points: 156 },
-  { id: "CK-007", name: "Arjun Mehta", email: "arjun.m@university.edu", role: "Tech", status: "active", joinedDate: "2025-02-28", points: 310 },
-  { id: "CK-008", name: "Kavya Nair", email: "kavya.n@university.edu", role: "Content", status: "pending", joinedDate: "2025-05-01", points: 45 },
-  { id: "CK-009", name: "Aditya Kumar", email: "aditya.k@university.edu", role: "Member", status: "active", joinedDate: "2025-01-08", points: 201 },
-  { id: "CK-010", name: "Ishita Joshi", email: "ishita.j@university.edu", role: "Social Media", status: "active", joinedDate: "2025-03-25", points: 378 },
-  { id: "CK-011", name: "Siddharth Rao", email: "sid.r@university.edu", role: "Tech", status: "active", joinedDate: "2025-02-14", points: 267 },
-  { id: "CK-012", name: "Meera Desai", email: "meera.d@university.edu", role: "Member", status: "inactive", joinedDate: "2024-12-20", points: 73 },
-  { id: "CK-013", name: "Karthik Venkat", email: "karthik.v@university.edu", role: "Tech", status: "active", joinedDate: "2025-04-02", points: 189 },
-  { id: "CK-014", name: "Shreya Ghosh", email: "shreya.g@university.edu", role: "Content", status: "active", joinedDate: "2025-01-30", points: 312 },
-  { id: "CK-015", name: "Rahul Pandey", email: "rahul.p@university.edu", role: "Member", status: "pending", joinedDate: "2025-05-10", points: 22 },
-  { id: "CK-016", name: "Divya Saxena", email: "divya.s@university.edu", role: "Social Media", status: "active", joinedDate: "2025-03-05", points: 245 },
-  { id: "CK-017", name: "Harsh Agarwal", email: "harsh.a@university.edu", role: "Tech", status: "active", joinedDate: "2025-02-18", points: 398 },
-  { id: "CK-018", name: "Pooja Mishra", email: "pooja.m@university.edu", role: "Member", status: "active", joinedDate: "2025-04-12", points: 134 },
-  { id: "CK-019", name: "Nikhil Jain", email: "nikhil.j@university.edu", role: "Content", status: "inactive", joinedDate: "2024-10-15", points: 56 },
-  { id: "CK-020", name: "Riya Kapoor", email: "riya.k@university.edu", role: "Member", status: "active", joinedDate: "2025-05-22", points: 167 },
-  { id: "CK-021", name: "Arun Nath", email: "arun.n@university.edu", role: "Tech", status: "active", joinedDate: "2025-01-05", points: 450 },
-  { id: "CK-022", name: "Tanvi Bhatt", email: "tanvi.b@university.edu", role: "Social Media", status: "pending", joinedDate: "2025-05-28", points: 10 },
-  { id: "CK-023", name: "Manish Dubey", email: "manish.d@university.edu", role: "Member", status: "active", joinedDate: "2025-03-18", points: 223 },
-  { id: "CK-024", name: "Swati Verma", email: "swati.v@university.edu", role: "Content", status: "active", joinedDate: "2025-02-09", points: 291 },
-  { id: "CK-025", name: "Deepak Tiwari", email: "deepak.t@university.edu", role: "Tech", status: "active", joinedDate: "2025-04-28", points: 176 },
-];
+const MOCK_MEMBERS: MemberRow[] = [];
 
 type SortKey = keyof MemberRow;
 type SortDir = "asc" | "desc";
@@ -232,6 +206,8 @@ export default function DashboardPage() {
   const [tableSortDir, setTableSortDir] = useState<SortDir>("asc");
   const [tablePage, setTablePage] = useState(1);
 
+  const [dbMembers, setDbMembers] = useState<MemberRow[]>([]);
+
   // Time greeting inside useEffect to prevent hydration mismatches
   useEffect(() => {
     const hr = new Date().getHours();
@@ -257,7 +233,7 @@ export default function DashboardPage() {
     const load = async () => {
       try {
         if (["FACULTY", "STUDENT_COORDINATOR"].includes(user.role)) {
-          const [clubRes, opsRes] = await Promise.all([
+          const [clubRes, opsRes, usersRes] = await Promise.all([
             api<ClubAnalytics>("/analytics/club", { token }).catch((err) => {
               console.error("Club analytics error:", err);
               return null;
@@ -265,10 +241,27 @@ export default function DashboardPage() {
             api<OpsData>("/analytics/operations", { token }).catch((err) => {
               console.error("Ops analytics error:", err);
               return null;
+            }),
+            api<{ users: any[] }>("/users?approved=true", { token }).catch((err) => {
+              console.error("Users fetch error:", err);
+              return null;
             })
           ]);
           if (clubRes) setClubData(clubRes);
           if (opsRes) setOpsData(opsRes);
+          if (usersRes && usersRes.users) {
+            setDbMembers(
+              usersRes.users.map((u, idx) => ({
+                id: u.studentId || `CK-${String(idx + 1).padStart(3, "0")}`,
+                name: u.name,
+                email: u.email,
+                role: u.role ? u.role.replace(/_/g, " ") : "Member",
+                status: !u.isApproved ? "pending" : u.isActive ? "active" : "inactive",
+                joinedDate: u.createdAt,
+                points: 0,
+              }))
+            );
+          }
         } else {
           // Fetch personal stats for regular member
           const [historyRes, eventsRes, regRes] = await Promise.all([
@@ -308,7 +301,7 @@ export default function DashboardPage() {
 
   // ── Data table logic ──
   const filteredMembers = useMemo(() => {
-    let data = [...MOCK_MEMBERS];
+    let data = [...dbMembers];
 
     // Search
     if (tableSearch.trim()) {
@@ -342,7 +335,7 @@ export default function DashboardPage() {
     });
 
     return data;
-  }, [tableSearch, tableRoleFilter, tableSortKey, tableSortDir]);
+  }, [dbMembers, tableSearch, tableRoleFilter, tableSortKey, tableSortDir]);
 
   const totalPages = Math.max(1, Math.ceil(filteredMembers.length / ROWS_PER_PAGE));
   const paginatedMembers = filteredMembers.slice((tablePage - 1) * ROWS_PER_PAGE, tablePage * ROWS_PER_PAGE);
