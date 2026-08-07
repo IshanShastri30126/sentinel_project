@@ -1,10 +1,12 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import { api, API_BASE, getFileUrl } from "@/lib/api";
 import { motion, AnimatePresence } from "framer-motion";
 import {
+  ArrowLeft,
   User,
   Star,
   Calendar,
@@ -25,6 +27,7 @@ import {
 import { DefaultAvatar } from "@/components/default-avatar";
 
 export default function ProfilePage() {
+  const router = useRouter();
   const { user, token } = useAuth();
   const [history, setHistory] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -123,6 +126,23 @@ export default function ProfilePage() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
+      {/* Back Button */}
+      <div className="flex items-center">
+        <button
+          onClick={() => {
+            if (typeof window !== "undefined" && window.history.length > 1) {
+              router.back();
+            } else {
+              router.push("/dashboard");
+            }
+          }}
+          className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-black/50 hover:bg-[var(--ck-bg-card)] border border-[var(--ck-border)] hover:border-[#00F5D4]/40 text-xs font-mono uppercase tracking-wider text-[var(--ck-text-secondary)] hover:text-[#00F5D4] transition-all duration-200 shadow-sm group cursor-pointer"
+        >
+          <ArrowLeft className="w-4 h-4 text-[#00F5D4] transition-transform group-hover:-translate-x-1" />
+          <span>Back</span>
+        </button>
+      </div>
+
       {/* Profile Header Dossier Card */}
       <div className="ck-card p-6 sm:p-8 relative overflow-hidden bg-black/40 border border-[var(--ck-border)] shadow-md hover:border-[#CCFF00]/25 transition-all">
         <div className="absolute top-0 right-0 h-full w-1/3 bg-gradient-to-l from-[#CCFF00]/5 to-transparent pointer-events-none" />

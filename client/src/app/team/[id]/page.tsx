@@ -105,9 +105,19 @@ export default function MemberProfilePage() {
       {/* Navbar */}
       <header className="relative z-50 flex items-center justify-between px-6 py-6 max-w-7xl mx-auto border-b border-white/10">
         <div className="flex items-center gap-4">
-          <Link href="/team" className="p-2 rounded-full hover:bg-white/10 transition-colors">
-            <ArrowLeft className="w-5 h-5 text-zinc-400 hover:text-white" />
-          </Link>
+          <button 
+            onClick={() => {
+              if (typeof window !== "undefined" && window.history.length > 1) {
+                router.back();
+              } else {
+                router.push("/team");
+              }
+            }}
+            className="p-2 rounded-full hover:bg-white/10 text-zinc-400 hover:text-white transition-colors"
+            title="Go Back"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
           <div className="flex items-center gap-3">
             <Link href="/" className="flex items-center gap-3">
               <CyberKavachLogo animateDrawing={false} />
@@ -128,9 +138,19 @@ export default function MemberProfilePage() {
         
         {/* Back Link subheader */}
         <div className="flex items-center">
-          <Link href="/team" className="text-xs font-mono uppercase tracking-wider text-[#FF003C] hover:text-white flex items-center gap-1">
-            &lt;- Back to Team
-          </Link>
+          <button
+            onClick={() => {
+              if (typeof window !== "undefined" && window.history.length > 1) {
+                router.back();
+              } else {
+                router.push("/team");
+              }
+            }}
+            className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-zinc-900/90 hover:bg-[#00F5D4]/10 border border-zinc-800 hover:border-[#00F5D4]/50 text-zinc-300 hover:text-[#00F5D4] text-xs font-mono uppercase tracking-wider transition-all duration-200 shadow-md group cursor-pointer"
+          >
+            <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1 text-[#00F5D4]" />
+            <span>Back to Previous Page</span>
+          </button>
         </div>
 
         {/* Hero Card Container */}
