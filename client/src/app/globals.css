@@ -319,11 +319,18 @@ code, pre, .ck-mono {
   position: relative;
   display: flex; align-items: center; width: 100%;
 }
-.ck-input-icon-wrapper > .lucide {
-  position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%);
+.ck-input-icon-wrapper > .lucide,
+.ck-input-icon-wrapper > svg,
+.ck-search-container > .lucide,
+.ck-search-container > svg {
+  position: absolute; left: 0.875rem; top: 50%; transform: translateY(-50%);
   z-index: 10; pointer-events: none; color: var(--ck-text-muted);
 }
-.ck-input-with-icon { padding-left: 2.5rem !important; }
+.ck-input-with-icon,
+.ck-input-icon-wrapper > input,
+.ck-input-icon-wrapper > select,
+.ck-search-container > input,
+.ck-search-input { padding-left: 2.75rem !important; }
 
 .ck-field-group { display: flex; flex-direction: column; gap: 0.375rem; }
 .ck-field-label {

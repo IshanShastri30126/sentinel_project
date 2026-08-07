@@ -24,7 +24,7 @@ import {
   Phone,
   Fingerprint
 } from "lucide-react";
-import { DefaultAvatar } from "@/components/default-avatar";
+import { INSTITUTES, INSTITUTE_DEPARTMENTS, SEMESTERS } from "@/app/auth/page";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -430,23 +430,62 @@ export default function ProfilePage() {
                   </div>
                 </div>
 
-                <div className={`grid grid-cols-1 ${user?.role === "FACULTY" ? "sm:grid-cols-1" : "sm:grid-cols-3"} gap-4`}>
-                  <div className={user?.role === "FACULTY" ? "sm:col-span-1" : "sm:col-span-2"}>
-                    <label className="ck-label">Department</label>
-                    <input className="ck-input" value={editDepartment} onChange={(e) => setEditDepartment(e.target.value)} required />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="ck-label">Institute</label>
+                    <select 
+                      className="ck-input" 
+                      value={editInstitute} 
+                      onChange={(e) => {
+                        const newInst = e.target.value;
+                        setEditInstitute(newInst);
+                        const depts = INSTITUTE_DEPARTMENTS[newInst] || [];
+                        setEditDepartment(depts.length > 0 ? depts[0] : "");
+                      }} 
+                      required
+                    >
+                      <option value="" className="bg-[#050A18]">Select Institute...</option>
+                      {INSTITUTES.map((inst) => (
+                        <option key={inst} value={inst} className="bg-[#050A18] text-white">{inst}</option>
+                      ))}
+                    </select>
                   </div>
-                  {user?.role !== "FACULTY" && (
-                    <div>
-                      <label className="ck-label">Semester</label>
-                      <input className="ck-input" value={editSemester} onChange={(e) => setEditSemester(e.target.value)} required />
-                    </div>
-                  )}
+                  <div>
+                    <label className="ck-label">Department</label>
+                    <select 
+                      className="ck-input disabled:opacity-50" 
+                      value={editDepartment} 
+                      onChange={(e) => setEditDepartment(e.target.value)} 
+                      required 
+                      disabled={!editInstitute}
+                    >
+                      {!editInstitute ? (
+                        <option value="" className="bg-[#050A18]">Select Institute first</option>
+                      ) : (
+                        (INSTITUTE_DEPARTMENTS[editInstitute] || []).map((dept) => (
+                          <option key={dept} value={dept} className="bg-[#050A18] text-white">{dept}</option>
+                        ))
+                      )}
+                    </select>
+                  </div>
                 </div>
 
-                <div>
-                  <label className="ck-label">Institute</label>
-                  <input className="ck-input" value={editInstitute} onChange={(e) => setEditInstitute(e.target.value)} required />
-                </div>
+                {user?.role !== "FACULTY" && (
+                  <div>
+                    <label className="ck-label">Semester (1-8)</label>
+                    <select 
+                      className="ck-input" 
+                      value={editSemester} 
+                      onChange={(e) => setEditSemester(e.target.value)} 
+                      required
+                    >
+                      <option value="" className="bg-[#050A18]">Select Semester...</option>
+                      {SEMESTERS.map((sem) => (
+                        <option key={sem} value={sem} className="bg-[#050A18] text-white">Semester {sem}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
 
                 <div>
                   <label className="ck-label">New Password (Optional)</label>

@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Calendar, MapPin, Clock, Users, Tag, Shield, AlertCircle, Zap, Eye, FileText, CheckCircle, ExternalLink, Copy, UserPlus, X, Search, Download, Phone, Mail } from "lucide-react";
 import Link from "next/link";
 import { DefaultAvatar } from "@/components/default-avatar";
+import { INSTITUTES, INSTITUTE_DEPARTMENTS, SEMESTERS } from "@/app/auth/page";
 
 const LinkedinIcon = ({ className = "w-4 h-4", style }: { className?: string; style?: React.CSSProperties }) => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} style={{ width: '1.2em', height: '1.2em', ...style }}>
@@ -53,7 +54,6 @@ interface Organizer {
   email?: string;
 }
 
-// Theme → gradient mapping for dynamic background
 const EVENT_THEME_GRADIENTS: Record<string, string> = {
   hackathon: "from-[#0a0014] via-[#130030] to-[#020020]",
   workshop: "from-[#001a0a] via-[#002e14] to-[#001208]",
@@ -91,8 +91,6 @@ function MatrixTitle({ title, accent }: { title: string; accent: string }) {
 }
 
 function FormattedDescription({ text }: { text: string }) {
-  const paragraphs = text.split(/\n\n+/);
-  const highlights: string[] = [];
   const regularParagraphs: string[] = [];
 
   paragraphs.forEach(p => {
@@ -895,58 +893,90 @@ function PublicEventPageContent() {
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="ck-label font-mono uppercase tracking-wider text-[10px]">College / Guest ID *</label>
+                      <label className="ck-label font-mono uppercase tracking-wider text-[10px]">
+                        {user?.role === "FACULTY" ? "Employee ID *" : "College / Student ID *"}
+                      </label>
                       <input 
                         className="ck-input" 
-                        placeholder="e.g. 22CS101" 
+                        placeholder={user?.role === "FACULTY" ? "e.g. EMP101" : "e.g. 22CS101"} 
                         value={formData.studentId} 
                         onChange={(e) => setFormData({ ...formData, studentId: e.target.value })} 
                         required 
                       />
                     </div>
                     <div>
-                      <label className="ck-label font-mono uppercase tracking-wider text-[10px]">Contact Phone *</label>
+                      <label className="ck-label font-mono uppercase tracking-wider text-[10px]">Mobile Number (10 Digits) *</label>
                       <input
                         className="ck-input"
-                        type="tel"
-                        inputMode="numeric"
-                        placeholder="Phone number (digits only)"
+                        type="text"
+                        placeholder="10-digit mobile number"
                         value={formData.phone}
-                        onChange={(e) => setFormData({ ...formData, phone: e.target.value.replace(/[^0-9+\-\s]/g, "") })}
-                        maxLength={15}
+                        onChange={(e) => setFormData({ ...formData, phone: e.target.value.replace(/\D/g, "").slice(0, 10) })}
+                        maxLength={10}
                         required
                       />
                     </div>
                   </div>
-                  <div className="grid grid-cols-3 gap-2">
-                    <div className="col-span-1">
-                      <label className="ck-label font-mono uppercase tracking-wider text-[10px]">Semester</label>
-                      <input 
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="ck-label font-mono uppercase tracking-wider text-[10px]">Institute / College *</label>
+                      <select 
                         className="ck-input" 
-                        placeholder="1-8" 
-                        value={formData.semester} 
-                        onChange={(e) => setFormData({ ...formData, semester: e.target.value })} 
-                      />
+                        value={formData.institute} 
+                        onChange={(e) => {
+                          const newInst = e.target.value;
+                          const depts = INSTITUTE_DEPARTMENTS[newInst] || [];
+                          setFormData({ 
+                            ...formData, 
+                            institute: newInst,
+                            department: depts.length > 0 ? depts[0] : "" 
+                          });
+                        }} 
+                        required
+                      >
+                        <option value="" className="bg-[#050A18]">Select Institute...</option>
+                        {INSTITUTES.map((inst) => (
+                          <option key={inst} value={inst} className="bg-[#050A18] text-white">{inst}</option>
+                        ))}
+                      </select>
                     </div>
-                    <div className="col-span-2">
-                      <label className="ck-label font-mono uppercase tracking-wider text-[10px]">Department</label>
-                      <input 
-                        className="ck-input" 
-                        placeholder="e.g. Computer Science" 
+                    <div>
+                      <label className="ck-label font-mono uppercase tracking-wider text-[10px]">Department *</label>
+                      <select 
+                        className="ck-input disabled:opacity-50" 
                         value={formData.department} 
                         onChange={(e) => setFormData({ ...formData, department: e.target.value })} 
-                      />
+                        required 
+                        disabled={!formData.institute}
+                      >
+                        {!formData.institute ? (
+                          <option value="" className="bg-[#050A18]">Select Institute first</option>
+                        ) : (
+                          (INSTITUTE_DEPARTMENTS[formData.institute] || []).map((dept) => (
+                            <option key={dept} value={dept} className="bg-[#050A18] text-white">{dept}</option>
+                          ))
+                        )}
+                      </select>
                     </div>
                   </div>
-                  <div>
-                    <label className="ck-label font-mono uppercase tracking-wider text-[10px]">Institute / College</label>
-                    <input 
-                      className="ck-input" 
-                      placeholder="e.g. CSPIT" 
-                      value={formData.institute} 
-                      onChange={(e) => setFormData({ ...formData, institute: e.target.value })} 
-                    />
-                  </div>
+
+                  {user?.role !== "FACULTY" && (
+                    <div>
+                      <label className="ck-label font-mono uppercase tracking-wider text-[10px]">Semester (1-8)</label>
+                      <select 
+                        className="ck-input" 
+                        value={formData.semester} 
+                        onChange={(e) => setFormData({ ...formData, semester: e.target.value })} 
+                      >
+                        <option value="" className="bg-[#050A18]">Select Semester...</option>
+                        {SEMESTERS.map((sem) => (
+                          <option key={sem} value={sem} className="bg-[#050A18] text-white">Semester {sem}</option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+
                   <div>
                     <label className="ck-label font-mono uppercase tracking-wider text-[10px]">Email (Login Identifier)</label>
                     <input className="ck-input bg-zinc-900 border-zinc-800 text-zinc-550 cursor-not-allowed text-xs truncate" value={formData.email} disabled />
@@ -968,9 +998,9 @@ function PublicEventPageContent() {
                       <div>
                         <label className="ck-label text-[10px]">Add Teammates * (Must be registered & approved)</label>
                         <div className="relative">
-                          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" />
                           <input 
-                            className="ck-input pl-9" 
+                            className="ck-input pl-11" 
                             placeholder="Search teammate by name or email..." 
                             value={memberSearch} 
                             onChange={(e) => searchMembers(e.target.value)} 

@@ -9,7 +9,17 @@ import { ArrowLeft, Shield, Mail, Lock, User, ArrowRight, Eye, EyeOff, AlertCirc
 import { GoogleLogin } from "@react-oauth/google";
 import PlexusBackground from "@/components/PlexusBackground";
 import { CyberKavachLogo } from "@/components/CyberKavachLogo";
-import { api } from "@/lib/api";
+export const INSTITUTES = ["CSPIT", "DEPSTAR", "PDPIAS", "CMPICA", "IIIM"] as const;
+
+export const INSTITUTE_DEPARTMENTS: Record<string, string[]> = {
+  CSPIT: ["CE", "IT", "CSE", "ME", "CL", "EC", "AIML", "ELECTRICAL"],
+  DEPSTAR: ["CSE", "CE", "IT"],
+  IIIM: ["MBA", "BBA"],
+  CMPICA: ["BSC.IT", "BCA"],
+  PDPIAS: ["MATHS", "BIOSCIENCE", "CHEMISTRY", "PHYSICS"],
+};
+
+export const SEMESTERS = ["1", "2", "3", "4", "5", "6", "7", "8"] as const;
 
 function LoginPageContent() {
   const { login, loginWithGoogle, register, user } = useAuth();
@@ -195,48 +205,86 @@ function LoginPageContent() {
                       <div>
                         <label className="block text-[10px] font-mono text-[#FFD700] uppercase tracking-wider mb-1">Full Name</label>
                         <div className="relative">
-                          <User className="w-4 h-4 text-[#00F5D4] absolute left-3 top-1/2 -translate-y-1/2" />
-                          <input type="text" placeholder="Operative Name" value={name} onChange={(e) => setName(e.target.value)} required={!isLogin} className="w-full bg-[#080E24] border border-[#121F3D] focus:border-[#FFD700] focus:outline-none rounded-xl text-xs text-white pl-9 pr-3 py-2.5 font-mono" />
+                          <User className="w-4 h-4 text-[#00F5D4] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                          <input type="text" placeholder="Operative Name" value={name} onChange={(e) => setName(e.target.value)} required={!isLogin} className="w-full bg-[#080E24] border border-[#121F3D] focus:border-[#FFD700] focus:outline-none rounded-xl text-xs text-white pl-11 pr-3.5 py-2.5 font-mono" />
                         </div>
                       </div>
                       <div>
                         <label className="block text-[10px] font-mono text-[#FFD700] uppercase tracking-wider mb-1">Student / Employee ID</label>
                         <div className="relative">
-                          <GraduationCap className="w-4 h-4 text-[#00F5D4] absolute left-3 top-1/2 -translate-y-1/2" />
-                          <input type="text" placeholder="e.g. 24CS101 or EMP101" value={studentId} onChange={(e) => setStudentId(e.target.value)} required={!isLogin} className="w-full bg-[#080E24] border border-[#121F3D] focus:border-[#FFD700] focus:outline-none rounded-xl text-xs text-white pl-9 pr-3 py-2.5 font-mono" />
+                          <GraduationCap className="w-4 h-4 text-[#00F5D4] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                          <input type="text" placeholder="e.g. 24CS101 or EMP101" value={studentId} onChange={(e) => setStudentId(e.target.value)} required={!isLogin} className="w-full bg-[#080E24] border border-[#121F3D] focus:border-[#FFD700] focus:outline-none rounded-xl text-xs text-white pl-11 pr-3.5 py-2.5 font-mono" />
                         </div>
                       </div>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                      <div>
-                        <label className="block text-[10px] font-mono text-[#FFD700] uppercase tracking-wider mb-1">Department</label>
-                        <div className="relative">
-                          <Building className="w-4 h-4 text-[#00F5D4] absolute left-3 top-1/2 -translate-y-1/2" />
-                          <input type="text" placeholder="e.g. CSE, IT" value={department} onChange={(e) => setDepartment(e.target.value)} required={!isLogin} className="w-full bg-[#080E24] border border-[#121F3D] focus:border-[#FFD700] focus:outline-none rounded-xl text-xs text-white pl-9 pr-3 py-2.5 font-mono" />
-                        </div>
-                      </div>
                       <div>
                         <label className="block text-[10px] font-mono text-[#FFD700] uppercase tracking-wider mb-1">Institute</label>
                         <div className="relative">
-                          <Building className="w-4 h-4 text-[#00F5D4] absolute left-3 top-1/2 -translate-y-1/2" />
-                          <input type="text" placeholder="e.g. CSPIT, DEPSTAR" value={institute} onChange={(e) => setInstitute(e.target.value)} required={!isLogin} className="w-full bg-[#080E24] border border-[#121F3D] focus:border-[#FFD700] focus:outline-none rounded-xl text-xs text-white pl-9 pr-3 py-2.5 font-mono" />
+                          <Building className="w-4 h-4 text-[#00F5D4] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                          <select 
+                            value={institute} 
+                            onChange={(e) => {
+                              const newInst = e.target.value;
+                              setInstitute(newInst);
+                              const depts = INSTITUTE_DEPARTMENTS[newInst] || [];
+                              setDepartment(depts.length > 0 ? depts[0] : "");
+                            }} 
+                            required={!isLogin} 
+                            className="w-full bg-[#080E24] border border-[#121F3D] focus:border-[#FFD700] focus:outline-none rounded-xl text-xs text-white pl-11 pr-3.5 py-2.5 font-mono cursor-pointer"
+                          >
+                            <option value="" className="bg-[#050A18] text-slate-400">Select Institute...</option>
+                            {INSTITUTES.map((inst) => (
+                              <option key={inst} value={inst} className="bg-[#050A18] text-white">{inst}</option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-mono text-[#FFD700] uppercase tracking-wider mb-1">Department</label>
+                        <div className="relative">
+                          <Building className="w-4 h-4 text-[#00F5D4] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                          <select 
+                            value={department} 
+                            onChange={(e) => setDepartment(e.target.value)} 
+                            required={!isLogin} 
+                            disabled={!institute}
+                            className="w-full bg-[#080E24] border border-[#121F3D] focus:border-[#FFD700] focus:outline-none rounded-xl text-xs text-white pl-11 pr-3.5 py-2.5 font-mono cursor-pointer disabled:opacity-50"
+                          >
+                            {!institute ? (
+                              <option value="" className="bg-[#050A18]">Select Institute first</option>
+                            ) : (
+                              (INSTITUTE_DEPARTMENTS[institute] || []).map((dept) => (
+                                <option key={dept} value={dept} className="bg-[#050A18] text-white">{dept}</option>
+                              ))
+                            )}
+                          </select>
                         </div>
                       </div>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                       <div>
-                        <label className="block text-[10px] font-mono text-[#FFD700] uppercase tracking-wider mb-1">Semester (Students)</label>
+                        <label className="block text-[10px] font-mono text-[#FFD700] uppercase tracking-wider mb-1">Semester (1-8)</label>
                         <div className="relative">
-                          <GraduationCap className="w-4 h-4 text-[#00F5D4] absolute left-3 top-1/2 -translate-y-1/2" />
-                          <input type="text" placeholder="e.g. 1-8 (Faculty leave blank)" value={semester} onChange={(e) => setSemester(e.target.value)} className="w-full bg-[#080E24] border border-[#121F3D] focus:border-[#FFD700] focus:outline-none rounded-xl text-xs text-white pl-9 pr-3 py-2.5 font-mono" />
+                          <GraduationCap className="w-4 h-4 text-[#00F5D4] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                          <select 
+                            value={semester} 
+                            onChange={(e) => setSemester(e.target.value)} 
+                            className="w-full bg-[#080E24] border border-[#121F3D] focus:border-[#FFD700] focus:outline-none rounded-xl text-xs text-white pl-11 pr-3.5 py-2.5 font-mono cursor-pointer"
+                          >
+                            <option value="" className="bg-[#050A18] text-slate-400">Select Semester (Faculty leave blank)</option>
+                            {SEMESTERS.map((sem) => (
+                              <option key={sem} value={sem} className="bg-[#050A18] text-white">Semester {sem}</option>
+                            ))}
+                          </select>
                         </div>
                       </div>
                       <div>
                         <label className="block text-[10px] font-mono text-[#FFD700] uppercase tracking-wider mb-1">Mobile Number (10 Digits)</label>
                         <div className="relative">
-                          <Smartphone className="w-4 h-4 text-[#00F5D4] absolute left-3 top-1/2 -translate-y-1/2" />
+                          <Smartphone className="w-4 h-4 text-[#00F5D4] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                           <input 
                             type="text" 
                             placeholder="10-digit mobile number" 
@@ -244,7 +292,7 @@ function LoginPageContent() {
                             maxLength={10}
                             onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))} 
                             required={!isLogin} 
-                            className="w-full bg-[#080E24] border border-[#121F3D] focus:border-[#FFD700] focus:outline-none rounded-xl text-xs text-white pl-9 pr-3 py-2.5 font-mono" 
+                            className="w-full bg-[#080E24] border border-[#121F3D] focus:border-[#FFD700] focus:outline-none rounded-xl text-xs text-white pl-11 pr-3.5 py-2.5 font-mono" 
                           />
                         </div>
                       </div>
@@ -257,14 +305,14 @@ function LoginPageContent() {
                     {isLogin ? "Email Address" : "College Email ID"}
                   </label>
                   <div className="relative">
-                    <Mail className="w-4 h-4 text-[#00F5D4] absolute left-3 top-1/2 -translate-y-1/2" />
+                    <Mail className="w-4 h-4 text-[#00F5D4] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                     <input 
                       type="email" 
                       placeholder="user@chakravyuh.edu" 
                       value={email} 
                       onChange={(e) => setEmail(e.target.value)} 
                       required 
-                      className="w-full bg-[#080E24] border border-[#121F3D] focus:border-[#FFD700] focus:outline-none rounded-xl text-xs text-white pl-9 pr-3 py-2.5 font-mono" 
+                      className="w-full bg-[#080E24] border border-[#121F3D] focus:border-[#FFD700] focus:outline-none rounded-xl text-xs text-white pl-11 pr-3.5 py-2.5 font-mono" 
                     />
                   </div>
                 </div>
@@ -279,7 +327,7 @@ function LoginPageContent() {
                     )}
                   </div>
                   <div className="relative">
-                    <Lock className="w-4 h-4 text-[#00F5D4] absolute left-3 top-1/2 -translate-y-1/2" />
+                    <Lock className="w-4 h-4 text-[#00F5D4] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                     <input 
                       type={showPassword ? "text" : "password"} 
                       placeholder="••••••••••••" 
@@ -287,7 +335,7 @@ function LoginPageContent() {
                       onChange={(e) => setPassword(e.target.value)} 
                       required 
                       minLength={6} 
-                      className="w-full bg-[#080E24] border border-[#121F3D] focus:border-[#FFD700] focus:outline-none rounded-xl text-xs text-white pl-9 pr-10 py-2.5 font-mono" 
+                      className="w-full bg-[#080E24] border border-[#121F3D] focus:border-[#FFD700] focus:outline-none rounded-xl text-xs text-white pl-11 pr-10 py-2.5 font-mono" 
                     />
                     <button 
                       type="button" 
