@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { api, getFileUrl } from "@/lib/api";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { Calendar, Search, Tag, Users, Clock, MapPin, Shield } from "lucide-react";
+import { Calendar, Search, Tag, Users, Clock, MapPin, Shield, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 
 interface Event {
@@ -56,13 +56,23 @@ export default function PublicEventsPage() {
   return (
     <div className="min-h-screen bg-[#030712] text-white">
       {/* Hero Header */}
-      <div className="relative pt-24 pb-12 overflow-hidden border-b border-[#121F3D]">
-        <div className="max-w-7xl mx-auto px-6 relative z-10 text-center">
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-            <div className="inline-flex items-center justify-center gap-2 mb-4 bg-black/40 border border-[#FFD700]/30 px-4 py-1.5 rounded-full">
+      <div className="relative pt-20 pb-12 overflow-hidden border-b border-[#121F3D]">
+        <div className="max-w-7xl mx-auto px-6 relative z-10">
+          <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+            <button
+              onClick={() => router.back()}
+              className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-black/60 border border-[#121F3D] hover:border-[#00F5D4] text-slate-300 hover:text-white text-xs font-mono font-bold transition-all shadow-md group cursor-pointer"
+            >
+              <ArrowLeft className="w-4 h-4 text-[#00F5D4] group-hover:-translate-x-1 transition-transform" />
+              <span>Back</span>
+            </button>
+            <div className="inline-flex items-center gap-2 bg-black/40 border border-[#FFD700]/30 px-4 py-1.5 rounded-full">
               <Shield className="w-4 h-4 text-[#FFD700]" />
               <span className="text-xs font-bold text-[#FFD700] font-mono tracking-widest uppercase">CHAKRAVYUH STRATEGIC OPERATIONS</span>
             </div>
+          </div>
+
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="text-center">
             <h1 className="text-3xl md:text-5xl font-extrabold text-white mb-4 uppercase font-mono tracking-tighter bg-gradient-to-r from-[#FFD700] via-white to-[#00F5D4] bg-clip-text text-transparent">
               Public Defense Operations
             </h1>

@@ -430,6 +430,15 @@ function PublicEventPageContent() {
     <div className={`min-h-screen bg-gradient-to-br ${themeGradient}`}>
       {/* Hero Section */}
       <div className="relative h-80 md:h-[450px] overflow-hidden">
+        {/* Floating Back Button */}
+        <button
+          onClick={() => router.back()}
+          className="absolute top-6 left-6 z-30 flex items-center gap-2 px-3.5 py-2 rounded-xl bg-black/70 border border-zinc-800 hover:border-red-500/60 text-slate-300 hover:text-white text-xs font-mono font-bold transition-all shadow-xl backdrop-blur-md group cursor-pointer"
+        >
+          <ArrowLeft className="w-4 h-4 text-red-500 group-hover:-translate-x-1 transition-transform" />
+          <span>Back</span>
+        </button>
+
         {/* Background Gradients */}
         <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent z-10" />
         <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-red-950/20 to-black/80 z-10" />
