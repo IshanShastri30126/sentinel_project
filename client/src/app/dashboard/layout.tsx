@@ -10,7 +10,7 @@ import {
   Shield, LayoutDashboard, Calendar, Users, Award,
   FileCheck, BarChart3, CheckSquare, LogOut,
   ChevronLeft, ChevronRight, ClipboardList, Bell, Menu, X, UsersRound,
-  User, Settings, Check, CheckCheck, RotateCw
+  User, Settings, Check, CheckCheck, RotateCw, ShieldAlert, Terminal
 } from "lucide-react";
 import { DefaultAvatar } from "@/components/default-avatar";
 import { CyberKavachLogo } from "@/components/CyberKavachLogo";
@@ -37,6 +37,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Users", href: "/dashboard/users", icon: <Users className="w-5 h-5" />, roles: ["FACULTY", "STUDENT_COORDINATOR"] },
   { label: "Analytics", href: "/dashboard/analytics", icon: <BarChart3 className="w-5 h-5" />, roles: ["FACULTY", "STUDENT_COORDINATOR"] },
   { label: "Landing CMS", href: "/dashboard/landing-management", icon: <LayoutDashboard className="w-5 h-5" />, roles: ["FACULTY", "STUDENT_COORDINATOR"] },
+  { label: "Maintenance Logs", href: "/dashboard/maintenance", icon: <Terminal className="w-5 h-5" />, roles: ["TECH", "FACULTY", "STUDENT_COORDINATOR"] },
   { label: "My Certificates", href: "/dashboard/my-certificates", icon: <Award className="w-5 h-5" /> },
   { label: "Profile", href: "/dashboard/profile", icon: <User className="w-5 h-5" /> },
   { label: "Settings", href: "/dashboard/settings", icon: <Settings className="w-5 h-5" />, roles: ["FACULTY"] },
