@@ -24,6 +24,7 @@ import {
   Phone,
   Fingerprint
 } from "lucide-react";
+import { DefaultAvatar } from "@/components/default-avatar";
 import { INSTITUTES, INSTITUTE_DEPARTMENTS, SEMESTERS } from "@/app/auth/page";
 
 export default function ProfilePage() {
