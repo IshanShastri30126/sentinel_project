@@ -1,29 +1,9 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef } from "react";
 import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
-import { 
-  Shield, 
-  ArrowLeft, 
-  ShieldAlert, 
-  Trophy, 
-  Terminal, 
-  Heart, 
-  Info, 
-  Users, 
-  LogIn, 
-  Lock, 
-  Cpu, 
-  Globe, 
-  Activity, 
-  Zap, 
-  Target, 
-  Layers, 
-  ChevronRight,
-  FileText
-} from "lucide-react";
-import { CyberKavachLogo } from "@/components/CyberKavachLogo";
+import { motion } from "framer-motion";
+import { Shield, ArrowLeft, ShieldAlert, Trophy, Terminal, Heart, Info, Users, LogIn } from "lucide-react";
 
 const LinkedinIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
   <svg viewBox="0 0 24 24" fill="currentColor" className={className} style={{ width: "1em", height: "1em" }}>
@@ -46,7 +26,7 @@ const WhatsappIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
 );
 
 // =========================================================
-// 3D ENERGETIC TEAL & ELECTRIC CYAN CHAKRAVYUH GLOBE
+// 3D BRIGHT NEON RED WORLD GLOBE WITH CYBER THREAT ARCS
 // =========================================================
 function CyberBackground3D() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -67,11 +47,12 @@ function CyberBackground3D() {
     };
     window.addEventListener("resize", handleResize);
 
-    // 1. Globe Radius & Geometry
+    // 1. Globe Configuration - GIANT SIZE
     let R = Math.max(width, height) * 0.38;
     if (R < 320) R = 320;
     if (R > 700) R = 700;
 
+    // Generate plasma cells in 3D - Boiling Nuclear Sun Surface
     interface WorldPoint {
       x: number;
       y: number;
@@ -104,15 +85,15 @@ function CyberBackground3D() {
         x, y, z,
         origX: x, origY: y, origZ: z,
         vx: 0, vy: 0, vz: 0,
-        lat: Math.round((phi * 180 / Math.PI) - 90),
-        lon: Math.round((theta * 180 / Math.PI) % 360),
-        radius: 35 + Math.random() * 45,
+        lat: (phi * 180 / Math.PI) - 90,
+        lon: (theta * 180 / Math.PI) % 360,
+        radius: 35 + Math.random() * 45, // overlapping size
         temperature: 0.3 + Math.random() * 0.7,
         noiseOffset: Math.random() * 100
       });
     }
 
-    // 2. Cyber Defense Arcs & Pulses
+    // 2. Cyber Threat Attack Arcs
     interface ThreatArc {
       pStart: WorldPoint;
       pEnd: WorldPoint;
@@ -143,7 +124,7 @@ function CyberBackground3D() {
       });
     };
 
-    // 3. Click Missiles
+    // 3. Click-to-Launch Missiles
     interface Missile {
       x: number;
       y: number;
@@ -154,7 +135,7 @@ function CyberBackground3D() {
     }
     const missiles: Missile[] = [];
 
-    // 4. Energy Particles
+    // 4. Sun-Like Glow Particles (Solar wind/flares)
     interface SunParticle {
       x: number;
       y: number;
@@ -170,7 +151,7 @@ function CyberBackground3D() {
     }
     const sunParticles: SunParticle[] = [];
 
-    // Nuclear/Quantum Defense Bursts
+    // Nuclear blast reactions
     interface NuclearParticle {
       x: number;
       y: number;
@@ -193,7 +174,7 @@ function CyberBackground3D() {
     }
     const nuclearBlasts: NuclearBlast[] = [];
 
-    // Fusion Cores
+    // Fusion active collision cores
     interface FusionCore {
       x: number;
       y: number;
@@ -221,8 +202,8 @@ function CyberBackground3D() {
       
       const steps = 40;
       activeFusionCores = [
-        { x: ax, y: ay, z: az, vx: -ax / steps, vy: -ay / steps, vz: -az / steps, color: "#00F5D4", trail: [] },
-        { x: bx, y: by, z: bz, vx: -bx / steps, vy: -by / steps, vz: -bz / steps, color: "#00E1FF", trail: [] }
+        { x: ax, y: ay, z: az, vx: -ax / steps, vy: -ay / steps, vz: -az / steps, color: "#ffffff", trail: [] },
+        { x: bx, y: by, z: bz, vx: -bx / steps, vy: -by / steps, vz: -bz / steps, color: "#ffcc00", trail: [] }
       ];
     };
 
@@ -238,7 +219,7 @@ function CyberBackground3D() {
           vx: Math.sin(sp) * Math.cos(sa) * speed,
           vy: Math.sin(sp) * Math.sin(sa) * speed,
           vz: Math.cos(sp) * speed,
-          color: Math.random() > 0.4 ? "rgba(0, 245, 212, " : (Math.random() > 0.3 ? "rgba(0, 225, 255, " : "rgba(255, 215, 0, "),
+          color: Math.random() > 0.4 ? "rgba(255, 255, 255, " : (Math.random() > 0.3 ? "rgba(255, 204, 0, " : "rgba(239, 68, 68, "),
           size: 2.5 + Math.random() * 4.5,
           alpha: 1.0
         });
@@ -264,7 +245,7 @@ function CyberBackground3D() {
           vx: Math.sin(sp) * Math.cos(sa) * speed,
           vy: Math.sin(sp) * Math.sin(sa) * speed,
           vz: Math.cos(sp) * speed,
-          color: Math.random() > 0.5 ? "rgba(0, 245, 212, " : "rgba(0, 225, 255, ",
+          color: Math.random() > 0.5 ? "rgba(239, 68, 68, " : "rgba(249, 115, 22, ",
           size: 1.5 + Math.random() * 2.5,
           alpha: 1.0
         });
@@ -278,11 +259,11 @@ function CyberBackground3D() {
       });
     };
 
-    // Sweeping Scanner Laser Line
+    // Sweeping Scanner Lasers
     let scanY = 0;
     const scanSpeed = 2.0;
 
-    // Interactive Mouse & Rotations
+    // Interactive States & Rotations
     let mouseX = -1000;
     let mouseY = -1000;
     let globeRotationY = 0;
@@ -358,13 +339,13 @@ function CyberBackground3D() {
       const centerX = width / 2;
       const centerY = height / 2;
 
-      // Dynamic bubbling temperatures
+      // Update cell temperatures before drawing (simulating convection bubbling)
       worldPoints.forEach((p) => {
         p.temperature = 0.5 + Math.sin(Date.now() * 0.0035 + p.noiseOffset) * 0.45;
         p.temperature = Math.max(0.1, Math.min(1.0, p.temperature));
       });
 
-      // Project Points
+      // Project Land Points
       const projectedPoints = worldPoints.map((p) => {
         p.x += p.vx;
         p.y += p.vy;
@@ -396,28 +377,28 @@ function CyberBackground3D() {
         };
       });
 
-      // Scanner scanline (Teal Cyan)
+      // Draw horizontal scanner scanline
       scanY += scanSpeed;
       if (scanY > height + 200) scanY = -200;
-      ctx.strokeStyle = "rgba(0, 245, 212, 0.35)";
+      ctx.strokeStyle = "rgba(239, 68, 68, 0.4)";
       ctx.lineWidth = 1.0;
       ctx.beginPath();
       ctx.moveTo(0, scanY);
       ctx.lineTo(width, scanY);
       ctx.stroke();
 
-      // Cyber Corona Atmosphere Glow
-      const coronaGlow = ctx.createRadialGradient(centerX, centerY, R * 0.95, centerX, centerY, R * 1.15);
-      coronaGlow.addColorStop(0, "rgba(0, 245, 212, 0.22)");
-      coronaGlow.addColorStop(0.5, "rgba(0, 225, 255, 0.08)");
-      coronaGlow.addColorStop(1, "rgba(0, 0, 0, 0)");
+      // Draw Atmosphere Neon Glow Corona Envelope around perimeter
+      const coronaGlow = ctx.createRadialGradient(centerX, centerY, R * 0.95, centerX, centerY, R * 1.12);
+      coronaGlow.addColorStop(0, "rgba(239, 68, 68, 0.18)");
+      coronaGlow.addColorStop(0.5, "rgba(239, 68, 68, 0.06)");
+      coronaGlow.addColorStop(1, "rgba(239, 68, 68, 0)");
       ctx.fillStyle = coronaGlow;
       ctx.beginPath();
-      ctx.arc(centerX, centerY, R * 1.15, 0, Math.PI * 2);
+      ctx.arc(centerX, centerY, R * 1.12, 0, Math.PI * 2);
       ctx.fill();
 
-      // Globe Latitude/Longitude Grid Lines
-      ctx.strokeStyle = "rgba(0, 245, 212, 0.12)";
+      // Draw Globe Grid Rings (Latitude and Longitude Meridians)
+      ctx.strokeStyle = "rgba(239, 68, 68, 0.08)";
       ctx.lineWidth = 0.8;
       
       const numRings = 7;
@@ -449,21 +430,22 @@ function CyberBackground3D() {
         ctx.stroke();
       }
 
-      // Dark Core Sun Sphere Base
+      // Draw solid base sun disk in center for spherical depth
       const sunBaseGlow = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, R);
-      sunBaseGlow.addColorStop(0, "rgba(0, 40, 50, 0.95)");
-      sunBaseGlow.addColorStop(0.7, "rgba(2, 16, 28, 0.98)");
-      sunBaseGlow.addColorStop(1.0, "rgba(0, 5, 12, 1.0)");
+      sunBaseGlow.addColorStop(0, "rgba(220, 20, 20, 1.0)");
+      sunBaseGlow.addColorStop(0.7, "rgba(100, 10, 10, 1.0)");
+      sunBaseGlow.addColorStop(1.0, "rgba(10, 0, 0, 1.0)");
       ctx.fillStyle = sunBaseGlow;
       ctx.beginPath();
       ctx.arc(centerX, centerY, R, 0, Math.PI * 2);
       ctx.fill();
 
-      // Glowing Plasma Cells (Teal Cyan & Electric Blue Screen Blend)
+      // 3. Draw Thermodynamic Boiling Plasma Cells (Overlapping Gradients)
       ctx.save();
-      ctx.globalCompositeOperation = "screen";
+      ctx.globalCompositeOperation = "screen"; // Additive blending for gorgeous glowing plasma
       
       projectedPoints.forEach((item) => {
+        // Only render front-facing cells
         if (item.z > R * 0.35) return;
 
         const depthAlpha = Math.max(0.0, 1.0 - (item.z / R));
@@ -477,19 +459,19 @@ function CyberBackground3D() {
         
         if (temp > 0.82) {
           grad.addColorStop(0, `rgba(255, 255, 255, ${alpha * 0.95})`);
-          grad.addColorStop(0.25, `rgba(0, 245, 212, ${alpha * 0.85})`);
-          grad.addColorStop(0.55, `rgba(0, 225, 255, ${alpha * 0.55})`);
-          grad.addColorStop(0.85, `rgba(0, 150, 200, ${alpha * 0.25})`);
-          grad.addColorStop(1.0, "rgba(0, 50, 80, 0)");
+          grad.addColorStop(0.25, `rgba(255, 204, 0, ${alpha * 0.75})`);
+          grad.addColorStop(0.55, `rgba(249, 115, 22, ${alpha * 0.45})`);
+          grad.addColorStop(0.85, `rgba(239, 68, 68, ${alpha * 0.2})`);
+          grad.addColorStop(1.0, "rgba(127, 29, 29, 0)");
         } else if (temp > 0.5) {
-          grad.addColorStop(0, `rgba(0, 245, 212, ${alpha * 0.85})`);
-          grad.addColorStop(0.35, `rgba(0, 225, 255, ${alpha * 0.6})`);
-          grad.addColorStop(0.75, `rgba(0, 140, 200, ${alpha * 0.25})`);
-          grad.addColorStop(1.0, "rgba(0, 20, 40, 0)");
+          grad.addColorStop(0, `rgba(255, 200, 0, ${alpha * 0.8})`);
+          grad.addColorStop(0.35, `rgba(249, 115, 22, ${alpha * 0.5})`);
+          grad.addColorStop(0.75, `rgba(239, 68, 68, ${alpha * 0.2})`);
+          grad.addColorStop(1.0, "rgba(127, 29, 29, 0)");
         } else {
-          grad.addColorStop(0, `rgba(0, 225, 255, ${alpha * 0.65})`);
-          grad.addColorStop(0.5, `rgba(0, 120, 180, ${alpha * 0.35})`);
-          grad.addColorStop(0.85, `rgba(0, 60, 100, ${alpha * 0.15})`);
+          grad.addColorStop(0, `rgba(239, 68, 68, ${alpha * 0.6})`);
+          grad.addColorStop(0.5, `rgba(180, 20, 20, ${alpha * 0.3})`);
+          grad.addColorStop(0.85, `rgba(120, 10, 10, ${alpha * 0.1})`);
           grad.addColorStop(1.0, "rgba(0, 0, 0, 0)");
         }
 
@@ -500,7 +482,7 @@ function CyberBackground3D() {
       });
       ctx.restore();
 
-      // Energy Arcs / Prominences (Teal Cyan Glow)
+      // Draw 3D Solar Prominences (raw energy arcing across sun surface)
       for (let i = 0; i < projectedPoints.length; i += 12) {
         const n1 = projectedPoints[i];
         if (n1.z > R * 0.1) continue;
@@ -535,14 +517,16 @@ function CyberBackground3D() {
           const cpx = centerX + cx1 * cScale;
           const cpy = centerY + cy2 * cScale;
           
-          ctx.strokeStyle = "rgba(0, 245, 212, 0.15)";
+          // Draw prominence glow (fast)
+          ctx.strokeStyle = "rgba(255, 85, 0, 0.12)";
           ctx.lineWidth = 3.6;
           ctx.beginPath();
           ctx.moveTo(n1.px, n1.py);
           ctx.quadraticCurveTo(cpx, cpy, n2.px, n2.py);
           ctx.stroke();
 
-          ctx.strokeStyle = "rgba(0, 225, 255, 0.4)";
+          // Draw prominence core
+          ctx.strokeStyle = "rgba(255, 100, 0, 0.35)";
           ctx.lineWidth = 1.2;
           ctx.beginPath();
           ctx.moveTo(n1.px, n1.py);
@@ -551,11 +535,12 @@ function CyberBackground3D() {
         }
       }
 
-      // Threat Arcs
+      // Spawn Threat Arcs
       if (threatArcs.length < maxThreats && Math.random() < 0.02) {
         spawnThreatArc();
       }
 
+      // Update and Draw Threat Arcs
       threatArcs.forEach((arc, idx) => {
         arc.progress += arc.speed;
         if (arc.progress >= 1.0) {
@@ -565,7 +550,7 @@ function CyberBackground3D() {
         }
 
         ctx.lineWidth = 1.0;
-        ctx.strokeStyle = "rgba(0, 245, 212, 0.35)";
+        ctx.strokeStyle = "rgba(249, 115, 22, 0.25)";
         ctx.beginPath();
         
         let started = false;
@@ -625,19 +610,20 @@ function CyberBackground3D() {
           const px = centerX + x1 * scale;
           const py = centerY + y2 * scale;
 
-          ctx.fillStyle = "rgba(0, 245, 212, 0.25)";
+          // Glow layer (fast)
+          ctx.fillStyle = "rgba(255, 204, 0, 0.18)";
           ctx.beginPath();
           ctx.arc(px, py, Math.max(0.2, 8 * scale), 0, Math.PI * 2);
           ctx.fill();
 
-          ctx.fillStyle = "#00F5D4";
+          ctx.fillStyle = "#ffcc00";
           ctx.beginPath();
           ctx.arc(px, py, Math.max(0.1, 4 * scale), 0, Math.PI * 2);
           ctx.fill();
         }
       });
 
-      // Click Missiles Trails
+      // Update and Draw Click Missiles
       for (let i = missiles.length - 1; i >= 0; i--) {
         const m = missiles[i];
         m.x += m.vx;
@@ -674,15 +660,16 @@ function CyberBackground3D() {
           continue;
         }
 
-        ctx.strokeStyle = "rgba(0, 245, 212, 0.35)";
-        ctx.lineWidth = 8;
+        // Missile outer glow (fast)
+        ctx.strokeStyle = "rgba(255, 51, 51, 0.25)";
+        ctx.lineWidth = 10;
         ctx.beginPath();
         ctx.moveTo(m.x, m.y);
         ctx.lineTo(m.x - m.vx * 1.5, m.y - m.vy * 1.5);
         ctx.stroke();
 
-        ctx.strokeStyle = "#00E1FF";
-        ctx.lineWidth = 3;
+        ctx.strokeStyle = "#ff3333";
+        ctx.lineWidth = 4;
         ctx.beginPath();
         ctx.moveTo(m.x, m.y);
         ctx.lineTo(m.x - m.vx * 1.5, m.y - m.vy * 1.5);
@@ -696,7 +683,7 @@ function CyberBackground3D() {
         ctx.stroke();
       }
 
-      // Radial Energy Beams / Flares
+      // 5.0. Draw Pulsating Sun Solar Flare Rays (behind globe structure)
       const sunTime = Date.now() * 0.002;
       ctx.save();
       ctx.translate(centerX, centerY);
@@ -707,9 +694,9 @@ function CyberBackground3D() {
         
         const gradient = ctx.createLinearGradient(0, 0, Math.cos(angle) * length, Math.sin(angle) * length);
         gradient.addColorStop(0, "rgba(255, 255, 255, 0.4)");
-        gradient.addColorStop(0.2, "rgba(0, 245, 212, 0.25)");
-        gradient.addColorStop(0.5, "rgba(0, 225, 255, 0.12)");
-        gradient.addColorStop(1, "rgba(0, 225, 255, 0)");
+        gradient.addColorStop(0.2, "rgba(255, 204, 0, 0.25)");
+        gradient.addColorStop(0.5, "rgba(239, 68, 68, 0.12)");
+        gradient.addColorStop(1, "rgba(239, 68, 68, 0)");
         
         ctx.strokeStyle = gradient;
         ctx.lineWidth = 6 + Math.sin(sunTime + r) * 3;
@@ -720,7 +707,7 @@ function CyberBackground3D() {
       }
       ctx.restore();
 
-      // Energy Particles
+      // 5.1. Spawn Sun Particles (Solar Wind / flares)
       if (sunParticles.length < 120) {
         const theta = Math.random() * Math.PI * 2;
         const phi = Math.acos((Math.random() * 2) - 1);
@@ -738,10 +725,11 @@ function CyberBackground3D() {
           size: 1.2 + Math.random() * 2.5,
           maxAge: 40 + Math.random() * 60,
           age: 0,
-          color: Math.random() > 0.5 ? "rgba(0, 245, 212, " : (Math.random() > 0.5 ? "rgba(0, 225, 255, " : "rgba(255, 215, 0, ")
+          color: Math.random() > 0.5 ? "rgba(255, 204, 0, " : (Math.random() > 0.5 ? "rgba(249, 115, 22, " : "rgba(255, 255, 255, ")
         });
       }
 
+      // Update and Draw Sun Particles
       for (let i = sunParticles.length - 1; i >= 0; i--) {
         const sp = sunParticles[i];
         sp.age++;
@@ -772,11 +760,12 @@ function CyberBackground3D() {
         }
       }
 
-      // Fusion Cores
+      // 5.2. Spawn background periodic Fusion reaction
       if (activeFusionCores.length === 0 && Math.random() < 0.003) {
         spawnFusionReaction();
       }
 
+      // Update and Draw active Fusion Cores
       for (let i = activeFusionCores.length - 1; i >= 0; i--) {
         const fc = activeFusionCores[i];
         fc.x += fc.vx;
@@ -795,7 +784,7 @@ function CyberBackground3D() {
         const px = centerX + x1 * scale;
         const py = centerY + y2 * scale;
         
-        ctx.strokeStyle = fc.color === "#00F5D4" ? "rgba(0, 245, 212, 0.5)" : "rgba(0, 225, 255, 0.5)";
+        ctx.strokeStyle = fc.color === "#ffffff" ? "rgba(255, 255, 255, 0.4)" : "rgba(255, 204, 0, 0.4)";
         ctx.lineWidth = 3 * scale;
         ctx.beginPath();
         let first = true;
@@ -818,7 +807,8 @@ function CyberBackground3D() {
         });
         ctx.stroke();
         
-        ctx.fillStyle = fc.color === "#00F5D4" ? "rgba(0, 245, 212, 0.25)" : "rgba(0, 225, 255, 0.25)";
+        // Simulated glow (fast)
+        ctx.fillStyle = fc.color === "#ffffff" ? "rgba(255, 255, 255, 0.18)" : "rgba(255, 204, 0, 0.18)";
         ctx.beginPath();
         ctx.arc(px, py, 12 * scale, 0, Math.PI * 2);
         ctx.fill();
@@ -839,7 +829,7 @@ function CyberBackground3D() {
         }
       }
       
-      // Nuclear / Energy Explosions
+      // 5.3. Update and Draw Nuclear Blasts
       for (let i = nuclearBlasts.length - 1; i >= 0; i--) {
         const blast = nuclearBlasts[i];
         blast.age++;
@@ -890,7 +880,8 @@ function CyberBackground3D() {
         if (blast.type === 'fusion') {
           const ringRad = ageRatio * R * 1.6;
           
-          ctx.strokeStyle = `rgba(0, 245, 212, ${progressAlpha * 0.18})`;
+          // Fusion outer glow (fast)
+          ctx.strokeStyle = `rgba(255, 204, 0, ${progressAlpha * 0.15})`;
           ctx.lineWidth = 40 * progressAlpha;
           ctx.beginPath();
           ctx.arc(centerX, centerY, ringRad, 0, Math.PI * 2);
@@ -902,7 +893,7 @@ function CyberBackground3D() {
           ctx.arc(centerX, centerY, ringRad, 0, Math.PI * 2);
           ctx.stroke();
           
-          ctx.strokeStyle = `rgba(0, 225, 255, ${progressAlpha * 0.5})`;
+          ctx.strokeStyle = `rgba(255, 204, 0, ${progressAlpha * 0.5})`;
           ctx.lineWidth = 20 * progressAlpha;
           ctx.beginPath();
           ctx.arc(centerX, centerY, ringRad, 0, Math.PI * 2);
@@ -919,13 +910,14 @@ function CyberBackground3D() {
           const bpx = centerX + bx1 * bScale;
           const bpy = centerY + by2 * bScale;
 
-          ctx.strokeStyle = `rgba(0, 245, 212, ${progressAlpha * 0.35})`;
+          // Blast glow (fast)
+          ctx.strokeStyle = `rgba(239, 68, 68, ${progressAlpha * 0.25})`;
           ctx.lineWidth = 12 * progressAlpha;
           ctx.beginPath();
           ctx.arc(bpx, bpy, ringRad * bScale, 0, Math.PI * 2);
           ctx.stroke();
           
-          ctx.strokeStyle = `rgba(0, 245, 212, ${progressAlpha})`;
+          ctx.strokeStyle = `rgba(239, 68, 68, ${progressAlpha})`;
           ctx.lineWidth = 4 * progressAlpha;
           ctx.beginPath();
           ctx.arc(bpx, bpy, ringRad * bScale, 0, Math.PI * 2);
@@ -933,11 +925,12 @@ function CyberBackground3D() {
         }
       }
 
-      // Interactive Reticle Target Cursor (Teal Cyan & Gold Glow)
+      // Draw Interactive Reticle Target
       if (mouseX > 0 && mouseY > 0) {
         reticleRotation += 0.015;
 
-        ctx.strokeStyle = "rgba(0, 245, 212, 0.35)";
+        // Glow layer (fast)
+        ctx.strokeStyle = "rgba(239, 68, 68, 0.25)";
         ctx.lineWidth = 3.6;
         ctx.beginPath();
         ctx.arc(mouseX, mouseY, 28, 0, Math.PI * 2);
@@ -952,7 +945,8 @@ function CyberBackground3D() {
         ctx.stroke();
         ctx.setLineDash([]);
 
-        ctx.strokeStyle = "#00F5D4";
+        // Main core lines
+        ctx.strokeStyle = "#ef4444";
         ctx.lineWidth = 1.2;
         ctx.beginPath();
         ctx.arc(mouseX, mouseY, 28, 0, Math.PI * 2);
@@ -967,9 +961,9 @@ function CyberBackground3D() {
         ctx.moveTo(mouseX, mouseY + 28); ctx.lineTo(mouseX, mouseY + 38);
         ctx.stroke();
 
-        ctx.fillStyle = "#FFD700";
+        ctx.fillStyle = "rgba(255, 255, 255, 0.9)";
         ctx.beginPath();
-        ctx.arc(mouseX, mouseY, 2.5, 0, Math.PI * 2);
+        ctx.arc(mouseX, mouseY, 2, 0, Math.PI * 2);
         ctx.fill();
 
         projectedPoints.forEach((item) => {
@@ -981,7 +975,7 @@ function CyberBackground3D() {
           if (dist < 160) {
             const alpha = (1 - dist / 160) * 0.75;
             
-            ctx.strokeStyle = `rgba(0, 245, 212, ${alpha})`;
+            ctx.strokeStyle = `rgba(239, 68, 68, ${alpha})`;
             ctx.lineWidth = 0.8;
             ctx.beginPath();
             ctx.moveTo(item.px, item.py);
@@ -989,20 +983,21 @@ function CyberBackground3D() {
             ctx.stroke();
 
             const boxSize = Math.max(0.1, 7 * item.scale);
-            ctx.strokeStyle = `rgba(0, 225, 255, ${alpha * 0.9})`;
+            ctx.strokeStyle = `rgba(255, 255, 255, ${alpha * 0.8})`;
             ctx.lineWidth = 1;
             ctx.strokeRect(item.px - boxSize, item.py - boxSize, boxSize * 2, boxSize * 2);
 
             ctx.font = "6.5px monospace";
-            ctx.fillStyle = `rgba(0, 245, 212, ${alpha})`;
-            ctx.fillText(`LAYER_${Math.abs(item.pt.lat % 7) + 1}`, item.px + boxSize + 3, item.py - 2);
+            ctx.fillStyle = `rgba(239, 68, 68, ${alpha})`;
+            ctx.fillText(`THRT_${Math.abs(item.pt.lat)}N`, item.px + boxSize + 3, item.py - 2);
           }
         });
 
+        // Print active instructions
         ctx.font = "8px monospace";
-        ctx.fillStyle = "rgba(0, 245, 212, 0.85)";
+        ctx.fillStyle = "rgba(239, 68, 68, 0.75)";
         ctx.textAlign = "center";
-        ctx.fillText("CHAKRAVYUH_SHIELD_ACTIVE", mouseX, mouseY - 48);
+        ctx.fillText("CYBER_ATTACK_TRACER_ON", mouseX, mouseY - 48);
       }
 
       animId = requestAnimationFrame(render);
@@ -1023,84 +1018,26 @@ function CyberBackground3D() {
 }
 
 export default function AboutPage() {
-  const [activeTier, setActiveTier] = useState(0);
-
   const pillars = [
     {
-      icon: <ShieldAlert className="w-8 h-8 text-[#00F5D4]" />,
+      icon: <ShieldAlert className="w-8 h-8 text-red-500" />,
       title: "Ethical Hacking & Audits",
-      desc: "Educating security enthusiasts, discovering critical vulnerabilities, performing penetration tests, and publishing defensive audits.",
-      accent: "#00F5D4"
+      desc: "Educating developers and enthusiasts in testing environments, discovering critical structural weaknesses, and writing reports."
     },
     {
-      icon: <Trophy className="w-8 h-8 text-[#FFD700]" />,
-      title: "CTF Competition League",
-      desc: "Drilling skills in cryptography, reverse engineering, web exploitation, and binary analysis to dominate national CTF leaderboards.",
-      accent: "#FFD700"
+      icon: <Trophy className="w-8 h-8 text-amber-500" />,
+      title: "CTF Competition Training",
+      desc: "Drilling skills in cryptography, reverse engineering, web exploitation, and binary analysis to compete globally."
     },
     {
-      icon: <Terminal className="w-8 h-8 text-[#00E1FF]" />,
+      icon: <Terminal className="w-8 h-8 text-red-400" />,
       title: "Incident Simulation",
-      desc: "Simulating live red-team vs blue-team cyber warfare attack protocols to train defense analysts in threat remediation.",
-      accent: "#00E1FF"
+      desc: "Simulating live red-team vs blue-team cyber attack protocols to train defense analysts in threat remediation."
     },
     {
-      icon: <Heart className="w-8 h-8 text-[#00FF66]" />,
+      icon: <Heart className="w-8 h-8 text-orange-500" />,
       title: "Community Outreach",
-      desc: "Spreading digital hygiene awareness, securing local institutional infrastructure, and empowering cyber defenders.",
-      accent: "#00FF66"
-    }
-  ];
-
-  const chakravyuhTiers = [
-    {
-      tier: "Tier 1",
-      name: "Perimeter Barrier (Prathama Vyuha)",
-      icon: <Shield className="w-5 h-5 text-[#00F5D4]" />,
-      focus: "Edge Firewalls & WAF Security",
-      detail: "Initial defensive layer inspecting inbound network traffic, neutralizing brute force attempts, DDoS surges, and unauthorized packet vectors."
-    },
-    {
-      tier: "Tier 2",
-      name: "Identity & Authentication (Dvitadwara)",
-      icon: <Lock className="w-5 h-5 text-[#00E1FF]" />,
-      focus: "Cryptographic Auth & JWT Session Tokens",
-      detail: "Enforces multi-factor authentication, Argon2id password hashing, CSRF tokens, and zero-trust user credential verification."
-    },
-    {
-      tier: "Tier 3",
-      name: "Access Authorization (Tritiya Kavach)",
-      icon: <Target className="w-5 h-5 text-[#FFD700]" />,
-      focus: "RBAC & IDOR Neutralization",
-      detail: "Granular server-side authorization checks verifying permissions at every API endpoint to prevent IDOR and privilege escalation."
-    },
-    {
-      tier: "Tier 4",
-      name: "Input Sanitation Vault (Chaturtha Stambha)",
-      icon: <Cpu className="w-5 h-5 text-[#00FF66]" />,
-      focus: "OWASP Top-10 & Parameterized Queries",
-      detail: "Strict server-side validation and canonicalization filtering out SQL injection, XSS payloads, and path traversal strings."
-    },
-    {
-      tier: "Tier 5",
-      name: "Threat Intelligence Engine (Panchama Netra)",
-      icon: <Activity className="w-5 h-5 text-[#00F5D4]" />,
-      focus: "Real-time SIEM Audit Logging",
-      detail: "Telemetry tracking, tamper-evident audit logs, UTC timestamping, and instant notification of security events."
-    },
-    {
-      tier: "Tier 6",
-      name: "Red-Blue Tactical Chamber (Shastha Chakra)",
-      icon: <Zap className="w-5 h-5 text-[#00E1FF]" />,
-      focus: "Adversarial Simulation & CTF Labs",
-      detail: "Real-world red teaming attack simulations designed to harden defenses and discover structural system weaknesses."
-    },
-    {
-      tier: "Tier 7",
-      name: "Core Nucleus Defense (Saptama Garbha)",
-      icon: <Layers className="w-5 h-5 text-[#FFD700]" />,
-      focus: "Encrypted Vaults & Materialized Views",
-      detail: "The innermost core safeguarding critical database records, AES-256 encrypted secrets, and fail-safe system backup nodes."
+      desc: "Spreading digital hygiene awareness, securing systems locally, and encouraging safe technological habits."
     }
   ];
 
@@ -1108,104 +1045,74 @@ export default function AboutPage() {
     {
       year: "2024",
       title: "Club Foundation",
-      desc: "Chakravyuh formed as a dedicated cyber strategic defense interest group with 30 founding security enthusiasts."
+      desc: "Chakravyuh formed as a dedicated cyber strategic defense interest group with 30 initial members."
     },
     {
       year: "2025",
       title: "Scaling Operations",
-      desc: "Expanded to 200+ active members. Launched nationwide college-level CTF Hackathons and real-time defense leaderboards."
+      desc: "Expanded to 200+ members. Launched major college-level Hackathons and strategic defense scoring boards."
     },
     {
       year: "2026",
       title: "Chakravyuh 2.0 Hub",
-      desc: "Launched a centralized digital operations workspace featuring automated event consoles, attendance scanners, and credential verification."
+      desc: "Launched a centralized digital operations workspace hosting attendance scanner consoles and credential verification."
     }
   ];
 
-  const metrics = [
-    { value: "500+", label: "Active Cadets & Hackers", color: "#00F5D4" },
-    { value: "30+", label: "CTF Trophies Won", color: "#FFD700" },
-    { value: "100%", label: "Defensive Audits Passed", color: "#00E1FF" },
-    { value: "7-Tier", label: "Strategic Formation Matrix", color: "#00FF66" }
-  ];
-
   return (
-    <div className="min-h-screen bg-[#000000] text-white overflow-hidden selection:bg-[#00F5D4]/30 font-sans relative">
+    <div className="min-h-screen bg-[#030712] text-white overflow-hidden selection:bg-[#FFD700]/30 font-sans relative">
       
-      {/* 3D Energetic Chakravyuh Background */}
-      <div className="fixed inset-0 z-0 pointer-events-none bg-[#000000]">
+      {/* Solid Dark Background with 3D Cyber Globe */}
+      <div className="fixed inset-0 z-0 pointer-events-none bg-[#030712]">
         <CyberBackground3D />
       </div>
 
-      {/* Chakravyuh Background Grid Overlay */}
-      <div 
-        className="fixed inset-0 z-0 pointer-events-none opacity-[0.03]"
-        style={{
-          backgroundImage: "linear-gradient(to right, #00F5D4 1px, transparent 1px), linear-gradient(to bottom, #00F5D4 1px, transparent 1px)",
-          backgroundSize: "40px 40px"
-        }}
-      />
-
-      {/* Navigation Header */}
-      <header className="relative z-50 flex items-center justify-between px-6 py-5 max-w-7xl mx-auto border-b border-[#121F3D] bg-[#000000]/60 backdrop-blur-xl sticky top-0">
+      {/* Navbar */}
+      <header className="relative z-50 flex items-center justify-between px-6 py-6 max-w-7xl mx-auto border-b border-[#121F3D]">
         <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="flex items-center gap-4">
-          <Link href="/" className="p-2 rounded-xl hover:bg-white/10 text-[#00F5D4] hover:text-[#00E1FF] transition-all" title="Back to Home">
-            <ArrowLeft className="w-5 h-5" />
+          <Link href="/" className="p-2 rounded-full hover:bg-white/10 transition-colors">
+            <ArrowLeft className="w-5 h-5 text-[#FFD700]" />
           </Link>
-          <Link href="/" className="flex items-center gap-3">
-            <CyberKavachLogo collapsed={false} showText={true} />
-          </Link>
+          <div className="flex items-center gap-3">
+            <Link href="/" className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#FFD700] to-[#D4AF37] flex items-center justify-center shadow-[0_0_20px_rgba(255,215,0,0.5)] border border-[#FFD700]/50">
+                <Shield className="w-6 h-6 text-black shrink-0" />
+              </div>
+              <span className="text-xl font-bold tracking-widest font-mono hidden sm:inline-block text-[#FFD700]">CHAKRAVYUH</span>
+            </Link>
+          </div>
         </motion.div>
         
-        {/* Header Links */}
-        <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="flex items-center gap-4 sm:gap-6">
-          <Link href="/events" className="text-sm font-medium text-zinc-300 hover:text-[#00F5D4] transition-colors hidden md:block">
-            Events
-          </Link>
-          <Link href="/team" className="text-sm font-medium text-zinc-300 hover:text-[#00F5D4] transition-colors hidden md:block">
-            Team
-          </Link>
-          <Link href="/about" className="text-sm font-medium text-[#00F5D4] font-semibold border-b-2 border-[#00F5D4] pb-0.5 hidden md:block">
-            About
-          </Link>
-
-          {/* Mobile Icon Nav */}
-          <Link href="/about" className="md:hidden p-2 rounded-lg text-[#00F5D4] hover:bg-[#00F5D4]/10 transition-colors" title="About">
+        <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="flex items-center gap-3 sm:gap-5">
+          <Link href="/about" className="md:hidden flex items-center justify-center p-1.5 text-[#FFD700] hover:text-white transition-colors" title="About">
             <Info className="w-5 h-5" />
           </Link>
-          <Link href="/team" className="md:hidden p-2 rounded-lg text-zinc-400 hover:text-[#00F5D4] hover:bg-[#00F5D4]/10 transition-colors" title="Team">
+          <Link href="/team" className="md:hidden flex items-center justify-center p-1.5 text-[#00F5D4] hover:text-[#FFD700] transition-colors" title="Crew">
             <Users className="w-5 h-5" />
           </Link>
-          
-          <Link 
-            href="/auth" 
-            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-[#00F5D4] to-[#00E1FF] text-black font-semibold text-xs uppercase tracking-wider shadow-[0_0_20px_rgba(0,245,212,0.4)] hover:shadow-[0_0_30px_rgba(0,225,255,0.6)] transition-all hover:scale-105"
-          >
-            <LogIn className="w-4 h-4" />
-            <span>Portal Auth</span>
+          <Link href="/auth" className="md:hidden flex items-center justify-center p-1.5 text-slate-400 hover:text-white transition-colors" title="Sign In">
+            <LogIn className="w-5 h-5" />
           </Link>
         </motion.div>
       </header>
 
-      <main className="relative z-10 pt-14 pb-32 px-6 max-w-7xl mx-auto">
-        
-        {/* Hero Section */}
+      <main className="relative z-10 pt-16 pb-32 px-6 max-w-7xl mx-auto">
+        {/* Header Hero */}
         <div className="text-center mb-24">
           <motion.div 
             initial={{ opacity: 0, y: -20 }} 
             animate={{ opacity: 1, y: 0 }} 
-            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#00F5D4]/10 border border-[#00F5D4]/30 text-[#00F5D4] text-xs font-mono mb-6 uppercase tracking-widest shadow-[0_0_15px_rgba(0,245,212,0.2)] animate-pulse"
+            className="inline-flex items-center gap-2 px-4 py-1 rounded-full bg-[#FFD700]/10 border border-[#FFD700]/30 text-[#FFD700] text-xs font-mono mb-6 uppercase tracking-wider animate-pulse"
           >
-            <Shield className="w-3.5 h-3.5" />
-            <span>Invincible Defensive Shield Matrix</span>
+            Invincible Strategic Shield
           </motion.div>
           
           <motion.h1 
             initial={{ opacity: 0, y: 20 }} 
             animate={{ opacity: 1, y: 0 }} 
-            className="text-5xl md:text-7xl font-black mb-6 bg-gradient-to-r from-white via-[#00F5D4] to-[#00E1FF] bg-clip-text text-transparent filter drop-shadow-[0_0_25px_rgba(0,245,212,0.3)] tracking-tight"
+            className="text-5xl md:text-7xl font-black mb-6 bg-gradient-to-br from-white via-slate-200 to-[#FFD700] bg-clip-text text-transparent"
           >
-            Mission & Vision
+            Our Mission & Vision
           </motion.h1>
 
           <motion.p 
@@ -1214,152 +1121,15 @@ export default function AboutPage() {
             transition={{ delay: 0.2 }}
             className="text-lg md:text-xl text-zinc-300 max-w-3xl mx-auto leading-relaxed"
           >
-            Chakravyuh Club is an elite collective of cybersecurity researchers, systems developers, and ethical hackers. Inspired by the legendary 7-tier tactical defense formation, we engineer impenetrable digital fortresses through active research, CTF drills, and real-time incident simulations.
+            Chakravyuh Club is a collective of security researchers, software developers, and ethical hackers. Inspired by the legendary 7-tier strategic formation of Mahabharat, we build invincible cyber defense systems through collaborative training and simulations.
           </motion.p>
         </div>
-
-        {/* Metrics Counter Section */}
-        <section className="mb-28">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-            {metrics.map((m, idx) => (
-              <motion.div
-                key={idx}
-                initial={{ opacity: 0, scale: 0.9 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
-                transition={{ delay: idx * 0.1 }}
-                className="relative rounded-xl bg-[#0A0A0A]/90 border border-[#1A1A1A] p-6 text-center hover:border-[#00F5D4]/40 transition-all hover:shadow-[0_0_25px_rgba(0,245,212,0.15)] group"
-              >
-                <div 
-                  className="text-3xl md:text-5xl font-black font-mono mb-2"
-                  style={{ color: m.color, textShadow: `0 0 20px ${m.color}66` }}
-                >
-                  {m.value}
-                </div>
-                <div className="text-xs md:text-sm text-zinc-400 font-medium group-hover:text-white transition-colors">
-                  {m.label}
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </section>
-
-        {/* Interactive 7-Tier Chakravyuh Defense Matrix */}
-        <section className="mb-32">
-          <div className="text-center mb-16">
-            <div className="inline-block text-xs font-mono text-[#00F5D4] uppercase tracking-widest mb-2">
-              {"// MYTHOLOGICAL & CYBER ENGINE"}
-            </div>
-            <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight">
-              The 7 Tiers of <span className="bg-gradient-to-r from-[#00F5D4] to-[#00E1FF] bg-clip-text text-transparent font-mono">Chakravyuh</span>
-            </h2>
-            <p className="text-zinc-400 text-sm mt-2 max-w-2xl mx-auto">
-              Each layer of our architecture corresponds to an essential security pillar, forming a layered defensive matrix where no single point of failure exists.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-            {/* Tier Selector Navigation */}
-            <div className="lg:col-span-5 space-y-2.5">
-              {chakravyuhTiers.map((t, idx) => {
-                const isActive = activeTier === idx;
-                return (
-                  <button
-                    key={idx}
-                    onClick={() => setActiveTier(idx)}
-                    className={`w-full flex items-center justify-between p-4 rounded-xl border transition-all text-left ${
-                      isActive 
-                        ? "bg-[#080E24] border-[#00F5D4] shadow-[0_0_20px_rgba(0,245,212,0.25)] text-white" 
-                        : "bg-[#0A0A0A]/80 border-[#1A1A1A] text-zinc-400 hover:border-[#00F5D4]/40 hover:text-white"
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className={`p-2 rounded-lg ${isActive ? "bg-[#00F5D4]/10 text-[#00F5D4]" : "bg-white/5 text-zinc-400"}`}>
-                        {t.icon}
-                      </div>
-                      <div>
-                        <div className="text-xs font-mono text-[#00F5D4]">{t.tier}</div>
-                        <div className="text-sm font-bold">{t.name}</div>
-                      </div>
-                    </div>
-                    <ChevronRight className={`w-4 h-4 transition-transform ${isActive ? "rotate-90 text-[#00F5D4]" : "text-zinc-600"}`} />
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Tier Detail Card Showcase */}
-            <div className="lg:col-span-7">
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={activeTier}
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  transition={{ duration: 0.25 }}
-                  className="relative rounded-2xl bg-[#0A0A0A] border border-[#00F5D4]/40 p-8 shadow-[0_0_35px_rgba(0,245,212,0.15)] relative overflow-hidden"
-                >
-                  {/* Holographic Background Grid */}
-                  <div 
-                    className="absolute inset-0 opacity-[0.05] pointer-events-none"
-                    style={{
-                      backgroundImage: "radial-gradient(#00F5D4 1.5px, transparent 1.5px)",
-                      backgroundSize: "16px 16px"
-                    }}
-                  />
-
-                  {/* Corner Accent Brackets */}
-                  <div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-[#00F5D4]" />
-                  <div className="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 border-[#00F5D4]" />
-                  <div className="absolute bottom-0 left-0 w-3 h-3 border-b-2 border-l-2 border-[#00F5D4]" />
-                  <div className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-[#00F5D4]" />
-
-                  <div className="flex items-center gap-3 mb-6">
-                    <span className="px-3 py-1 rounded-full bg-[#00F5D4]/10 border border-[#00F5D4]/30 text-[#00F5D4] text-xs font-mono uppercase">
-                      {chakravyuhTiers[activeTier].tier} SPECIFICATION
-                    </span>
-                    <span className="text-xs font-mono text-zinc-500">STATUS: DEPLOYED</span>
-                  </div>
-
-                  <h3 className="text-2xl font-bold mb-2 text-white">
-                    {chakravyuhTiers[activeTier].name}
-                  </h3>
-
-                  <div className="text-sm font-mono text-[#00E1FF] mb-6 flex items-center gap-2">
-                    <Zap className="w-4 h-4 shrink-0" />
-                    <span>Focus Area: {chakravyuhTiers[activeTier].focus}</span>
-                  </div>
-
-                  <p className="text-zinc-300 text-base leading-relaxed mb-8">
-                    {chakravyuhTiers[activeTier].detail}
-                  </p>
-
-                  <div className="pt-6 border-t border-[#1A1A1A] flex flex-wrap items-center justify-between gap-4">
-                    <div className="flex items-center gap-2 text-xs font-mono text-zinc-400">
-                      <Shield className="w-4 h-4 text-[#00F5D4]" />
-                      <span>OWASP Secure Coding Compliant</span>
-                    </div>
-                    <Link
-                      href="/events"
-                      className="inline-flex items-center gap-2 text-xs font-mono text-[#00F5D4] hover:text-[#00E1FF] transition-colors"
-                    >
-                      <span>Simulate Tier Defense</span>
-                      <ChevronRight className="w-3.5 h-3.5" />
-                    </Link>
-                  </div>
-                </motion.div>
-              </AnimatePresence>
-            </div>
-          </div>
-        </section>
 
         {/* Pillars of Focus */}
         <section className="mb-32">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight">
-              Core Pillars of <span className="text-[#00F5D4] font-mono">Chakravyuh</span>
-            </h2>
-            <p className="text-zinc-500 text-xs mt-1 font-mono">{"// CORE COMPETENCIES & FIELD OPERATIONS"}</p>
+            <h2 className="text-3xl font-extrabold tracking-tight">Core Pillars of <span className="text-[#FFD700] font-mono">Chakravyuh</span></h2>
+            <p className="text-zinc-500 text-xs mt-1 font-mono">{"// CORE COMPETENCIES & FORMATION"}</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -1370,44 +1140,29 @@ export default function AboutPage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: idx * 0.1 }}
-                className="group relative rounded-2xl bg-[#0A0A0A] border border-[#1A1A1A] hover:border-[#00F5D4]/50 p-6 transition-all hover:bg-[#080E24] hover:shadow-[0_0_30px_rgba(0,245,212,0.12)] flex flex-col justify-between"
+                className="group relative rounded-2xl bg-[#080E24]/60 border border-[#121F3D] hover:border-[#FFD700]/50 p-6 transition-all hover:bg-[#050A18]"
               >
-                {/* Golden/Cyan Corner Brackets */}
-                <div className="absolute top-0 left-0 w-2.5 h-2.5 border-t-2 border-l-2 border-transparent group-hover:border-[#00F5D4] transition-colors" />
-                <div className="absolute top-0 right-0 w-2.5 h-2.5 border-t-2 border-r-2 border-transparent group-hover:border-[#00F5D4] transition-colors" />
-
-                <div>
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="p-3 rounded-xl bg-black border border-white/10 group-hover:border-[#00F5D4]/40 transition-all">
-                      {p.icon}
-                    </div>
-                    <div className="text-[10px] font-mono text-zinc-500 group-hover:text-[#00F5D4] transition-colors">
-                      SEC_PLR_{idx + 1}
-                    </div>
-                  </div>
-                  <h3 className="text-lg font-bold mb-2 group-hover:text-[#00F5D4] transition-colors">{p.title}</h3>
-                  <p className="text-sm text-zinc-400 leading-relaxed mb-4">{p.desc}</p>
+                <div className="absolute top-4 right-4 text-[8px] font-mono text-zinc-500 group-hover:text-[#FFD700]/70 transition-colors">
+                  SEC_PLR_{idx + 1}
                 </div>
-
-                <div className="pt-4 border-t border-white/5 flex items-center justify-between text-xs font-mono text-zinc-500 group-hover:text-zinc-300">
-                  <span>DEPLOYED LAYER</span>
-                  <span style={{ color: p.accent }}>ACTIVE</span>
+                <div className="mb-4 p-3 rounded-xl bg-black/40 w-fit border border-white/5 group-hover:border-[#FFD700]/30 group-hover:bg-[#FFD700]/10 transition-all text-[#00F5D4]">
+                  {p.icon}
                 </div>
+                <h3 className="text-lg font-bold mb-2 group-hover:text-[#FFD700] transition-colors">{p.title}</h3>
+                <p className="text-sm text-zinc-400 leading-relaxed">{p.desc}</p>
               </motion.div>
             ))}
           </div>
         </section>
 
-        {/* System Timeline Section */}
+        {/* Timeline Section */}
         <section className="mb-20 max-w-4xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight">
-              System <span className="bg-gradient-to-r from-[#00F5D4] to-[#00E1FF] bg-clip-text text-transparent font-mono">Timeline</span>
-            </h2>
+            <h2 className="text-3xl font-extrabold tracking-tight">System <span className="text-[#FFD700]">Timeline</span></h2>
             <p className="text-zinc-500 text-xs mt-1 font-mono">{"// CHRONOLOGICAL ARCHIVE"}</p>
           </div>
 
-          <div className="relative border-l-2 border-[#00F5D4]/30 ml-4 md:ml-32 pl-8 space-y-12">
+          <div className="relative border-l border-zinc-800 ml-4 md:ml-32 pl-8 space-y-12">
             {timelineEvents.map((ev, idx) => (
               <motion.div 
                 key={idx}
@@ -1415,21 +1170,21 @@ export default function AboutPage() {
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: idx * 0.1 }}
-                className="relative group"
+                className="relative"
               >
                 {/* Visual marker point */}
-                <div className="absolute -left-[41px] top-1.5 w-6 h-6 rounded-full bg-black border-2 border-[#00F5D4] flex items-center justify-center shadow-[0_0_12px_rgba(0,245,212,0.6)]">
-                  <div className="w-2 h-2 rounded-full bg-[#00E1FF] animate-ping" />
+                <div className="absolute -left-[41px] top-1.5 w-6 h-6 rounded-full bg-black border-2 border-[#FFD700] flex items-center justify-center">
+                  <div className="w-2 h-2 rounded-full bg-[#00F5D4] animate-ping" />
                 </div>
                 
                 {/* Year Label */}
-                <span className="hidden md:block absolute -left-[160px] top-1 font-mono text-lg font-extrabold text-[#00F5D4] drop-shadow-[0_0_10px_rgba(0,245,212,0.4)]">
+                <span className="hidden md:block absolute -left-[160px] top-1 font-mono text-lg font-extrabold text-[#FFD700]">
                   {ev.year}
                 </span>
 
-                <div className="p-6 rounded-2xl bg-[#0A0A0A] border border-[#1A1A1A] group-hover:border-[#00F5D4]/40 transition-colors shadow-[0_0_20px_rgba(0,0,0,0.8)]">
-                  <span className="md:hidden block font-mono text-sm font-bold text-[#00F5D4] mb-1">{ev.year}</span>
-                  <h3 className="text-xl font-bold mb-2 text-white group-hover:text-[#00F5D4] transition-colors">{ev.title}</h3>
+                <div className="p-6 rounded-2xl bg-[#080E24]/60 border border-[#121F3D] hover:border-[#FFD700]/30 transition-colors">
+                  <span className="md:hidden block font-mono text-sm font-bold text-[#FFD700] mb-1">{ev.year}</span>
+                  <h3 className="text-xl font-bold mb-2 text-white">{ev.title}</h3>
                   <p className="text-zinc-400 text-sm leading-relaxed">{ev.desc}</p>
                 </div>
               </motion.div>
@@ -1439,39 +1194,22 @@ export default function AboutPage() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-[#121F3D] bg-[#000000] py-12 relative z-10">
+      <footer className="border-t border-[#121F3D] bg-[#030712] py-12 relative z-10">
         <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-3">
-            <CyberKavachLogo collapsed={true} showText={true} />
+          <div className="flex items-center gap-2">
+            <Shield className="w-5 h-5 text-[#FFD700]" />
+            <span className="font-bold tracking-widest font-mono text-white">CHAKRAVYUH</span>
           </div>
           
           {/* Social Links */}
           <div className="flex items-center gap-4">
-            <a 
-              href="https://linkedin.com/company/chakravyuhclub" 
-              target="_blank" 
-              rel="noopener noreferrer" 
-              className="p-2.5 rounded-full border border-white/10 hover:border-[#00F5D4] hover:text-[#00F5D4] hover:bg-[#00F5D4]/10 transition-all text-zinc-400" 
-              title="LinkedIn"
-            >
+            <a href="https://linkedin.com/company/chakravyuh" target="_blank" rel="noopener noreferrer" className="p-2 rounded-full border border-white/10 hover:border-[#FFD700] hover:text-[#FFD700] hover:bg-[#FFD700]/10 transition-all text-zinc-400" title="LinkedIn">
               <LinkedinIcon className="w-5 h-5" />
             </a>
-            <a 
-              href="https://www.instagram.com/chakravyuh.charusat/" 
-              target="_blank" 
-              rel="noopener noreferrer" 
-              className="p-2.5 rounded-full border border-white/10 hover:border-[#00E1FF] hover:text-[#00E1FF] hover:bg-[#00E1FF]/10 transition-all text-zinc-400" 
-              title="Instagram"
-            >
+            <a href="https://www.instagram.com/chakravyuh.charusat/" target="_blank" rel="noopener noreferrer" className="p-2 rounded-full border border-white/10 hover:border-[#00F5D4] hover:text-[#00F5D4] hover:bg-[#00F5D4]/10 transition-all text-zinc-400" title="Instagram">
               <InstagramIcon className="w-5 h-5" />
             </a>
-            <a 
-              href="https://chat.whatsapp.com/chakravyuhclub" 
-              target="_blank" 
-              rel="noopener noreferrer" 
-              className="p-2.5 rounded-full border border-white/10 hover:border-[#FFD700] hover:text-[#FFD700] hover:bg-[#FFD700]/10 transition-all text-zinc-400" 
-              title="WhatsApp Community"
-            >
+            <a href="https://chat.whatsapp.com/chakravyuh" target="_blank" rel="noopener noreferrer" className="p-2 rounded-full border border-white/10 hover:border-[#FFD700] hover:text-[#FFD700] hover:bg-[#FFD700]/10 transition-all text-zinc-400" title="WhatsApp Community">
               <WhatsappIcon className="w-5 h-5" />
             </a>
           </div>
@@ -1480,34 +1218,22 @@ export default function AboutPage() {
         </div>
       </footer>
 
-      {/* Floating Social Dock */}
+      {/* Floating Social Links Dock */}
       <div className="fixed bottom-6 right-6 z-50 flex flex-col gap-3">
-        <a 
-          href="https://linkedin.com/company/chakravyuhclub" 
-          target="_blank" 
-          rel="noopener noreferrer"
-          className="w-11 h-11 rounded-full bg-black/90 border border-zinc-800 flex items-center justify-center text-zinc-400 hover:border-[#00F5D4] hover:text-[#00F5D4] shadow-[0_0_15px_rgba(0,0,0,0.8)] transition-all hover:scale-110 hover:shadow-[0_0_20px_rgba(0,245,212,0.35)]"
-          title="Chakravyuh LinkedIn"
-        >
-          <LinkedinIcon className="w-5 h-5" />
+        <a href="https://linkedin.com/company/chakravyuhclub" target="_blank" rel="noopener noreferrer"
+           className="w-11 h-11 rounded-full bg-black/80 border border-zinc-800 flex items-center justify-center hover:border-red-500 text-zinc-400 hover:text-red-500 shadow-[0_0_15px_rgba(0,0,0,0.5)] transition-all hover:scale-110 hover:shadow-[0_0_20px_rgba(239,68,68,0.25)] flex items-center justify-center"
+           title="Chakravyuh LinkedIn">
+           <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.779-1.75-1.75s.784-1.75 1.75-1.75 1.75.779 1.75 1.75-.784 1.75-1.75 1.75zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
         </a>
-        <a 
-          href="https://www.instagram.com/chakravyuh.charusat/" 
-          target="_blank" 
-          rel="noopener noreferrer"
-          className="w-11 h-11 rounded-full bg-black/90 border border-zinc-800 flex items-center justify-center text-zinc-400 hover:border-[#00E1FF] hover:text-[#00E1FF] shadow-[0_0_15px_rgba(0,0,0,0.8)] transition-all hover:scale-110 hover:shadow-[0_0_20px_rgba(0,225,255,0.35)]"
-          title="Chakravyuh Instagram"
-        >
-          <InstagramIcon className="w-5 h-5" />
+        <a href="https://www.instagram.com/chakravyuh.charusat/" target="_blank" rel="noopener noreferrer"
+           className="w-11 h-11 rounded-full bg-black/80 border border-zinc-800 flex items-center justify-center hover:border-red-500 text-zinc-400 hover:text-red-500 shadow-[0_0_15px_rgba(0,0,0,0.5)] transition-all hover:scale-110 hover:shadow-[0_0_20px_rgba(239,68,68,0.25)] flex items-center justify-center"
+           title="Chakravyuh Instagram">
+           <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
         </a>
-        <a 
-          href="https://chat.whatsapp.com/chakravyuhclub" 
-          target="_blank" 
-          rel="noopener noreferrer"
-          className="w-11 h-11 rounded-full bg-black/90 border border-zinc-800 flex items-center justify-center text-zinc-400 hover:border-[#FFD700] hover:text-[#FFD700] shadow-[0_0_15px_rgba(0,0,0,0.8)] transition-all hover:scale-110 hover:shadow-[0_0_20px_rgba(255,215,0,0.35)]"
-          title="Join WhatsApp Group"
-        >
-          <WhatsappIcon className="w-5 h-5" />
+        <a href="https://chat.whatsapp.com/chakravyuhclub" target="_blank" rel="noopener noreferrer"
+           className="w-11 h-11 rounded-full bg-black/80 border border-zinc-800 flex items-center justify-center hover:border-red-500 text-zinc-400 hover:text-red-500 shadow-[0_0_15px_rgba(0,0,0,0.5)] transition-all hover:scale-110 hover:shadow-[0_0_20px_rgba(239,68,68,0.25)] flex items-center justify-center text-lg leading-none"
+           title="Join WhatsApp Group">
+           <span>💬</span>
         </a>
       </div>
     </div>
