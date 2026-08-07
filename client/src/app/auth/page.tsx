@@ -73,10 +73,7 @@ function LoginPageContent() {
           department,
           institute,
           semester,
-          ...(registerNewClub
-            ? { newClubName, newClubSlug }
-            : { clubId: selectedClubId }
-          )
+          ...(selectedClubId ? { clubId: selectedClubId } : {})
         });
         setRegisteredPending(true);
       }
@@ -243,61 +240,6 @@ function LoginPageContent() {
                           <input type="text" placeholder="Contact number" value={phone} onChange={(e) => setPhone(e.target.value)} required={!isLogin} className="w-full bg-[#080E24] border border-[#121F3D] focus:border-[#FFD700] focus:outline-none rounded-xl text-xs text-white pl-9 pr-3 py-2.5 font-mono" />
                         </div>
                       </div>
-                    </div>
-
-                    <div className="border-t border-[#121F3D] pt-3.5 mt-2">
-                      <div className="flex items-center justify-between mb-2">
-                        <label className="block text-[10px] font-mono font-bold text-[#FFD700] uppercase">Club Namespace</label>
-                        <button
-                          type="button"
-                          onClick={() => setRegisterNewClub(!registerNewClub)}
-                          className="text-[10px] text-[#00F5D4] hover:underline font-mono"
-                        >
-                          {registerNewClub ? "Join Existing Club" : "Register New Club"}
-                        </button>
-                      </div>
-
-                      {!registerNewClub ? (
-                        <div>
-                          <select
-                            value={selectedClubId}
-                            onChange={(e) => setSelectedClubId(e.target.value)}
-                            className="w-full bg-[#080E24] border border-[#121F3D] focus:border-[#FFD700] rounded-xl p-2.5 text-xs text-white font-mono focus:outline-none"
-                          >
-                            {clubs.map((c) => (
-                              <option key={c.id} value={c.id} className="bg-[#050A18] text-white">
-                                {c.name} ({c.slug})
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                      ) : (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                          <div>
-                            <input
-                              type="text"
-                              placeholder="New Club Name"
-                              value={newClubName}
-                              onChange={(e) => {
-                                setNewClubName(e.target.value);
-                                setNewClubSlug(e.target.value.toLowerCase().replace(/[^a-z0-9]/g, "-").replace(/-+/g, "-"));
-                              }}
-                              required={!isLogin && registerNewClub}
-                              className="w-full bg-[#080E24] border border-[#121F3D] focus:border-[#FFD700] rounded-xl p-2.5 text-xs text-white font-mono"
-                            />
-                          </div>
-                          <div>
-                            <input
-                              type="text"
-                              placeholder="Club Slug"
-                              value={newClubSlug}
-                              onChange={(e) => setNewClubSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))}
-                              required={!isLogin && registerNewClub}
-                              className="w-full bg-[#080E24] border border-[#121F3D] focus:border-[#FFD700] rounded-xl p-2.5 text-xs text-white font-mono"
-                            />
-                          </div>
-                        </div>
-                      )}
                     </div>
                   </>
                 )}
