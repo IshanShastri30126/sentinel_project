@@ -28,13 +28,13 @@ const registerSchema = z.object({
   department: z.string().min(1, "Department is required"),
   institute: z.string().min(1, "Institute is required"),
   semester: z.string().min(1, "Semester is required"),
-  deviceFingerprint: z.string().optional(),
+  
 });
 
 const loginSchema = z.object({
   email: z.string().email(),
   password: z.string().min(1),
-  deviceFingerprint: z.string().optional(),
+ 
 });
 
 // ─── Helpers ───────────────────────────────────────────────
@@ -49,7 +49,7 @@ function generateTokens(payload: AuthPayload) {
   return { accessToken, refreshToken };
 }
 
-function setTokenCookies(res: Response, accessToken: string, refreshToken: string, deviceFingerprint?: string) {
+function setTokenCookies(res: Response, accessToken: string, refreshToken: string,) {
   const isProduction = process.env.NODE_ENV === "production";
   res.cookie("accessToken", accessToken, {
     httpOnly: true,
@@ -555,7 +555,7 @@ router.get("/me", authenticate, async (req: Request, res: Response) => {
         createdAt: true,
         institute: true,
         semester: true,
-        deviceFingerprint: true,
+    
       },
     });
     if (!user) {

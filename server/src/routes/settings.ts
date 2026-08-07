@@ -28,12 +28,7 @@ router.get("/landing-team", async (req: Request, res: Response) => {
     });
     
     // Default fallback if not set
-    const defaultTeam = [
-      { id: "1", name: "Dr. Jane Doe", role: "FACULTY", designation: "Faculty Coordinator", imageUrl: "https://i.pravatar.cc/150?u=1" },
-      { id: "2", name: "John Smith", role: "STUDENT_COORDINATOR", designation: "Lead Student Coordinator", imageUrl: "https://i.pravatar.cc/150?u=2" },
-      { id: "3", name: "Alice Tech", role: "TECH", designation: "Tech Lead", imageUrl: "https://i.pravatar.cc/150?u=3" },
-      { id: "4", name: "Bob Media", role: "SOCIAL_MEDIA", designation: "Social Media Manager", imageUrl: "https://i.pravatar.cc/150?u=4" }
-    ];
+    const defaultTeam: any[] = [];
 
     const finalTeam = setting ? setting.value : defaultTeam;
 

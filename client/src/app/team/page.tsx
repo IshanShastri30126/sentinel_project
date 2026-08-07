@@ -584,11 +584,23 @@ export default function TeamPage() {
         </div>
 
         {/* Categorized grids */}
-        <TeamGrid list={facultyList} title="Faculty Mentors" tag="[// FACULTY_MENTORS_CLEARANCE_LVL_5]" />
-        <TeamGrid list={coordinatorsList} title="Student Coordinators" tag="[// STUDENT_OPERATIONS_HUB_CLEARANCE_LVL_4]" />
-        <TeamGrid list={techList} title="Technical Division" tag="[// CORE_TECHNICAL_FORCE_CLEARANCE_LVL_3]" />
-        <TeamGrid list={creativeList} title="Creative & Media Division" tag="[// CREATIVE_MEDIA_UNIT_CLEARANCE_LVL_2]" />
-        <TeamGrid list={generalList} title="Additional Officers" tag="[// OFFICERS_CLEARANCE_LVL_1]" />
+        {team.length === 0 ? (
+          <div className="text-center py-20 bg-zinc-950/40 border border-zinc-800/80 rounded-2xl max-w-2xl mx-auto p-8">
+            <Users className="w-12 h-12 text-zinc-600 mx-auto mb-4" />
+            <h3 className="text-lg font-bold font-mono text-white uppercase tracking-wider mb-2">No Officers Registered</h3>
+            <p className="text-xs font-mono text-zinc-500 uppercase tracking-widest">
+              The member directory is currently empty. Officers will be listed once configured by administration.
+            </p>
+          </div>
+        ) : (
+          <>
+            <TeamGrid list={facultyList} title="Faculty Mentors" tag="[// FACULTY_MENTORS_CLEARANCE_LVL_5]" />
+            <TeamGrid list={coordinatorsList} title="Student Coordinators" tag="[// STUDENT_OPERATIONS_HUB_CLEARANCE_LVL_4]" />
+            <TeamGrid list={techList} title="Technical Division" tag="[// CORE_TECHNICAL_FORCE_CLEARANCE_LVL_3]" />
+            <TeamGrid list={creativeList} title="Creative & Media Division" tag="[// CREATIVE_MEDIA_UNIT_CLEARANCE_LVL_2]" />
+            <TeamGrid list={generalList} title="Additional Officers" tag="[// OFFICERS_CLEARANCE_LVL_1]" />
+          </>
+        )}
 
       </main>
       

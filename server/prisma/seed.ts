@@ -9,14 +9,9 @@ async function main() {
 
   const password = await bcrypt.hash("Demo@CV_$2026", 10);
 
-  // ─── Authorized Role Accounts ONLY (Point 3: User Management) ──
+  // ─── Authorized Role Accounts ONLY (Faculty Only) ─────────────────
   const seedUsers = [
     { name: "Dr. Sharma (Faculty)", email: "faculty@chakravyuhclub.com", role: "FACULTY" as Role },
-    { name: "Aarav Patel (SC)", email: "sc@chakravyuhclub.com", role: "STUDENT_COORDINATOR" as Role },
-    { name: "Priya Verma (Tech)", email: "tech@chakravyuhclub.com", role: "TECH" as Role },
-    { name: "Riya Singh (Content)", email: "content@chakravyuhclub.com", role: "CONTENT" as Role },
-    { name: "Karan Mehta (Social)", email: "social@chakravyuhclub.com", role: "SOCIAL_MEDIA" as Role },
-    { name: "Ananya Gupta (Member)", email: "member@chakravyuhclub.com", role: "MEMBER" as Role },
   ];
 
   for (const u of seedUsers) {
@@ -28,30 +23,45 @@ async function main() {
     console.log(`  ✅ ${u.role}: ${u.email}`);
   }
 
-  // Find GUEST user IDs for clean deletion
-  const guestUsers = await prisma.user.findMany({
-    where: { role: "GUEST" },
+  // Find all non-Faculty users for clean deletion
+  const nonFacultyUsers = await prisma.user.findMany({
+    where: {
+      AND: [
+        { email: { not: "faculty@chakravyuhclub.com" } },
+        { email: { not: "faculty@charkarvyhclub.com" } },
+      ],
+    },
     select: { id: true },
   });
 
-  const guestIds = guestUsers.map((u) => u.id);
+  const nonFacultyIds = nonFacultyUsers.map((u) => u.id);
 
-  if (guestIds.length > 0) {
-    await prisma.notification.deleteMany({ where: { userId: { in: guestIds } } });
-    await prisma.auditLog.deleteMany({ where: { userId: { in: guestIds } } });
+  if (nonFacultyIds.length > 0) {
+    await prisma.notification.deleteMany({ where: { userId: { in: nonFacultyIds } } });
+    await prisma.auditLog.deleteMany({ where: { userId: { in: nonFacultyIds } } });
     await prisma.appreciationPoint.deleteMany({
-      where: { OR: [{ giverId: { in: guestIds } }, { receiverId: { in: guestIds } }] },
+      where: { OR: [{ giverId: { in: nonFacultyIds } }, { receiverId: { in: nonFacultyIds } }] },
     });
-    await prisma.userBadge.deleteMany({ where: { userId: { in: guestIds } } });
-    await prisma.eventRegistration.deleteMany({ where: { userId: { in: guestIds } } });
-    await prisma.teamMember.deleteMany({ where: { userId: { in: guestIds } } });
-    await prisma.team.deleteMany({ where: { leaderId: { in: guestIds } } });
-    await prisma.attendance.deleteMany({ where: { userId: { in: guestIds } } });
-    await prisma.certificateTemplate.deleteMany({ where: { createdById: { in: guestIds } } });
-    await prisma.event.deleteMany({ where: { creatorId: { in: guestIds } } });
-    await prisma.user.deleteMany({ where: { id: { in: guestIds } } });
-    console.log(`  🧹 Cleaned up ${guestIds.length} GUEST accounts and associated records.`);
+    await prisma.userBadge.deleteMany({ where: { userId: { in: nonFacultyIds } } });
+    await prisma.eventRegistration.deleteMany({ where: { userId: { in: nonFacultyIds } } });
+    await prisma.teamMember.deleteMany({ where: { userId: { in: nonFacultyIds } } });
+    await prisma.team.deleteMany({ where: { leaderId: { in: nonFacultyIds } } });
+    await prisma.attendance.deleteMany({ where: { userId: { in: nonFacultyIds } } });
+    await prisma.certificateTemplate.deleteMany({ where: { createdById: { in: nonFacultyIds } } });
+    await prisma.approvalStep.deleteMany({ where: { approverId: { in: nonFacultyIds } } });
+    await prisma.approvalRequest.deleteMany({ where: { requesterId: { in: nonFacultyIds } } });
+    await prisma.event.deleteMany({ where: { creatorId: { in: nonFacultyIds } } });
+    await prisma.user.deleteMany({ where: { id: { in: nonFacultyIds } } });
+    console.log(`  🧹 Cleaned up ${nonFacultyIds.length} non-Faculty accounts and associated records.`);
   }
+
+  // Clear LANDING_PAGE_TEAM member directory in ClubSettings
+  await prisma.clubSettings.upsert({
+    where: { key: "LANDING_PAGE_TEAM" },
+    update: { value: [] },
+    create: { key: "LANDING_PAGE_TEAM", value: [] },
+  });
+  console.log("  🧹 Cleaned landing page member directory.");
 
   // ─── Seed Badges ──────────────────────────────────────────
   const badges = [
