@@ -23,12 +23,11 @@ const registerSchema = z.object({
   name: z.string().min(2).max(100),
   email: z.string().email(),
   password: z.string().min(6).max(128),
-  studentId: z.string().min(1, "Student ID is required"),
-  phone: z.string().min(1, "Contact info is required"),
-  department: z.string().min(1, "Department is required"),
-  institute: z.string().min(1, "Institute is required"),
-  semester: z.string().min(1, "Semester is required"),
-  
+  studentId: z.string().optional(),
+  phone: z.string().regex(/^\d{10}$/, "Mobile number must be exactly 10 digits"),
+  department: z.string().optional(),
+  institute: z.string().optional(),
+  semester: z.string().optional(),
 });
 
 const loginSchema = z.object({
@@ -49,7 +48,7 @@ function generateTokens(payload: AuthPayload) {
   return { accessToken, refreshToken };
 }
 
-function setTokenCookies(res: Response, accessToken: string, refreshToken: string,) {
+function setTokenCookies(res: Response, accessToken: string, refreshToken: string, deviceFingerprint?: string) {
   const isProduction = process.env.NODE_ENV === "production";
   res.cookie("accessToken", accessToken, {
     httpOnly: true,

@@ -22,3 +22,8 @@
   12. **File Management**: Authenticated uploads, allowlist extensions & headers, store files outside web root, disable execution on upload dirs, UUID filenames, relative paths only.
   13. **Memory Management**: Bounded string functions, explicit resource deallocation at exit points, overflow prevention.
   14. **General Coding Practices**: Built-in language APIs instead of OS shell execution (`eval`/`exec`), explicit variable initialization, locking for shared resources, dependency vulnerability auditing.
+
+role based profile management  in faculty  studentid  should be replaced by the employee id and the semester column will be removed .
+
+new constraint the 
+mobile number section in any form exactly 10 integer input  , no string or character should returned .
