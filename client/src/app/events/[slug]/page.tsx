@@ -91,6 +91,8 @@ function MatrixTitle({ title, accent }: { title: string; accent: string }) {
 }
 
 function FormattedDescription({ text }: { text: string }) {
+  const paragraphs = text ? text.split(/\n\n+/) : [];
+  const highlights: string[] = [];
   const regularParagraphs: string[] = [];
 
   paragraphs.forEach(p => {
