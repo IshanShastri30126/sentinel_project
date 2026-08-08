@@ -61,7 +61,7 @@ export async function authenticate(req: Request, res: Response, next: NextFuncti
 export const ROLE_HIERARCHY: Record<Role, number> = {
   FACULTY: 1,
   STUDENT_COORDINATOR: 1,
-  TECH: 3,
+  TECH: 1,
   CONTENT: 3,
   SOCIAL_MEDIA: 3,
   MEMBER: 4,

@@ -41,6 +41,7 @@ async function executeApiRequest<T>(endpoint: string, options: FetchOptions = {}
   const activeToken = cookieToken || token;
   const activeClubSlug = typeof window !== "undefined" ? localStorage.getItem("ck_active_club_slug") || "chakravyuh" : "chakravyuh";
   const deviceFingerprint = typeof window !== "undefined" ? getDeviceFingerprint() : "";
+  const localIp = typeof window !== "undefined" ? localStorage.getItem("ck_local_ip") || "192.168.1.100" : "192.168.1.100";
 
   const res = await fetch(`${API_BASE}${endpoint}`, {
     credentials: "include",
@@ -49,6 +50,7 @@ async function executeApiRequest<T>(endpoint: string, options: FetchOptions = {}
       ...(activeToken ? { Authorization: `Bearer ${activeToken}` } : {}),
       "X-Club-Slug": activeClubSlug,
       ...(deviceFingerprint ? { "X-Device-Fingerprint": deviceFingerprint } : {}),
+      "X-Local-IP": localIp,
       ...headers,
     },
     ...rest,

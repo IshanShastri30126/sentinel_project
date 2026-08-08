@@ -232,7 +232,7 @@ export default function DashboardPage() {
     if (!token || !user) return;
     const load = async () => {
       try {
-        if (["FACULTY", "STUDENT_COORDINATOR"].includes(user.role)) {
+        if (["FACULTY", "STUDENT_COORDINATOR", "TECH"].includes(user.role)) {
           const [clubRes, opsRes, usersRes] = await Promise.all([
             api<ClubAnalytics>("/analytics/club", { token }).catch((err) => {
               console.error("Club analytics error:", err);

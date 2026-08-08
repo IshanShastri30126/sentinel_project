@@ -2,6 +2,7 @@ import { Router, Request, Response } from "express";
 import prisma from "../lib/prisma";
 import { authenticate, requireMinRole } from "../middlewares/auth";
 import { auditLog } from "../middlewares/auditLog";
+import { parseUserAgentDetails } from "../lib/auditLogger";
 import { redisGet, redisSet, redisDel } from "../lib/redis";
 import os from "os";
 
@@ -141,8 +142,25 @@ router.get("/logs", async (req: Request, res: Response) => {
       }),
     ]);
 
+    const formattedLogs = logs.map((log) => {
+      const details = parseUserAgentDetails(log.userAgent);
+      const ctx = (log.context as Record<string, any>) || {};
+      return {
+        ...log,
+        user: log.user,
+        device: ctx.device || details.device,
+        deviceId: ctx.deviceId || ctx.deviceFingerprint || details.deviceId,
+        localIp: ctx.localIp || details.localIp,
+        publicIp: ctx.publicIp || log.ipAddress || details.publicIp,
+        browser: ctx.browser || details.browser,
+        os: ctx.os || details.os,
+        action: log.action,
+        time: log.createdAt,
+      };
+    });
+
     res.json({
-      logs,
+      logs: formattedLogs,
       pagination: {
         total,
         page,

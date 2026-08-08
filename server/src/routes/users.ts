@@ -29,8 +29,8 @@ async function clearUsersCache() {
 
 const router = Router();
 
-// GET /api/users — List all users (SC+ only)
-router.get("/", authenticate, requireMinRole("STUDENT_COORDINATOR"), async (req: Request, res: Response) => {
+// GET /api/users — List all users (SC+/Tech)
+router.get("/", authenticate, requireMinRole("TECH"), async (req: Request, res: Response) => {
   try {
     const { search, role, approved, page, limit } = req.query;
     
@@ -393,8 +393,8 @@ router.patch("/profile", authenticate, upload.single("avatar"), async (req: Requ
   }
 });
 
-// GET /api/users/audit-logs — List system audit logs (SC+ only)
-router.get("/audit-logs", authenticate, requireMinRole("STUDENT_COORDINATOR"), async (req: Request, res: Response) => {
+// GET /api/users/audit-logs — List system audit logs (SC+/Tech)
+router.get("/audit-logs", authenticate, requireMinRole("TECH"), async (req: Request, res: Response) => {
   try {
     const { action, outcome, page, limit } = req.query;
     const pageNum = page ? parseInt(page as string) : 1;

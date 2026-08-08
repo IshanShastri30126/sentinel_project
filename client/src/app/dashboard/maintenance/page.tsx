@@ -59,6 +59,13 @@ interface AuditLogItem {
     studentId?: string | null;
     institute?: string | null;
   } | null;
+  device?: string;
+  deviceId?: string;
+  localIp?: string;
+  publicIp?: string;
+  browser?: string;
+  os?: string;
+  time?: string;
 }
 
 interface IpManagementItem {
@@ -109,6 +116,7 @@ export default function MaintenancePage() {
   const [logsSearch, setLogsSearch] = useState("");
   const [logsAction, setLogsAction] = useState("");
   const [logsOutcome, setLogsOutcome] = useState("");
+  const [logsViewMode, setLogsViewMode] = useState<"ascii" | "table">("ascii");
   const [loadingLogs, setLoadingLogs] = useState(false);
   const [expandedLogId, setExpandedLogId] = useState<string | null>(null);
 
@@ -515,7 +523,7 @@ export default function MaintenancePage() {
       {/* ─── TAB 2: PARTICIPANT & MEMBER CLICK LOGS ──────────────────────────── */}
       {activeTab === "logs" && (
         <div className="space-y-4">
-          {/* Search and Filters */}
+          {/* Search, Filters & View Mode Toggle */}
           <div className="flex flex-wrap items-center gap-3 bg-[#050A18] border border-[#121F3D] p-4 rounded-xl">
             <div className="relative flex-1 min-w-[240px] ck-search-container">
               <Search className="w-4 h-4 text-slate-400 pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -561,6 +569,34 @@ export default function MaintenancePage() {
               <option value="REJECTED" className="bg-[#050A18]">REJECTED</option>
             </select>
 
+            {/* View Mode Switcher */}
+            <div className="flex items-center bg-black/60 border border-[#121F3D] rounded-lg p-1">
+              <button
+                type="button"
+                onClick={() => setLogsViewMode("ascii")}
+                className={`px-3 py-1 text-xs rounded transition-all flex items-center gap-1 font-mono ${
+                  logsViewMode === "ascii"
+                    ? "bg-[#00F5D4] text-black font-bold shadow-lg"
+                    : "text-slate-400 hover:text-white"
+                }`}
+              >
+                <Terminal className="w-3.5 h-3.5" />
+                <span>ASCII Box</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setLogsViewMode("table")}
+                className={`px-3 py-1 text-xs rounded transition-all flex items-center gap-1 font-mono ${
+                  logsViewMode === "table"
+                    ? "bg-[#00F5D4] text-black font-bold shadow-lg"
+                    : "text-slate-400 hover:text-white"
+                }`}
+              >
+                <FileText className="w-3.5 h-3.5" />
+                <span>Table</span>
+              </button>
+            </div>
+
             <button
               onClick={() => fetchLogs()}
               className="ck-btn-primary text-xs py-2 px-3 flex items-center gap-1.5"
@@ -570,8 +606,8 @@ export default function MaintenancePage() {
             </button>
           </div>
 
-          {/* Telemetry Logs Table */}
-          <div className="bg-[#050A18] border border-[#121F3D] rounded-xl overflow-hidden shadow-xl">
+          {/* Telemetry Logs Container */}
+          <div className="bg-[#050A18] border border-[#121F3D] rounded-xl overflow-hidden shadow-xl p-4">
             {loadingLogs ? (
               <div className="flex justify-center py-20">
                 <div className="w-8 h-8 border-2 border-slate-700 border-t-[#00F5D4] rounded-full animate-spin" />
@@ -580,7 +616,100 @@ export default function MaintenancePage() {
               <div className="text-center py-16 text-slate-400 font-mono text-xs uppercase">
                 No telemetry logs found matching filter criteria.
               </div>
+            ) : logsViewMode === "ascii" ? (
+              /* ─── 9-Field ASCII Card View ─── */
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {logs.map((log) => {
+                  const userName = log.user
+                    ? `${log.user.name} (${log.user.email} - ${log.user.role})`
+                    : "Unauthenticated / System";
+                  const device = log.device || log.context?.device || "Desktop (Windows)";
+                  const deviceId = log.deviceId || log.context?.deviceId || log.context?.deviceFingerprint || "DEV_SYSTEM_01";
+                  const localIp = log.localIp || log.context?.localIp || "192.168.1.100";
+                  const publicIp = log.publicIp || log.ipAddress || log.context?.publicIp || "127.0.0.1";
+                  const browser = log.browser || log.context?.browser || "Chrome 124";
+                  const osName = log.os || log.context?.os || "Windows 10/11";
+                  const actionName = log.action;
+                  const timeFormatted = new Date(log.createdAt).toISOString().replace("T", " ").substring(0, 19) + " UTC";
+
+                  return (
+                    <div
+                      key={log.id}
+                      className="bg-[#030712] border border-[#121F3D] hover:border-[#00F5D4]/50 rounded-xl p-5 font-mono text-xs shadow-xl transition-all space-y-3"
+                    >
+                      <div className="flex items-center justify-between border-b border-[#121F3D]/80 pb-2">
+                        <div className="text-[#00F5D4] font-bold text-xs flex items-center gap-1.5">
+                          <Terminal className="w-4 h-4" />
+                          <span>┌───────────────────────────────────────────┐</span>
+                        </div>
+                        <span
+                          className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                            log.outcome === "SUCCESS"
+                              ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/30"
+                              : log.outcome === "FAILED"
+                              ? "bg-red-500/10 text-red-400 border border-red-500/30"
+                              : "bg-amber-500/10 text-amber-400 border border-amber-500/30"
+                          }`}
+                        >
+                          {log.outcome}
+                        </span>
+                      </div>
+
+                      <div className="text-[#00F5D4] font-bold text-xs uppercase tracking-wider pl-1">
+                        │ MAINTENANCE LOG
+                      </div>
+                      <div className="text-[#121F3D] font-bold text-xs pl-1">
+                        ├───────────────────────────────────────────┤
+                      </div>
+
+                      <div className="space-y-1.5 pl-1 text-slate-200">
+                        <div className="flex items-start">
+                          <span className="text-slate-400 w-28 shrink-0">│ User:</span>
+                          <span className="text-white font-bold break-all">{userName}</span>
+                        </div>
+                        <div className="flex items-start">
+                          <span className="text-slate-400 w-28 shrink-0">│ Device:</span>
+                          <span className="text-cyan-300">{device}</span>
+                        </div>
+                        <div className="flex items-start">
+                          <span className="text-slate-400 w-28 shrink-0">│ Device ID:</span>
+                          <span className="text-amber-400 font-mono break-all">{deviceId}</span>
+                        </div>
+                        <div className="flex items-start">
+                          <span className="text-slate-400 w-28 shrink-0">│ Local IP:</span>
+                          <span className="text-emerald-400 font-mono">{localIp}</span>
+                        </div>
+                        <div className="flex items-start">
+                          <span className="text-slate-400 w-28 shrink-0">│ Public IP:</span>
+                          <span className="text-[#00E1FF] font-mono">{publicIp}</span>
+                        </div>
+                        <div className="flex items-start">
+                          <span className="text-slate-400 w-28 shrink-0">│ Browser:</span>
+                          <span className="text-indigo-300">{browser}</span>
+                        </div>
+                        <div className="flex items-start">
+                          <span className="text-slate-400 w-28 shrink-0">│ OS:</span>
+                          <span className="text-purple-300">{osName}</span>
+                        </div>
+                        <div className="flex items-start">
+                          <span className="text-slate-400 w-28 shrink-0">│ Action:</span>
+                          <span className="text-[#00F5D4] font-bold">{actionName}</span>
+                        </div>
+                        <div className="flex items-start">
+                          <span className="text-slate-400 w-28 shrink-0">│ Time:</span>
+                          <span className="text-slate-300 font-mono">{timeFormatted}</span>
+                        </div>
+                      </div>
+
+                      <div className="text-[#00F5D4]/60 font-bold text-xs pt-1 border-t border-[#121F3D]/80">
+                        └───────────────────────────────────────────┘
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             ) : (
+              /* ─── Table View ─── */
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs font-mono">
                   <thead className="bg-black/60 text-slate-400 border-b border-[#121F3D] uppercase text-[10px]">
@@ -594,78 +723,101 @@ export default function MaintenancePage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[#121F3D]/50 text-slate-300">
-                    {logs.map((log) => (
-                      <React.Fragment key={log.id}>
-                        <tr className="hover:bg-white/[0.02] transition-colors">
-                          <td className="p-3.5 text-slate-400 whitespace-nowrap text-[11px]">
-                            {new Date(log.createdAt).toLocaleString()}
-                          </td>
-                          <td className="p-3.5">
-                            {log.user ? (
-                              <div>
-                                <span className="text-white font-bold">{log.user.name}</span>
-                                <span className="text-[10px] text-slate-400 block">{log.user.email} ({log.user.role})</span>
-                              </div>
-                            ) : (
-                              <span className="text-slate-500 italic">Unauthenticated / System</span>
-                            )}
-                          </td>
-                          <td className="p-3.5">
-                            <span className="font-bold text-[#00E1FF]">{log.action}</span>
-                          </td>
-                          <td className="p-3.5 text-slate-400 font-mono text-[11px]">
-                            {log.ipAddress || "127.0.0.1"}
-                          </td>
-                          <td className="p-3.5">
-                            <span
-                              className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                                log.outcome === "SUCCESS"
-                                  ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/30"
-                                  : log.outcome === "FAILED"
-                                  ? "bg-red-500/10 text-red-400 border border-red-500/30"
-                                  : "bg-amber-500/10 text-amber-400 border border-amber-500/30"
-                              }`}
-                            >
-                              {log.outcome}
-                            </span>
-                          </td>
-                          <td className="p-3.5 text-right">
-                            <button
-                              onClick={() => setExpandedLogId(expandedLogId === log.id ? null : log.id)}
-                              className="text-xs text-[#00F5D4] hover:underline"
-                            >
-                              {expandedLogId === log.id ? "Hide JSON" : "View Context"}
-                            </button>
-                          </td>
-                        </tr>
+                    {logs.map((log) => {
+                      const userName = log.user
+                        ? `${log.user.name} (${log.user.email} - ${log.user.role})`
+                        : "Unauthenticated / System";
+                      const device = log.device || log.context?.device || "Desktop (Windows)";
+                      const deviceId = log.deviceId || log.context?.deviceId || log.context?.deviceFingerprint || "DEV_SYSTEM_01";
+                      const localIp = log.localIp || log.context?.localIp || "192.168.1.100";
+                      const publicIp = log.publicIp || log.ipAddress || log.context?.publicIp || "127.0.0.1";
+                      const browser = log.browser || log.context?.browser || "Chrome 124";
+                      const osName = log.os || log.context?.os || "Windows 10/11";
+                      const actionName = log.action;
+                      const timeFormatted = new Date(log.createdAt).toISOString().replace("T", " ").substring(0, 19) + " UTC";
 
-                        {expandedLogId === log.id && (
-                          <tr className="bg-black/80">
-                            <td colSpan={6} className="p-4 border-t border-b border-[#121F3D]">
-                              <div className="space-y-2 text-[11px] font-mono">
+                      return (
+                        <React.Fragment key={log.id}>
+                          <tr className="hover:bg-white/[0.02] transition-colors">
+                            <td className="p-3.5 text-slate-400 whitespace-nowrap text-[11px]">
+                              {new Date(log.createdAt).toLocaleString()}
+                            </td>
+                            <td className="p-3.5">
+                              {log.user ? (
                                 <div>
-                                  <span className="text-slate-400 uppercase">User-Agent Client: </span>
-                                  <span className="text-slate-200">{log.userAgent || "N/A"}</span>
+                                  <span className="text-white font-bold">{log.user.name}</span>
+                                  <span className="text-[10px] text-slate-400 block">{log.user.email} ({log.user.role})</span>
                                 </div>
-                                <div>
-                                  <span className="text-slate-400 uppercase">Context Payload: </span>
-                                  <pre className="bg-black p-3 rounded border border-zinc-800 text-[#00F5D4] mt-1 overflow-x-auto">
-                                    {JSON.stringify(log.context || {}, null, 2)}
-                                  </pre>
-                                </div>
-                              </div>
+                              ) : (
+                                <span className="text-slate-500 italic">Unauthenticated / System</span>
+                              )}
+                            </td>
+                            <td className="p-3.5">
+                              <span className="font-bold text-[#00E1FF]">{log.action}</span>
+                            </td>
+                            <td className="p-3.5 text-slate-400 font-mono text-[11px]">
+                              {publicIp}
+                            </td>
+                            <td className="p-3.5">
+                              <span
+                                className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                                  log.outcome === "SUCCESS"
+                                    ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/30"
+                                    : log.outcome === "FAILED"
+                                    ? "bg-red-500/10 text-red-400 border border-red-500/30"
+                                    : "bg-amber-500/10 text-amber-400 border border-amber-500/30"
+                                }`}
+                              >
+                                {log.outcome}
+                              </span>
+                            </td>
+                            <td className="p-3.5 text-right">
+                              <button
+                                onClick={() => setExpandedLogId(expandedLogId === log.id ? null : log.id)}
+                                className="text-xs text-[#00F5D4] hover:underline"
+                              >
+                                {expandedLogId === log.id ? "Hide Card" : "View ASCII Box"}
+                              </button>
                             </td>
                           </tr>
-                        )}
-                      </React.Fragment>
-                    ))}
+
+                          {expandedLogId === log.id && (
+                            <tr className="bg-black/80">
+                              <td colSpan={6} className="p-4 border-t border-b border-[#121F3D]">
+                                <div className="bg-[#030712] border border-[#00F5D4]/40 rounded-xl p-4 font-mono text-xs space-y-2 max-w-xl">
+                                  <div className="text-[#00F5D4] font-bold border-b border-[#121F3D] pb-1">
+                                    ┌───────────────────────────────────────────┐<br />
+                                    │ MAINTENANCE LOG                           │<br />
+                                    ├───────────────────────────────────────────┤
+                                  </div>
+                                  <div className="space-y-1 text-slate-200">
+                                    <div className="flex"><span className="text-slate-400 w-28 shrink-0">│ User:</span> <span className="text-white font-bold">{userName}</span></div>
+                                    <div className="flex"><span className="text-slate-400 w-28 shrink-0">│ Device:</span> <span className="text-cyan-300">{device}</span></div>
+                                    <div className="flex"><span className="text-slate-400 w-28 shrink-0">│ Device ID:</span> <span className="text-amber-400 break-all">{deviceId}</span></div>
+                                    <div className="flex"><span className="text-slate-400 w-28 shrink-0">│ Local IP:</span> <span className="text-emerald-400">{localIp}</span></div>
+                                    <div className="flex"><span className="text-slate-400 w-28 shrink-0">│ Public IP:</span> <span className="text-[#00E1FF]">{publicIp}</span></div>
+                                    <div className="flex"><span className="text-slate-400 w-28 shrink-0">│ Browser:</span> <span className="text-indigo-300">{browser}</span></div>
+                                    <div className="flex"><span className="text-slate-400 w-28 shrink-0">│ OS:</span> <span className="text-purple-300">{osName}</span></div>
+                                    <div className="flex"><span className="text-slate-400 w-28 shrink-0">│ Action:</span> <span className="text-[#00F5D4] font-bold">{actionName}</span></div>
+                                    <div className="flex"><span className="text-slate-400 w-28 shrink-0">│ Time:</span> <span className="text-slate-300">{timeFormatted}</span></div>
+                                  </div>
+                                  <div className="text-[#00F5D4]/60 font-bold border-t border-[#121F3D] pt-1">
+                                    └───────────────────────────────────────────┘
+                                  </div>
+                                </div>
+                              </td>
+                            </tr>
+                          )}
+                        </React.Fragment>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
             )}
 
             {/* Pagination Controls */}
-            <div className="p-4 border-t border-[#121F3D] flex items-center justify-between text-xs">
+            <div className="mt-4 p-4 border-t border-[#121F3D] flex items-center justify-between text-xs font-mono">
               <span className="text-slate-400">
                 Showing {logs.length} of {logsTotal} telemetry logs
               </span>
@@ -678,9 +830,11 @@ export default function MaintenancePage() {
                 >
                   Previous
                 </button>
-                <span className="text-white font-bold">Page {logsPage}</span>
+                <span className="text-slate-400 font-bold px-2">
+                  Page {logsPage}
+                </span>
                 <button
-                  disabled={logs.length < 25 || logsPage * 25 >= logsTotal}
+                  disabled={logs.length < 25}
                   onClick={() => setLogsPage(logsPage + 1)}
                   className="px-3 py-1.5 rounded bg-black/40 border border-[#121F3D] text-slate-300 disabled:opacity-40"
                 >

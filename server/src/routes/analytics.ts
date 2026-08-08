@@ -5,8 +5,8 @@ import { redisGet, redisSet } from "../lib/redis";
 
 const router = Router();
 
-// GET /api/analytics/club — Faculty: full club-wide analytics
-router.get("/club", authenticate, requireMinRole("FACULTY"), async (_req: Request, res: Response) => {
+// GET /api/analytics/club — Faculty/SC/Tech: full club-wide analytics
+router.get("/club", authenticate, requireMinRole("TECH"), async (_req: Request, res: Response) => {
   try {
     const cacheKey = "analytics:club";
     const cached = await redisGet(cacheKey);
@@ -69,8 +69,8 @@ router.get("/club", authenticate, requireMinRole("FACULTY"), async (_req: Reques
   }
 });
 
-// GET /api/analytics/operations — SC+: operational metrics
-router.get("/operations", authenticate, requireMinRole("STUDENT_COORDINATOR"), async (_req: Request, res: Response) => {
+// GET /api/analytics/operations — SC+/Tech: operational metrics
+router.get("/operations", authenticate, requireMinRole("TECH"), async (_req: Request, res: Response) => {
   try {
     const cacheKey = "analytics:operations";
     const cached = await redisGet(cacheKey);
