@@ -5,6 +5,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { Shield, ArrowLeft, ShieldAlert, Trophy, Terminal, Heart, Info, Users, LogIn } from "lucide-react";
 import { CyberKavachLogo } from "@/components/CyberKavachLogo";
+import PlexusBackground from "@/components/PlexusBackground";
 
 const LinkedinIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
   <svg viewBox="0 0 24 24" fill="currentColor" className={className} style={{ width: "1em", height: "1em" }}>
@@ -71,8 +72,12 @@ export default function AboutPage() {
   return (
     <div className="min-h-screen bg-[#030712] text-white overflow-hidden selection:bg-[#FFD700]/30 font-sans relative">
       
-      {/* Clean Dark Background */}
-      <div className="fixed inset-0 z-0 pointer-events-none bg-[#030712]" />
+      {/* Interactive 7-Tier Chakravyuh Background Canvas */}
+      <PlexusBackground />
+
+      {/* Cyberpunk Grid Overlay and Ambient Neon Glow */}
+      <div className="fixed inset-0 z-0 pointer-events-none bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(0,245,212,0.12),rgba(3,7,18,0.85))]" />
+      <div className="fixed inset-0 z-0 pointer-events-none bg-[linear-gradient(to_right,#121F3D20_1px,transparent_1px),linear-gradient(to_bottom,#121F3D20_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)]" />
 
       {/* Navbar */}
       <header className="relative z-50 flex items-center justify-between px-6 py-6 max-w-7xl mx-auto border-b border-[#121F3D]">
