@@ -10,7 +10,12 @@ interface NodeParticle {
   isGreen: boolean;
 }
 
-export default function PlexusBackground() {
+interface PlexusBackgroundProps {
+  className?: string;
+  opacity?: number;
+}
+
+export default function PlexusBackground({ className = "", opacity = 1 }: PlexusBackgroundProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   useEffect(() => {
@@ -243,8 +248,8 @@ export default function PlexusBackground() {
   return (
     <canvas
       ref={canvasRef}
-      className="absolute inset-0 w-full h-full pointer-events-none block z-10"
-      style={{ mixBlendMode: "screen" }}
+      className={`fixed inset-0 w-full h-full pointer-events-none block z-0 ${className}`}
+      style={{ mixBlendMode: "screen", opacity }}
     />
   );
 }
