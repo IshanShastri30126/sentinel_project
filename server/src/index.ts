@@ -68,10 +68,10 @@ const corsOptions: cors.CorsOptions = {
 app.use(cors(corsOptions));
 app.options("*", cors(corsOptions));
 
-// 2. Security headers (disable COOP restrictive header so Google OAuth postMessage is not blocked)
+// 2. Security headers (allow popups for Google OAuth postMessage)
 app.use(helmet({
   crossOriginResourcePolicy: { policy: "cross-origin" }, // needed to serve images/files
-  crossOriginOpenerPolicy: false, // allows Google Sign-In popup postMessage across origins
+  crossOriginOpenerPolicy: { policy: "same-origin-allow-popups" }, // allows Google Sign-In popup postMessage across origins
 }));
 
 // 3. Rate limiting (skip OPTIONS preflight requests)
