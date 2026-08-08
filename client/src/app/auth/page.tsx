@@ -78,6 +78,9 @@ function LoginPageContent() {
         await login(email, password);
         router.push(redirectTarget);
       } else {
+        if (!/^\d{10}$/.test(phone)) {
+          throw new Error("Mobile number must be exactly 10 numeric digits");
+        }
         await register(name, email, password, {
           studentId,
           phone,

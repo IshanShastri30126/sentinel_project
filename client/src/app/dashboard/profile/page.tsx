@@ -82,6 +82,12 @@ export default function ProfilePage() {
     e.preventDefault();
     setSubmitting(true);
     try {
+      if (editPhone && !/^\d{10}$/.test(editPhone)) {
+        alert("Mobile number must be exactly 10 numeric digits");
+        setSubmitting(false);
+        return;
+      }
+
       const formData = new FormData();
       if (editName) formData.append("name", editName);
       if (editPassword) formData.append("password", editPassword);
@@ -90,7 +96,9 @@ export default function ProfilePage() {
       formData.append("phone", editPhone);
       formData.append("department", editDepartment);
       formData.append("institute", editInstitute);
-      formData.append("semester", editSemester);
+      if (user?.role !== "FACULTY") {
+        formData.append("semester", editSemester);
+      }
 
       const res = await fetch(`${API_BASE}/users/profile`, {
         method: "PATCH",
@@ -175,9 +183,9 @@ export default function ProfilePage() {
             <p className="text-sm font-mono text-[var(--ck-text-secondary)]">{user?.email}</p>
             
             <div className="flex flex-wrap justify-center sm:justify-start items-center gap-2 mt-3 text-xs font-mono">
-              {user?.studentId && !user.studentId.includes("@") && user?.role !== "FACULTY" && (
+              {user?.studentId && !user.studentId.includes("@") && (
                 <span className="px-2 py-0.5 rounded bg-[var(--ck-bg)] border border-[var(--ck-border)] text-[var(--ck-text-muted)]">
-                  CLEARANCE: {user.studentId}
+                  {user?.role === "FACULTY" ? `EMPLOYEE ID: ${user.studentId}` : `CLEARANCE: ${user.studentId}`}
                 </span>
               )}
               {user?.department && (

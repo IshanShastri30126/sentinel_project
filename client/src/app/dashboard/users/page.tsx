@@ -119,10 +119,14 @@ export default function UsersPage() {
                 <div>
                   <div className="flex items-center gap-2">
                     <p className="text-sm font-semibold text-[var(--ck-text)]">{u.name}</p>
-                    {u.studentId && <span className="text-[9px] font-mono bg-[#FF4D00]/10 border border-[#FF4D00]/25 px-1.5 py-0.5 rounded text-[var(--ck-accent)]">ID: {u.studentId}</span>}
+                    {u.studentId && (
+                      <span className="text-[9px] font-mono bg-[#FF4D00]/10 border border-[#FF4D00]/25 px-1.5 py-0.5 rounded text-[var(--ck-accent)]">
+                        {u.role === "FACULTY" ? `EMP ID: ${u.studentId}` : `ST ID: ${u.studentId}`}
+                      </span>
+                    )}
                   </div>
                   <p className="text-[10px] font-mono mt-1 text-[var(--ck-text-muted)] uppercase">
-                    {u.email.toLowerCase()} {u.phone ? `// TEL: ${u.phone}` : ""} {u.department ? `// DEPT: ${u.department}` : ""} {u.semester ? `// SEM: ${u.semester}` : ""}
+                    {u.email.toLowerCase()} {u.phone ? `// TEL: ${u.phone}` : ""} {u.department ? `// DEPT: ${u.department}` : ""} {u.role !== "FACULTY" && u.semester ? `// SEM: ${u.semester}` : ""}
                   </p>
                 </div>
                 <div className="flex items-center gap-2">

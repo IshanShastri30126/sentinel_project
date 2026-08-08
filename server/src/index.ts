@@ -31,18 +31,56 @@ const httpServer = createServer(app);
 initSocket(httpServer);
 
 // ─── Global Middleware ─────────────────────────────────────
-// Security headers
+
+// 1. CORS MUST BE FIRST to intercept all requests (including preflight OPTIONS)
+const allowedOrigins = config.clientUrl.split(",").map((s) => s.trim());
+
+const corsOptions: cors.CorsOptions = {
+  origin: (origin, callback) => {
+    // Allow requests with no origin (mobile apps, Postman, server-to-server)
+    if (!origin) return callback(null, true);
+    if (
+      allowedOrigins.includes(origin) ||
+      origin.endsWith(".vercel.app") ||
+      origin.includes("vercel.app") ||
+      origin.startsWith("http://localhost:") ||
+      origin.startsWith("http://127.0.0.1:")
+    ) {
+      return callback(null, true);
+    }
+    // Return false instead of Error to avoid crashing express middleware pipeline without CORS headers
+    callback(null, false);
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: [
+    "Content-Type",
+    "Authorization",
+    "X-Club-Slug",
+    "X-Device-Fingerprint",
+    "X-Local-IP",
+    "X-Requested-With",
+    "Accept",
+  ],
+  optionsSuccessStatus: 200,
+};
+
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions));
+
+// 2. Security headers (disable COOP restrictive header so Google OAuth postMessage is not blocked)
 app.use(helmet({
   crossOriginResourcePolicy: { policy: "cross-origin" }, // needed to serve images/files
-  crossOriginOpenerPolicy: { policy: "same-origin-allow-popups" }, // allows Google Sign-In popup postMessage
+  crossOriginOpenerPolicy: false, // allows Google Sign-In popup postMessage across origins
 }));
 
-// Rate limiting
+// 3. Rate limiting (skip OPTIONS preflight requests)
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 300, // Limit each IP to 300 requests per `window`
   standardHeaders: true,
   legacyHeaders: false,
+  skip: (req) => req.method === "OPTIONS",
   message: { error: "Too many requests from this IP, please try again after 15 minutes" }
 });
 
@@ -51,26 +89,12 @@ const authLimiter = rateLimit({
   max: 30, // Limit each IP to 30 auth requests per hour
   standardHeaders: true,
   legacyHeaders: false,
+  skip: (req) => req.method === "OPTIONS",
   message: { error: "Too many login/register attempts from this IP, please try again after an hour" }
 });
 
 app.use("/api/", apiLimiter);
 app.use("/api/auth", authLimiter);
-
-// Parse allowed origins (supports comma-separated CLIENT_URL for multiple origins)
-const allowedOrigins = config.clientUrl.split(",").map((s) => s.trim());
-
-app.use(cors({
-  origin: (origin, callback) => {
-    // Allow requests with no origin (mobile apps, Postman, server-to-server)
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin) || origin.endsWith(".vercel.app")) {
-      return callback(null, true);
-    }
-    callback(new Error(`CORS: Origin ${origin} not allowed`));
-  },
-  credentials: true,
-}));
 app.use(express.json({ limit: "10mb" }));
 app.use(cookieParser());
 
