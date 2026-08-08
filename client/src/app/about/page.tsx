@@ -107,12 +107,12 @@ export default function AboutPage() {
       </header>
 
       <main className="relative z-10 pt-12 pb-32 px-6 max-w-7xl mx-auto">
-        {/* Top Hero Banner */}
-        <div className="text-center mb-16 relative">
+        {/* Header Title & Tagline */}
+        <div className="text-center mb-10 relative">
           <motion.div 
             initial={{ opacity: 0, y: -20 }} 
             animate={{ opacity: 1, y: 0 }} 
-            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#FFD700]/10 border border-[#FFD700]/30 text-[#FFD700] text-xs font-mono mb-6 uppercase tracking-wider animate-pulse shadow-[0_0_15px_rgba(255,215,0,0.2)]"
+            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#FFD700]/10 border border-[#FFD700]/30 text-[#FFD700] text-xs font-mono mb-4 uppercase tracking-wider animate-pulse shadow-[0_0_15px_rgba(255,215,0,0.2)]"
           >
             <Shield className="w-3.5 h-3.5 text-[#00F5D4]" /> CSPIT CE DEPARTMENT • CYBERSECURITY CLUB
           </motion.div>
@@ -120,41 +120,111 @@ export default function AboutPage() {
           <motion.h1 
             initial={{ opacity: 0, y: 20 }} 
             animate={{ opacity: 1, y: 0 }} 
-            className="text-4xl sm:text-6xl md:text-7xl font-black mb-6 bg-gradient-to-br from-white via-slate-200 to-[#FFD700] bg-clip-text text-transparent tracking-tight font-mono"
+            className="text-4xl sm:text-6xl md:text-7xl font-black mb-4 bg-gradient-to-br from-white via-slate-200 to-[#FFD700] bg-clip-text text-transparent tracking-tight font-mono uppercase"
           >
-            ABOUT CHAKRAVYUH CLUB
+            CHAKRAVYUH CLUB
           </motion.h1>
 
-          {/* Top Banner Feature Box */}
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }} 
-            animate={{ opacity: 1, y: 0 }} 
-            transition={{ delay: 0.2 }}
-            className="p-6 sm:p-8 rounded-3xl bg-[#080E24]/80 border border-[#121F3D] hover:border-[#FFD700]/40 transition-all max-w-4xl mx-auto text-left shadow-2xl relative overflow-hidden group"
-          >
+          <p className="text-slate-400 text-sm sm:text-base font-mono max-w-2xl mx-auto uppercase tracking-widest">
+            Strategic Cyber Defense • Peer Mentorship • Competitive Warfare
+          </p>
+        </div>
+
+        {/* 1. Chakravyuh Club Official Banner Image (Max Width Display) */}
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.95 }} 
+          animate={{ opacity: 1, scale: 1 }} 
+          transition={{ duration: 0.6 }}
+          className="w-full max-w-5xl mx-auto mb-12 relative rounded-3xl overflow-hidden border-2 border-[#FFD700]/40 shadow-[0_0_35px_rgba(255,215,0,0.2)] hover:border-[#00F5D4]/60 transition-all duration-500 group"
+        >
+          <img 
+            src="/images/chakravyuh_banner.png" 
+            alt="Chakravyuh Club Official Cyber Defense Banner" 
+            onError={(e) => {
+              // Fallback to existing cyber_banner.png if needed
+              (e.target as HTMLImageElement).src = "/images/cyber_banner.png";
+            }}
+            className="w-full max-h-[450px] object-cover group-hover:scale-102 transition-transform duration-700"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#030712] via-transparent to-transparent opacity-80" />
+          <div className="absolute bottom-4 left-4 sm:bottom-6 sm:left-6 flex items-center gap-2">
+            <span className="px-3.5 py-1.5 rounded-xl bg-black/80 border border-[#FFD700]/40 text-[#FFD700] text-xs font-mono font-bold uppercase tracking-widest backdrop-blur-md shadow-lg flex items-center gap-2">
+              <Shield className="w-3.5 h-3.5 text-[#00F5D4]" /> CHAKRAVYUH CLUB BARRACKS
+            </span>
+          </div>
+        </motion.div>
+
+        {/* 2. Detailed Text Information (Directly After the Banner Image) */}
+        <motion.div 
+          initial={{ opacity: 0, y: 30 }} 
+          animate={{ opacity: 1, y: 0 }} 
+          transition={{ delay: 0.2 }}
+          className="w-full max-w-5xl mx-auto space-y-6 mb-24"
+        >
+          {/* Information Card 1: Origin & Saturday Peer Learning */}
+          <div className="p-6 sm:p-8 rounded-3xl bg-[#080E24]/90 border border-[#121F3D] hover:border-[#FFD700]/40 transition-all shadow-2xl relative overflow-hidden">
             <div className="absolute top-0 right-0 w-64 h-64 bg-[#00F5D4]/5 blur-3xl pointer-events-none" />
+            
             <div className="flex items-center gap-3 mb-4">
               <div className="w-3 h-3 rounded-full bg-[#00F5D4] animate-ping" />
-              <span className="text-xs font-mono font-bold text-[#00F5D4] uppercase tracking-widest">ORIGIN & PEER LEARNING LEGACY</span>
+              <span className="text-xs font-mono font-bold text-[#00F5D4] uppercase tracking-widest">ABOUT US & ORIGINS</span>
             </div>
-            
+
             <p className="text-base sm:text-lg text-slate-200 leading-relaxed font-sans mb-4">
-              Renowned as the flagship <strong className="text-[#FFD700]">Cybersecurity Club of the CSPIT Computer Engineering (CE) Department</strong>, Chakravyuh Club was established to bring together passionate cybersecurity enthusiasts, hosting peer learning sessions and keynote talks by external industry speakers.
+              Renowned as the flagship <strong className="text-[#FFD700]">Cybersecurity Club of the CSPIT Computer Engineering (CE) Department</strong>, Chakravyuh Club was established to foster peer learning sessions for cybersecurity enthusiasts with keynote lectures from external industry speakers.
             </p>
 
-            <div className="p-4 sm:p-5 rounded-2xl bg-black/60 border border-[#FFD700]/20 text-slate-300 text-sm sm:text-base leading-relaxed font-sans space-y-2">
+            <div className="p-5 rounded-2xl bg-black/70 border border-[#FFD700]/25 text-slate-300 text-sm sm:text-base leading-relaxed font-sans space-y-3">
               <p>
-                <strong className="text-[#00F5D4] font-mono uppercase tracking-wider">🌟 The Best Part of Our Club:</strong> Every working Saturday, our senior operatives and domain experts deliver dedicated hands-on sessions to members and juniors, imparting deep technical knowledge, practical skills, and digital cyber awareness.
+                <strong className="text-[#00F5D4] font-mono uppercase tracking-wider">🌟 The Best Part of Our Club:</strong> Every working Saturday, senior members and domain experts share their knowledge on cybersecurity, delivering hands-on sessions to members and juniors for continuous skill improvement and cyber awareness.
               </p>
-              <div className="pt-2 flex items-center gap-2">
-                <span className="px-3 py-1 rounded-full bg-[#00F5D4]/10 border border-[#00F5D4]/30 text-[#00F5D4] text-xs font-mono font-bold uppercase tracking-wider">
-                  Open To All Enthusiasts
+              <div className="pt-2 flex flex-wrap items-center gap-3">
+                <span className="px-3.5 py-1.5 rounded-full bg-[#00F5D4]/15 border border-[#00F5D4]/40 text-[#00F5D4] text-xs font-mono font-bold uppercase tracking-wider">
+                  Open To All Persons
                 </span>
-                <span className="text-xs text-slate-400 font-mono">No prior prerequisites required. Everyone is welcome to learn and grow.</span>
+                <span className="text-xs text-slate-400 font-mono">The club is open to everyone with no prior prerequisites required.</span>
               </div>
             </div>
-          </motion.div>
-        </div>
+          </div>
+
+          {/* Information Card 2: Student-Driven Competitive Evolution */}
+          <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-[#080E24] via-[#050A18] to-black border-2 border-[#FFD700]/30 shadow-2xl relative overflow-hidden">
+            <div className="flex items-center gap-3 mb-4">
+              <span className="px-3 py-1 rounded-full bg-[#FFD700]/10 border border-[#FFD700]/30 text-[#FFD700] text-xs font-mono font-bold uppercase tracking-widest">
+                BY THE STUDENTS • FOR THE STUDENTS
+              </span>
+            </div>
+
+            <h3 className="text-xl sm:text-2xl font-extrabold text-white font-mono uppercase mb-3">
+              Bridging the Practical & Competitive Cybersecurity Gap
+            </h3>
+
+            <p className="text-slate-300 text-sm sm:text-base leading-relaxed font-sans mb-4">
+              Nowadays, while peer learning sessions build foundational awareness, students often lack dedicated hands-on practice and real-world competitive experience in the cybersecurity field.
+            </p>
+
+            <div className="p-5 rounded-2xl bg-black/80 border border-[#121F3D] space-y-3">
+              <p className="text-sm sm:text-base text-slate-200 font-sans leading-relaxed">
+                To solve this, <strong className="text-[#FFD700]">Chakravyuh Club</strong> was launched with a new vision to organize various competitive operations and practical events:
+              </p>
+              
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-2">
+                {[
+                  "🚩 CTF (Capture The Flag)",
+                  "🐛 Bug Bounty Contests",
+                  "⚡ Cyber Hackathons",
+                  "🎤 Industry Seminars",
+                  "🛠️ Hands-on Workshops",
+                  "🛡️ Red vs Blue Simulations"
+                ].map((feat, i) => (
+                  <div key={i} className="px-3.5 py-2.5 rounded-xl bg-[#080E24] border border-[#121F3D] text-xs font-mono font-bold text-[#00F5D4] flex items-center gap-2 shadow-sm">
+                    <span>{feat}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </motion.div>
 
         {/* Pillars of Focus */}
         <section className="mb-24">
