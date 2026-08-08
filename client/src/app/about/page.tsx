@@ -72,13 +72,13 @@ export default function AboutPage() {
   return (
     <div className="min-h-screen bg-[#030712] text-white overflow-hidden selection:bg-[#FFD700]/30 font-sans relative">
       
-      {/* Interactive 7-Tier Chakravyuh Background Canvas (Subtle Ambient Opacity) */}
-      <PlexusBackground opacity={0.25} />
+      {/* Interactive 7-Tier Chakravyuh Background Canvas (Bright & Visible) */}
+      <PlexusBackground opacity={0.65} />
 
-      {/* Dark Vignette Backdrop & Cyber Grid Overlay for High Legibility */}
-      <div className="fixed inset-0 z-0 pointer-events-none bg-gradient-to-b from-[#030712]/90 via-[#030712]/75 to-[#030712]" />
-      <div className="fixed inset-0 z-0 pointer-events-none bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(0,245,212,0.1),transparent)]" />
-      <div className="fixed inset-0 z-0 pointer-events-none bg-[linear-gradient(to_right,#121F3D20_1px,transparent_1px),linear-gradient(to_bottom,#121F3D20_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)]" />
+      {/* Cyber Grid & Glowing Ambient Overlay */}
+      <div className="fixed inset-0 z-0 pointer-events-none bg-gradient-to-b from-[#030712]/65 via-[#030712]/50 to-[#030712]/85" />
+      <div className="fixed inset-0 z-0 pointer-events-none bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(0,245,212,0.2),transparent)]" />
+      <div className="fixed inset-0 z-0 pointer-events-none bg-[linear-gradient(to_right,#121F3D30_1px,transparent_1px),linear-gradient(to_bottom,#121F3D30_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)]" />
 
       {/* Navbar */}
       <header className="relative z-50 flex items-center justify-between px-6 py-6 max-w-7xl mx-auto border-b border-[#121F3D]">
@@ -141,7 +141,6 @@ export default function AboutPage() {
             src="/images/chakravyuh_banner.png" 
             alt="Chakravyuh Club Official Cyber Defense Banner" 
             onError={(e) => {
-              // Fallback to existing cyber_banner.png if needed
               (e.target as HTMLImageElement).src = "/images/cyber_banner.png";
             }}
             className="w-full max-h-[450px] object-cover group-hover:scale-102 transition-transform duration-700"
@@ -154,74 +153,53 @@ export default function AboutPage() {
           </div>
         </motion.div>
 
-        {/* 2. Detailed Text Information (Directly After the Banner Image) */}
+        {/* 2. Detailed Text Information (Paragraph Format inside Cards) */}
         <motion.div 
           initial={{ opacity: 0, y: 30 }} 
           animate={{ opacity: 1, y: 0 }} 
           transition={{ delay: 0.2 }}
           className="w-full max-w-5xl mx-auto space-y-6 mb-24"
         >
-          {/* Information Card 1: Origin & Saturday Peer Learning */}
-          <div className="p-6 sm:p-8 rounded-3xl bg-[#080E24]/90 border border-[#121F3D] hover:border-[#FFD700]/40 transition-all shadow-2xl relative overflow-hidden">
+          {/* Box 1: About Us, Origins & Working Saturday Peer Sessions */}
+          <div className="p-6 sm:p-8 rounded-3xl bg-[#080E24]/90 border border-[#121F3D] hover:border-[#FFD700]/40 transition-all shadow-2xl relative overflow-hidden backdrop-blur-md">
             <div className="absolute top-0 right-0 w-64 h-64 bg-[#00F5D4]/5 blur-3xl pointer-events-none" />
             
             <div className="flex items-center gap-3 mb-4">
               <div className="w-3 h-3 rounded-full bg-[#00F5D4] animate-ping" />
-              <span className="text-xs font-mono font-bold text-[#00F5D4] uppercase tracking-widest">ABOUT US & ORIGINS</span>
+              <span className="text-xs font-mono font-bold text-[#00F5D4] uppercase tracking-widest">ABOUT US & WORKING SATURDAY SESSIONS</span>
             </div>
 
-            <p className="text-base sm:text-lg text-slate-200 leading-relaxed font-sans mb-4">
-              Renowned as the flagship <strong className="text-[#FFD700]">Cybersecurity Club of the CSPIT Computer Engineering (CE) Department</strong>, Chakravyuh Club was established to foster peer learning sessions for cybersecurity enthusiasts with keynote lectures from external industry speakers.
-            </p>
-
-            <div className="p-5 rounded-2xl bg-black/70 border border-[#FFD700]/25 text-slate-300 text-sm sm:text-base leading-relaxed font-sans space-y-3">
+            <div className="space-y-4 text-base sm:text-lg text-slate-200 leading-relaxed font-sans">
               <p>
-                <strong className="text-[#00F5D4] font-mono uppercase tracking-wider">🌟 The Best Part of Our Club:</strong> Every working Saturday, senior members and domain experts share their knowledge on cybersecurity, delivering hands-on sessions to members and juniors for continuous skill improvement and cyber awareness.
+                Chakravyuh Club was originally renowned as the flagship <strong className="text-[#FFD700]">Cybersecurity Club of the CSPIT Computer Engineering (CE) Department</strong>, created for conducting peer learning sessions for cybersecurity enthusiasts with keynote lectures delivered by external guest speakers.
               </p>
-              <div className="pt-2 flex flex-wrap items-center gap-3">
-                <span className="px-3.5 py-1.5 rounded-full bg-[#00F5D4]/15 border border-[#00F5D4]/40 text-[#00F5D4] text-xs font-mono font-bold uppercase tracking-wider">
-                  Open To All Persons
-                </span>
-                <span className="text-xs text-slate-400 font-mono">The club is open to everyone with no prior prerequisites required.</span>
-              </div>
+              
+              <p>
+                The best part of the club is that every working Saturday, senior members and domain experts share their knowledge on cybersecurity and deliver dedicated hands-on sessions to members and juniors for continuous knowledge improvement and cyber awareness. The club is open to all persons with no prior prerequisites required.
+              </p>
             </div>
           </div>
 
-          {/* Information Card 2: Student-Driven Competitive Evolution */}
-          <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-[#080E24] via-[#050A18] to-black border-2 border-[#FFD700]/30 shadow-2xl relative overflow-hidden">
+          {/* Box 2: Evolution to Competitive Cyber Operations */}
+          <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-[#080E24]/90 via-[#050A18]/90 to-black/90 border-2 border-[#FFD700]/30 shadow-2xl relative overflow-hidden backdrop-blur-md">
             <div className="flex items-center gap-3 mb-4">
               <span className="px-3 py-1 rounded-full bg-[#FFD700]/10 border border-[#FFD700]/30 text-[#FFD700] text-xs font-mono font-bold uppercase tracking-widest">
                 BY THE STUDENTS • FOR THE STUDENTS
               </span>
             </div>
 
-            <h3 className="text-xl sm:text-2xl font-extrabold text-white font-mono uppercase mb-3">
-              Bridging the Practical & Competitive Cybersecurity Gap
+            <h3 className="text-xl sm:text-2xl font-extrabold text-white font-mono uppercase mb-4">
+              Practical & Competitive Cybersecurity Operations
             </h3>
 
-            <p className="text-slate-300 text-sm sm:text-base leading-relaxed font-sans mb-4">
-              Nowadays, while peer learning sessions build foundational awareness, students often lack dedicated hands-on practice and real-world competitive experience in the cybersecurity field.
-            </p>
-
-            <div className="p-5 rounded-2xl bg-black/80 border border-[#121F3D] space-y-3">
-              <p className="text-sm sm:text-base text-slate-200 font-sans leading-relaxed">
-                To solve this, <strong className="text-[#FFD700]">Chakravyuh Club</strong> was launched with a new vision to organize various competitive operations and practical events:
+            <div className="space-y-4 text-base sm:text-lg text-slate-200 leading-relaxed font-sans">
+              <p>
+                Nowadays, due to a surge in events and peer learning sessions, students often did not get enough practice and competitive experience in the cybersecurity field.
               </p>
-              
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-2">
-                {[
-                  "🚩 CTF (Capture The Flag)",
-                  "🐛 Bug Bounty Contests",
-                  "⚡ Cyber Hackathons",
-                  "🎤 Industry Seminars",
-                  "🛠️ Hands-on Workshops",
-                  "🛡️ Red vs Blue Simulations"
-                ].map((feat, i) => (
-                  <div key={i} className="px-3.5 py-2.5 rounded-xl bg-[#080E24] border border-[#121F3D] text-xs font-mono font-bold text-[#00F5D4] flex items-center gap-2 shadow-sm">
-                    <span>{feat}</span>
-                  </div>
-                ))}
-              </div>
+
+              <p>
+                To solve this, <strong className="text-[#FFD700]">Chakravyuh Club</strong> is launched with a fresh vision of organizing various competitive and practical events like <strong className="text-[#00F5D4]">CTF (Capture The Flag) competitions, Bug Bounty programs, Hackathons, Seminars, and Workshops</strong> for the overall development of students — by the students, for the students.
+              </p>
             </div>
           </div>
         </motion.div>
