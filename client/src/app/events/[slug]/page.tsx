@@ -408,21 +408,50 @@ function PublicEventPageContent() {
   const themeGradient = event ? (EVENT_THEME_GRADIENTS[event.eventType] || EVENT_THEME_GRADIENTS.general) : "from-black to-black";
   const themeAccent = event ? (EVENT_THEME_ACCENT[event.eventType] || EVENT_THEME_ACCENT.general) : "#CCFF00";
 
-  const deadlinePassed = event.registrationDeadline && nowTimestamp > 0
-    ? nowTimestamp > new Date(event.registrationDeadline).getTime() : false;
+  const regDeadlineTime = event.registrationDeadline ? new Date(event.registrationDeadline).getTime() : 0;
+  const eventStartTime = event.startDate ? new Date(event.startDate).getTime() : 0;
+
+  const deadlinePassed = regDeadlineTime > 0 && nowTimestamp > 0 ? nowTimestamp > regDeadlineTime : false;
+  const eventPassed = eventStartTime > 0 && nowTimestamp > 0 ? nowTimestamp > eventStartTime : false;
   const isFull = event.maxCapacity
     ? event._count.registrations >= event.maxCapacity : false;
   const capacityPercent = event.maxCapacity
     ? Math.min(100, Math.round((event._count.registrations / event.maxCapacity) * 100)) : 0;
 
   const getTimeLeft = () => {
-    if (!event.registrationDeadline || nowTimestamp === 0) return null;
-    const diff = new Date(event.registrationDeadline).getTime() - nowTimestamp;
-    if (diff <= 0) return null;
-    const days = Math.floor(diff / 86400000);
-    const hours = Math.floor((diff % 86400000) / 3600000);
-    const mins = Math.floor((diff % 3600000) / 60000);
-    return { days, hours, mins };
+    if (nowTimestamp === 0) return null;
+
+    // 1. If registration deadline is present and in the future, count down to registration deadline
+    if (regDeadlineTime > 0 && regDeadlineTime > nowTimestamp) {
+      const diff = regDeadlineTime - nowTimestamp;
+      const days = Math.floor(diff / 86400000);
+      const hours = Math.floor((diff % 86400000) / 3600000);
+      const mins = Math.floor((diff % 3600000) / 60000);
+      return {
+        days,
+        hours,
+        mins,
+        title: "Registration Closes In",
+        targetFormatted: new Date(regDeadlineTime).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }),
+      };
+    }
+
+    // 2. Fallback: Count down to event startDate if it's in the future
+    if (eventStartTime > 0 && eventStartTime > nowTimestamp) {
+      const diff = eventStartTime - nowTimestamp;
+      const days = Math.floor(diff / 86400000);
+      const hours = Math.floor((diff % 86400000) / 3600000);
+      const mins = Math.floor((diff % 3600000) / 60000);
+      return {
+        days,
+        hours,
+        mins,
+        title: "Event Starts In",
+        targetFormatted: new Date(eventStartTime).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }),
+      };
+    }
+
+    return null;
   };
   const timeLeft = getTimeLeft();
 
@@ -683,12 +712,15 @@ function PublicEventPageContent() {
                 </div>
               )}
 
-              {/* Deadline Countdown */}
-              {event.registrationDeadline && (
+              {/* Deadline / Event Countdown Card */}
+              {(timeLeft || regDeadlineTime > 0 || eventStartTime > 0) && (
                 <div className="mb-6 p-4 rounded-xl border border-red-950/40 bg-black/50">
                   {timeLeft ? (
                     <>
-                      <p className="text-[10px] uppercase font-bold font-mono text-center text-slate-500 mb-3 tracking-widest">Registration closes in</p>
+                      <div className="text-center mb-3">
+                        <p className="text-[10px] uppercase font-bold font-mono text-slate-400 tracking-widest">{timeLeft.title}</p>
+                        <p className="text-[9px] font-mono text-red-400 font-semibold mt-0.5">Target: {timeLeft.targetFormatted}</p>
+                      </div>
                       <div className="flex gap-4 justify-center">
                         {[{ v: timeLeft.days, l: "Days" }, { v: timeLeft.hours, l: "Hrs" }, { v: timeLeft.mins, l: "Min" }].map((t) => (
                           <div key={t.l} className="text-center">
@@ -698,9 +730,14 @@ function PublicEventPageContent() {
                         ))}
                       </div>
                     </>
-                  ) : (
-                    <p className="text-xs text-red-500 font-semibold text-center font-mono">⏰ Registration deadline has passed</p>
-                  )}
+                  ) : deadlinePassed && !eventPassed ? (
+                    <div className="text-center space-y-1">
+                      <p className="text-xs text-red-500 font-semibold font-mono">⏰ Registration deadline has passed</p>
+                      <p className="text-[10px] text-slate-400 font-mono">Closed: {new Date(regDeadlineTime).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</p>
+                    </div>
+                  ) : eventPassed ? (
+                    <p className="text-xs text-slate-500 font-semibold text-center font-mono">🏁 Operation Concluded</p>
+                  ) : null}
                 </div>
               )}
 
