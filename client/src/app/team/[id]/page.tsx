@@ -8,8 +8,9 @@ import {
   Building, Share2, Link2, Eye, ShieldAlert, Award,
   Check, Lock, Sparkles, LogIn, Users, Info
 } from "lucide-react";
-import { api } from "@/lib/api";
+import { api, getFileUrl } from "@/lib/api";
 import { CyberKavachLogo } from "@/components/CyberKavachLogo";
+import { ProfileCard } from "@/components/ProfileCard";
 
 // Icon components for brands
 const GithubIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
@@ -260,6 +261,27 @@ export default function MemberProfilePage() {
           {/* Right Column Stack */}
           <div className="md:col-span-2 space-y-6">
             
+            {/* Interactive Holographic 3D Profile Card */}
+            <div className="flex justify-center">
+              <ProfileCard
+                name={member.name}
+                title={member.designation || member.role}
+                handle={member.studentId || member.id || "member"}
+                status="Active Clearance"
+                contactText="Send Mail"
+                avatarUrl={member.imageUrl || member.avatarUrl || member.coverPosterUrl ? getFileUrl(member.imageUrl || member.avatarUrl || member.coverPosterUrl) : "/images/cyber_avatar.png"}
+                miniAvatarUrl={member.imageUrl || member.avatarUrl || member.coverPosterUrl ? getFileUrl(member.imageUrl || member.avatarUrl || member.coverPosterUrl) : "/images/cyber_avatar.png"}
+                showUserInfo={true}
+                enableTilt={true}
+                behindGlowEnabled={true}
+                behindGlowColor="rgba(239, 68, 68, 0.65)"
+                innerGradient="linear-gradient(145deg, rgba(220, 38, 38, 0.3) 0%, rgba(10, 10, 15, 0.95) 100%)"
+                onContactClick={() => {
+                  if (member.email) window.location.href = `mailto:${member.email}`;
+                }}
+              />
+            </div>
+
             {/* 1. Member Info Card */}
             <div className="rounded-xl border border-zinc-900 bg-zinc-950/40 p-5 shadow-xl relative">
               <h3 className="text-xs font-bold font-mono tracking-widest text-zinc-500 uppercase flex items-center gap-1.5 mb-4">
