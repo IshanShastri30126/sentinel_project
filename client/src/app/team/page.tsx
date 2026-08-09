@@ -406,8 +406,8 @@ const TeamGrid = ({ list, title, tag }: { list: TeamMemberItem[]; title: string;
         </div>
       </div>
 
-      {/* Roster Cards with 3D Circular Rotation Effect */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 font-sans">
+      {/* Roster Cards with Planetary Axis 3D Traversing Rotation Effect */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 font-sans overflow-hidden">
         {list.map((member, idx) => {
           const linkedInUrl = member.linkedin ? `https://linkedin.com/in/${member.linkedin.trim()}` : `https://linkedin.com/search/results/all/?keywords=${encodeURIComponent(member.name)}`;
           const instagramUrl = member.instagram ? `https://www.instagram.com/${member.instagram.trim()}/` : `https://www.instagram.com/chakravyuh.charusat/`;
@@ -419,33 +419,34 @@ const TeamGrid = ({ list, title, tag }: { list: TeamMemberItem[]; title: string;
           return (
             <div key={member.id || idx} style={{ perspective: 1200 }} className="w-full">
               <motion.div
-                initial={{ opacity: 0, rotateY: -180, scale: 0.8, y: 40 }}
-                whileInView={{ opacity: 1, rotateY: 0, scale: 1, y: 0 }}
-                viewport={{ once: true, margin: "-30px" }}
-                transition={{ duration: 0.85, delay: (idx % 3) * 0.15, ease: [0.16, 1, 0.3, 1] }}
-                whileHover={{ y: -8, scale: 1.02, transition: { duration: 0.25 } }}
+                initial={{ opacity: 0, x: -160, rotateY: -360, scale: 0.75, z: -150 }}
+                whileInView={{ opacity: 1, x: 0, rotateY: 0, scale: 1, z: 0 }}
+                viewport={{ once: true, margin: "-40px" }}
+                transition={{ duration: 1.1, delay: (idx % 3) * 0.2, ease: [0.16, 1, 0.3, 1] }}
+                whileHover={{ y: -8, scale: 1.03, transition: { duration: 0.25 } }}
                 onClick={() => router.push(`/team/${member.id}`)}
-                style={{ transformStyle: "preserve-3d" }}
+                style={{ transformStyle: "preserve-3d", transformOrigin: "center center" }}
                 className="bg-[#050505] border border-zinc-800/80 hover:border-red-600/60 rounded-2xl relative overflow-hidden group transition-all duration-300 flex flex-col justify-between shadow-2xl hover:shadow-[0_0_35px_rgba(220,38,38,0.25)] cursor-pointer"
               >
-                {/* Full Card Cover Image Background with Synchronized 3D Rotation */}
+                {/* Full Card Cover Image Background with Synchronized Planetary 3D Axis Rotation */}
                 <div className="relative h-64 sm:h-72 w-full overflow-hidden bg-zinc-950 flex items-center justify-center" style={{ transformStyle: "preserve-3d" }}>
                   {avatarSrc ? (
                     <motion.img
-                      initial={{ rotateY: -90, scale: 1.2 }}
+                      initial={{ rotateY: -180, scale: 1.25 }}
                       whileInView={{ rotateY: 0, scale: 1 }}
                       viewport={{ once: true }}
-                      transition={{ duration: 0.9, delay: (idx % 3) * 0.15 + 0.1, ease: "easeOut" }}
+                      transition={{ duration: 1.15, delay: (idx % 3) * 0.2 + 0.1, ease: "easeOut" }}
                       src={avatarSrc}
                       alt={member.name}
+                      style={{ transformStyle: "preserve-3d", transformOrigin: "center center" }}
                       className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-700"
                     />
                   ) : (
                     <div className="w-full h-full bg-gradient-to-br from-zinc-900 via-zinc-950 to-black flex items-center justify-center relative">
                       <motion.div 
-                        initial={{ rotateY: -180 }}
+                        initial={{ rotateY: -360 }}
                         whileInView={{ rotateY: 0 }}
-                        transition={{ duration: 0.85, delay: (idx % 3) * 0.15 }}
+                        transition={{ duration: 1.1, delay: (idx % 3) * 0.2 }}
                         className="w-24 h-24 rounded-2xl bg-red-600/10 border-2 border-red-500/30 flex items-center justify-center text-red-500 font-mono text-4xl font-extrabold shadow-[0_0_30px_rgba(220,38,38,0.2)]"
                       >
                         {member.name.charAt(0)}
