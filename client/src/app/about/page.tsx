@@ -112,30 +112,6 @@ export default function AboutPage() {
           </p>
         </div>
 
-        {/* 1. Chakravyuh Club Official Banner Image (Max Width Display) */}
-        <motion.div 
-          initial={{ opacity: 0, scale: 0.95 }} 
-          animate={{ opacity: 1, scale: 1 }} 
-          transition={{ duration: 0.6 }}
-          className="w-full max-w-5xl mx-auto mb-12 relative rounded-3xl overflow-hidden border-2 border-[#FFD700]/40 shadow-[0_0_35px_rgba(255,215,0,0.2)] hover:border-[#00F5D4]/60 transition-all duration-500 group"
-        >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img 
-            src="/images/chakravyuh_banner.png" 
-            alt="Chakravyuh Club Official Cyber Defense Banner" 
-            onError={(e) => {
-              (e.target as HTMLImageElement).src = "/images/cyber_banner.png";
-            }}
-            className="w-full max-h-[450px] object-cover group-hover:scale-102 transition-transform duration-700"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#030712] via-transparent to-transparent opacity-80" />
-          <div className="absolute bottom-4 left-4 sm:bottom-6 sm:left-6 flex items-center gap-2">
-            <span className="px-3.5 py-1.5 rounded-xl bg-black/80 border border-[#FFD700]/40 text-[#FFD700] text-xs font-mono font-bold uppercase tracking-widest backdrop-blur-md shadow-lg flex items-center gap-2">
-              <Shield className="w-3.5 h-3.5 text-[#00F5D4]" /> CHAKRAVYUH CLUB BARRACKS
-            </span>
-          </div>
-        </motion.div>
-
         {/* 2. Detailed Text Information (Paragraph Format inside Cards) */}
         <motion.div 
           initial={{ opacity: 0, y: 30 }} 
