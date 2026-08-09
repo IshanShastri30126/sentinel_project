@@ -2,15 +2,36 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { motion } from "framer-motion";
 import { 
   ArrowLeft, Mail, Phone, User, Calendar, IdCard, 
-  Building, Share2, Link2, Eye, ShieldAlert, Award,
-  Check, Lock, Sparkles, LogIn, Users, Info
+  Building, Share2, Link2, ShieldAlert, Check, Users
 } from "lucide-react";
 import { api, getFileUrl } from "@/lib/api";
 import { CyberKavachLogo } from "@/components/CyberKavachLogo";
 import { ProfileCard } from "@/components/ProfileCard";
+
+interface TeamMember {
+  id: string;
+  name: string;
+  role: string;
+  designation?: string;
+  department?: string;
+  email?: string;
+  phone?: string;
+  studentId?: string;
+  joinedDate?: string;
+  about?: string;
+  imageUrl?: string;
+  avatarUrl?: string;
+  coverPosterUrl?: string;
+  linkedin?: string;
+  github?: string;
+  instagram?: string;
+  cyberName?: string;
+  cyberBackstory?: string;
+  cyberAvatarUrl?: string;
+  cyberSpecialAbility?: string;
+}
 
 // Icon components for brands
 const GithubIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
@@ -41,7 +62,7 @@ export default function MemberProfilePage() {
   const router = useRouter();
   const id = params.id as string;
 
-  const [member, setMember] = useState<any | null>(null);
+  const [member, setMember] = useState<TeamMember | null>(null);
   const [loading, setLoading] = useState(true);
   const [copiedLink, setCopiedLink] = useState(false);
   const [copiedShare, setCopiedShare] = useState(false);
@@ -49,9 +70,9 @@ export default function MemberProfilePage() {
   useEffect(() => {
     const fetchMember = async () => {
       try {
-        const res = await api<any>("/settings/landing-team");
+        const res = await api<{ team: TeamMember[] }>("/settings/landing-team");
         if (res.team) {
-          const found = res.team.find((m: any) => m.id === id);
+          const found = res.team.find((m: TeamMember) => m.id === id);
           if (found) setMember(found);
         }
       } catch (err) {
@@ -160,6 +181,7 @@ export default function MemberProfilePage() {
           {/* Cover Poster Banner */}
           <div className="h-44 w-full bg-zinc-900 overflow-hidden relative border-b border-zinc-800">
             {member.coverPosterUrl ? (
+              /* eslint-disable-next-line @next/next/no-img-element */
               <img src={member.coverPosterUrl} alt="Cover Banner" className="w-full h-full object-cover" />
             ) : (
               <div className="w-full h-full bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950 opacity-80 relative flex items-center justify-center">
@@ -175,6 +197,7 @@ export default function MemberProfilePage() {
             {/* Avatar circle */}
             <div className="w-28 h-28 rounded-full border-4 border-zinc-950 bg-zinc-900 overflow-hidden shadow-2xl relative shrink-0">
               {member.imageUrl ? (
+                /* eslint-disable-next-line @next/next/no-img-element */
                 <img src={member.imageUrl} alt={member.name} className="w-full h-full object-cover" />
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-zinc-650">
@@ -223,7 +246,7 @@ export default function MemberProfilePage() {
               <div className="absolute top-0 left-0 w-2 h-2 border-t-2 border-l-2 border-[#FF003C]/40" />
               
               <h3 className="text-sm font-bold font-mono tracking-widest text-[#FF003C] uppercase flex items-center gap-2 mb-6">
-                // About
+                {"// About"}
               </h3>
 
               {skillLines.length === 0 ? (
@@ -238,7 +261,7 @@ export default function MemberProfilePage() {
                       const normPart = line.substring(colonIdx + 1);
                       return (
                         <div key={index} className="text-sm font-sans leading-relaxed text-zinc-300 flex items-start gap-2.5">
-                          <span className="text-[#FF003C] font-mono select-none mt-0.5 shrink-0">//</span>
+                          <span className="text-[#FF003C] font-mono select-none mt-0.5 shrink-0">{"//"}</span>
                           <span>
                             <strong className="text-white font-mono tracking-tight font-semibold">{boldPart}</strong>
                             {normPart}
@@ -248,7 +271,7 @@ export default function MemberProfilePage() {
                     }
                     return (
                       <div key={index} className="text-sm font-sans leading-relaxed text-zinc-300 flex items-start gap-2.5">
-                        <span className="text-[#FF003C] font-mono select-none mt-0.5 shrink-0">//</span>
+                        <span className="text-[#FF003C] font-mono select-none mt-0.5 shrink-0">{"//"}</span>
                         <span>{line}</span>
                       </div>
                     );
@@ -285,7 +308,7 @@ export default function MemberProfilePage() {
             {/* 1. Member Info Card */}
             <div className="rounded-xl border border-zinc-900 bg-zinc-950/40 p-5 shadow-xl relative">
               <h3 className="text-xs font-bold font-mono tracking-widest text-zinc-500 uppercase flex items-center gap-1.5 mb-4">
-                // Member Info
+                {"// Member Info"}
               </h3>
               
               <div className="space-y-3 font-mono text-xs">
@@ -331,7 +354,7 @@ export default function MemberProfilePage() {
             {/* 2. Contact Card */}
             <div className="rounded-xl border border-zinc-900 bg-zinc-950/40 p-5 shadow-xl relative">
               <h3 className="text-xs font-bold font-mono tracking-widest text-zinc-500 uppercase flex items-center gap-1.5 mb-4">
-                // Contact
+                {"// Contact"}
               </h3>
               
               <div className="space-y-3 font-mono text-xs">
@@ -359,7 +382,7 @@ export default function MemberProfilePage() {
             {/* 3. Social Media Card */}
             <div className="rounded-xl border border-zinc-900 bg-zinc-950/40 p-5 shadow-xl relative">
               <h3 className="text-xs font-bold font-mono tracking-widest text-zinc-500 uppercase flex items-center gap-1.5 mb-4">
-                // Social Media
+                {"// Social Media"}
               </h3>
               
               <div className="flex flex-col gap-2">
@@ -404,13 +427,14 @@ export default function MemberProfilePage() {
                 
                 <div>
                   <h3 className="text-xs font-bold font-mono tracking-widest text-indigo-400 uppercase flex items-center gap-1.5 mb-4 relative z-10">
-                    // Cyber Persona
+                    {"// Cyber Persona"}
                   </h3>
 
                   {/* Character Avatar + Name */}
                   <div className="flex items-center gap-3.5 mb-4 relative z-10">
                     <div className="w-12 h-12 rounded-lg border border-indigo-500/30 bg-indigo-950/60 overflow-hidden shrink-0 flex items-center justify-center">
                       {member.cyberAvatarUrl ? (
+                        /* eslint-disable-next-line @next/next/no-img-element */
                         <img src={member.cyberAvatarUrl} alt="Cyber Character" className="w-full h-full object-cover animate-pulse" />
                       ) : (
                         <ShieldAlert className="w-5 h-5 text-indigo-400" />
@@ -443,7 +467,7 @@ export default function MemberProfilePage() {
             {/* 5. Quick Actions Card */}
             <div className="rounded-xl border border-zinc-900 bg-zinc-950/40 p-5 shadow-xl relative">
               <h3 className="text-xs font-bold font-mono tracking-widest text-zinc-500 uppercase flex items-center gap-1.5 mb-4">
-                // Quick Actions
+                {"// Quick Actions"}
               </h3>
               
               <div className="grid grid-cols-1 gap-2.5">
