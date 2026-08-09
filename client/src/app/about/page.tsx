@@ -119,6 +119,7 @@ export default function AboutPage() {
           transition={{ duration: 0.6 }}
           className="w-full max-w-5xl mx-auto mb-12 relative rounded-3xl overflow-hidden border-2 border-[#FFD700]/40 shadow-[0_0_35px_rgba(255,215,0,0.2)] hover:border-[#00F5D4]/60 transition-all duration-500 group"
         >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img 
             src="/images/chakravyuh_banner.png" 
             alt="Chakravyuh Club Official Cyber Defense Banner" 
