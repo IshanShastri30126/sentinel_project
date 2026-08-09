@@ -51,24 +51,6 @@ export default function AboutPage() {
     }
   ];
 
-  const timelineEvents = [
-    {
-      year: "2024",
-      title: "Club Foundation",
-      desc: "Chakravyuh formed as a dedicated cyber strategic defense interest group with 30 initial members."
-    },
-    {
-      year: "2025",
-      title: "Scaling Operations",
-      desc: "Expanded to 200+ members. Launched major college-level Hackathons and strategic defense scoring boards."
-    },
-    {
-      year: "2026",
-      title: "Chakravyuh 2.0 Hub",
-      desc: "Launched a centralized digital operations workspace hosting attendance scanner consoles and credential verification."
-    }
-  ];
-
   return (
     <div className="min-h-screen bg-[#030712] text-white overflow-hidden selection:bg-[#FFD700]/30 font-sans relative">
       
@@ -235,7 +217,7 @@ export default function AboutPage() {
         </section>
 
         {/* Bottom Banner Section — Evolution to Competitive Cyber Defense */}
-        <section className="mb-24">
+        <section className="mb-12">
           <motion.div 
             initial={{ opacity: 0, scale: 0.96 }}
             whileInView={{ opacity: 1, scale: 1 }}
@@ -283,43 +265,6 @@ export default function AboutPage() {
               </p>
             </div>
           </motion.div>
-        </section>
-
-        {/* Timeline Section */}
-        <section className="mb-20 max-w-4xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl font-extrabold tracking-tight text-white font-mono uppercase">System <span className="text-[#FFD700]">Timeline</span></h2>
-            <p className="text-zinc-500 text-xs mt-1 font-mono">{"// CHRONOLOGICAL ARCHIVE"}</p>
-          </div>
-
-          <div className="relative border-l border-zinc-800 ml-4 md:ml-32 pl-8 space-y-12">
-            {timelineEvents.map((ev, idx) => (
-              <motion.div 
-                key={idx}
-                initial={{ opacity: 0, x: -30 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: idx * 0.1 }}
-                className="relative"
-              >
-                {/* Visual marker point */}
-                <div className="absolute -left-[41px] top-1.5 w-6 h-6 rounded-full bg-black border-2 border-[#FFD700] flex items-center justify-center">
-                  <div className="w-2 h-2 rounded-full bg-[#00F5D4] animate-ping" />
-                </div>
-                
-                {/* Year Label */}
-                <span className="hidden md:block absolute -left-[160px] top-1 font-mono text-lg font-extrabold text-[#FFD700]">
-                  {ev.year}
-                </span>
-
-                <div className="p-6 rounded-2xl bg-[#080E24]/60 border border-[#121F3D] hover:border-[#FFD700]/30 transition-colors">
-                  <span className="md:hidden block font-mono text-sm font-bold text-[#FFD700] mb-1">{ev.year}</span>
-                  <h3 className="text-xl font-bold mb-2 text-white">{ev.title}</h3>
-                  <p className="text-zinc-400 text-sm leading-relaxed">{ev.desc}</p>
-                </div>
-              </motion.div>
-            ))}
-          </div>
         </section>
       </main>
 

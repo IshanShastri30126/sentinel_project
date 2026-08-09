@@ -406,8 +406,8 @@ const TeamGrid = ({ list, title, tag }: { list: TeamMemberItem[]; title: string;
         </div>
       </div>
 
-      {/* Roster Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {/* Roster Cards with 3D Circular Rotation Effect */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 font-sans">
         {list.map((member, idx) => {
           const linkedInUrl = member.linkedin ? `https://linkedin.com/in/${member.linkedin.trim()}` : `https://linkedin.com/search/results/all/?keywords=${encodeURIComponent(member.name)}`;
           const instagramUrl = member.instagram ? `https://www.instagram.com/${member.instagram.trim()}/` : `https://www.instagram.com/chakravyuh.charusat/`;
@@ -417,92 +417,103 @@ const TeamGrid = ({ list, title, tag }: { list: TeamMemberItem[]; title: string;
           const avatarSrc = rawImg ? getFileUrl(rawImg) : null;
 
           return (
-            <motion.div
-              key={member.id || idx}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: idx * 0.05 }}
-              whileHover={{ y: -6, transition: { duration: 0.2 } }}
-              onClick={() => router.push(`/team/${member.id}`)}
-              className="bg-[#050505] border border-zinc-800/80 hover:border-red-600/60 rounded-2xl relative overflow-hidden group transition-all duration-300 flex flex-col justify-between shadow-2xl hover:shadow-[0_0_30px_rgba(220,38,38,0.2)] cursor-pointer"
-            >
-              {/* Full Card Cover Image Background */}
-              <div className="relative h-64 sm:h-72 w-full overflow-hidden bg-zinc-950 flex items-center justify-center">
-                {avatarSrc ? (
-                  <img
-                    src={avatarSrc}
-                    alt={member.name}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
-                ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-zinc-900 via-zinc-950 to-black flex items-center justify-center relative">
-                    <div className="w-24 h-24 rounded-2xl bg-red-600/10 border-2 border-red-500/30 flex items-center justify-center text-red-500 font-mono text-4xl font-extrabold shadow-[0_0_30px_rgba(220,38,38,0.2)]">
-                      {member.name.charAt(0)}
+            <div key={member.id || idx} style={{ perspective: 1200 }} className="w-full">
+              <motion.div
+                initial={{ opacity: 0, rotateY: -180, scale: 0.8, y: 40 }}
+                whileInView={{ opacity: 1, rotateY: 0, scale: 1, y: 0 }}
+                viewport={{ once: true, margin: "-30px" }}
+                transition={{ duration: 0.85, delay: (idx % 3) * 0.15, ease: [0.16, 1, 0.3, 1] }}
+                whileHover={{ y: -8, scale: 1.02, transition: { duration: 0.25 } }}
+                onClick={() => router.push(`/team/${member.id}`)}
+                style={{ transformStyle: "preserve-3d" }}
+                className="bg-[#050505] border border-zinc-800/80 hover:border-red-600/60 rounded-2xl relative overflow-hidden group transition-all duration-300 flex flex-col justify-between shadow-2xl hover:shadow-[0_0_35px_rgba(220,38,38,0.25)] cursor-pointer"
+              >
+                {/* Full Card Cover Image Background with Synchronized 3D Rotation */}
+                <div className="relative h-64 sm:h-72 w-full overflow-hidden bg-zinc-950 flex items-center justify-center" style={{ transformStyle: "preserve-3d" }}>
+                  {avatarSrc ? (
+                    <motion.img
+                      initial={{ rotateY: -90, scale: 1.2 }}
+                      whileInView={{ rotateY: 0, scale: 1 }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 0.9, delay: (idx % 3) * 0.15 + 0.1, ease: "easeOut" }}
+                      src={avatarSrc}
+                      alt={member.name}
+                      className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-700"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-zinc-900 via-zinc-950 to-black flex items-center justify-center relative">
+                      <motion.div 
+                        initial={{ rotateY: -180 }}
+                        whileInView={{ rotateY: 0 }}
+                        transition={{ duration: 0.85, delay: (idx % 3) * 0.15 }}
+                        className="w-24 h-24 rounded-2xl bg-red-600/10 border-2 border-red-500/30 flex items-center justify-center text-red-500 font-mono text-4xl font-extrabold shadow-[0_0_30px_rgba(220,38,38,0.2)]"
+                      >
+                        {member.name.charAt(0)}
+                      </motion.div>
                     </div>
+                  )}
+
+                  {/* Dark Gradient Overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/40 to-transparent pointer-events-none" />
+
+                  {/* Clearance Tag at Top Right */}
+                  <div className="absolute top-3 right-3 text-[9px] font-mono text-zinc-400 bg-black/80 border border-zinc-800 group-hover:border-red-500/50 group-hover:text-red-400 px-2.5 py-1 rounded-full uppercase tracking-widest font-bold backdrop-blur-md z-10 shadow-md transition-colors">
+                    {getClearanceLevel(member.role)}
                   </div>
-                )}
-
-                {/* Dark Gradient Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/40 to-transparent pointer-events-none" />
-
-                {/* Clearance Tag at Top Right */}
-                <div className="absolute top-3 right-3 text-[9px] font-mono text-zinc-400 bg-black/80 border border-zinc-800 group-hover:border-red-500/50 group-hover:text-red-400 px-2.5 py-1 rounded-full uppercase tracking-widest font-bold backdrop-blur-md z-10 shadow-md transition-colors">
-                  {getClearanceLevel(member.role)}
-                </div>
-              </div>
-
-              {/* Center Aligned Name & Designation (Above View Profile Section) */}
-              <div className="p-5 text-center flex flex-col items-center justify-center space-y-1 bg-[#050505]">
-                <h3 className="text-xl font-bold text-white group-hover:text-red-400 transition-colors font-mono line-clamp-1 text-center">
-                  {member.name}
-                </h3>
-                <p className="text-xs text-red-500 font-mono tracking-wider font-semibold uppercase text-center">
-                  {member.designation}
-                </p>
-                <p className="text-[10px] text-zinc-400 font-mono tracking-widest uppercase text-center mt-0.5">
-                  {ROLE_LABELS[member.role] || member.role}
-                </p>
-              </div>
-
-              {/* Bottom Public Profile View Link & Social Icons */}
-              <div className="px-5 pb-5 pt-3 border-t border-zinc-900/80 flex items-center justify-between bg-[#050505]">
-                {/* Public Profile View Link */}
-                <div className="flex items-center gap-1.5 text-xs font-mono text-zinc-400 group-hover:text-red-400 transition-colors font-bold uppercase tracking-wider">
-                  <Eye className="w-4 h-4 text-red-500" />
-                  <span>View Profile</span>
                 </div>
 
-                {/* External Social Icons */}
-                <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-                  <a
-                    href={linkedInUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-8 h-8 rounded-full border border-white/10 flex items-center justify-center text-zinc-400 hover:text-white hover:border-red-500 hover:bg-red-500/10 hover:shadow-[0_0_10px_rgba(220,38,38,0.4)] transition-all"
-                    title="LinkedIn Profile"
-                  >
-                    <LinkedinIcon className="w-3.5 h-3.5" />
-                  </a>
-                  <a
-                    href={instagramUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-8 h-8 rounded-full border border-white/10 flex items-center justify-center text-zinc-400 hover:text-white hover:border-red-500 hover:bg-red-500/10 hover:shadow-[0_0_10px_rgba(220,38,38,0.4)] transition-all"
-                    title="Instagram Profile"
-                  >
-                    <InstagramIcon className="w-3.5 h-3.5" />
-                  </a>
-                  <a
-                    href={emailUrl}
-                    className="w-8 h-8 rounded-full border border-white/10 flex items-center justify-center text-zinc-400 hover:text-white hover:border-red-500 hover:bg-red-500/10 hover:shadow-[0_0_10px_rgba(220,38,38,0.4)] transition-all"
-                    title="Secure Broadcast Mail"
-                  >
-                    <Mail className="w-3.5 h-3.5" />
-                  </a>
+                {/* Center Aligned Name & Designation */}
+                <div className="p-5 text-center flex flex-col items-center justify-center space-y-1 bg-[#050505]">
+                  <h3 className="text-xl font-bold text-white group-hover:text-red-400 transition-colors font-mono line-clamp-1 text-center">
+                    {member.name}
+                  </h3>
+                  <p className="text-xs text-red-500 font-mono tracking-wider font-semibold uppercase text-center">
+                    {member.designation}
+                  </p>
+                  <p className="text-[10px] text-zinc-400 font-mono tracking-widest uppercase text-center mt-0.5">
+                    {ROLE_LABELS[member.role] || member.role}
+                  </p>
                 </div>
-              </div>
-            </motion.div>
+
+                {/* Bottom Public Profile View Link & Social Icons */}
+                <div className="px-5 pb-5 pt-3 border-t border-zinc-900/80 flex items-center justify-between bg-[#050505]">
+                  {/* Public Profile View Link */}
+                  <div className="flex items-center gap-1.5 text-xs font-mono text-zinc-400 group-hover:text-red-400 transition-colors font-bold uppercase tracking-wider">
+                    <Eye className="w-4 h-4 text-red-500" />
+                    <span>View Profile</span>
+                  </div>
+
+                  {/* External Social Icons */}
+                  <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                    <a
+                      href={linkedInUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-8 h-8 rounded-full border border-white/10 flex items-center justify-center text-zinc-400 hover:text-white hover:border-red-500 hover:bg-red-500/10 hover:shadow-[0_0_10px_rgba(220,38,38,0.4)] transition-all"
+                      title="LinkedIn Profile"
+                    >
+                      <LinkedinIcon className="w-3.5 h-3.5" />
+                    </a>
+                    <a
+                      href={instagramUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-8 h-8 rounded-full border border-white/10 flex items-center justify-center text-zinc-400 hover:text-white hover:border-red-500 hover:bg-red-500/10 hover:shadow-[0_0_10px_rgba(220,38,38,0.4)] transition-all"
+                      title="Instagram Profile"
+                    >
+                      <InstagramIcon className="w-3.5 h-3.5" />
+                    </a>
+                    <a
+                      href={emailUrl}
+                      className="w-8 h-8 rounded-full border border-white/10 flex items-center justify-center text-zinc-400 hover:text-white hover:border-red-500 hover:bg-red-500/10 hover:shadow-[0_0_10px_rgba(220,38,38,0.4)] transition-all"
+                      title="Secure Broadcast Mail"
+                    >
+                      <Mail className="w-3.5 h-3.5" />
+                    </a>
+                  </div>
+                </div>
+              </motion.div>
+            </div>
           );
         })}
       </div>
@@ -636,6 +647,44 @@ export default function TeamPage() {
             <TeamGrid list={generalList} title="Additional Officers" tag="[// OFFICERS_CLEARANCE_LVL_1]" />
           </>
         )}
+
+        {/* Join Our Team Call-To-Action Banner Section */}
+        <motion.section 
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+          className="mt-20 p-8 sm:p-12 rounded-3xl bg-gradient-to-br from-[#080E24] via-zinc-950 to-black border-2 border-red-600/40 relative overflow-hidden shadow-[0_0_40px_rgba(220,38,38,0.2)] text-center"
+        >
+          <div className="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-red-600/10 to-transparent pointer-events-none" />
+          <div className="max-w-2xl mx-auto space-y-4 relative z-10">
+            <span className="px-4 py-1.5 rounded-full bg-red-600/20 border border-red-500/40 text-red-400 text-xs font-mono font-bold uppercase tracking-widest inline-flex items-center gap-2">
+              <Shield className="w-3.5 h-3.5 text-red-500" /> JOIN THE CHAKRAVYUH RECRUITMENT FORCE
+            </span>
+            <h2 className="text-3xl sm:text-5xl font-black font-mono uppercase tracking-tight text-white">
+              Ready to Join Our Crew?
+            </h2>
+            <p className="text-slate-300 text-sm sm:text-base font-sans leading-relaxed">
+              We are constantly seeking passionate cybersecurity researchers, developers, CTF players, and creative leads to join our elite defense unit.
+            </p>
+            <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-4">
+              <a
+                href="https://chat.whatsapp.com/chakravyuh"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-8 py-3.5 rounded-full bg-gradient-to-r from-red-600 to-orange-600 text-white font-mono font-bold uppercase tracking-widest text-xs hover:scale-105 transition-all shadow-[0_0_25px_rgba(220,38,38,0.5)] flex items-center gap-2"
+              >
+                <Users className="w-4 h-4" /> Apply to Join Crew
+              </a>
+              <Link
+                href="/auth"
+                className="px-8 py-3.5 rounded-full bg-black/80 border border-zinc-700 text-slate-200 font-mono font-bold uppercase tracking-widest text-xs hover:border-red-500 hover:text-white transition-all flex items-center gap-2"
+              >
+                <LogIn className="w-4 h-4 text-red-400" /> Member Gateway
+              </Link>
+            </div>
+          </div>
+        </motion.section>
 
       </main>
       

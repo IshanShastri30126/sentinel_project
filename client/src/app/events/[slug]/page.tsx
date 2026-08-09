@@ -864,11 +864,20 @@ function PublicEventPageContent() {
       {/* Registration Details Form Modal */}
       {showRegisterModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm animate-fade-in">
-          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="ck-card max-w-md w-full p-6 relative">
-            <button onClick={() => setShowRegisterModal(false)} className="absolute top-4 right-4 text-slate-400 hover:text-white">✕</button>
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }} 
+            animate={{ opacity: 1, scale: 1 }} 
+            className="ck-card max-w-lg w-full p-6 relative max-h-[90vh] flex flex-col overflow-hidden shadow-2xl border border-[#FFD700]/30 bg-[#050A18]"
+          >
+            <button 
+              onClick={() => setShowRegisterModal(false)} 
+              className="absolute top-4 right-4 text-slate-400 hover:text-white z-20 w-8 h-8 rounded-full bg-black/40 border border-zinc-800 flex items-center justify-center font-mono text-sm transition"
+            >
+              ✕
+            </button>
             
             {registered ? (
-              <div className="text-center py-4 space-y-6">
+              <div className="text-center py-4 space-y-6 overflow-y-auto pr-1 custom-scrollbar">
                 <div className="w-16 h-16 rounded-full bg-emerald-950/40 border border-emerald-500/30 flex items-center justify-center mx-auto shadow-[0_0_20px_rgba(16,185,129,0.2)]">
                   <CheckCircle className="w-8 h-8 text-emerald-400 animate-bounce" />
                 </div>
@@ -924,199 +933,206 @@ function PublicEventPageContent() {
                 </button>
               </div>
             ) : (
-              <>
-                <h3 className="text-xl font-bold font-mono text-white mb-2 uppercase tracking-tighter">Registration Form</h3>
-                <p className="text-xs text-slate-400 mb-6 font-mono">Fill in your operational details to register.</p>
+              <div className="flex flex-col h-full min-h-0">
+                <div className="mb-4 pr-8 shrink-0">
+                  <h3 className="text-xl font-bold font-mono text-white uppercase tracking-tighter">Registration Form</h3>
+                  <p className="text-xs text-slate-400 font-mono mt-0.5">Fill in your operational details to register.</p>
+                </div>
                 
-                <form onSubmit={handleFormSubmit} className="space-y-4">
-                  <div>
-                    <label className="ck-label font-mono uppercase tracking-wider text-[10px]">Full Name *</label>
-                    <input 
-                      className="ck-input" 
-                      placeholder="e.g. John Doe" 
-                      value={formData.name} 
-                      onChange={(e) => setFormData({ ...formData, name: e.target.value })} 
-                      required 
-                    />
-                  </div>
-                  <div className="grid grid-cols-2 gap-3">
+                <form onSubmit={handleFormSubmit} className="flex flex-col flex-1 min-h-0">
+                  <div className="flex-1 overflow-y-auto pr-2 space-y-4 custom-scrollbar min-h-0">
                     <div>
-                      <label className="ck-label font-mono uppercase tracking-wider text-[10px]">
-                        {user?.role === "FACULTY" ? "Employee ID *" : "College / Student ID *"}
-                      </label>
+                      <label className="ck-label font-mono uppercase tracking-wider text-[10px]">Full Name *</label>
                       <input 
                         className="ck-input" 
-                        placeholder={user?.role === "FACULTY" ? "e.g. EMP101" : "e.g. 22CS101"} 
-                        value={formData.studentId} 
-                        onChange={(e) => setFormData({ ...formData, studentId: e.target.value })} 
+                        placeholder="e.g. John Doe" 
+                        value={formData.name} 
+                        onChange={(e) => setFormData({ ...formData, name: e.target.value })} 
                         required 
                       />
                     </div>
-                    <div>
-                      <label className="ck-label font-mono uppercase tracking-wider text-[10px]">Mobile Number (10 Digits) *</label>
-                      <input
-                        className="ck-input"
-                        type="text"
-                        placeholder="10-digit mobile number"
-                        value={formData.phone}
-                        onChange={(e) => setFormData({ ...formData, phone: e.target.value.replace(/\D/g, "").slice(0, 10) })}
-                        maxLength={10}
-                        required
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="ck-label font-mono uppercase tracking-wider text-[10px]">Institute / College *</label>
-                      <select 
-                        className="ck-input" 
-                        value={formData.institute} 
-                        onChange={(e) => {
-                          const newInst = e.target.value;
-                          const depts = INSTITUTE_DEPARTMENTS[newInst] || [];
-                          setFormData({ 
-                            ...formData, 
-                            institute: newInst,
-                            department: depts.length > 0 ? depts[0] : "" 
-                          });
-                        }} 
-                        required
-                      >
-                        <option value="" className="bg-[#050A18]">Select Institute...</option>
-                        {INSTITUTES.map((inst) => (
-                          <option key={inst} value={inst} className="bg-[#050A18] text-white">{inst}</option>
-                        ))}
-                      </select>
-                    </div>
-                    <div>
-                      <label className="ck-label font-mono uppercase tracking-wider text-[10px]">Department *</label>
-                      <select 
-                        className="ck-input disabled:opacity-50" 
-                        value={formData.department} 
-                        onChange={(e) => setFormData({ ...formData, department: e.target.value })} 
-                        required 
-                        disabled={!formData.institute}
-                      >
-                        {!formData.institute ? (
-                          <option value="" className="bg-[#050A18]">Select Institute first</option>
-                        ) : (
-                          (INSTITUTE_DEPARTMENTS[formData.institute] || []).map((dept) => (
-                            <option key={dept} value={dept} className="bg-[#050A18] text-white">{dept}</option>
-                          ))
-                        )}
-                      </select>
-                    </div>
-                  </div>
-
-                  {user?.role !== "FACULTY" && (
-                    <div>
-                      <label className="ck-label font-mono uppercase tracking-wider text-[10px]">Semester (1-8)</label>
-                      <select 
-                        className="ck-input" 
-                        value={formData.semester} 
-                        onChange={(e) => setFormData({ ...formData, semester: e.target.value })} 
-                      >
-                        <option value="" className="bg-[#050A18]">Select Semester...</option>
-                        {SEMESTERS.map((sem) => (
-                          <option key={sem} value={sem} className="bg-[#050A18] text-white">Semester {sem}</option>
-                        ))}
-                      </select>
-                    </div>
-                  )}
-
-                  <div>
-                    <label className="ck-label font-mono uppercase tracking-wider text-[10px]">Email (Login Identifier)</label>
-                    <input className="ck-input bg-zinc-900 border-zinc-800 text-zinc-550 cursor-not-allowed text-xs truncate" value={formData.email} disabled />
-                  </div>
-
-                  {event && event.maxTeamSize && event.maxTeamSize > 1 && (
-                    <div className="p-4 rounded-xl border border-red-900/30 bg-red-950/10 space-y-4 font-mono">
-                      <p className="text-xs font-semibold text-red-400 uppercase tracking-wider">Team Configurations Required</p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
-                        <label className="ck-label text-[10px]">Team Name *</label>
+                        <label className="ck-label font-mono uppercase tracking-wider text-[10px]">
+                          {user?.role === "FACULTY" ? "Employee ID *" : "College / Student ID *"}
+                        </label>
                         <input 
                           className="ck-input" 
-                          placeholder="e.g. Hex Hunters" 
-                          value={formData.teamName} 
-                          onChange={(e) => setFormData({ ...formData, teamName: e.target.value })} 
+                          placeholder={user?.role === "FACULTY" ? "e.g. EMP101" : "e.g. 22CS101"} 
+                          value={formData.studentId} 
+                          onChange={(e) => setFormData({ ...formData, studentId: e.target.value })} 
                           required 
                         />
                       </div>
                       <div>
-                        <label className="ck-label text-[10px]">Add Teammates * (Must be registered & approved)</label>
-                        <div className="relative">
-                          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" />
-                          <input 
-                            className="ck-input pl-11" 
-                            placeholder="Search teammate by name or email..." 
-                            value={memberSearch} 
-                            onChange={(e) => searchMembers(e.target.value)} 
-                          />
-                        </div>
-                        {searchResults.length > 0 && (
-                          <div className="mt-2 rounded-xl border border-red-900/30 max-h-40 overflow-y-auto bg-black/95 z-50 relative">
-                            {searchResults.map((u) => (
-                              <button 
-                                key={u.id} 
-                                type="button" 
-                                onClick={() => { 
-                                  setSelectedMembers([...selectedMembers, u]); 
-                                  setSearchResults([]); 
-                                  setMemberSearch(""); 
-                                }}
-                                className="w-full text-left px-4 py-2.5 text-xs hover:bg-red-950/20 text-slate-300 border-b border-red-950/20 last:border-b-0 flex items-center justify-between"
-                              >
-                                <span className="truncate">{u.name} ({u.email})</span>
-                                {u.isApproved ? (
-                                  <span className="text-[9px] text-emerald-400 shrink-0 font-bold ml-2">APPROVED</span>
-                                ) : (
-                                  <span className="text-[9px] text-amber-500 shrink-0 font-bold ml-2">PENDING</span>
-                                )}
-                              </button>
-                            ))}
-                          </div>
-                        )}
-                        {selectedMembers.length > 0 && (
-                          <div className="flex flex-wrap gap-2 mt-3">
-                            {selectedMembers.map((m) => (
-                              <span key={m.id} className="ck-badge ck-badge-primary flex items-center gap-1.5 py-1 text-xs">
-                                <span>{m.name}</span>
-                                {!m.isApproved && (
-                                  <span className="text-[8px] text-amber-500 font-bold bg-amber-500/10 px-1 rounded border border-amber-500/25">UNAPPROVED</span>
-                                )}
-                                <button 
-                                  type="button" 
-                                  onClick={() => setSelectedMembers(selectedMembers.filter((s) => s.id !== m.id))} 
-                                  className="hover:text-red-400 p-0.5"
-                                >
-                                  ✕
-                                </button>
-                              </span>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                      <div>
-                        <label className="ck-label text-[10px]">Estimated Teammates Count</label>
-                        <input 
-                          type="number" 
-                          min="1" 
-                          max={event.maxTeamSize - 1} 
-                          className="ck-input cursor-not-allowed bg-zinc-900 border-zinc-800 text-zinc-400" 
-                          placeholder="Number of teammates" 
-                          value={formData.teammateCount} 
-                          disabled
+                        <label className="ck-label font-mono uppercase tracking-wider text-[10px]">Mobile Number (10 Digits) *</label>
+                        <input
+                          className="ck-input"
+                          type="tel"
+                          inputMode="numeric"
+                          placeholder="10-digit mobile number"
+                          value={formData.phone}
+                          onChange={(e) => setFormData({ ...formData, phone: e.target.value.replace(/\D/g, "").slice(0, 10) })}
+                          maxLength={10}
+                          required
                         />
                       </div>
                     </div>
-                  )}
 
-                  <button type="submit" disabled={registering} className="ck-btn-primary w-full mt-6">
-                    {registering ? "Processing Registration..." : "Confirm Registration"}
-                  </button>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="ck-label font-mono uppercase tracking-wider text-[10px]">Institute / College *</label>
+                        <select 
+                          className="ck-input" 
+                          value={formData.institute} 
+                          onChange={(e) => {
+                            const newInst = e.target.value;
+                            const depts = INSTITUTE_DEPARTMENTS[newInst] || [];
+                            setFormData({ 
+                              ...formData, 
+                              institute: newInst,
+                              department: depts.length > 0 ? depts[0] : "" 
+                            });
+                          }} 
+                          required
+                        >
+                          <option value="" className="bg-[#050A18]">Select Institute...</option>
+                          {INSTITUTES.map((inst) => (
+                            <option key={inst} value={inst} className="bg-[#050A18] text-white">{inst}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="ck-label font-mono uppercase tracking-wider text-[10px]">Department *</label>
+                        <select 
+                          className="ck-input disabled:opacity-50" 
+                          value={formData.department} 
+                          onChange={(e) => setFormData({ ...formData, department: e.target.value })} 
+                          required 
+                          disabled={!formData.institute}
+                        >
+                          {!formData.institute ? (
+                            <option value="" className="bg-[#050A18]">Select Institute first</option>
+                          ) : (
+                            (INSTITUTE_DEPARTMENTS[formData.institute] || []).map((dept) => (
+                              <option key={dept} value={dept} className="bg-[#050A18] text-white">{dept}</option>
+                            ))
+                          )}
+                        </select>
+                      </div>
+                    </div>
+
+                    {user?.role !== "FACULTY" && (
+                      <div>
+                        <label className="ck-label font-mono uppercase tracking-wider text-[10px]">Semester (1-8)</label>
+                        <select 
+                          className="ck-input" 
+                          value={formData.semester} 
+                          onChange={(e) => setFormData({ ...formData, semester: e.target.value })} 
+                        >
+                          <option value="" className="bg-[#050A18]">Select Semester...</option>
+                          {SEMESTERS.map((sem) => (
+                            <option key={sem} value={sem} className="bg-[#050A18] text-white">Semester {sem}</option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+
+                    <div>
+                      <label className="ck-label font-mono uppercase tracking-wider text-[10px]">Email (Login Identifier)</label>
+                      <input className="ck-input bg-zinc-900 border-zinc-800 text-zinc-550 cursor-not-allowed text-xs truncate" value={formData.email} disabled />
+                    </div>
+
+                    {event && event.maxTeamSize && event.maxTeamSize > 1 && (
+                      <div className="p-4 rounded-xl border border-red-900/30 bg-red-950/10 space-y-4 font-mono">
+                        <p className="text-xs font-semibold text-red-400 uppercase tracking-wider">Team Configurations Required</p>
+                        <div>
+                          <label className="ck-label text-[10px]">Team Name *</label>
+                          <input 
+                            className="ck-input" 
+                            placeholder="e.g. Hex Hunters" 
+                            value={formData.teamName} 
+                            onChange={(e) => setFormData({ ...formData, teamName: e.target.value })} 
+                            required 
+                          />
+                        </div>
+                        <div>
+                          <label className="ck-label text-[10px]">Add Teammates * (Must be registered & approved)</label>
+                          <div className="relative">
+                            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" />
+                            <input 
+                              className="ck-input pl-11" 
+                              placeholder="Search teammate by name or email..." 
+                              value={memberSearch} 
+                              onChange={(e) => searchMembers(e.target.value)} 
+                            />
+                          </div>
+                          {searchResults.length > 0 && (
+                            <div className="mt-2 rounded-xl border border-red-900/30 max-h-40 overflow-y-auto bg-black/95 z-50 relative">
+                              {searchResults.map((u) => (
+                                <button 
+                                  key={u.id} 
+                                  type="button" 
+                                  onClick={() => { 
+                                    setSelectedMembers([...selectedMembers, u]); 
+                                    setSearchResults([]); 
+                                    setMemberSearch(""); 
+                                  }}
+                                  className="w-full text-left px-4 py-2.5 text-xs hover:bg-red-950/20 text-slate-300 border-b border-red-950/20 last:border-b-0 flex items-center justify-between"
+                                >
+                                  <span className="truncate">{u.name} ({u.email})</span>
+                                  {u.isApproved ? (
+                                    <span className="text-[9px] text-emerald-400 shrink-0 font-bold ml-2">APPROVED</span>
+                                  ) : (
+                                    <span className="text-[9px] text-amber-500 shrink-0 font-bold ml-2">PENDING</span>
+                                  )}
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                          {selectedMembers.length > 0 && (
+                            <div className="flex flex-wrap gap-2 mt-3">
+                              {selectedMembers.map((m) => (
+                                <span key={m.id} className="ck-badge ck-badge-primary flex items-center gap-1.5 py-1 text-xs">
+                                  <span>{m.name}</span>
+                                  {!m.isApproved && (
+                                    <span className="text-[8px] text-amber-500 font-bold bg-amber-500/10 px-1 rounded border border-amber-500/25">UNAPPROVED</span>
+                                  )}
+                                  <button 
+                                    type="button" 
+                                    onClick={() => setSelectedMembers(selectedMembers.filter((s) => s.id !== m.id))} 
+                                    className="hover:text-red-400 p-0.5"
+                                  >
+                                    ✕
+                                  </button>
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                        <div>
+                          <label className="ck-label text-[10px]">Estimated Teammates Count</label>
+                          <input 
+                            type="number" 
+                            min="1" 
+                            max={event.maxTeamSize - 1} 
+                            className="ck-input cursor-not-allowed bg-zinc-900 border-zinc-800 text-zinc-400" 
+                            placeholder="Number of teammates" 
+                            value={formData.teammateCount} 
+                            disabled
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="pt-4 mt-2 border-t border-[#121F3D] bg-[#050A18] shrink-0">
+                    <button type="submit" disabled={registering} className="ck-btn-primary w-full shadow-[0_0_20px_rgba(255,215,0,0.25)]">
+                      {registering ? "Processing Registration..." : "Confirm Registration"}
+                    </button>
+                  </div>
                 </form>
-              </>
+              </div>
             )}
           </motion.div>
         </div>

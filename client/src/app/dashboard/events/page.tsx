@@ -233,6 +233,40 @@ export default function EventsPage() {
   const [existingDocuments, setExistingDocuments] = useState<string[]>([]);
   const [organizersList, setOrganizersList] = useState<Organizer[]>([]);
   const [newOrganizer, setNewOrganizer] = useState<Organizer>({ name: "", role: "Student Coordinator", email: "", phone: "" });
+  const [availableFaculty, setAvailableFaculty] = useState<Organizer[]>([]);
+  const [availableStudentCoords, setAvailableStudentCoords] = useState<Organizer[]>([]);
+
+  // Auto-fetch Faculty & Student Coordinators from landing team roster
+  useEffect(() => {
+    async function fetchRoster() {
+      try {
+        const data = await api<{ team: Array<{ id: string; name: string; role: string; email?: string; phone?: string; designation?: string }> }>("/settings/landing-team");
+        if (data.team && data.team.length > 0) {
+          const facs: Organizer[] = data.team
+            .filter((m) => m.role === "FACULTY" || m.designation?.toLowerCase().includes("faculty"))
+            .map((m) => ({
+              name: m.name,
+              role: "Faculty Coordinator",
+              email: m.email || "faculty@chakravyuhclub.com",
+              phone: m.phone || "9876543210",
+            }));
+          const coords: Organizer[] = data.team
+            .filter((m) => m.role === "STUDENT_COORDINATOR" || m.designation?.toLowerCase().includes("coordinator"))
+            .map((m) => ({
+              name: m.name,
+              role: "Student Coordinator",
+              email: m.email || "coordinator@chakravyuhclub.com",
+              phone: m.phone || "9876543210",
+            }));
+          setAvailableFaculty(facs);
+          setAvailableStudentCoords(coords);
+        }
+      } catch (err) {
+        console.error("Failed to load team roster for event organizers", err);
+      }
+    }
+    fetchRoster();
+  }, []);
 
   // Drag & Drop state
   const [isPosterDragging, setIsPosterDragging] = useState(false);
@@ -651,6 +685,12 @@ export default function EventsPage() {
               setPosterFile(null); 
               setPosterPreview(null); 
               setDocumentFiles([]); 
+              // Always auto-add all Faculty Coordinators in every new event
+              const defaultFaculty = availableFaculty.length > 0 ? availableFaculty : [
+                { name: "Dr. Parag Shah", role: "Faculty Coordinator", email: "paragshah.ce@charusat.ac.in", phone: "9876543210" },
+                { name: "Prof. Martin Parmar", role: "Faculty Coordinator", email: "martinparmar.ce@charusat.ac.in", phone: "9876543210" }
+              ];
+              setOrganizersList([...defaultFaculty]);
               setShowCreate(true); 
               setStep(1); 
             }} 
@@ -1097,6 +1137,36 @@ export default function EventsPage() {
                         <div className="flex items-center gap-2 border-b border-[var(--ck-border)] pb-2">
                           <Users className="w-4 h-4 text-[var(--ck-primary)]" />
                           <h3 className="text-sm font-black font-mono text-zinc-350 uppercase tracking-widest">Organizing Team Setup</h3>
+                        </div>
+
+                        {/* Student Coordinator Quick Selection & Auto-Fill */}
+                        <div className="p-3 rounded-lg border border-[var(--ck-primary)]/30 bg-[var(--ck-primary)]/5 space-y-2">
+                          <label className="ck-label text-[10px] uppercase font-mono font-bold text-[var(--ck-primary)]">
+                            Select Student Coordinator (Auto-Fill Details)
+                          </label>
+                          <select 
+                            className="ck-input text-xs py-1.5 bg-[#050A18]"
+                            onChange={(e) => {
+                              const selName = e.target.value;
+                              if (!selName) return;
+                              const found = availableStudentCoords.find((c) => c.name === selName);
+                              if (found) {
+                                setNewOrganizer({
+                                  name: found.name,
+                                  role: found.role || "Student Coordinator",
+                                  email: found.email || "coordinator@chakravyuhclub.com",
+                                  phone: found.phone || "9876543210"
+                                });
+                              }
+                            }}
+                          >
+                            <option value="" className="bg-[#050A18]">Select Student Coordinator to auto-fill details...</option>
+                            {availableStudentCoords.map((coord, idx) => (
+                              <option key={idx} value={coord.name} className="bg-[#050A18] text-white">
+                                👤 {coord.name} ({coord.role})
+                              </option>
+                            ))}
+                          </select>
                         </div>
 
                         {/* Add Organizer Form */}
