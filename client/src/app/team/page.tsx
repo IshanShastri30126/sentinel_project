@@ -8,7 +8,12 @@ import { Shield, ArrowLeft, Users, Mail, Info, LogIn, Eye } from "lucide-react";
 import { api, getFileUrl } from "@/lib/api";
 import { CyberKavachLogo } from "@/components/CyberKavachLogo";
 
-
+const GithubIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} style={{ width: '1em', height: '1em' }}>
+    <path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4" />
+    <path d="M9 18c-4.51 2-5-2-7-2" />
+  </svg>
+);
 
 const LinkedinIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} style={{ width: '1em', height: '1em' }}>
@@ -386,97 +391,23 @@ const ROLE_LABELS: Record<string, string> = {
   CONTENT: "Creative Team"
 };
 
-// Helper to determine division orbit colors
-const getOrbitTheme = (role: string) => {
-  switch (role) {
-    case "FACULTY":
-      return { primary: "#DC2626", secondary: "#FFD700", label: "FACULTY_PLANETARY_ORBIT_LVL5" };
-    case "STUDENT_COORDINATOR":
-      return { primary: "#00F5D4", secondary: "#10B981", label: "COORD_PLANETARY_ORBIT_LVL4" };
-    case "TECH":
-      return { primary: "#3B82F6", secondary: "#A855F7", label: "TECH_PLANETARY_ORBIT_LVL3" };
-    case "SOCIAL_MEDIA":
-    case "CONTENT":
-      return { primary: "#F97316", secondary: "#EC4899", label: "MEDIA_PLANETARY_ORBIT_LVL2" };
-    default:
-      return { primary: "#DC2626", secondary: "#94A3B8", label: "OFFICER_PLANETARY_ORBIT_LVL1" };
-  }
-};
-
-const OrbitTrajectoryDesign = ({ primary = "#DC2626", secondary = "#FFD700", idTag = "orbit" }: { primary?: string; secondary?: string; idTag?: string }) => (
-  <div className="absolute -inset-x-8 -top-8 -bottom-8 pointer-events-none overflow-hidden z-0 opacity-40 group-hover:opacity-75 transition-opacity duration-700">
-    <svg className="w-full h-full" viewBox="0 0 1200 320" fill="none" preserveAspectRatio="none">
-      <defs>
-        <linearGradient id={`orbitGrad-${idTag}`} x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%" stopColor={primary} stopOpacity="0" />
-          <stop offset="25%" stopColor={primary} stopOpacity="0.8" />
-          <stop offset="50%" stopColor={secondary} stopOpacity="1" />
-          <stop offset="75%" stopColor={primary} stopOpacity="0.8" />
-          <stop offset="100%" stopColor={secondary} stopOpacity="0" />
-        </linearGradient>
-        <filter id={`orbitGlow-${idTag}`} x="-20%" y="-20%" width="140%" height="140%">
-          <feGaussianBlur stdDeviation="8" result="blur" />
-          <feComposite in="SourceGraphic" in2="blur" operator="over" />
-        </filter>
-      </defs>
-
-      {/* Planetary Orbit Ring Ellipse Track */}
-      <ellipse
-        cx="600"
-        cy="160"
-        rx="570"
-        ry="130"
-        stroke={`url(#orbitGrad-${idTag})`}
-        strokeWidth="2"
-        strokeDasharray="10 14"
-        filter={`url(#orbitGlow-${idTag})`}
-        className="animate-pulse"
-      />
-
-      {/* Secondary Inner Counter Orbit Ring Line */}
-      <ellipse
-        cx="600"
-        cy="160"
-        rx="500"
-        ry="100"
-        stroke={primary}
-        strokeWidth="1"
-        strokeOpacity="0.35"
-        strokeDasharray="5 8"
-      />
-
-      {/* Orbit Trajectory Planets / Satellite Nodes */}
-      <circle cx="150" cy="160" r="5" fill={primary} filter={`url(#orbitGlow-${idTag})`} />
-      <circle cx="600" cy="30" r="6" fill={secondary} filter={`url(#orbitGlow-${idTag})`} />
-      <circle cx="1050" cy="160" r="5" fill={primary} filter={`url(#orbitGlow-${idTag})`} />
-      <circle cx="600" cy="290" r="4" fill={secondary} filter={`url(#orbitGlow-${idTag})`} />
-    </svg>
-  </div>
-);
-
 const TeamGrid = ({ list, title, tag }: { list: TeamMemberItem[]; title: string; tag: string }) => {
   const router = useRouter();
   if (list.length === 0) return null;
 
-  const firstRole = list[0]?.role || "GUEST";
-  const orbitTheme = getOrbitTheme(firstRole);
-
   return (
-    <div className="mb-24 relative group">
-      {/* Visual Orbital Trajectory Ring Background Image for this Division */}
-      <OrbitTrajectoryDesign primary={orbitTheme.primary} secondary={orbitTheme.secondary} idTag={tag.replace(/[^a-zA-Z0-9]/g, "")} />
-
+    <div className="mb-24">
       {/* Section Header with Cyber Line */}
-      <div className="flex items-center gap-4 mb-10 border-b border-white/5 pb-4 relative z-10">
-        <div className="w-1.5 h-6 rounded-full shadow-[0_0_12px_rgba(220,38,38,0.8)]" style={{ backgroundColor: orbitTheme.primary }} />
+      <div className="flex items-center gap-4 mb-10 border-b border-white/5 pb-4">
+        <div className="w-1.5 h-6 bg-red-600 rounded-full shadow-[0_0_10px_rgba(220,38,38,0.8)]" />
         <div>
           <h2 className="text-xl font-black font-mono tracking-widest text-white uppercase">{title}</h2>
           <p className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest">{tag}</p>
         </div>
       </div>
 
-      {/* Roster Cards with Planetary Axis 3D Traversing Rotation Effect */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 font-sans overflow-hidden relative z-10">
+      {/* Roster Cards with 3D Circular Rotation Effect */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 font-sans">
         {list.map((member, idx) => {
           const linkedInUrl = member.linkedin ? `https://linkedin.com/in/${member.linkedin.trim()}` : `https://linkedin.com/search/results/all/?keywords=${encodeURIComponent(member.name)}`;
           const instagramUrl = member.instagram ? `https://www.instagram.com/${member.instagram.trim()}/` : `https://www.instagram.com/chakravyuh.charusat/`;
@@ -488,44 +419,33 @@ const TeamGrid = ({ list, title, tag }: { list: TeamMemberItem[]; title: string;
           return (
             <div key={member.id || idx} style={{ perspective: 1200 }} className="w-full">
               <motion.div
-                initial={{ opacity: 0, x: -160, rotateY: -360, scale: 0.75, z: -150 }}
-                whileInView={{ opacity: 1, x: 0, rotateY: 0, scale: 1, z: 0 }}
-                viewport={{ once: true, margin: "-40px" }}
-                transition={{ duration: 1.1, delay: (idx % 3) * 0.2, ease: [0.16, 1, 0.3, 1] }}
-                whileHover={{ y: -8, scale: 1.03, transition: { duration: 0.25 } }}
+                initial={{ opacity: 0, rotateY: -180, scale: 0.8, y: 40 }}
+                whileInView={{ opacity: 1, rotateY: 0, scale: 1, y: 0 }}
+                viewport={{ once: true, margin: "-30px" }}
+                transition={{ duration: 0.85, delay: (idx % 3) * 0.15, ease: [0.16, 1, 0.3, 1] }}
+                whileHover={{ y: -8, scale: 1.02, transition: { duration: 0.25 } }}
                 onClick={() => router.push(`/team/${member.id}`)}
-                style={{ transformStyle: "preserve-3d", transformOrigin: "center center" }}
+                style={{ transformStyle: "preserve-3d" }}
                 className="bg-[#050505] border border-zinc-800/80 hover:border-red-600/60 rounded-2xl relative overflow-hidden group transition-all duration-300 flex flex-col justify-between shadow-2xl hover:shadow-[0_0_35px_rgba(220,38,38,0.25)] cursor-pointer"
               >
-                {/* Full Card Cover Image Background with Orbital Ring Overlay */}
+                {/* Full Card Cover Image Background with Synchronized 3D Rotation */}
                 <div className="relative h-64 sm:h-72 w-full overflow-hidden bg-zinc-950 flex items-center justify-center" style={{ transformStyle: "preserve-3d" }}>
-                  {/* Decorative Orbital Ring Image Frame Overlay */}
-                  <div 
-                    className="absolute inset-4 rounded-xl border border-dashed pointer-events-none z-10 transition-all duration-700 opacity-30 group-hover:opacity-100 group-hover:scale-105 group-hover:rotate-90"
-                    style={{ borderColor: orbitTheme.primary }}
-                  />
-                  <div 
-                    className="absolute inset-8 rounded-full border border-dotted pointer-events-none z-10 transition-all duration-1000 opacity-20 group-hover:opacity-80 group-hover:-rotate-180"
-                    style={{ borderColor: orbitTheme.secondary }}
-                  />
-
                   {avatarSrc ? (
                     <motion.img
-                      initial={{ rotateY: -180, scale: 1.25 }}
+                      initial={{ rotateY: -90, scale: 1.2 }}
                       whileInView={{ rotateY: 0, scale: 1 }}
                       viewport={{ once: true }}
-                      transition={{ duration: 1.15, delay: (idx % 3) * 0.2 + 0.1, ease: "easeOut" }}
+                      transition={{ duration: 0.9, delay: (idx % 3) * 0.15 + 0.1, ease: "easeOut" }}
                       src={avatarSrc}
                       alt={member.name}
-                      style={{ transformStyle: "preserve-3d", transformOrigin: "center center" }}
                       className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-700"
                     />
                   ) : (
                     <div className="w-full h-full bg-gradient-to-br from-zinc-900 via-zinc-950 to-black flex items-center justify-center relative">
                       <motion.div 
-                        initial={{ rotateY: -360 }}
+                        initial={{ rotateY: -180 }}
                         whileInView={{ rotateY: 0 }}
-                        transition={{ duration: 1.1, delay: (idx % 3) * 0.2 }}
+                        transition={{ duration: 0.85, delay: (idx % 3) * 0.15 }}
                         className="w-24 h-24 rounded-2xl bg-red-600/10 border-2 border-red-500/30 flex items-center justify-center text-red-500 font-mono text-4xl font-extrabold shadow-[0_0_30px_rgba(220,38,38,0.2)]"
                       >
                         {member.name.charAt(0)}
