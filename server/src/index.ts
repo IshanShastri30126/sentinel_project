@@ -22,6 +22,7 @@ import notificationRoutes from "./routes/notifications";
 import settingsRoutes from "./routes/settings";
 import clubRoutes from "./routes/clubs";
 import maintenanceRoutes from "./routes/maintenance";
+import oauthRoutes from "./routes/oauth";
 
 const app = express();
 app.set("trust proxy", 1);
@@ -120,6 +121,7 @@ app.use("/api/notifications", notificationRoutes);
 app.use("/api/settings", settingsRoutes);
 app.use("/api/clubs", clubRoutes);
 app.use("/api/maintenance", maintenanceRoutes);
+app.use("/api/oauth", oauthRoutes);
 
 // ─── Global Error Handler ──────────────────────────────────
 app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {

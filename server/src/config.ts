@@ -25,6 +25,7 @@ export const config = {
     clientId: process.env.GOOGLE_CLIENT_ID || "148457849994-vefjhnvu6kku18kuab45fctarf8gp404.apps.googleusercontent.com",
   },
   uploadDir: process.env.UPLOAD_DIR || "./uploads",
+  ctfWarsUrl: process.env.CTF_WARS_URL || "http://localhost:5001",
   escalationThresholdHours: parseInt(process.env.ESCALATION_THRESHOLD_HOURS || "48", 10),
   cloudinary: {
     cloudName: process.env.CLOUDINARY_CLOUD_NAME || "",
