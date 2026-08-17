@@ -587,47 +587,7 @@ export default function TeamPage() {
       </header>
 
       <main className="relative z-10 pt-16 pb-32 px-6 max-w-7xl mx-auto">
-        {/* Hero Header */}
-        <div className="text-center mb-24">
-          <motion.div 
-            initial={{ opacity: 0, y: -20 }} 
-            animate={{ opacity: 1, y: 0 }} 
-            className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-900/30 border border-red-500/30 text-red-400 text-xs font-mono mb-6 uppercase tracking-wider animate-pulse"
-          >
-            Clearance Authorized personnel list
-          </motion.div>
-          <motion.h1 
-            initial={{ opacity: 0, y: 20 }} 
-            animate={{ opacity: 1, y: 0 }} 
-            className="text-5xl md:text-7xl font-black mb-6 bg-gradient-to-br from-white via-slate-200 to-red-500/50 bg-clip-text text-transparent"
-          >
-            Meet the Crew
-          </motion.h1>
-          <motion.p 
-            initial={{ opacity: 0 }} 
-            animate={{ opacity: 1 }} 
-            transition={{ delay: 0.2 }}
-            className="text-lg md:text-xl text-slate-400 max-w-2xl mx-auto mb-8"
-          >
-            The strategic minds driving Chakravyuh Club. Hover over member profiles to inspect strategic defense credentials.
-          </motion.p>
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="flex justify-center"
-          >
-            <Link 
-              href="https://chat.whatsapp.com/chakravyuh" 
-              target="_blank"
-              rel="noopener noreferrer"
-              className="px-8 py-3 rounded-full bg-gradient-to-r from-[#FFD700] to-[#D4AF37] text-black font-bold transition-all hover:scale-105 hover:shadow-[0_0_20px_rgba(255,215,0,0.5)] border border-[#FFD700]/50 flex items-center gap-2"
-            >
-              <Users className="w-5 h-5" />
-              Join the Team
-            </Link>
-          </motion.div>
-        </div>
+        <div className="mb-12" />
 
         {/* Categorized grids */}
         {team.length === 0 ? (
