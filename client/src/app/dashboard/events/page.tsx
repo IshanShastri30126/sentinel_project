@@ -1,14 +1,14 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { api, apiUpload, getFileUrl } from "@/lib/api";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Calendar, Plus, X, ExternalLink, Users, MapPin, Clock, Eye, EyeOff,
-  Search, Upload, ChevronRight, ChevronLeft, Image, FileText,
-  Link2, BookOpen, UserPlus, Info, CheckCircle2, ChevronDown,
+  Search, ChevronRight, ChevronLeft, Image, FileText,
+  Link2, BookOpen, UserPlus, Info, CheckCircle2,
   Terminal, Award, Presentation, AlertTriangle, Check, UploadCloud, Layers, Edit, Mail, Trash2
 } from "lucide-react";
 
@@ -20,12 +20,14 @@ function MiniCalendar({ selectedDate, onSelect, rangeStart, rangeEnd, label, onC
 }) {
   const sel = selectedDate ? new Date(selectedDate) : null;
   const [viewDate, setViewDate] = useState(() => sel ? new Date(sel.getFullYear(), sel.getMonth(), 1) : new Date(new Date().getFullYear(), new Date().getMonth(), 1));
+  const [prevSelectedDate, setPrevSelectedDate] = useState(selectedDate);
 
-  useEffect(() => {
+  if (selectedDate !== prevSelectedDate) {
+    setPrevSelectedDate(selectedDate);
     if (sel) {
       setViewDate(new Date(sel.getFullYear(), sel.getMonth(), 1));
     }
-  }, [selectedDate]);
+  }
 
   const year = viewDate.getFullYear();
   const month = viewDate.getMonth();
@@ -177,18 +179,6 @@ export default function EventsPage() {
     }
   };
 
-  const handleOrganizerKeyDown = (e: React.KeyboardEvent<HTMLInputElement | HTMLSelectElement>) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      if (!newOrganizer.name || !newOrganizer.role || !newOrganizer.email || !newOrganizer.phone) {
-        alert("Please fill all organizer fields.");
-        return;
-      }
-      setOrganizersList(prev => [...prev, newOrganizer]);
-      setNewOrganizer({ name: "", role: "Student Coordinator", email: "", phone: "" });
-    }
-  };
-
   const { user, token } = useAuth();
   const router = useRouter();
   const [events, setEvents] = useState<Event[]>([]);
@@ -274,7 +264,7 @@ export default function EventsPage() {
 
   const [registeredEventIds, setRegisteredEventIds] = useState<Set<string>>(new Set());
 
-  const load = async () => {
+  const load = useCallback(async () => {
     try {
       const endpoint = isCore ? "/events/all" : "/events";
       const params = new URLSearchParams();
@@ -293,9 +283,9 @@ export default function EventsPage() {
       }
     } catch (err) { console.error(err); }
     finally { setLoading(false); }
-  };
+  }, [isCore, searchQuery, isCoord, statusFilter, token]);
 
-  useEffect(() => { if (token) load(); }, [token, searchQuery, statusFilter]);
+  useEffect(() => { if (token) load(); }, [token, load]);
 
   const handlePosterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] || null;
@@ -361,7 +351,7 @@ export default function EventsPage() {
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault(); setCreating(true);
     try {
-      const body: any = {
+      const body: Record<string, unknown> = {
         title: form.title, description: form.description || undefined,
         venue: form.venue || undefined,
         startDate: form.startDate, endDate: form.endDate,
@@ -504,7 +494,7 @@ export default function EventsPage() {
   const handleApproveDirectly = async (eventId: string, e: React.MouseEvent) => {
     e.stopPropagation();
     try {
-      const data = await api<{ requests: any[] }>("/approvals?type=EVENT_PERMISSION", { token: token || undefined });
+      const data = await api<{ requests: Array<{ id: string; status: string; metadata?: { eventId?: string } }> }>("/approvals?type=EVENT_PERMISSION", { token: token || undefined });
       const pendingRequest = data.requests?.find(r => r.status === "PENDING" && r.metadata?.eventId === eventId);
       if (pendingRequest) {
         await api(`/approvals/${pendingRequest.id}/decide`, {
@@ -1059,6 +1049,7 @@ export default function EventsPage() {
                             onClick={() => document.getElementById("poster-upload")?.click()}>
                             {posterPreview ? (
                               <div className="relative group/preview">
+                                /* eslint-disable-next-line @next/next/no-img-element */
                                 <img src={posterPreview} alt="Preview" className="max-h-40 mx-auto rounded-lg object-contain border border-[var(--ck-border)]" />
                                 <div className="absolute inset-0 bg-black/60 opacity-0 group-hover/preview:opacity-100 transition-opacity flex items-center justify-center rounded-lg">
                                   <p className="text-xs text-[var(--ck-text)] font-mono">Click to replace image</p>
@@ -1531,6 +1522,7 @@ export default function EventsPage() {
               {/* Poster/Header */}
               <div className="h-44 bg-gradient-to-br from-[#0D0F14]/50 to-black flex items-center justify-center relative overflow-hidden">
                 {event.posterUrl ? (
+                  /* eslint-disable-next-line @next/next/no-img-element */
                   <img src={getFileUrl(event.posterUrl)} alt={event.title} className="w-full h-full object-cover" />
                 ) : (
                   <Calendar className="w-12 h-12 opacity-20" style={{ color: "var(--ck-primary)" }} />
