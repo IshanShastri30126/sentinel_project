@@ -2,10 +2,8 @@
 
 import React from "react";
 import Link from "next/link";
-import { motion } from "framer-motion";
-import { Shield, ArrowLeft, ShieldAlert, Trophy, Terminal, Heart, Info, Users, LogIn } from "lucide-react";
+import { ArrowLeft, Shield, CheckCircle2, Users, Trophy, Terminal, Award } from "lucide-react";
 import { CyberKavachLogo } from "@/components/CyberKavachLogo";
-import PlexusBackground from "@/components/PlexusBackground";
 
 const LinkedinIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
   <svg viewBox="0 0 24 24" fill="currentColor" className={className} style={{ width: "1em", height: "1em" }}>
@@ -28,265 +26,165 @@ const WhatsappIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
 );
 
 export default function AboutPage() {
-  const pillars = [
-    {
-      icon: <ShieldAlert className="w-8 h-8 text-red-500" />,
-      title: "Ethical Hacking & Audits",
-      desc: "Educating developers and enthusiasts in testing environments, discovering critical structural weaknesses, and writing reports."
-    },
-    {
-      icon: <Trophy className="w-8 h-8 text-amber-500" />,
-      title: "CTF Competition Training",
-      desc: "Drilling skills in cryptography, reverse engineering, web exploitation, and binary analysis to compete globally."
-    },
-    {
-      icon: <Terminal className="w-8 h-8 text-red-400" />,
-      title: "Incident Simulation",
-      desc: "Simulating live red-team vs blue-team cyber attack protocols to train defense analysts in threat remediation."
-    },
-    {
-      icon: <Heart className="w-8 h-8 text-orange-500" />,
-      title: "Community Outreach",
-      desc: "Spreading digital hygiene awareness, securing systems locally, and encouraging safe technological habits."
-    }
-  ];
-
   return (
-    <div className="min-h-screen bg-[#030712] text-white overflow-hidden selection:bg-[#FFD700]/30 font-sans relative">
+    <div className="min-h-screen bg-[#030712] text-slate-100 font-sans selection:bg-[#00F5D4]/20">
       
-      {/* Interactive 7-Tier Chakravyuh Background Canvas (Bright & Visible) */}
-      <PlexusBackground opacity={0.65} />
+      {/* Top Navbar */}
+      <header className="border-b border-[#121F3D] bg-[#050A18]">
+        <div className="max-w-4xl mx-auto px-6 py-5 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Link href="/" className="p-2 rounded-lg bg-black/40 border border-[#121F3D] hover:border-[#00F5D4] text-slate-300 hover:text-[#00F5D4] transition-all">
+              <ArrowLeft className="w-4 h-4" />
+            </Link>
+            <CyberKavachLogo animateDrawing={false} />
+          </div>
 
-      {/* Cyber Grid & Glowing Ambient Overlay */}
-      <div className="fixed inset-0 z-0 pointer-events-none bg-gradient-to-b from-[#030712]/65 via-[#030712]/50 to-[#030712]/85" />
-      <div className="fixed inset-0 z-0 pointer-events-none bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(0,245,212,0.2),transparent)]" />
-      <div className="fixed inset-0 z-0 pointer-events-none bg-[linear-gradient(to_right,#121F3D30_1px,transparent_1px),linear-gradient(to_bottom,#121F3D30_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)]" />
-
-      {/* Navbar */}
-      <header className="relative z-50 flex items-center justify-between px-6 py-6 max-w-7xl mx-auto border-b border-[#121F3D]">
-        <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="flex items-center gap-4">
-          <Link href="/" className="p-2 rounded-full hover:bg-white/10 transition-colors">
-            <ArrowLeft className="w-5 h-5 text-[#FFD700]" />
-          </Link>
-          <div className="flex items-center gap-3">
-            <Link href="/" className="flex items-center gap-3">
-              <CyberKavachLogo animateDrawing={true} />
+          <div className="flex items-center gap-4 text-xs font-mono">
+            <Link href="/team" className="text-slate-300 hover:text-[#00F5D4] transition-colors">
+              Team Roster
+            </Link>
+            <Link href="/auth" className="px-3 py-1.5 rounded-lg bg-[#FFD700] text-black font-bold hover:opacity-90 transition-opacity">
+              Sign In
             </Link>
           </div>
-        </motion.div>
-        
-        <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="flex items-center gap-3 sm:gap-5">
-          <Link href="/about" className="md:hidden flex items-center justify-center p-1.5 text-[#FFD700] hover:text-white transition-colors" title="About">
-            <Info className="w-5 h-5" />
-          </Link>
-          <Link href="/team" className="md:hidden flex items-center justify-center p-1.5 text-[#00F5D4] hover:text-[#FFD700] transition-colors" title="Crew">
-            <Users className="w-5 h-5" />
-          </Link>
-          <Link href="/auth" className="md:hidden flex items-center justify-center p-1.5 text-slate-400 hover:text-white transition-colors" title="Sign In">
-            <LogIn className="w-5 h-5" />
-          </Link>
-        </motion.div>
+        </div>
       </header>
 
-      <main className="relative z-10 pt-12 pb-32 px-6 max-w-7xl mx-auto">
-        {/* Header Title & Tagline */}
-        <div className="text-center mb-10 relative">
-          <motion.div 
-            initial={{ opacity: 0, y: -20 }} 
-            animate={{ opacity: 1, y: 0 }} 
-            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#FFD700]/10 border border-[#FFD700]/30 text-[#FFD700] text-xs font-mono mb-4 uppercase tracking-wider animate-pulse shadow-[0_0_15px_rgba(255,215,0,0.2)]"
-          >
-            <Shield className="w-3.5 h-3.5 text-[#00F5D4]" /> CSPIT CE DEPARTMENT • CYBERSECURITY CLUB
-          </motion.div>
-          
-          <motion.h1 
-            initial={{ opacity: 0, y: 20 }} 
-            animate={{ opacity: 1, y: 0 }} 
-            className="text-4xl sm:text-6xl md:text-7xl font-black mb-4 bg-gradient-to-br from-white via-slate-200 to-[#FFD700] bg-clip-text text-transparent tracking-tight font-mono uppercase"
-          >
-            CHAKRAVYUH CLUB
-          </motion.h1>
-
-          <p className="text-slate-400 text-sm sm:text-base font-mono max-w-2xl mx-auto uppercase tracking-widest">
-            Strategic Cyber Defense • Peer Mentorship • Competitive Warfare
+      {/* Main Content Area — Simple, Sober & Informative */}
+      <main className="max-w-4xl mx-auto px-6 py-12 space-y-12">
+        
+        {/* Title Header */}
+        <div className="border-b border-[#121F3D] pb-8">
+          <div className="flex items-center gap-2 text-xs font-mono text-[#00F5D4] uppercase tracking-widest mb-2">
+            <Shield className="w-4 h-4 text-[#00F5D4]" />
+            <span>CSPIT Computer Engineering Department</span>
+          </div>
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-white font-mono tracking-tight uppercase">
+            About Chakravyuh Club
+          </h1>
+          <p className="text-slate-400 text-sm font-mono mt-2">
+            Cybersecurity Learning Community & Practical Operations Gateway
           </p>
         </div>
 
-        {/* 2. Detailed Text Information (Paragraph Format inside Cards) */}
-        <motion.div 
-          initial={{ opacity: 0, y: 30 }} 
-          animate={{ opacity: 1, y: 0 }} 
-          transition={{ delay: 0.2 }}
-          className="w-full max-w-5xl mx-auto space-y-6 mb-24"
-        >
-          {/* Box 1: About Us, Origins & Working Saturday Peer Sessions */}
-          <div className="p-6 sm:p-8 rounded-3xl bg-[#080E24]/90 border border-[#121F3D] hover:border-[#FFD700]/40 transition-all shadow-2xl relative overflow-hidden backdrop-blur-md">
-            <div className="absolute top-0 right-0 w-64 h-64 bg-[#00F5D4]/5 blur-3xl pointer-events-none" />
-            
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-3 h-3 rounded-full bg-[#00F5D4] animate-ping" />
-              <span className="text-xs font-mono font-bold text-[#00F5D4] uppercase tracking-widest">ABOUT US & WORKING SATURDAY SESSIONS</span>
+        {/* Section 1: Overview */}
+        <section className="space-y-4">
+          <h2 className="text-xl font-bold text-[#FFD700] font-mono uppercase tracking-wider">
+            1. Origin & Working Saturday Peer Sessions
+          </h2>
+          <p className="text-slate-300 text-base leading-relaxed">
+            Chakravyuh Club is the official <strong>Cybersecurity Club of the Computer Engineering (CE) Department at CSPIT</strong>. It was created to foster continuous technical growth, peer mentorship, and digital security awareness among students.
+          </p>
+          <p className="text-slate-300 text-base leading-relaxed">
+            A key tradition of the club is our dedicated <strong>Working Saturday peer-learning sessions</strong>. Every working Saturday, senior members, domain leads, and invited guest speakers host interactive, hands-on workshops for all members and juniors. No prior prerequisites or advanced cybersecurity experience are required — anyone with enthusiasm for technology is welcome to join.
+          </p>
+        </section>
+
+        {/* Section 2: Competitive Evolution */}
+        <section className="space-y-4">
+          <h2 className="text-xl font-bold text-[#00F5D4] font-mono uppercase tracking-wider">
+            2. Practical & Competitive Cybersecurity Focus
+          </h2>
+          <p className="text-slate-300 text-base leading-relaxed">
+            While classroom lectures and peer discussions build baseline knowledge, students need hands-on practice to excel in real-world cybersecurity environments.
+          </p>
+          <p className="text-slate-300 text-base leading-relaxed">
+            Chakravyuh Club bridges this gap by organizing competitive events created <em>by the students, for the students</em>:
+          </p>
+          
+          <ul className="space-y-2 pt-2 text-slate-300 text-sm font-mono">
+            <li className="flex items-center gap-3">
+              <CheckCircle2 className="w-4 h-4 text-[#00F5D4] shrink-0" />
+              <span><strong>CTF (Capture The Flag) Competitions:</strong> Jeopardy & Attack-Defense challenges in Web, Crypto, Reverse Engineering, and Forensics.</span>
+            </li>
+            <li className="flex items-center gap-3">
+              <CheckCircle2 className="w-4 h-4 text-[#00F5D4] shrink-0" />
+              <span><strong>Bug Bounty Programs:</strong> Vulnerability assessment and defensive audit practice.</span>
+            </li>
+            <li className="flex items-center gap-3">
+              <CheckCircle2 className="w-4 h-4 text-[#00F5D4] shrink-0" />
+              <span><strong>Cyber Hackathons & Seminars:</strong> Building security utilities and learning from industry security professionals.</span>
+            </li>
+            <li className="flex items-center gap-3">
+              <CheckCircle2 className="w-4 h-4 text-[#00F5D4] shrink-0" />
+              <span><strong>Hands-on Technical Workshops:</strong> Practical lab sessions on Linux, Network Security, and Threat Remediation.</span>
+            </li>
+          </ul>
+        </section>
+
+        {/* Section 3: Core Pillars */}
+        <section className="space-y-4">
+          <h2 className="text-xl font-bold text-white font-mono uppercase tracking-wider">
+            3. Key Objectives & Activities
+          </h2>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-2">
+            <div className="border-l-2 border-[#FFD700] pl-4 space-y-1">
+              <h3 className="text-base font-bold text-white font-mono">Ethical Hacking & Audits</h3>
+              <p className="text-slate-400 text-xs leading-relaxed">
+                Educating students in authorized testing environments, identifying code vulnerabilities, and generating structured remediation reports.
+              </p>
             </div>
 
-            <div className="space-y-4 text-base sm:text-lg text-slate-200 leading-relaxed font-sans">
-              <p>
-                Chakravyuh Club was originally renowned as the flagship <strong className="text-[#FFD700]">Cybersecurity Club of the CSPIT Computer Engineering (CE) Department</strong>, created for conducting peer learning sessions for cybersecurity enthusiasts with keynote lectures delivered by external guest speakers.
-              </p>
-              
-              <p>
-                The best part of the club is that every working Saturday, senior members and domain experts share their knowledge on cybersecurity and deliver dedicated hands-on sessions to members and juniors for continuous knowledge improvement and cyber awareness. The club is open to all persons with no prior prerequisites required.
+            <div className="border-l-2 border-[#00F5D4] pl-4 space-y-1">
+              <h3 className="text-base font-bold text-white font-mono">Competitive CTF Training</h3>
+              <p className="text-slate-400 text-xs leading-relaxed">
+                Training members in cryptography, reverse engineering, web exploitation, and binary analysis to compete in national and global CTFs.
               </p>
             </div>
-          </div>
 
-          {/* Box 2: Evolution to Competitive Cyber Operations */}
-          <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-[#080E24]/90 via-[#050A18]/90 to-black/90 border-2 border-[#FFD700]/30 shadow-2xl relative overflow-hidden backdrop-blur-md">
-            <div className="flex items-center gap-3 mb-4">
-              <span className="px-3 py-1 rounded-full bg-[#FFD700]/10 border border-[#FFD700]/30 text-[#FFD700] text-xs font-mono font-bold uppercase tracking-widest">
-                BY THE STUDENTS • FOR THE STUDENTS
-              </span>
-            </div>
-
-            <h3 className="text-xl sm:text-2xl font-extrabold text-white font-mono uppercase mb-4">
-              Practical & Competitive Cybersecurity Operations
-            </h3>
-
-            <div className="space-y-4 text-base sm:text-lg text-slate-200 leading-relaxed font-sans">
-              <p>
-                Nowadays, due to a surge in events and peer learning sessions, students often did not get enough practice and competitive experience in the cybersecurity field.
-              </p>
-
-              <p>
-                To solve this, <strong className="text-[#FFD700]">Chakravyuh Club</strong> is launched with a fresh vision of organizing various competitive and practical events like <strong className="text-[#00F5D4]">CTF (Capture The Flag) competitions, Bug Bounty programs, Hackathons, Seminars, and Workshops</strong> for the overall development of students — by the students, for the students.
+            <div className="border-l-2 border-indigo-400 pl-4 space-y-1">
+              <h3 className="text-base font-bold text-white font-mono">Incident Simulation</h3>
+              <p className="text-slate-400 text-xs leading-relaxed">
+                Simulating threat scenarios to train defense analysts in threat detection, response, and system hardening.
               </p>
             </div>
-          </div>
-        </motion.div>
 
-        {/* Pillars of Focus */}
-        <section className="mb-24">
-          <div className="text-center mb-14">
-            <h2 className="text-3xl font-extrabold tracking-tight text-white font-mono uppercase">Core Pillars of <span className="text-[#FFD700]">Chakravyuh</span></h2>
-            <p className="text-zinc-500 text-xs mt-1 font-mono">{"// CORE COMPETENCIES & STRATEGIC FORMATION"}</p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {pillars.map((p, idx) => (
-              <motion.div 
-                key={idx}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: idx * 0.1 }}
-                className="group relative rounded-2xl bg-[#080E24]/60 border border-[#121F3D] hover:border-[#FFD700]/50 p-6 transition-all hover:bg-[#050A18]"
-              >
-                <div className="absolute top-4 right-4 text-[8px] font-mono text-zinc-500 group-hover:text-[#FFD700]/70 transition-colors">
-                  SEC_PLR_{idx + 1}
-                </div>
-                <div className="mb-4 p-3 rounded-xl bg-black/40 w-fit border border-white/5 group-hover:border-[#FFD700]/30 group-hover:bg-[#FFD700]/10 transition-all text-[#00F5D4]">
-                  {p.icon}
-                </div>
-                <h3 className="text-lg font-bold mb-2 group-hover:text-[#FFD700] transition-colors">{p.title}</h3>
-                <p className="text-sm text-zinc-400 leading-relaxed">{p.desc}</p>
-              </motion.div>
-            ))}
+            <div className="border-l-2 border-emerald-400 pl-4 space-y-1">
+              <h3 className="text-base font-bold text-white font-mono">Community & Digital Hygiene</h3>
+              <p className="text-slate-400 text-xs leading-relaxed">
+                Promoting cyber hygiene awareness, password security, phishing prevention, and safe digital practices across campus.
+              </p>
+            </div>
           </div>
         </section>
 
-        {/* Bottom Banner Section — Evolution to Competitive Cyber Defense */}
-        <section className="mb-12">
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.96 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
-            className="p-8 sm:p-12 rounded-3xl bg-gradient-to-br from-[#080E24] via-[#050A18] to-black border-2 border-[#FFD700]/40 relative overflow-hidden shadow-[0_0_30px_rgba(255,215,0,0.15)]"
-          >
-            <div className="absolute top-0 right-0 h-full w-1/3 bg-gradient-to-l from-[#FFD700]/10 to-transparent pointer-events-none" />
-            
-            <div className="max-w-3xl relative z-10 space-y-4">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#00F5D4]/10 border border-[#00F5D4]/30 text-[#00F5D4] text-xs font-mono uppercase tracking-widest font-bold">
-                BY THE STUDENTS • FOR THE STUDENTS
-              </div>
-              
-              <h2 className="text-2xl sm:text-4xl font-extrabold text-white font-mono tracking-tight uppercase">
-                Bridging the Gap with Competitive Cyber Operations
-              </h2>
-              
-              <p className="text-slate-300 text-sm sm:text-base leading-relaxed font-sans">
-                Nowadays, while peer learning sessions build baseline awareness, students often lack hands-on practice and real-world competitive experience in the rapidly evolving cybersecurity landscape.
-              </p>
-
-              <div className="p-5 rounded-2xl bg-black/70 border border-[#121F3D] space-y-3">
-                <p className="text-sm sm:text-base text-slate-200 font-sans leading-relaxed">
-                  To address this, <strong className="text-[#FFD700]">Chakravyuh Club</strong> was launched with a fresh vision to host diverse, high-impact competitive events:
-                </p>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 pt-1">
-                  {[
-                    "🚩 CTF (Capture The Flag)",
-                    "🐛 Bug Bounty Contests",
-                    "⚡ Cyber Hackathons",
-                    "🎤 Expert Seminars",
-                    "🛠️ Hands-on Workshops",
-                    "🛡️ Red/Blue Simulations"
-                  ].map((feat, i) => (
-                    <div key={i} className="px-3 py-2 rounded-xl bg-[#080E24] border border-[#121F3D] text-xs font-mono font-bold text-[#00F5D4] flex items-center gap-1.5">
-                      <span>{feat}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <p className="text-xs sm:text-sm text-slate-400 font-mono italic pt-2">
-                &quot;Empowering students with practical battle-testing, skill-building, and competitive leadership in cybersecurity.&quot;
-              </p>
-            </div>
-          </motion.div>
+        {/* Section 4: Membership Info */}
+        <section className="border-t border-[#121F3D] pt-8 space-y-3">
+          <h2 className="text-lg font-bold text-white font-mono uppercase">
+            Join the Community
+          </h2>
+          <p className="text-slate-300 text-sm leading-relaxed">
+            All students across departments and semesters are welcome to attend peer sessions, join CTF teams, and participate in club activities.
+          </p>
+          <div className="pt-2">
+            <Link href="/auth" className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#FFD700] text-black font-bold font-mono text-xs uppercase tracking-wider hover:opacity-90 transition-opacity">
+              Register as Operative
+            </Link>
+          </div>
         </section>
+
       </main>
 
-      {/* Footer */}
-      <footer className="border-t border-[#121F3D] bg-[#030712] py-12 relative z-10">
-        <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-2">
-            <CyberKavachLogo collapsed={true} showText={true} />
-          </div>
+      {/* Sober Footer */}
+      <footer className="border-t border-[#121F3D] bg-[#050A18] py-8 text-xs font-mono text-slate-400">
+        <div className="max-w-4xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <p>© {new Date().getFullYear()} Chakravyuh Club • CSPIT Computer Engineering Department</p>
           
-          {/* Social Links */}
-          <div className="flex items-center gap-4">
-            <a href="https://linkedin.com/company/chakravyuh" target="_blank" rel="noopener noreferrer" className="p-2 rounded-full border border-white/10 hover:border-[#FFD700] hover:text-[#FFD700] hover:bg-[#FFD700]/10 transition-all text-zinc-400" title="LinkedIn">
-              <LinkedinIcon className="w-5 h-5" />
+          <div className="flex items-center gap-4 text-slate-400">
+            <a href="https://linkedin.com/company/chakravyuhclub" target="_blank" rel="noopener noreferrer" className="hover:text-[#FFD700] transition-colors" title="LinkedIn">
+              <LinkedinIcon className="w-4 h-4" />
             </a>
-            <a href="https://www.instagram.com/chakravyuh.charusat/" target="_blank" rel="noopener noreferrer" className="p-2 rounded-full border border-white/10 hover:border-[#00F5D4] hover:text-[#00F5D4] hover:bg-[#00F5D4]/10 transition-all text-zinc-400" title="Instagram">
-              <InstagramIcon className="w-5 h-5" />
+            <a href="https://www.instagram.com/chakravyuh.charusat/" target="_blank" rel="noopener noreferrer" className="hover:text-[#00F5D4] transition-colors" title="Instagram">
+              <InstagramIcon className="w-4 h-4" />
             </a>
-            <a href="https://chat.whatsapp.com/chakravyuh" target="_blank" rel="noopener noreferrer" className="p-2 rounded-full border border-white/10 hover:border-[#FFD700] hover:text-[#FFD700] hover:bg-[#FFD700]/10 transition-all text-zinc-400" title="WhatsApp Community">
-              <WhatsappIcon className="w-5 h-5" />
+            <a href="https://chat.whatsapp.com/chakravyuhclub" target="_blank" rel="noopener noreferrer" className="hover:text-[#FFD700] transition-colors" title="WhatsApp">
+              <WhatsappIcon className="w-4 h-4" />
             </a>
           </div>
-
-          <p className="text-zinc-500 text-sm">© {new Date().getFullYear()} Chakravyuh Club. All rights reserved.</p>
         </div>
       </footer>
 
-      {/* Floating Social Links Dock */}
-      <div className="fixed bottom-6 right-6 z-50 flex flex-col gap-3">
-        <a href="https://linkedin.com/company/chakravyuhclub" target="_blank" rel="noopener noreferrer"
-           className="w-11 h-11 rounded-full bg-black/80 border border-zinc-800 flex items-center justify-center hover:border-red-500 text-zinc-400 hover:text-red-500 shadow-[0_0_15px_rgba(0,0,0,0.5)] transition-all hover:scale-110 hover:shadow-[0_0_20px_rgba(239,68,68,0.25)] flex items-center justify-center"
-           title="Chakravyuh LinkedIn">
-           <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.779-1.75-1.75s.784-1.75 1.75-1.75 1.75.779 1.75 1.75-.784 1.75-1.75-1.75zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
-        </a>
-        <a href="https://www.instagram.com/chakravyuh.charusat/" target="_blank" rel="noopener noreferrer"
-           className="w-11 h-11 rounded-full bg-black/80 border border-zinc-800 flex items-center justify-center hover:border-red-500 text-zinc-400 hover:text-red-500 shadow-[0_0_15px_rgba(0,0,0,0.5)] transition-all hover:scale-110 hover:shadow-[0_0_20px_rgba(239,68,68,0.25)] flex items-center justify-center"
-           title="Chakravyuh Instagram">
-           <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
-        </a>
-        <a href="https://chat.whatsapp.com/chakravyuhclub" target="_blank" rel="noopener noreferrer"
-           className="w-11 h-11 rounded-full bg-black/80 border border-zinc-800 flex items-center justify-center hover:border-red-500 text-zinc-400 hover:text-red-500 shadow-[0_0_15px_rgba(0,0,0,0.5)] transition-all hover:scale-110 hover:shadow-[0_0_20px_rgba(239,68,68,0.25)] flex items-center justify-center text-lg leading-none"
-           title="Join WhatsApp Group">
-           <span>💬</span>
-        </a>
-      </div>
     </div>
   );
 }
