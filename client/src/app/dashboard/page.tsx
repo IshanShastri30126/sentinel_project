@@ -28,7 +28,10 @@ import {
   ChevronsUpDown,
   ChevronLeft,
   Database,
-  FileText
+  FileText,
+  CheckCircle,
+  Eye,
+  LogIn
 } from "lucide-react";
 
 interface ClubAnalytics {
@@ -1087,6 +1090,9 @@ export default function DashboardPage() {
                 ) : (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
                     {memberEvents.map((event) => {
+                      const isFacultyOrCoord = user?.role === "FACULTY" || user?.role === "STUDENT_COORDINATOR";
+                      const isAlreadyRegistered = registeredEvents.some((r) => r.id === event.id);
+
                       return (
                         <motion.div
                           key={event.id}
@@ -1158,13 +1164,36 @@ export default function DashboardPage() {
                               )}
                             </div>
 
-                            <button
-                              onClick={() => handleQuickRegister(event.id, event.title)}
-                              disabled={registeringId === event.id}
-                              className="w-full ck-btn-primary py-2.5 text-xs mt-4 sm:mt-5 flex items-center justify-center gap-1.5 font-bold font-mono tracking-wider uppercase disabled:opacity-50"
-                            >
-                              <Zap className="w-3.5 h-3.5" /> {registeringId === event.id ? "Registering..." : "Quick Register"}
-                            </button>
+                            {isFacultyOrCoord ? (
+                              <button
+                                onClick={() => router.push(`/events/${event.slug}`)}
+                                className="w-full ck-btn-secondary py-2.5 text-xs mt-4 sm:mt-5 flex items-center justify-center gap-1.5 font-bold font-mono tracking-wider uppercase"
+                              >
+                                <Eye className="w-3.5 h-3.5 text-[#CCFF00]" /> View Event
+                              </button>
+                            ) : !user ? (
+                              <button
+                                onClick={() => router.push("/auth")}
+                                className="w-full ck-btn-primary py-2.5 text-xs mt-4 sm:mt-5 flex items-center justify-center gap-1.5 font-bold font-mono tracking-wider uppercase"
+                              >
+                                <LogIn className="w-3.5 h-3.5" /> Login to Register
+                              </button>
+                            ) : isAlreadyRegistered ? (
+                              <button
+                                onClick={() => router.push(`/events/${event.slug}`)}
+                                className="w-full py-2.5 text-xs mt-4 sm:mt-5 flex items-center justify-center gap-1.5 font-bold font-mono tracking-wider uppercase border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 transition-all rounded-xl cursor-pointer"
+                              >
+                                <CheckCircle className="w-3.5 h-3.5" /> Registered · View Details
+                              </button>
+                            ) : (
+                              <button
+                                onClick={() => handleQuickRegister(event.id, event.title)}
+                                disabled={registeringId === event.id}
+                                className="w-full ck-btn-primary py-2.5 text-xs mt-4 sm:mt-5 flex items-center justify-center gap-1.5 font-bold font-mono tracking-wider uppercase disabled:opacity-50"
+                              >
+                                <Zap className="w-3.5 h-3.5" /> {registeringId === event.id ? "Registering..." : "Quick Register"}
+                              </button>
+                            )}
                           </div>
                         </motion.div>
                       );

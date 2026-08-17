@@ -456,6 +456,13 @@ router.delete("/:id", authenticate, requireMinRole("STUDENT_COORDINATOR"), audit
 router.post("/:id/register", authenticate, auditLog("EVENT_REGISTRATION"), async (req: Request, res: Response) => {
   try {
     const eventId = req.params.id; const userId = req.user!.userId;
+    const userRole = req.user!.role;
+
+    if (userRole === "FACULTY" || userRole === "STUDENT_COORDINATOR") {
+      res.status(400).json({ error: "Faculty and Student Coordinators default to full event access and do not register as participants." });
+      return;
+    }
+
     const { teamName, teamMembers, name, studentId, phone, department, semester, institute } = req.body;
 
     // Update user details if provided

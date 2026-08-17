@@ -742,7 +742,15 @@ function PublicEventPageContent() {
               )}
 
               {/* Register Button */}
-              {event.googleFormUrl ? (
+              {user?.role === "FACULTY" || user?.role === "STUDENT_COORDINATOR" ? (
+                <div className="flex flex-col gap-2 p-4 rounded-xl border border-sky-500/30 bg-sky-500/10 text-sky-400 text-center font-mono">
+                  <div className="flex items-center justify-center gap-2">
+                    <Eye className="w-5 h-5 text-sky-400 shrink-0" />
+                    <p className="text-sm font-semibold uppercase tracking-widest">Coordinator Access — Event View Only</p>
+                  </div>
+                  <p className="text-[11px] text-zinc-400">Faculty and Student Coordinators default to full event access and do not register as participants.</p>
+                </div>
+              ) : event.googleFormUrl ? (
                 registered ? (
                   <div className="flex items-center justify-center gap-2 p-3 rounded-xl border border-emerald-950 bg-emerald-950/30 text-emerald-400">
                     <CheckCircle className="w-5 h-5 shrink-0" />

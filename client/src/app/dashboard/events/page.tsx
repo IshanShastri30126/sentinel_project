@@ -272,6 +272,8 @@ export default function EventsPage() {
   const [isPosterDragging, setIsPosterDragging] = useState(false);
   const [isDocDragging, setIsDocDragging] = useState(false);
 
+  const [registeredEventIds, setRegisteredEventIds] = useState<Set<string>>(new Set());
+
   const load = async () => {
     try {
       const endpoint = isCore ? "/events/all" : "/events";
@@ -281,6 +283,14 @@ export default function EventsPage() {
       const qs = params.toString() ? `?${params.toString()}` : "";
       const data = await api<{ events: Event[] }>(`${endpoint}${qs}`, { token: token || undefined });
       setEvents(data.events);
+
+      if (token) {
+        api<{ events: { id: string }[] }>("/events/registered", { token })
+          .then((regRes) => {
+            setRegisteredEventIds(new Set(regRes.events.map((e) => e.id)));
+          })
+          .catch(() => {});
+      }
     } catch (err) { console.error(err); }
     finally { setLoading(false); }
   };
@@ -1616,8 +1626,16 @@ export default function EventsPage() {
                   </div>
                 )}
                 <div className="flex flex-wrap gap-2" onClick={(e) => e.stopPropagation()}>
-                  {event.isPublished && (
-                    <button onClick={(e) => handleRegister(event.id, e)} className="ck-btn-primary flex-1 text-xs py-2">Register</button>
+                  {event.isPublished && !(user && ["FACULTY", "STUDENT_COORDINATOR"].includes(user.role)) && (
+                    registeredEventIds.has(event.id) ? (
+                      <span className="px-3 py-1.5 rounded-lg text-xs font-mono font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 flex items-center gap-1">
+                        <CheckCircle2 className="w-3.5 h-3.5" /> Registered
+                      </span>
+                    ) : !user ? (
+                      <button onClick={(e) => { e.stopPropagation(); router.push("/auth"); }} className="ck-btn-primary flex-1 text-xs py-2">Login to Register</button>
+                    ) : (
+                      <button onClick={(e) => handleRegister(event.id, e)} className="ck-btn-primary flex-1 text-xs py-2">Register</button>
+                    )
                   )}
                   {isCoord && user && ["FACULTY", "STUDENT_COORDINATOR"].includes(user.role) && (
                     <button 
