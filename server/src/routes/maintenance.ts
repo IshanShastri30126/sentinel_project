@@ -100,25 +100,44 @@ router.get("/logs", async (req: Request, res: Response) => {
     const actionFilter = (req.query.action as string || "").trim();
     const outcomeFilter = (req.query.outcome as string || "").trim();
 
-    const where: any = {};
+    const ACTION_ALIASES: Record<string, string[]> = {
+      "LOGIN_SUCCESS": ["USER_LOGIN", "USER_LOGIN_GOOGLE", "LOGIN_SUCCESS"],
+      "LOGIN_FAILED": ["USER_LOGIN_FAILED", "USER_LOGIN_BLOCKED", "LOGIN_FAILED"],
+      "REGISTER": ["USER_REGISTER", "USER_REGISTER_GOOGLE", "REGISTER"],
+      "EVENT_REGISTERED": ["EVENT_REGISTERED", "EVENT_REGISTRATION"],
+      "CERTIFICATE_GENERATED": ["CERTIFICATE_GENERATED", "CERTIFICATE_ISSUED"],
+      "ATTENDANCE_CHECK_IN": ["ATTENDANCE_CHECK_IN", "ATTENDANCE_RECORDED"],
+    };
+
+    const andConditions: any[] = [];
 
     if (actionFilter) {
-      where.action = actionFilter;
+      if (ACTION_ALIASES[actionFilter]) {
+        andConditions.push({ action: { in: ACTION_ALIASES[actionFilter] } });
+      } else {
+        andConditions.push({ action: { contains: actionFilter, mode: "insensitive" } });
+      }
     }
 
     if (outcomeFilter) {
-      where.outcome = outcomeFilter;
+      andConditions.push({ outcome: { equals: outcomeFilter, mode: "insensitive" } });
     }
 
     if (search) {
-      where.OR = [
-        { action: { contains: search, mode: "insensitive" } },
-        { ipAddress: { contains: search, mode: "insensitive" } },
-        { userAgent: { contains: search, mode: "insensitive" } },
-        { user: { name: { contains: search, mode: "insensitive" } } },
-        { user: { email: { contains: search, mode: "insensitive" } } },
-      ];
+      andConditions.push({
+        OR: [
+          { action: { contains: search, mode: "insensitive" } },
+          { outcome: { contains: search, mode: "insensitive" } },
+          { ipAddress: { contains: search, mode: "insensitive" } },
+          { userAgent: { contains: search, mode: "insensitive" } },
+          { user: { name: { contains: search, mode: "insensitive" } } },
+          { user: { email: { contains: search, mode: "insensitive" } } },
+          { user: { studentId: { contains: search, mode: "insensitive" } } },
+        ],
+      });
     }
+
+    const where = andConditions.length > 0 ? { AND: andConditions } : {};
 
     const [total, logs] = await Promise.all([
       prisma.auditLog.count({ where }),

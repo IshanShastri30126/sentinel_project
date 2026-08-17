@@ -94,7 +94,9 @@ async function executeApiRequest<T>(endpoint: string, options: FetchOptions = {}
         console.error("Silent token refresh failed:", err);
       }
     }
-    throw new Error(data.error || `API error: ${res.status}`);
+    const errObj = new Error(data.error || `API error: ${res.status}`);
+    Object.assign(errObj, data);
+    throw errObj;
   }
 
   return data as T;

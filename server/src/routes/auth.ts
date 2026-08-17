@@ -13,6 +13,7 @@ import { sendWelcomeEmail, sendLoginNotificationEmail, sendPasswordResetEmail } 
 import { OAuth2Client } from "google-auth-library";
 import crypto from "crypto";
 import { Role } from "@prisma/client";
+import { LoginRateLimiter } from "../lib/loginRateLimiter";
 
 const router = Router();
 const googleClient = new OAuth2Client(config.google.clientId);
@@ -183,37 +184,107 @@ router.post("/register", validate(registerSchema), async (req: Request, res: Res
   }
 });
 
+// ─── GET /api/auth/login-status ────────────────────────────
+
+router.get("/login-status", async (req: Request, res: Response) => {
+  try {
+    const clientIp = (req.headers["x-forwarded-for"] as string || req.ip || req.socket.remoteAddress || "127.0.0.1").split(",")[0].trim();
+    const email = (req.query.email as string || "").trim();
+
+    const status = await LoginRateLimiter.checkBlockStatus(clientIp, email || undefined);
+    res.json(status);
+  } catch (err) {
+    console.error("[Auth] Login status error:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 // ─── POST /api/auth/login ──────────────────────────────────
 
 router.post("/login", validate(loginSchema), async (req: Request, res: Response) => {
   try {
     const { email, password, deviceFingerprint } = req.body;
+    const clientIp = (req.headers["x-forwarded-for"] as string || req.ip || req.socket.remoteAddress || "127.0.0.1").split(",")[0].trim();
     const clientFingerprint = deviceFingerprint || (req.headers["x-device-fingerprint"] as string);
+
+    // 1. Check Rate Limiter Block Status BEFORE attempting database query/bcrypt check
+    const blockCheck = await LoginRateLimiter.checkBlockStatus(clientIp, email);
+    if (blockCheck.blocked) {
+      await logAuditEvent({
+        action: "USER_LOGIN_BLOCKED",
+        outcome: "REJECTED",
+        context: { email, reason: blockCheck.message, remainingSeconds: blockCheck.remainingSeconds, tier: blockCheck.tier },
+        req,
+      });
+      res.status(429).json({
+        error: blockCheck.message,
+        blocked: true,
+        remainingSeconds: blockCheck.remainingSeconds,
+        tier: blockCheck.tier,
+        retryAfterFormatted: blockCheck.retryAfterFormatted,
+      });
+      return;
+    }
 
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user || !user.isActive) {
+      const failResult = await LoginRateLimiter.recordFailure(clientIp, email);
       await logAuditEvent({
         action: "USER_LOGIN_FAILED",
         outcome: "FAILED",
-        context: { email, reason: "User not found or inactive" },
+        context: { email, reason: "User not found or inactive", attempts: failResult.attempts },
         req,
       });
-      res.status(401).json({ error: "Invalid credentials" });
+
+      if (failResult.blocked) {
+        res.status(429).json({
+          error: failResult.message,
+          blocked: true,
+          remainingSeconds: failResult.remainingSeconds,
+          tier: failResult.tier,
+          retryAfterFormatted: failResult.retryAfterFormatted,
+        });
+        return;
+      }
+
+      res.status(401).json({
+        error: failResult.message,
+        remainingAttempts: failResult.remainingAttempts,
+      });
       return;
     }
 
     const valid = await bcrypt.compare(password, user.passwordHash);
     if (!valid) {
+      const failResult = await LoginRateLimiter.recordFailure(clientIp, email);
       await logAuditEvent({
         action: "USER_LOGIN_FAILED",
         userId: user.id,
         outcome: "FAILED",
-        context: { email, reason: "Incorrect password" },
+        context: { email, reason: "Incorrect password", attempts: failResult.attempts },
         req,
       });
-      res.status(401).json({ error: "Invalid credentials" });
+
+      if (failResult.blocked) {
+        res.status(429).json({
+          error: failResult.message,
+          blocked: true,
+          remainingSeconds: failResult.remainingSeconds,
+          tier: failResult.tier,
+          retryAfterFormatted: failResult.retryAfterFormatted,
+        });
+        return;
+      }
+
+      res.status(401).json({
+        error: failResult.message,
+        remainingAttempts: failResult.remainingAttempts,
+      });
       return;
     }
+
+    // Clear failed attempt counter & block record on successful login
+    await LoginRateLimiter.recordSuccess(clientIp, email);
 
     // Update last active timestamp
     try {

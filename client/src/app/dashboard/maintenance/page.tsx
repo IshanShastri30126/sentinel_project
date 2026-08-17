@@ -229,11 +229,18 @@ export default function MaintenancePage() {
 
   useEffect(() => {
     if (activeTab === "overview") fetchOverview();
-    if (activeTab === "logs") fetchLogs();
     if (activeTab === "security") fetchSecurity();
     if (activeTab === "database") fetchDatabase();
     if (activeTab === "bugs") fetchBugsAndSettings();
-  }, [activeTab, logsPage]);
+  }, [activeTab]);
+
+  useEffect(() => {
+    if (activeTab !== "logs") return;
+    const timer = setTimeout(() => {
+      fetchLogs();
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [activeTab, logsPage, logsSearch, logsAction, logsOutcome]);
 
   // Handle IP Block / Unblock
   const handleToggleBlockIp = async (ipAddress: string, isBlocked: boolean) => {
@@ -547,12 +554,16 @@ export default function MaintenancePage() {
               }}
             >
               <option value="" className="bg-[#050A18]">ALL ACTIONS</option>
-              <option value="LOGIN_SUCCESS" className="bg-[#050A18]">LOGIN_SUCCESS</option>
-              <option value="LOGIN_FAILED" className="bg-[#050A18]">LOGIN_FAILED</option>
-              <option value="REGISTER" className="bg-[#050A18]">REGISTER</option>
-              <option value="EVENT_REGISTERED" className="bg-[#050A18]">EVENT_REGISTERED</option>
-              <option value="CERTIFICATE_GENERATED" className="bg-[#050A18]">CERTIFICATE_GENERATED</option>
-              <option value="ATTENDANCE_CHECK_IN" className="bg-[#050A18]">ATTENDANCE_CHECK_IN</option>
+              <option value="USER_LOGIN" className="bg-[#050A18]">USER_LOGIN (Successful Login)</option>
+              <option value="USER_LOGIN_FAILED" className="bg-[#050A18]">USER_LOGIN_FAILED (Failed Passwords)</option>
+              <option value="USER_LOGIN_BLOCKED" className="bg-[#050A18]">USER_LOGIN_BLOCKED (Rate Limited)</option>
+              <option value="USER_REGISTER" className="bg-[#050A18]">USER_REGISTER (New Account)</option>
+              <option value="USER_LOGOUT" className="bg-[#050A18]">USER_LOGOUT (Session End)</option>
+              <option value="IP_BLOCKED" className="bg-[#050A18]">IP_BLOCKED (Firewall Rule)</option>
+              <option value="IP_UNBLOCKED" className="bg-[#050A18]">IP_UNBLOCKED (Firewall Rule)</option>
+              <option value="BUG_REPORTED" className="bg-[#050A18]">BUG_REPORTED (System Report)</option>
+              <option value="EVENT_REGISTERED" className="bg-[#050A18]">EVENT_REGISTERED (Participant)</option>
+              <option value="CERTIFICATE_GENERATED" className="bg-[#050A18]">CERTIFICATE_GENERATED (Auth Doc)</option>
             </select>
 
             <select

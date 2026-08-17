@@ -5,7 +5,7 @@ import { useAuth } from "@/lib/auth-context";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Shield, Mail, Lock, User, ArrowRight, Eye, EyeOff, AlertCircle, CheckCircle, Smartphone, Building, GraduationCap, Sparkles } from "lucide-react";
+import { ArrowLeft, Shield, Mail, Lock, User, ArrowRight, Eye, EyeOff, AlertCircle, CheckCircle, Smartphone, Building, GraduationCap, Sparkles, ShieldAlert } from "lucide-react";
 import { GoogleLogin } from "@react-oauth/google";
 import PlexusBackground from "@/components/PlexusBackground";
 import { CyberKavachLogo } from "@/components/CyberKavachLogo";
@@ -41,6 +41,66 @@ function LoginPageContent() {
   const [loading, setLoading] = useState(false);
   const [registeredPending, setRegisteredPending] = useState(false);
 
+  // Rate Limiting Block State
+  const [isBlocked, setIsBlocked] = useState(false);
+  const [blockRemainingSec, setBlockRemainingSec] = useState(0);
+  const [blockTier, setBlockTier] = useState<1 | 2>(1);
+  const [blockMessage, setBlockMessage] = useState("");
+
+  // Check login block status from server
+  const checkBlockStatus = async (targetEmail?: string) => {
+    try {
+      const query = targetEmail ? `?email=${encodeURIComponent(targetEmail)}` : "";
+      const status = await api<any>(`/auth/login-status${query}`);
+      if (status.blocked) {
+        setIsBlocked(true);
+        setBlockRemainingSec(status.remainingSeconds);
+        setBlockTier(status.tier || 1);
+        setBlockMessage(status.message || "Login access blocked due to multiple failed attempts.");
+      } else {
+        setIsBlocked(false);
+        setBlockRemainingSec(0);
+      }
+    } catch (err) {
+      console.warn("Failed to check block status", err);
+    }
+  };
+
+  useEffect(() => {
+    if (isLogin) {
+      checkBlockStatus(email);
+    }
+  }, [email, isLogin]);
+
+  // Countdown timer interval for block screen
+  useEffect(() => {
+    if (!isBlocked || blockRemainingSec <= 0) return;
+
+    const timer = setInterval(() => {
+      setBlockRemainingSec((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          checkBlockStatus(email);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [isBlocked, blockRemainingSec, email]);
+
+  const formatTimer = (totalSeconds: number) => {
+    const hrs = Math.floor(totalSeconds / 3600);
+    const mins = Math.floor((totalSeconds % 3600) / 60);
+    const secs = totalSeconds % 60;
+    const pad = (n: number) => n.toString().padStart(2, "0");
+    if (hrs > 0) {
+      return `${pad(hrs)}:${pad(mins)}:${pad(secs)}`;
+    }
+    return `${pad(mins)}:${pad(secs)}`;
+  };
+
   // Club namespaces support
   const [clubs, setClubs] = useState<Array<{ id: string; name: string; slug: string }>>([]);
   const [selectedClubId, setSelectedClubId] = useState("");
@@ -75,8 +135,21 @@ function LoginPageContent() {
     setLoading(true);
     try {
       if (isLogin) {
-        await login(email, password);
-        router.push(redirectTarget);
+        try {
+          await login(email, password);
+          router.push(redirectTarget);
+        } catch (loginErr: any) {
+          // Check if response contains blocked rate limit info
+          if (loginErr?.blocked || loginErr?.remainingSeconds) {
+            setIsBlocked(true);
+            setBlockRemainingSec(loginErr.remainingSeconds || 1200);
+            setBlockTier(loginErr.tier || 1);
+            setBlockMessage(loginErr.error || loginErr.message || "Login access blocked.");
+          } else {
+            await checkBlockStatus(email);
+          }
+          throw loginErr;
+        }
       } else {
         if (!/^\d{10}$/.test(phone)) {
           throw new Error("Mobile number must be exactly 10 numeric digits");
@@ -103,6 +176,55 @@ function LoginPageContent() {
     setPhone(""); setDepartment(""); setInstitute(""); setSemester("");
     setRegisteredPending(false);
   };
+
+  if (isBlocked) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden bg-[#030712] text-white font-mono">
+        <PlexusBackground />
+        <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="w-full max-w-lg relative z-10">
+          <div className="bg-[#0A030D]/95 backdrop-blur-2xl rounded-3xl p-8 shadow-[0_0_50px_rgba(239,68,68,0.25)] text-center border-2 border-red-500/50 relative overflow-hidden">
+            <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-red-600 via-amber-500 to-red-600 animate-pulse" />
+            
+            <div className="w-20 h-20 rounded-full bg-red-950/80 border-2 border-red-500/80 flex items-center justify-center mx-auto mb-6 shadow-[0_0_30px_rgba(239,68,68,0.5)]">
+              <ShieldAlert className="w-10 h-10 text-red-500 animate-bounce" />
+            </div>
+
+            <span className="px-3 py-1 rounded-full bg-red-500/10 border border-red-500/40 text-red-400 text-[10px] font-bold tracking-widest uppercase mb-3 inline-block">
+              SECURITY LOCKOUT IN EFFECT
+            </span>
+
+            <h2 className="text-2xl font-black text-white font-mono mb-2 tracking-wider">
+              {blockTier === 1 ? "20-MINUTE ACCESS BLOCK" : "5-HOUR MAXIMUM LOCKOUT"}
+            </h2>
+
+            <p className="text-slate-300 text-xs mb-6 max-w-md mx-auto leading-relaxed">
+              {blockMessage || "Multiple failed authentication attempts detected. Access from this IP address, account email, or private browser window has been totally blocked by server rate-limiting security."}
+            </p>
+
+            {/* Countdown Timer Display */}
+            <div className="bg-black/80 border border-red-500/30 rounded-2xl p-6 mb-6">
+              <span className="text-[10px] text-slate-400 font-mono tracking-widest uppercase block mb-1">
+                TIME REMAINING UNTIL UNLOCK
+              </span>
+              <div className="text-4xl sm:text-5xl font-black text-red-400 font-mono tracking-wider animate-pulse">
+                {formatTimer(blockRemainingSec)}
+              </div>
+              <span className="text-[10px] text-amber-400/80 font-mono mt-2 block">
+                {blockTier === 1
+                  ? "Tier 1 Block (4 Failed Attempts). 1 chance will be granted after timer expires."
+                  : "Tier 2 Maximum Block (Final Chance Failed). Strict 5-hour timeout active."}
+              </span>
+            </div>
+
+            <div className="text-[11px] text-slate-400 flex items-center justify-center gap-2">
+              <Lock className="w-3.5 h-3.5 text-red-400" />
+              <span>Incognito & Private Browser Sessions Are Also Blocked by Server Security</span>
+            </div>
+          </div>
+        </motion.div>
+      </div>
+    );
+  }
 
   if (registeredPending) {
     return (

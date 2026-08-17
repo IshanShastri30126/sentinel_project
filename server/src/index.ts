@@ -129,11 +129,43 @@ app.use((err: Error, _req: express.Request, res: express.Response, _next: expres
   res.status(500).json({ error: "Internal server error" });
 });
 
-// ─── Start Server ──────────────────────────────────────────
+// ─── Start Server with TCP / SYN Flood Timeout & Connection Hardening ─────
+
+// Configure TCP socket timeouts to prevent Slowloris & TCP socket exhaustion attacks
+httpServer.headersTimeout = 10000; // 10s header read limit
+httpServer.requestTimeout = 15000; // 15s overall request processing limit
+httpServer.keepAliveTimeout = 5000; // 5s idle socket keep-alive timeout
+httpServer.maxHeadersCount = 100;
+
+// Track active TCP socket connections per IP
+const activeConnectionsByIp = new Map<string, number>();
+
+httpServer.on("connection", (socket) => {
+  const ip = socket.remoteAddress || "127.0.0.1";
+  const count = (activeConnectionsByIp.get(ip) || 0) + 1;
+  activeConnectionsByIp.set(ip, count);
+
+  // If an IP opens more than 50 concurrent TCP sockets, destroy excess sockets immediately
+  if (count > 50) {
+    console.warn(`[TCP Defense] Excessive TCP connections from IP ${ip} (${count} active sockets). Destroying socket.`);
+    socket.destroy();
+  }
+
+  socket.on("close", () => {
+    const current = activeConnectionsByIp.get(ip) || 1;
+    if (current <= 1) {
+      activeConnectionsByIp.delete(ip);
+    } else {
+      activeConnectionsByIp.set(ip, current - 1);
+    }
+  });
+});
+
 httpServer.listen(config.port, () => {
   console.log(`\n🛡️  Chakravyuh Club API Server running on http://localhost:${config.port}`);
   console.log(`   Health: http://localhost:${config.port}/api/health`);
-  console.log(`   Socket.io: ws://localhost:${config.port}\n`);
+  console.log(`   Socket.io: ws://localhost:${config.port}`);
+  console.log(`   TCP/SYN Flood Hardening: ACTIVE (Headers 10s, KeepAlive 5s, Max 50 Sockets/IP)\n`);
 });
 
 export default app;

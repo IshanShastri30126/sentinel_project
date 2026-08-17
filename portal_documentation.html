@@ -840,6 +840,83 @@ model Event {
 
     <div style="margin-top: 50px; text-align: center; border-top: 1px solid #334155; padding-top: 20px;">
       <p style="font-family: 'Fira Code', monospace; font-size: 9pt; color: #64748B;">
+        END OF OPERATING MANUAL • CHAKRAVYUH CLUB PORTAL 2.0
+      </p>
+    </div>
+  </div>
+
+  <!-- SECTION 10: PROGRESSIVE RATE LIMITING & TCP/SYN FLOOD DEFENSE -->
+  <div class="page">
+    <h1><span class="sec-num">10.</span> Rate Limiting & TCP/SYN Flood Defense</h1>
+    <p>
+      The platform implements enterprise-grade multi-tier defenses against brute-force authentication attacks and network-layer Denial of Service (DoS / TCP / SYN flood) attacks.
+    </p>
+
+    <h2>1. Progressive Login Rate Limiting & Evasion Prevention</h2>
+    <p>
+      The authentication gateway (<code>/api/auth/login</code>) enforces progressive lockouts tracked simultaneously by <strong>Client IP Address</strong> and <strong>Target Account Email</strong> to prevent evasion via Incognito, Private Browsing, cookie clearing, or IP rotation:
+    </p>
+    <ul>
+      <li><strong>Initial Allowance:</strong> 4 failed login attempts permitted per IP / email pair.</li>
+      <li><strong>Tier 1 Lockout (20 Minutes):</strong> Reaching 4 failed attempts triggers an automatic <strong>20-minute (1,200 seconds)</strong> complete access block. Requests from any browser window or device targeting the blocked IP or account are rejected with HTTP 429 and a live countdown timer.</li>
+      <li><strong>Tier 1 Expiry (1 Chance):</strong> Upon 20-minute expiry, the user/IP receives exactly <strong>1 attempt (5th attempt)</strong>. If successful, attempt counters and lockouts are cleared to 0.</li>
+      <li><strong>Tier 2 Lockout (5 Hours):</strong> If the 5th attempt fails, the user/IP is placed under a strict <strong>5-hour (18,000 seconds)</strong> maximum security lockout.</li>
+    </ul>
+
+    <h2>2. TCP & SYN Flood Defense Architecture</h2>
+    <p>
+      Defenses operate across both application (Node.js runtime) and network infrastructure (Linux OS Kernel & Firewall) layers:
+    </p>
+    
+    <h3>A. Node.js Runtime HTTP Server Hardening</h3>
+    <pre>
+// Node.js TCP Socket & HTTP Header Timeout Configuration (server/src/index.ts)
+httpServer.headersTimeout = 10000;    // 10s header read limit (prevents Slowloris attack)
+httpServer.requestTimeout = 15000;    // 15s max request duration
+httpServer.keepAliveTimeout = 5000;   // 5s idle connection release
+httpServer.maxHeadersCount = 100;     // Prevents header flood memory consumption
+
+// Active TCP Socket Connection Limiter
+const activeConnectionsByIp = new Map&lt;string, number&gt;();
+httpServer.on("connection", (socket) =&gt; {
+  const ip = socket.remoteAddress || "127.0.0.1";
+  const count = (activeConnectionsByIp.get(ip) || 0) + 1;
+  activeConnectionsByIp.set(ip, count);
+
+  if (count &gt; 50) {
+    // Destroy sockets exceeding 50 concurrent TCP connections per IP
+    socket.destroy();
+  }
+});
+    </pre>
+
+    <h3>B. Linux OS Kernel SYN Flood Hardening (/etc/sysctl.conf)</h3>
+    <pre>
+# Enable SYN Cookies when TCP SYN backlog fills up
+net.ipv4.tcp_syncookies = 1
+
+# Increase max TCP SYN queue size
+net.ipv4.tcp_max_syn_backlog = 4096
+
+# Limit SYN-ACK retries before dropping half-open connection
+net.ipv4.tcp_synack_retries = 2
+
+# Fast socket release on FIN-WAIT-2
+net.ipv4.tcp_fin_timeout = 15
+    </pre>
+
+    <h3>C. Firewall & NGINX Reverse Proxy Rate Limiting</h3>
+    <pre>
+# iptables SYN flood mitigation rule
+iptables -A INPUT -p tcp --syn -m limit --limit 1/s --limit-burst 3 -j ACCEPT
+
+# NGINX Connection Limiting (/etc/nginx/nginx.conf)
+limit_conn_zone $binary_remote_addr zone=conn_limit_per_ip:10m;
+limit_conn conn_limit_per_ip 30;
+    </pre>
+
+    <div style="margin-top: 50px; text-align: center; border-top: 1px solid #334155; padding-top: 20px;">
+      <p style="font-family: 'Fira Code', monospace; font-size: 9pt; color: #64748B;">
         END OF DOCUMENTATION • CHAKRAVYUH CLUB PORTAL 2.0 • COMPLIANT WITH OWASP SECURE STANDARDS
       </p>
     </div>

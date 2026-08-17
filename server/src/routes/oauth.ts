@@ -44,7 +44,7 @@ router.get("/authorize", authenticate, async (req: Request, res: Response) => {
         const code = crypto.randomBytes(64).toString("hex");
 
         // Store in DB with 60-second expiry (single-use, will be deleted on exchange)
-        await prisma.oAuthCode.create({
+        await (prisma as any).oAuthCode.create({
             data: {
                 code,
                 userId: user.userId,
@@ -53,7 +53,7 @@ router.get("/authorize", authenticate, async (req: Request, res: Response) => {
         });
 
         // Clean up expired codes (fire-and-forget, keeps DB tidy)
-        prisma.oAuthCode
+        (prisma as any).oAuthCode
             .deleteMany({ where: { expiresAt: { lt: new Date() } } })
             .catch(() => { });
 
@@ -96,7 +96,7 @@ router.post("/token", async (req: Request, res: Response) => {
         }
 
         // Look up the code in the database
-        const oauthCode = await prisma.oAuthCode.findUnique({
+        const oauthCode = await (prisma as any).oAuthCode.findUnique({
             where: { code },
             include: { user: { select: { id: true, email: true, role: true, isActive: true, name: true } } },
         });
@@ -116,7 +116,7 @@ router.post("/token", async (req: Request, res: Response) => {
         // Validate: code not expired
         if (oauthCode.expiresAt < new Date()) {
             // Delete the expired code
-            await prisma.oAuthCode.delete({ where: { id: oauthCode.id } }).catch(() => { });
+            await (prisma as any).oAuthCode.delete({ where: { id: oauthCode.id } }).catch(() => { });
             await logAuditEvent({
                 action: "OAUTH_TOKEN_EXCHANGE_FAILED",
                 userId: oauthCode.userId,
@@ -131,7 +131,7 @@ router.post("/token", async (req: Request, res: Response) => {
         // Validate: code not already used (defense-in-depth)
         if (oauthCode.used) {
             // Potential replay attack — delete the code and log as CRITICAL
-            await prisma.oAuthCode.delete({ where: { id: oauthCode.id } }).catch(() => { });
+            await (prisma as any).oAuthCode.delete({ where: { id: oauthCode.id } }).catch(() => { });
             await logAuditEvent({
                 action: "OAUTH_REPLAY_ATTACK_DETECTED",
                 userId: oauthCode.userId,
@@ -145,14 +145,14 @@ router.post("/token", async (req: Request, res: Response) => {
 
         // Validate: user is still active
         if (!oauthCode.user.isActive) {
-            await prisma.oAuthCode.delete({ where: { id: oauthCode.id } }).catch(() => { });
+            await (prisma as any).oAuthCode.delete({ where: { id: oauthCode.id } }).catch(() => { });
             res.status(401).json({ error: "User account is inactive" });
             return;
         }
 
         // ── BURN THE CODE (single-use) ──────────────────────────
         // Delete immediately so it can NEVER be replayed
-        await prisma.oAuthCode.delete({ where: { id: oauthCode.id } });
+        await (prisma as any).oAuthCode.delete({ where: { id: oauthCode.id } });
 
         // Generate a short-lived JWT (5 minutes) for CTF Wars
         // This token has the `type: 'CTF_SSO'` claim to prevent
