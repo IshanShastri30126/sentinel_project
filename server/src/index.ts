@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
+import compression from "compression";
 import { createServer } from "http";
 import path from "path";
 import helmet from "helmet";
@@ -32,6 +33,9 @@ const httpServer = createServer(app);
 initSocket(httpServer);
 
 // ─── Global Middleware ─────────────────────────────────────
+
+// Enable HTTP Response Compression (Gzip/Brotli) for all responses
+app.use(compression());
 
 // 1. CORS MUST BE FIRST to intercept all requests (including preflight OPTIONS)
 const allowedOrigins = config.clientUrl.split(",").map((s) => s.trim());
@@ -99,8 +103,12 @@ app.use("/api/auth", authLimiter);
 app.use(express.json({ limit: "10mb" }));
 app.use(cookieParser());
 
-// Serve uploaded files statically
-app.use("/uploads", express.static(path.resolve(config.uploadDir)));
+// Serve uploaded files statically with cache-control headers (7 days cache)
+app.use("/uploads", express.static(path.resolve(config.uploadDir), {
+  maxAge: "7d",
+  etag: true,
+  lastModified: true
+}));
 
 // ─── Health Check ──────────────────────────────────────────
 app.get("/api/health", (_req, res) => {
