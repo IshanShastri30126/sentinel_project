@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { api } from "@/lib/api";
 import { motion, AnimatePresence } from "framer-motion";
@@ -8,7 +8,9 @@ import {
   ShieldAlert, Activity, Cpu, HardDrive, Database, Server,
   Lock, AlertTriangle, RefreshCw, CheckCircle, XCircle, Search,
   Filter, Ban, Check, Terminal, FileText, Bug, Settings, Users,
-  Globe, Eye, Clock, ShieldCheck, Zap, AlertCircle
+  Globe, Eye, Clock, ShieldCheck, Zap, AlertCircle, Plus, Trash2,
+  Sliders, Download, Radio, Wifi, Code, ShieldX, CheckSquare,
+  ArrowUpRight, Copy
 } from "lucide-react";
 
 interface SystemMetrics {
@@ -32,12 +34,15 @@ interface TelemetryMetrics {
   activeUsers: number;
   totalAuditLogs: number;
   recent24hLogCount: number;
+  attacksBlocked24h: number;
   totalEvents: number;
   totalRegistrations: number;
   totalCertificates: number;
   totalTeams: number;
   totalNotifications: number;
   blockedIpsCount: number;
+  activeFirewallRulesCount: number;
+  totalFirewallHits: number;
   isMaintenanceMode: boolean;
   realtimeConnections: number;
   requestRatePerMin: number;
@@ -47,6 +52,9 @@ interface AuditLogItem {
   id: string;
   action: string;
   outcome: string;
+  severity?: "INFO" | "WARN" | "CRITICAL" | "EMERGENCY" | "SECURITY_BLOCK";
+  category?: string;
+  ruleId?: string | null;
   ipAddress?: string | null;
   userAgent?: string | null;
   context?: Record<string, any> | null;
@@ -62,14 +70,35 @@ interface AuditLogItem {
   device?: string;
   deviceId?: string;
   localIp?: string;
+  privateIp?: string;
   publicIp?: string;
   browser?: string;
   os?: string;
   time?: string;
+  payloadContext?: Record<string, any>;
+}
+
+interface FirewallRule {
+  id: string;
+  name: string;
+  category: string;
+  description: string;
+  action: "BLOCK" | "CHALLENGE" | "RATE_LIMIT" | "LOG_ONLY" | "ALLOW";
+  enabled: boolean;
+  pattern?: string;
+  target: "BODY" | "QUERY" | "PATH" | "HEADER" | "IP_CIDR" | "USER_AGENT" | "ALL";
+  severity: "INFO" | "WARN" | "CRITICAL" | "EMERGENCY" | "SECURITY_BLOCK";
+  hitsCount: number;
+  lastTriggeredAt?: string | null;
+  createdAt: string;
+  updatedAt: string;
 }
 
 interface IpManagementItem {
   ipAddress: string;
+  publicIp: string;
+  privateIp: string;
+  localIp: string;
   requestCount: number;
   lastActiveAt: string;
   lastUser?: { id: string; name: string; email: string; role: string } | null;
@@ -102,23 +131,38 @@ interface BugReport {
 
 export default function MaintenancePage() {
   const { user, token } = useAuth();
-  const [activeTab, setActiveTab] = useState<"overview" | "logs" | "security" | "database" | "bugs">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "logs" | "firewall" | "security" | "database" | "bugs">("overview");
 
   // Overview State
   const [systemMetrics, setSystemMetrics] = useState<SystemMetrics | null>(null);
   const [telemetry, setTelemetry] = useState<TelemetryMetrics | null>(null);
   const [loadingOverview, setLoadingOverview] = useState(true);
 
-  // Logs State
+  // Level 2 Logs State
   const [logs, setLogs] = useState<AuditLogItem[]>([]);
   const [logsTotal, setLogsTotal] = useState(0);
   const [logsPage, setLogsPage] = useState(1);
   const [logsSearch, setLogsSearch] = useState("");
   const [logsAction, setLogsAction] = useState("");
   const [logsOutcome, setLogsOutcome] = useState("");
-  const [logsViewMode, setLogsViewMode] = useState<"ascii" | "table">("ascii");
+  const [logsSeverity, setLogsSeverity] = useState("");
+  const [logsCategory, setLogsCategory] = useState("");
+  const [logsViewMode, setLogsViewMode] = useState<"ascii" | "table">("table");
   const [loadingLogs, setLoadingLogs] = useState(false);
   const [expandedLogId, setExpandedLogId] = useState<string | null>(null);
+  const [autoRefreshLogs, setAutoRefreshLogs] = useState(false);
+
+  // Firewall State
+  const [firewallRules, setFirewallRules] = useState<FirewallRule[]>([]);
+  const [loadingFirewall, setLoadingFirewall] = useState(false);
+  const [showAddRuleModal, setShowAddRuleModal] = useState(false);
+  const [newRuleName, setNewRuleName] = useState("");
+  const [newRuleCategory, setNewRuleCategory] = useState("CUSTOM");
+  const [newRuleDescription, setNewRuleDescription] = useState("");
+  const [newRulePattern, setNewRulePattern] = useState("");
+  const [newRuleTarget, setNewRuleTarget] = useState<FirewallRule["target"]>("ALL");
+  const [newRuleAction, setNewRuleAction] = useState<FirewallRule["action"]>("BLOCK");
+  const [newRuleSeverity, setNewRuleSeverity] = useState<FirewallRule["severity"]>("SECURITY_BLOCK");
 
   // Security IP Management State
   const [ipList, setIpList] = useState<IpManagementItem[]>([]);
@@ -142,6 +186,12 @@ export default function MaintenancePage() {
   const [newBugSeverity, setNewBugSeverity] = useState<"LOW" | "MEDIUM" | "HIGH" | "CRITICAL">("MEDIUM");
   const [newBugDesc, setNewBugDesc] = useState("");
   const [submittingBug, setSubmittingBug] = useState(false);
+  const [toastMessage, setToastMessage] = useState<{ text: string; type: "success" | "error" } | null>(null);
+
+  const showToast = (text: string, type: "success" | "error" = "success") => {
+    setToastMessage({ text, type });
+    setTimeout(() => setToastMessage(null), 4000);
+  };
 
   // Fetch Overview Data
   const fetchOverview = async () => {
@@ -158,7 +208,7 @@ export default function MaintenancePage() {
   };
 
   // Fetch Logs Data
-  const fetchLogs = async () => {
+  const fetchLogs = useCallback(async () => {
     setLoadingLogs(true);
     try {
       const params = new URLSearchParams({
@@ -167,6 +217,8 @@ export default function MaintenancePage() {
         search: logsSearch,
         action: logsAction,
         outcome: logsOutcome,
+        severity: logsSeverity,
+        category: logsCategory,
       });
       const data = await api<any>(`/maintenance/logs?${params.toString()}`, { token: token || undefined });
       setLogs(data.logs || []);
@@ -175,6 +227,19 @@ export default function MaintenancePage() {
       console.error("Failed to load maintenance logs", err);
     } finally {
       setLoadingLogs(false);
+    }
+  }, [token, logsPage, logsSearch, logsAction, logsOutcome, logsSeverity, logsCategory]);
+
+  // Fetch Firewall Rules Data
+  const fetchFirewallRules = async () => {
+    setLoadingFirewall(true);
+    try {
+      const data = await api<any>("/maintenance/firewall/rules", { token: token || undefined });
+      setFirewallRules(data.rules || []);
+    } catch (err) {
+      console.error("Failed to load firewall rules", err);
+    } finally {
+      setLoadingFirewall(false);
     }
   };
 
@@ -229,6 +294,8 @@ export default function MaintenancePage() {
 
   useEffect(() => {
     if (activeTab === "overview") fetchOverview();
+    if (activeTab === "logs") fetchLogs();
+    if (activeTab === "firewall") fetchFirewallRules();
     if (activeTab === "security") fetchSecurity();
     if (activeTab === "database") fetchDatabase();
     if (activeTab === "bugs") fetchBugsAndSettings();
@@ -240,7 +307,16 @@ export default function MaintenancePage() {
       fetchLogs();
     }, 300);
     return () => clearTimeout(timer);
-  }, [activeTab, logsPage, logsSearch, logsAction, logsOutcome]);
+  }, [activeTab, logsPage, logsSearch, logsAction, logsOutcome, logsSeverity, logsCategory, fetchLogs]);
+
+  // Live stream auto-refresh
+  useEffect(() => {
+    if (!autoRefreshLogs || activeTab !== "logs") return;
+    const interval = setInterval(() => {
+      fetchLogs();
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [autoRefreshLogs, activeTab, fetchLogs]);
 
   // Handle IP Block / Unblock
   const handleToggleBlockIp = async (ipAddress: string, isBlocked: boolean) => {
@@ -254,15 +330,93 @@ export default function MaintenancePage() {
         token: token || undefined,
         body: JSON.stringify({ ipAddress }),
       });
-      fetchSecurity();
-      fetchOverview();
+      setIpList((prev) =>
+        prev.map((item) =>
+          item.ipAddress === ipAddress ? { ...item, isBlocked: !isBlocked } : item
+        )
+      );
+      showToast(`Public IP ${ipAddress} ${isBlocked ? "Unblocked" : "Blocked & Enforced"} successfully`);
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Failed to update IP block state");
+      showToast(err instanceof Error ? err.message : "Failed to update IP block state", "error");
     }
   };
 
-  // Handle Maintenance Mode Toggle
-  const handleToggleMaintenanceMode = async () => {
+  // Handle Firewall Rule Toggle
+  const handleToggleFirewallRule = async (ruleId: string, currentEnabled: boolean) => {
+    try {
+      await api(`/maintenance/firewall/rules/${ruleId}`, {
+        method: "PATCH",
+        token: token || undefined,
+        body: JSON.stringify({ enabled: !currentEnabled }),
+      });
+      setFirewallRules((prev) =>
+        prev.map((r) => (r.id === ruleId ? { ...r, enabled: !currentEnabled } : r))
+      );
+      showToast(`Rule ${ruleId} ${!currentEnabled ? "Enabled" : "Disabled"}`);
+    } catch (err) {
+      showToast("Failed to toggle firewall rule", "error");
+    }
+  };
+
+  // Handle Create Firewall Rule
+  const handleCreateRule = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const data = await api<any>("/maintenance/firewall/rules", {
+        method: "POST",
+        token: token || undefined,
+        body: JSON.stringify({
+          name: newRuleName,
+          category: newRuleCategory,
+          description: newRuleDescription,
+          pattern: newRulePattern || undefined,
+          target: newRuleTarget,
+          action: newRuleAction,
+          severity: newRuleSeverity,
+          enabled: true,
+        }),
+      });
+      setFirewallRules((prev) => [data.rule, ...prev]);
+      setShowAddRuleModal(false);
+      setNewRuleName("");
+      setNewRuleDescription("");
+      setNewRulePattern("");
+      showToast("New Firewall Policy Rule Enforced Successfully!");
+    } catch (err) {
+      showToast("Failed to create firewall rule", "error");
+    }
+  };
+
+  // Handle Delete Firewall Rule
+  const handleDeleteRule = async (ruleId: string) => {
+    if (!confirm("Are you sure you want to remove this security rule?")) return;
+    try {
+      await api(`/maintenance/firewall/rules/${ruleId}`, {
+        method: "DELETE",
+        token: token || undefined,
+      });
+      setFirewallRules((prev) => prev.filter((r) => r.id !== ruleId));
+      showToast("Firewall Rule Removed");
+    } catch (err) {
+      showToast("Failed to delete firewall rule", "error");
+    }
+  };
+
+  // Export Forensic Logs
+  const handleExportLogs = () => {
+    if (!logs.length) return;
+    const jsonStr = JSON.stringify(logs, null, 2);
+    const blob = new Blob([jsonStr], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `forensic_telemetry_l2_${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    showToast("Level 2 Forensic Telemetry Exported");
+  };
+
+  // Handle Toggle Maintenance Mode
+  const handleToggleMaintenance = async () => {
     try {
       const newStatus = !maintenanceSettings.enabled;
       await api("/maintenance/settings", {
@@ -274,20 +428,19 @@ export default function MaintenancePage() {
         }),
       });
       setMaintenanceSettings({ ...maintenanceSettings, enabled: newStatus });
-      fetchOverview();
+      showToast(`Maintenance Mode ${newStatus ? "ACTIVATED" : "DEACTIVATED"}`);
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Failed to toggle maintenance mode");
+      showToast(err instanceof Error ? err.message : "Failed to toggle maintenance mode", "error");
     }
   };
 
-  // Submit Bug Report
-  const handleSubmitBug = async (e: React.FormEvent) => {
+  // Handle Bug Submit
+  const handleBugSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newBugTitle.trim() || !newBugDesc.trim()) return;
-
     setSubmittingBug(true);
     try {
-      await api("/maintenance/bugs", {
+      const data = await api<any>("/maintenance/bugs", {
         method: "POST",
         token: token || undefined,
         body: JSON.stringify({
@@ -297,946 +450,712 @@ export default function MaintenancePage() {
           description: newBugDesc,
         }),
       });
+      setBugs((prev) => [data.bug, ...prev]);
       setNewBugTitle("");
       setNewBugDesc("");
-      fetchBugsAndSettings();
+      showToast("Bug Report Logged Successfully");
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Failed to submit bug report");
+      showToast("Failed to submit bug report", "error");
     } finally {
       setSubmittingBug(false);
     }
   };
 
-  // Update Bug Status
-  const handleUpdateBugStatus = async (id: string, status: string) => {
-    try {
-      await api(`/maintenance/bugs/${id}`, {
-        method: "PATCH",
-        token: token || undefined,
-        body: JSON.stringify({ status }),
-      });
-      fetchBugsAndSettings();
-    } catch (err) {
-      alert(err instanceof Error ? err.message : "Failed to update bug status");
+  const getSeverityBadge = (severity?: string) => {
+    switch (severity) {
+      case "SECURITY_BLOCK":
+        return <span className="px-2 py-0.5 rounded text-[9px] font-mono font-bold bg-red-500/10 border border-red-500/30 text-red-400">🛡️ SEC_BLOCK</span>;
+      case "EMERGENCY":
+        return <span className="px-2 py-0.5 rounded text-[9px] font-mono font-bold bg-red-600/20 border border-red-500 text-red-300 animate-pulse">⚡ EMERGENCY</span>;
+      case "CRITICAL":
+        return <span className="px-2 py-0.5 rounded text-[9px] font-mono font-bold bg-orange-500/10 border border-orange-500/30 text-orange-400">⚠️ CRITICAL</span>;
+      case "WARN":
+        return <span className="px-2 py-0.5 rounded text-[9px] font-mono font-bold bg-yellow-500/10 border border-yellow-500/30 text-yellow-400">⚡ WARN</span>;
+      default:
+        return <span className="px-2 py-0.5 rounded text-[9px] font-mono font-bold bg-cyan-500/10 border border-cyan-500/30 text-cyan-400">ℹ️ INFO</span>;
     }
   };
 
-  const formatUptime = (seconds: number) => {
-    const hrs = Math.floor(seconds / 3600);
-    const mins = Math.floor((seconds % 3600) / 60);
-    const secs = seconds % 60;
-    return `${hrs}h ${mins}m ${secs}s`;
-  };
-
   return (
-    <div className="space-y-6 animate-fade-in pb-12 font-mono">
-      {/* Dashboard Top HUD Bar */}
-      <div className="bg-[#050A18] border border-[#121F3D] rounded-2xl p-6 relative overflow-hidden shadow-xl">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-bl from-[#00F5D4]/10 via-transparent to-transparent pointer-events-none" />
-        
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
-          <div>
-            <div className="flex items-center gap-3 mb-1">
-              <span className="p-2 rounded-xl bg-red-600/10 border border-red-500/30 text-red-500">
-                <ShieldAlert className="w-6 h-6 animate-pulse" />
-              </span>
-              <div>
-                <h1 className="text-xl sm:text-2xl font-black text-white uppercase tracking-wider font-mono">
-                  MAINTENANCE LOGS & SECURITY OPERATIONS
-                </h1>
-                <p className="text-xs text-slate-400 font-mono tracking-widest uppercase">
-                  Tech Team Security Telemetry • System Diagnostics • Cloud & Firewall Management
-                </p>
-              </div>
-            </div>
-          </div>
+    <div className="flex flex-col gap-6 p-2 sm:p-4 max-w-7xl mx-auto">
+      {/* Toast Notification */}
+      <AnimatePresence>
+        {toastMessage && (
+          <motion.div
+            initial={{ opacity: 0, y: 50, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20 }}
+            className="fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-3 rounded-xl border font-mono text-xs font-semibold shadow-2xl backdrop-blur-xl"
+            style={toastMessage.type === "success"
+              ? { background: "rgba(204,255,0,0.08)", borderColor: "rgba(204,255,0,0.3)", color: "#CCFF00" }
+              : { background: "rgba(255,0,60,0.08)", borderColor: "rgba(255,0,60,0.3)", color: "#FF003C" }}
+          >
+            {toastMessage.type === "success" ? <CheckCircle className="w-4 h-4" /> : <XCircle className="w-4 h-4" />}
+            {toastMessage.text}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => {
-                if (activeTab === "overview") fetchOverview();
-                if (activeTab === "logs") fetchLogs();
-                if (activeTab === "security") fetchSecurity();
-                if (activeTab === "database") fetchDatabase();
-                if (activeTab === "bugs") fetchBugsAndSettings();
-              }}
-              className="ck-btn-secondary text-xs flex items-center gap-2 py-2 px-3 border-[#121F3D] hover:border-[#00F5D4]"
-            >
-              <RefreshCw className="w-3.5 h-3.5" />
-              <span>Refresh Telemetry</span>
-            </button>
-
-            <div className="flex items-center gap-2 bg-black/60 border border-[#121F3D] px-3 py-1.5 rounded-xl text-xs font-mono">
-              <span className="w-2 h-2 rounded-full bg-[#00F5D4] animate-ping" />
-              <span className="text-[#00F5D4] font-bold">LIVE TELEMETRY STREAM</span>
-            </div>
+      {/* Header Banner */}
+      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-white/[0.06] pb-5">
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <span className="px-2 py-0.5 rounded text-[9px] font-mono font-bold bg-[#CCFF00]/10 border border-[#CCFF00]/30 text-[#CCFF00]">
+              LEVEL 2 ENTERPRISE TELEMETRY
+            </span>
+            <span className="text-[10px] font-mono text-zinc-400">OWASP Hardened</span>
           </div>
+          <h1 className="text-2xl sm:text-3xl font-black font-mono tracking-tight text-[var(--ck-text)]">
+            MAINTENANCE & <span className="text-[#CCFF00]">SECURITY CORE</span>
+          </h1>
         </div>
 
-        {/* HUD Sub-Metrics Pills */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6 pt-4 border-t border-[#121F3D]/80 text-[11px]">
-          <div className="flex items-center gap-2">
-            <ShieldCheck className="w-4 h-4 text-emerald-400" />
-            <span className="text-slate-400">OWASP COMPLIANCE:</span>
-            <span className="text-emerald-400 font-bold">100% PASSED</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Cpu className="w-4 h-4 text-[#00E1FF]" />
-            <span className="text-slate-400">PORTAL VERSION:</span>
-            <span className="text-white font-bold">{systemMetrics?.version || "v2.4.0-STABLE"}</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Activity className="w-4 h-4 text-[#00F5D4]" />
-            <span className="text-slate-400">MAINTENANCE MODE:</span>
-            <span className={telemetry?.isMaintenanceMode ? "text-amber-400 font-bold" : "text-slate-300 font-bold"}>
-              {telemetry?.isMaintenanceMode ? "ENABLED (LOCKED)" : "OFF (OPERATIONAL)"}
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Globe className="w-4 h-4 text-purple-400" />
-            <span className="text-slate-400">BLOCKED IPS:</span>
-            <span className="text-red-400 font-bold">{telemetry?.blockedIpsCount || 0} ADDRESSES</span>
-          </div>
+        {/* Global Action Tools */}
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handleToggleMaintenance}
+            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-mono font-bold uppercase tracking-wider transition-all border ${
+              maintenanceSettings.enabled
+                ? "bg-red-500/20 border-red-500 text-red-400 shadow-[0_0_15px_rgba(255,0,60,0.2)] animate-pulse"
+                : "bg-black/40 border-white/[0.08] text-zinc-400 hover:text-white"
+            }`}
+          >
+            <ShieldAlert className="w-4 h-4" />
+            {maintenanceSettings.enabled ? "MAINTENANCE ACTIVE" : "LOCKDOWN PORTAL"}
+          </button>
         </div>
       </div>
 
       {/* Navigation Tabs */}
-      <div className="flex items-center gap-2 border-b border-[#121F3D] overflow-x-auto pb-1">
+      <div className="flex flex-wrap items-center gap-1.5 p-1 rounded-xl bg-black/40 border border-white/[0.06]">
         {[
-          { id: "overview", label: "Overview & Health", icon: <Activity className="w-4 h-4" /> },
-          { id: "logs", label: "Participant & Member Click Logs", icon: <Terminal className="w-4 h-4" /> },
-          { id: "security", label: "Security & IP Firewall", icon: <Lock className="w-4 h-4" /> },
-          { id: "database", label: "Database & Cloud Data", icon: <Database className="w-4 h-4" /> },
-          { id: "bugs", label: "Bug Reports & Settings", icon: <Bug className="w-4 h-4" /> },
-        ].map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id as any)}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-t-xl text-xs font-mono tracking-wider uppercase font-bold transition-all shrink-0 border-t border-x ${
-              activeTab === tab.id
-                ? "bg-[#050A18] text-[#00F5D4] border-[#00F5D4]/40 shadow-lg"
-                : "text-slate-400 border-transparent hover:text-white hover:bg-black/30"
-            }`}
-          >
-            {tab.icon}
-            <span>{tab.label}</span>
-          </button>
-        ))}
+          { id: "overview", label: "OVERVIEW", icon: Activity },
+          { id: "logs", label: "LEVEL 2 LOGS", icon: Terminal },
+          { id: "firewall", label: "FIREWALL RULES", icon: ShieldCheck },
+          { id: "security", label: "IP & ATTACKS", icon: Ban },
+          { id: "database", label: "DATA METRICS", icon: Database },
+          { id: "bugs", label: "SYS BUGS", icon: Bug },
+        ].map((tab) => {
+          const Icon = tab.icon;
+          const isActive = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id as any)}
+              className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-mono font-bold uppercase transition-all ${
+                isActive
+                  ? "bg-[#CCFF00]/10 border border-[#CCFF00]/30 text-[#CCFF00] shadow-[0_0_12px_rgba(204,255,0,0.15)]"
+                  : "text-zinc-400 hover:text-white border border-transparent"
+              }`}
+            >
+              <Icon className="w-3.5 h-3.5" />
+              {tab.label}
+            </button>
+          );
+        })}
       </div>
 
-      {/* ─── TAB 1: OVERVIEW & HEALTH ────────────────────────────────────────── */}
+      {/* ── TAB 1: OVERVIEW ── */}
       {activeTab === "overview" && (
         <div className="space-y-6">
-          {loadingOverview ? (
-            <div className="flex justify-center py-20">
-              <div className="w-8 h-8 border-2 border-slate-700 border-t-[#00F5D4] rounded-full animate-spin" />
+          {/* Quick Metrics Grid */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="ck-glass-card p-4">
+              <span className="text-[10px] font-mono uppercase tracking-wider text-zinc-500">24H BLOCKED THREATS</span>
+              <p className="text-2xl sm:text-3xl font-black font-mono text-red-400 mt-1">
+                {telemetry?.attacksBlocked24h || 0}
+              </p>
             </div>
-          ) : (
-            <>
-              {/* Telemetry Stat Cards */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="bg-[#050A18] border border-[#121F3D] rounded-xl p-5 relative overflow-hidden">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">UPTIME</span>
-                    <Clock className="w-4 h-4 text-[#00F5D4]" />
-                  </div>
-                  <div className="text-xl font-bold text-white mt-2 font-mono">
-                    {systemMetrics ? formatUptime(systemMetrics.uptimeSeconds) : "N/A"}
-                  </div>
-                  <p className="text-[10px] text-slate-400 mt-1 font-mono">
-                    Node.js {systemMetrics?.nodeVersion} ({systemMetrics?.platform})
-                  </p>
-                </div>
+            <div className="ck-glass-card p-4">
+              <span className="text-[10px] font-mono uppercase tracking-wider text-zinc-500">ACTIVE FIREWALL RULES</span>
+              <p className="text-2xl sm:text-3xl font-black font-mono text-[#CCFF00] mt-1">
+                {telemetry?.activeFirewallRulesCount || 7}
+              </p>
+            </div>
+            <div className="ck-glass-card p-4">
+              <span className="text-[10px] font-mono uppercase tracking-wider text-zinc-500">BLOCKED PUBLIC IPS</span>
+              <p className="text-2xl sm:text-3xl font-black font-mono text-orange-400 mt-1">
+                {telemetry?.blockedIpsCount || 0}
+              </p>
+            </div>
+            <div className="ck-glass-card p-4">
+              <span className="text-[10px] font-mono uppercase tracking-wider text-zinc-500">TELEMETRY LOG VOLUME</span>
+              <p className="text-2xl sm:text-3xl font-black font-mono text-cyan-400 mt-1">
+                {telemetry?.totalAuditLogs || 0}
+              </p>
+            </div>
+          </div>
 
-                <div className="bg-[#050A18] border border-[#121F3D] rounded-xl p-5 relative overflow-hidden">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">MEMORY HEAP</span>
-                    <Cpu className="w-4 h-4 text-[#00E1FF]" />
-                  </div>
-                  <div className="text-xl font-bold text-white mt-2 font-mono">
-                    {systemMetrics?.heapUsedMB} MB / {systemMetrics?.heapTotalMB} MB
-                  </div>
-                  <p className="text-[10px] text-slate-400 mt-1 font-mono">
-                    RSS Memory: {systemMetrics?.rssMB} MB
-                  </p>
-                </div>
-
-                <div className="bg-[#050A18] border border-[#121F3D] rounded-xl p-5 relative overflow-hidden">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">TRAFFIC RATE</span>
-                    <Activity className="w-4 h-4 text-emerald-400" />
-                  </div>
-                  <div className="text-xl font-bold text-emerald-400 mt-2 font-mono">
-                    {telemetry?.requestRatePerMin} REQ/MIN
-                  </div>
-                  <p className="text-[10px] text-slate-400 mt-1 font-mono">
-                    {telemetry?.realtimeConnections} Active WebSocket Sockets
-                  </p>
-                </div>
-
-                <div className="bg-[#050A18] border border-[#121F3D] rounded-xl p-5 relative overflow-hidden">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">TELEMETRY LOGS</span>
-                    <FileText className="w-4 h-4 text-purple-400" />
-                  </div>
-                  <div className="text-xl font-bold text-white mt-2 font-mono">
-                    {telemetry?.totalAuditLogs} LOGS
-                  </div>
-                  <p className="text-[10px] text-slate-400 mt-1 font-mono">
-                    {telemetry?.recent24hLogCount} recorded in past 24 hrs
-                  </p>
-                </div>
+          {/* System Environment Telemetry */}
+          <div className="ck-glass-card p-5">
+            <div className="flex items-center gap-2 mb-4">
+              <Server className="w-4 h-4 text-[#CCFF00]" />
+              <h2 className="text-sm font-mono font-bold uppercase tracking-wider text-[var(--ck-text)]">
+                HOST ENVIRONMENT & OWASP TELEMETRY
+              </h2>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs font-mono">
+              <div className="p-3 rounded-lg bg-black/30 border border-white/[0.04]">
+                <p className="text-zinc-500">SERVER UPTIME</p>
+                <p className="text-white font-bold mt-1">
+                  {Math.floor((systemMetrics?.uptimeSeconds || 0) / 3600)}h {Math.floor(((systemMetrics?.uptimeSeconds || 0) % 3600) / 60)}m
+                </p>
               </div>
-
-              {/* Database Telemetry Quick Cards */}
-              <div className="bg-[#050A18] border border-[#121F3D] rounded-xl p-6">
-                <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-4 flex items-center gap-2">
-                  <Database className="w-4 h-4 text-[#00F5D4]" />
-                  <span>Database Entity Counts Telemetry</span>
-                </h3>
-
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 text-center">
-                  <div className="bg-black/40 border border-[#121F3D] p-3 rounded-lg">
-                    <span className="text-[10px] text-slate-400 uppercase">USERS</span>
-                    <p className="text-lg font-bold text-white mt-1">{telemetry?.totalUsers}</p>
-                  </div>
-                  <div className="bg-black/40 border border-[#121F3D] p-3 rounded-lg">
-                    <span className="text-[10px] text-slate-400 uppercase">EVENTS</span>
-                    <p className="text-lg font-bold text-white mt-1">{telemetry?.totalEvents}</p>
-                  </div>
-                  <div className="bg-black/40 border border-[#121F3D] p-3 rounded-lg">
-                    <span className="text-[10px] text-slate-400 uppercase">REGISTRATIONS</span>
-                    <p className="text-lg font-bold text-white mt-1">{telemetry?.totalRegistrations}</p>
-                  </div>
-                  <div className="bg-black/40 border border-[#121F3D] p-3 rounded-lg">
-                    <span className="text-[10px] text-slate-400 uppercase">CERTIFICATES</span>
-                    <p className="text-lg font-bold text-white mt-1">{telemetry?.totalCertificates}</p>
-                  </div>
-                  <div className="bg-black/40 border border-[#121F3D] p-3 rounded-lg">
-                    <span className="text-[10px] text-slate-400 uppercase">TEAMS</span>
-                    <p className="text-lg font-bold text-white mt-1">{telemetry?.totalTeams}</p>
-                  </div>
-                  <div className="bg-black/40 border border-[#121F3D] p-3 rounded-lg">
-                    <span className="text-[10px] text-slate-400 uppercase">NOTIFICATIONS</span>
-                    <p className="text-lg font-bold text-white mt-1">{telemetry?.totalNotifications}</p>
-                  </div>
-                </div>
+              <div className="p-3 rounded-lg bg-black/30 border border-white/[0.04]">
+                <p className="text-zinc-500">MEMORY CONSUMPTION</p>
+                <p className="text-white font-bold mt-1">{systemMetrics?.rssMB || 0} MB RSS</p>
               </div>
-            </>
-          )}
+              <div className="p-3 rounded-lg bg-black/30 border border-white/[0.04]">
+                <p className="text-zinc-500">ENGINE RUNTIME</p>
+                <p className="text-white font-bold mt-1">{systemMetrics?.nodeVersion} ({systemMetrics?.platform})</p>
+              </div>
+              <div className="p-3 rounded-lg bg-black/30 border border-white/[0.04]">
+                <p className="text-zinc-500">SECURITY COMPLIANCE</p>
+                <p className="text-[#CCFF00] font-bold mt-1">100% Level 2 OWASP</p>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 
-      {/* ─── TAB 2: PARTICIPANT & MEMBER CLICK LOGS ──────────────────────────── */}
+      {/* ── TAB 2: LEVEL 2 LOGS ── */}
       {activeTab === "logs" && (
         <div className="space-y-4">
-          {/* Search, Filters & View Mode Toggle */}
-          <div className="flex flex-wrap items-center gap-3 bg-[#050A18] border border-[#121F3D] p-4 rounded-xl">
-            <div className="relative flex-1 min-w-[240px] ck-search-container">
-              <Search className="w-4 h-4 text-slate-400 pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2" />
-              <input
-                className="ck-input pl-11 text-xs"
-                placeholder="Search by action, email, user name, or IP address..."
-                value={logsSearch}
-                onChange={(e) => {
-                  setLogsSearch(e.target.value);
-                  setLogsPage(1);
-                }}
-              />
+          {/* Controls Bar */}
+          <div className="flex flex-wrap items-center justify-between gap-3 p-3 rounded-xl bg-black/30 border border-white/[0.06]">
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-500" />
+                <input
+                  value={logsSearch}
+                  onChange={(e) => setLogsSearch(e.target.value)}
+                  placeholder="Search user, IP, rule ID..."
+                  className="pl-8 pr-3 py-1.5 rounded-lg bg-black/50 border border-white/[0.08] text-xs font-mono text-white outline-none focus:border-[#CCFF00]/40 w-48 sm:w-64"
+                />
+              </div>
+              <select
+                value={logsSeverity}
+                onChange={(e) => setLogsSeverity(e.target.value)}
+                className="px-2.5 py-1.5 rounded-lg bg-black/50 border border-white/[0.08] text-xs font-mono text-zinc-300 outline-none"
+              >
+                <option value="">All Severities</option>
+                <option value="SECURITY_BLOCK">Security Block</option>
+                <option value="EMERGENCY">Emergency</option>
+                <option value="CRITICAL">Critical</option>
+                <option value="WARN">Warning</option>
+                <option value="INFO">Info</option>
+              </select>
+              <select
+                value={logsCategory}
+                onChange={(e) => setLogsCategory(e.target.value)}
+                className="px-2.5 py-1.5 rounded-lg bg-black/50 border border-white/[0.08] text-xs font-mono text-zinc-300 outline-none"
+              >
+                <option value="">All Categories</option>
+                <option value="FIREWALL">Firewall</option>
+                <option value="WAF">WAF</option>
+                <option value="AUTH">Authentication</option>
+                <option value="SYSTEM">System Ops</option>
+              </select>
             </div>
 
-            <select
-              className="ck-input w-auto text-xs py-2"
-              value={logsAction}
-              onChange={(e) => {
-                setLogsAction(e.target.value);
-                setLogsPage(1);
-              }}
-            >
-              <option value="" className="bg-[#050A18]">ALL ACTIONS</option>
-              <option value="USER_LOGIN" className="bg-[#050A18]">USER_LOGIN (Successful Login)</option>
-              <option value="USER_LOGIN_FAILED" className="bg-[#050A18]">USER_LOGIN_FAILED (Failed Passwords)</option>
-              <option value="USER_LOGIN_BLOCKED" className="bg-[#050A18]">USER_LOGIN_BLOCKED (Rate Limited)</option>
-              <option value="USER_REGISTER" className="bg-[#050A18]">USER_REGISTER (New Account)</option>
-              <option value="USER_LOGOUT" className="bg-[#050A18]">USER_LOGOUT (Session End)</option>
-              <option value="IP_BLOCKED" className="bg-[#050A18]">IP_BLOCKED (Firewall Rule)</option>
-              <option value="IP_UNBLOCKED" className="bg-[#050A18]">IP_UNBLOCKED (Firewall Rule)</option>
-              <option value="BUG_REPORTED" className="bg-[#050A18]">BUG_REPORTED (System Report)</option>
-              <option value="EVENT_REGISTERED" className="bg-[#050A18]">EVENT_REGISTERED (Participant)</option>
-              <option value="CERTIFICATE_GENERATED" className="bg-[#050A18]">CERTIFICATE_GENERATED (Auth Doc)</option>
-            </select>
-
-            <select
-              className="ck-input w-auto text-xs py-2"
-              value={logsOutcome}
-              onChange={(e) => {
-                setLogsOutcome(e.target.value);
-                setLogsPage(1);
-              }}
-            >
-              <option value="" className="bg-[#050A18]">ALL OUTCOMES</option>
-              <option value="SUCCESS" className="bg-[#050A18]">SUCCESS</option>
-              <option value="FAILED" className="bg-[#050A18]">FAILED</option>
-              <option value="REJECTED" className="bg-[#050A18]">REJECTED</option>
-            </select>
-
-            {/* View Mode Switcher */}
-            <div className="flex items-center bg-black/60 border border-[#121F3D] rounded-lg p-1">
+            <div className="flex items-center gap-2">
               <button
-                type="button"
-                onClick={() => setLogsViewMode("ascii")}
-                className={`px-3 py-1 text-xs rounded transition-all flex items-center gap-1 font-mono ${
-                  logsViewMode === "ascii"
-                    ? "bg-[#00F5D4] text-black font-bold shadow-lg"
-                    : "text-slate-400 hover:text-white"
+                onClick={() => setAutoRefreshLogs(!autoRefreshLogs)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono border transition-all ${
+                  autoRefreshLogs ? "bg-[#CCFF00]/10 border-[#CCFF00]/30 text-[#CCFF00]" : "border-white/[0.08] text-zinc-400"
                 }`}
               >
-                <Terminal className="w-3.5 h-3.5" />
-                <span>ASCII Box</span>
+                <Radio className={`w-3.5 h-3.5 ${autoRefreshLogs ? "animate-pulse" : ""}`} />
+                {autoRefreshLogs ? "STREAM ON" : "STREAM OFF"}
               </button>
               <button
-                type="button"
-                onClick={() => setLogsViewMode("table")}
-                className={`px-3 py-1 text-xs rounded transition-all flex items-center gap-1 font-mono ${
-                  logsViewMode === "table"
-                    ? "bg-[#00F5D4] text-black font-bold shadow-lg"
-                    : "text-slate-400 hover:text-white"
-                }`}
+                onClick={handleExportLogs}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono border border-white/[0.08] text-zinc-300 hover:text-white"
               >
-                <FileText className="w-3.5 h-3.5" />
-                <span>Table</span>
+                <Download className="w-3.5 h-3.5" />
+                EXPORT
               </button>
             </div>
-
-            <button
-              onClick={() => fetchLogs()}
-              className="ck-btn-primary text-xs py-2 px-3 flex items-center gap-1.5"
-            >
-              <RefreshCw className="w-3.5 h-3.5" />
-              <span>Query Logs</span>
-            </button>
           </div>
 
-          {/* Telemetry Logs Container */}
-          <div className="bg-[#050A18] border border-[#121F3D] rounded-xl overflow-hidden shadow-xl p-4">
-            {loadingLogs ? (
-              <div className="flex justify-center py-20">
-                <div className="w-8 h-8 border-2 border-slate-700 border-t-[#00F5D4] rounded-full animate-spin" />
-              </div>
-            ) : logs.length === 0 ? (
-              <div className="text-center py-16 text-slate-400 font-mono text-xs uppercase">
-                No telemetry logs found matching filter criteria.
-              </div>
-            ) : logsViewMode === "ascii" ? (
-              /* ─── 9-Field ASCII Card View ─── */
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {logs.map((log) => {
-                  const userName = log.user
-                    ? `${log.user.name} (${log.user.email} - ${log.user.role})`
-                    : "Unauthenticated / System";
-                  const device = log.device || log.context?.device || "Desktop (Windows)";
-                  const deviceId = log.deviceId || log.context?.deviceId || log.context?.deviceFingerprint || "DEV_SYSTEM_01";
-                  const localIp = log.localIp || log.context?.localIp || "192.168.1.100";
-                  const publicIp = log.publicIp || log.ipAddress || log.context?.publicIp || "127.0.0.1";
-                  const browser = log.browser || log.context?.browser || "Chrome 124";
-                  const osName = log.os || log.context?.os || "Windows 10/11";
-                  const actionName = log.action;
-                  const timeFormatted = new Date(log.createdAt).toISOString().replace("T", " ").substring(0, 19) + " UTC";
-
-                  return (
-                    <div
-                      key={log.id}
-                      className="bg-[#030712] border border-[#121F3D] hover:border-[#00F5D4]/50 rounded-xl p-5 font-mono text-xs shadow-xl transition-all space-y-3"
-                    >
-                      <div className="flex items-center justify-between border-b border-[#121F3D]/80 pb-2">
-                        <div className="text-[#00F5D4] font-bold text-xs flex items-center gap-1.5">
-                          <Terminal className="w-4 h-4" />
-                          <span>┌───────────────────────────────────────────┐</span>
-                        </div>
-                        <span
-                          className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                            log.outcome === "SUCCESS"
-                              ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/30"
-                              : log.outcome === "FAILED"
-                              ? "bg-red-500/10 text-red-400 border border-red-500/30"
-                              : "bg-amber-500/10 text-amber-400 border border-amber-500/30"
-                          }`}
-                        >
-                          {log.outcome}
-                        </span>
-                      </div>
-
-                      <div className="text-[#00F5D4] font-bold text-xs uppercase tracking-wider pl-1">
-                        │ MAINTENANCE LOG
-                      </div>
-                      <div className="text-[#121F3D] font-bold text-xs pl-1">
-                        ├───────────────────────────────────────────┤
-                      </div>
-
-                      <div className="space-y-1.5 pl-1 text-slate-200">
-                        <div className="flex items-start">
-                          <span className="text-slate-400 w-28 shrink-0">│ User:</span>
-                          <span className="text-white font-bold break-all">{userName}</span>
-                        </div>
-                        <div className="flex items-start">
-                          <span className="text-slate-400 w-28 shrink-0">│ Device:</span>
-                          <span className="text-cyan-300">{device}</span>
-                        </div>
-                        <div className="flex items-start">
-                          <span className="text-slate-400 w-28 shrink-0">│ Device ID:</span>
-                          <span className="text-amber-400 font-mono break-all">{deviceId}</span>
-                        </div>
-                        <div className="flex items-start">
-                          <span className="text-slate-400 w-28 shrink-0">│ Local IP:</span>
-                          <span className="text-emerald-400 font-mono">{localIp}</span>
-                        </div>
-                        <div className="flex items-start">
-                          <span className="text-slate-400 w-28 shrink-0">│ Public IP:</span>
-                          <span className="text-[#00E1FF] font-mono">{publicIp}</span>
-                        </div>
-                        <div className="flex items-start">
-                          <span className="text-slate-400 w-28 shrink-0">│ Browser:</span>
-                          <span className="text-indigo-300">{browser}</span>
-                        </div>
-                        <div className="flex items-start">
-                          <span className="text-slate-400 w-28 shrink-0">│ OS:</span>
-                          <span className="text-purple-300">{osName}</span>
-                        </div>
-                        <div className="flex items-start">
-                          <span className="text-slate-400 w-28 shrink-0">│ Action:</span>
-                          <span className="text-[#00F5D4] font-bold">{actionName}</span>
-                        </div>
-                        <div className="flex items-start">
-                          <span className="text-slate-400 w-28 shrink-0">│ Time:</span>
-                          <span className="text-slate-300 font-mono">{timeFormatted}</span>
-                        </div>
-                      </div>
-
-                      <div className="text-[#00F5D4]/60 font-bold text-xs pt-1 border-t border-[#121F3D]/80">
-                        └───────────────────────────────────────────┘
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              /* ─── Table View ─── */
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs font-mono">
-                  <thead className="bg-black/60 text-slate-400 border-b border-[#121F3D] uppercase text-[10px]">
+          {/* Logs Table */}
+          <div className="ck-glass-card overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs font-mono">
+                <thead>
+                  <tr className="border-b border-white/[0.06] bg-black/40 text-zinc-500 uppercase text-[10px]">
+                    <th className="py-2.5 px-4">TIMESTAMP</th>
+                    <th className="py-2.5 px-4">SEVERITY</th>
+                    <th className="py-2.5 px-4">ACTION & RULE</th>
+                    <th className="py-2.5 px-4">PUBLIC NETWORK IP</th>
+                    <th className="py-2.5 px-4">DEVICE PRIVATE IP</th>
+                    <th className="py-2.5 px-4">USER IDENTITY</th>
+                    <th className="py-2.5 px-4 text-right">INSPECT</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/[0.04]">
+                  {loadingLogs ? (
                     <tr>
-                      <th className="p-3.5">Timestamp (UTC)</th>
-                      <th className="p-3.5">User Identity</th>
-                      <th className="p-3.5">Action Event</th>
-                      <th className="p-3.5">IP Address</th>
-                      <th className="p-3.5">Outcome</th>
-                      <th className="p-3.5 text-right">Details</th>
+                      <td colSpan={7} className="py-8 text-center text-zinc-500">
+                        Loading Level 2 Telemetry Stream...
+                      </td>
                     </tr>
-                  </thead>
-                  <tbody className="divide-y divide-[#121F3D]/50 text-slate-300">
-                    {logs.map((log) => {
-                      const userName = log.user
-                        ? `${log.user.name} (${log.user.email} - ${log.user.role})`
-                        : "Unauthenticated / System";
-                      const device = log.device || log.context?.device || "Desktop (Windows)";
-                      const deviceId = log.deviceId || log.context?.deviceId || log.context?.deviceFingerprint || "DEV_SYSTEM_01";
-                      const localIp = log.localIp || log.context?.localIp || "192.168.1.100";
-                      const publicIp = log.publicIp || log.ipAddress || log.context?.publicIp || "127.0.0.1";
-                      const browser = log.browser || log.context?.browser || "Chrome 124";
-                      const osName = log.os || log.context?.os || "Windows 10/11";
-                      const actionName = log.action;
-                      const timeFormatted = new Date(log.createdAt).toISOString().replace("T", " ").substring(0, 19) + " UTC";
-
+                  ) : logs.length === 0 ? (
+                    <tr>
+                      <td colSpan={7} className="py-8 text-center text-zinc-500">
+                        No telemetry logs matched filter criteria.
+                      </td>
+                    </tr>
+                  ) : (
+                    logs.map((log) => {
+                      const isExpanded = expandedLogId === log.id;
                       return (
                         <React.Fragment key={log.id}>
                           <tr className="hover:bg-white/[0.02] transition-colors">
-                            <td className="p-3.5 text-slate-400 whitespace-nowrap text-[11px]">
-                              {new Date(log.createdAt).toLocaleString()}
+                            <td className="py-2.5 px-4 text-zinc-400 whitespace-nowrap">
+                              {new Date(log.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
                             </td>
-                            <td className="p-3.5">
-                              {log.user ? (
-                                <div>
-                                  <span className="text-white font-bold">{log.user.name}</span>
-                                  <span className="text-[10px] text-slate-400 block">{log.user.email} ({log.user.role})</span>
-                                </div>
-                              ) : (
-                                <span className="text-slate-500 italic">Unauthenticated / System</span>
+                            <td className="py-2.5 px-4 whitespace-nowrap">
+                              {getSeverityBadge(log.severity)}
+                            </td>
+                            <td className="py-2.5 px-4">
+                              <span className="font-bold text-white block">{log.action}</span>
+                              {log.ruleId && (
+                                <span className="text-[9px] text-[#CCFF00] font-mono">{log.ruleId}</span>
                               )}
                             </td>
-                            <td className="p-3.5">
-                              <span className="font-bold text-[#00E1FF]">{log.action}</span>
+                            <td className="py-2.5 px-4 text-zinc-300">
+                              <div className="flex items-center gap-1.5">
+                                <Globe className="w-3 h-3 text-cyan-400 shrink-0" />
+                                <span>{log.publicIp || "127.0.0.1"}</span>
+                              </div>
                             </td>
-                            <td className="p-3.5 text-slate-400 font-mono text-[11px]">
-                              {publicIp}
+                            <td className="py-2.5 px-4 text-zinc-300">
+                              <div className="flex items-center gap-1.5">
+                                <Wifi className="w-3 h-3 text-emerald-400 shrink-0" />
+                                <span>{log.privateIp || log.localIp || "192.168.1.100"}</span>
+                              </div>
                             </td>
-                            <td className="p-3.5">
-                              <span
-                                className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                                  log.outcome === "SUCCESS"
-                                    ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/30"
-                                    : log.outcome === "FAILED"
-                                    ? "bg-red-500/10 text-red-400 border border-red-500/30"
-                                    : "bg-amber-500/10 text-amber-400 border border-amber-500/30"
-                                }`}
-                              >
-                                {log.outcome}
-                              </span>
+                            <td className="py-2.5 px-4">
+                              {log.user ? (
+                                <div>
+                                  <span className="text-white font-semibold block truncate max-w-[120px]">{log.user.name}</span>
+                                  <span className="text-[9px] text-zinc-500 block truncate max-w-[120px]">{log.user.email}</span>
+                                </div>
+                              ) : (
+                                <span className="text-zinc-600">Anonymous</span>
+                              )}
                             </td>
-                            <td className="p-3.5 text-right">
+                            <td className="py-2.5 px-4 text-right whitespace-nowrap">
                               <button
-                                onClick={() => setExpandedLogId(expandedLogId === log.id ? null : log.id)}
-                                className="text-xs text-[#00F5D4] hover:underline"
+                                onClick={() => setExpandedLogId(isExpanded ? null : log.id)}
+                                className="px-2 py-1 rounded bg-black/50 border border-white/[0.08] text-[10px] text-zinc-300 hover:text-white"
                               >
-                                {expandedLogId === log.id ? "Hide Card" : "View ASCII Box"}
+                                {isExpanded ? "Close" : "Payload"}
                               </button>
                             </td>
                           </tr>
 
-                          {expandedLogId === log.id && (
-                            <tr className="bg-black/80">
-                              <td colSpan={6} className="p-4 border-t border-b border-[#121F3D]">
-                                <div className="bg-[#030712] border border-[#00F5D4]/40 rounded-xl p-4 font-mono text-xs space-y-2 max-w-xl">
-                                  <div className="text-[#00F5D4] font-bold border-b border-[#121F3D] pb-1">
-                                    ┌───────────────────────────────────────────┐<br />
-                                    │ MAINTENANCE LOG                           │<br />
-                                    ├───────────────────────────────────────────┤
+                          {/* Expanded Forensic Drawer */}
+                          {isExpanded && (
+                            <tr className="bg-black/60">
+                              <td colSpan={7} className="p-4 border-b border-white/[0.08]">
+                                <div className="space-y-3">
+                                  <div className="flex items-center justify-between text-xs text-zinc-400 border-b border-white/[0.06] pb-2">
+                                    <span className="text-[#CCFF00] font-bold">FORENSIC TELEMETRY DATA & CONTEXT</span>
+                                    <span>Device: {log.device} · OS: {log.os} · Browser: {log.browser}</span>
                                   </div>
-                                  <div className="space-y-1 text-slate-200">
-                                    <div className="flex"><span className="text-slate-400 w-28 shrink-0">│ User:</span> <span className="text-white font-bold">{userName}</span></div>
-                                    <div className="flex"><span className="text-slate-400 w-28 shrink-0">│ Device:</span> <span className="text-cyan-300">{device}</span></div>
-                                    <div className="flex"><span className="text-slate-400 w-28 shrink-0">│ Device ID:</span> <span className="text-amber-400 break-all">{deviceId}</span></div>
-                                    <div className="flex"><span className="text-slate-400 w-28 shrink-0">│ Local IP:</span> <span className="text-emerald-400">{localIp}</span></div>
-                                    <div className="flex"><span className="text-slate-400 w-28 shrink-0">│ Public IP:</span> <span className="text-[#00E1FF]">{publicIp}</span></div>
-                                    <div className="flex"><span className="text-slate-400 w-28 shrink-0">│ Browser:</span> <span className="text-indigo-300">{browser}</span></div>
-                                    <div className="flex"><span className="text-slate-400 w-28 shrink-0">│ OS:</span> <span className="text-purple-300">{osName}</span></div>
-                                    <div className="flex"><span className="text-slate-400 w-28 shrink-0">│ Action:</span> <span className="text-[#00F5D4] font-bold">{actionName}</span></div>
-                                    <div className="flex"><span className="text-slate-400 w-28 shrink-0">│ Time:</span> <span className="text-slate-300">{timeFormatted}</span></div>
-                                  </div>
-                                  <div className="text-[#00F5D4]/60 font-bold border-t border-[#121F3D] pt-1">
-                                    └───────────────────────────────────────────┘
-                                  </div>
+                                  <pre className="p-3 rounded-lg bg-black/80 border border-white/[0.06] text-[11px] text-emerald-400 font-mono overflow-x-auto">
+                                    {JSON.stringify(log.payloadContext || log.context || {}, null, 2)}
+                                  </pre>
+                                  {log.publicIp && log.publicIp !== "127.0.0.1" && (
+                                    <div className="flex gap-2">
+                                      <button
+                                        onClick={() => handleToggleBlockIp(log.publicIp!, false)}
+                                        className="px-3 py-1.5 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-xs hover:bg-red-500/20"
+                                      >
+                                        Ban Public Network IP ({log.publicIp})
+                                      </button>
+                                    </div>
+                                  )}
                                 </div>
                               </td>
                             </tr>
                           )}
                         </React.Fragment>
                       );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            )}
-
-            {/* Pagination Controls */}
-            <div className="mt-4 p-4 border-t border-[#121F3D] flex items-center justify-between text-xs font-mono">
-              <span className="text-slate-400">
-                Showing {logs.length} of {logsTotal} telemetry logs
-              </span>
-
-              <div className="flex items-center gap-2">
-                <button
-                  disabled={logsPage <= 1}
-                  onClick={() => setLogsPage(logsPage - 1)}
-                  className="px-3 py-1.5 rounded bg-black/40 border border-[#121F3D] text-slate-300 disabled:opacity-40"
-                >
-                  Previous
-                </button>
-                <span className="text-slate-400 font-bold px-2">
-                  Page {logsPage}
-                </span>
-                <button
-                  disabled={logs.length < 25}
-                  onClick={() => setLogsPage(logsPage + 1)}
-                  className="px-3 py-1.5 rounded bg-black/40 border border-[#121F3D] text-slate-300 disabled:opacity-40"
-                >
-                  Next
-                </button>
-              </div>
+                    })
+                  )}
+                </tbody>
+              </table>
             </div>
           </div>
         </div>
       )}
 
-      {/* ─── TAB 3: SECURITY & IP FIREWALL ──────────────────────────────────── */}
-      {activeTab === "security" && (
-        <div className="space-y-6">
-          {loadingSecurity ? (
-            <div className="flex justify-center py-20">
-              <div className="w-8 h-8 border-2 border-slate-700 border-t-[#00F5D4] rounded-full animate-spin" />
+      {/* ── TAB 3: FIREWALL RULES POLICY ENGINE ── */}
+      {activeTab === "firewall" && (
+        <div className="space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-3 p-4 rounded-xl bg-black/40 border border-white/[0.06]">
+            <div>
+              <h2 className="text-sm font-mono font-bold uppercase text-[var(--ck-text)]">
+                DYNAMIC FIREWALL POLICY RULES (LEVEL 2)
+              </h2>
+              <p className="text-xs text-zinc-400 mt-0.5">
+                Active real-time security rules evaluated across API routes, payloads, and public network IPs.
+              </p>
             </div>
-          ) : (
-            <>
-              {/* Recorded IP Addresses Table */}
-              <div className="bg-[#050A18] border border-[#121F3D] rounded-xl p-6 shadow-xl">
-                <div className="flex items-center justify-between mb-4">
-                  <div>
-                    <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
-                      <Lock className="w-4 h-4 text-red-500" />
-                      <span>IP Address Security Telemetry & Firewall</span>
-                    </h3>
-                    <p className="text-[10px] text-slate-400 mt-0.5">
-                      Monitor recorded client IP addresses and block suspicious malicious traffic.
-                    </p>
+            <button
+              onClick={() => setShowAddRuleModal(true)}
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-[#CCFF00]/10 border border-[#CCFF00]/30 text-[#CCFF00] text-xs font-mono font-bold hover:bg-[#CCFF00]/20"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              CREATE POLICY RULE
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 gap-3">
+            {firewallRules.map((rule) => (
+              <div
+                key={rule.id}
+                className="ck-glass-card p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+              >
+                <div className="space-y-1.5 flex-1 min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-xs font-bold text-white font-mono">{rule.name}</span>
+                    <span className="px-1.5 py-0.5 rounded text-[9px] font-mono bg-zinc-800 text-zinc-300">
+                      {rule.id}
+                    </span>
+                    <span className="px-1.5 py-0.5 rounded text-[9px] font-mono bg-purple-500/10 border border-purple-500/30 text-purple-400">
+                      {rule.category}
+                    </span>
+                    <span className="px-1.5 py-0.5 rounded text-[9px] font-mono bg-red-500/10 text-red-400 font-bold">
+                      {rule.action}
+                    </span>
                   </div>
-
-                  <span className="text-xs text-[#00F5D4] font-bold">
-                    {ipList.filter((i) => i.isBlocked).length} IPs Blocked
-                  </span>
-                </div>
-
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left text-xs font-mono">
-                    <thead className="bg-black/60 text-slate-400 border-b border-[#121F3D] uppercase text-[10px]">
-                      <tr>
-                        <th className="p-3">IP Address</th>
-                        <th className="p-3">Requests Count</th>
-                        <th className="p-3">Last Active User</th>
-                        <th className="p-3">Last Connection</th>
-                        <th className="p-3">Status</th>
-                        <th className="p-3 text-right">Firewall Action</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-[#121F3D]/50 text-slate-300">
-                      {ipList.map((item) => (
-                        <tr key={item.ipAddress} className="hover:bg-white/[0.02]">
-                          <td className="p-3 text-white font-bold font-mono">{item.ipAddress}</td>
-                          <td className="p-3 text-slate-300">{item.requestCount} Reqs</td>
-                          <td className="p-3">
-                            {item.lastUser ? (
-                              <span className="text-[#00E1FF]">{item.lastUser.name} ({item.lastUser.email})</span>
-                            ) : (
-                              <span className="text-slate-500">Anonymous</span>
-                            )}
-                          </td>
-                          <td className="p-3 text-slate-400 text-[11px]">
-                            {new Date(item.lastActiveAt).toLocaleString()}
-                          </td>
-                          <td className="p-3">
-                            <span
-                              className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                                item.isBlocked
-                                  ? "bg-red-500/20 text-red-400 border border-red-500/40"
-                                  : "bg-emerald-500/10 text-emerald-400 border border-emerald-500/30"
-                              }`}
-                            >
-                              {item.isBlocked ? "BLOCKED" : "OPERATIONAL"}
-                            </span>
-                          </td>
-                          <td className="p-3 text-right">
-                            <button
-                              onClick={() => handleToggleBlockIp(item.ipAddress, item.isBlocked)}
-                              className={`px-3 py-1 rounded text-[10px] font-bold uppercase transition-all ${
-                                item.isBlocked
-                                  ? "bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30"
-                                  : "bg-red-500/20 text-red-400 hover:bg-red-500/30"
-                              }`}
-                            >
-                              {item.isBlocked ? "Unblock IP" : "Block IP"}
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-
-              {/* Password Policy & Failed Logins */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="bg-[#050A18] border border-[#121F3D] rounded-xl p-5">
-                  <h4 className="text-xs font-bold text-white uppercase tracking-wider mb-3 flex items-center gap-2">
-                    <ShieldCheck className="w-4 h-4 text-[#00F5D4]" />
-                    <span>Password Security Policy & Auditing</span>
-                  </h4>
-
-                  <div className="space-y-2 text-xs text-slate-300">
-                    <div className="flex justify-between py-1 border-b border-[#121F3D]">
-                      <span className="text-slate-400">Password Hashing Algorithm:</span>
-                      <span className="text-[#00F5D4] font-bold">{passwordPolicy?.hashAlgorithm}</span>
-                    </div>
-                    <div className="flex justify-between py-1 border-b border-[#121F3D]">
-                      <span className="text-slate-400">Minimum Length Constraint:</span>
-                      <span className="text-white font-bold">{passwordPolicy?.minPasswordLength} Characters</span>
-                    </div>
-                    <div className="flex justify-between py-1 border-b border-[#121F3D]">
-                      <span className="text-slate-400">Reset Token Expiry:</span>
-                      <span className="text-white font-bold">{passwordPolicy?.resetTokenExpiryMinutes} Minutes</span>
-                    </div>
-                    <div className="flex justify-between py-1">
-                      <span className="text-slate-400">Rate Limit Auth Threshold:</span>
-                      <span className="text-white font-bold">{passwordPolicy?.rateLimitMaxAuthPerHour} Reqs/Hour</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="bg-[#050A18] border border-[#121F3D] rounded-xl p-5">
-                  <h4 className="text-xs font-bold text-white uppercase tracking-wider mb-3 flex items-center gap-2">
-                    <AlertTriangle className="w-4 h-4 text-amber-400" />
-                    <span>Recent Failed Login Attempt Telemetry</span>
-                  </h4>
-
-                  {recentFailedLogins.length === 0 ? (
-                    <p className="text-xs text-slate-500 italic py-4">No recent failed authentication attempts detected.</p>
-                  ) : (
-                    <div className="space-y-2 max-h-48 overflow-y-auto pr-1 text-xs">
-                      {recentFailedLogins.map((item, i) => (
-                        <div key={i} className="p-2 rounded bg-black/40 border border-red-950/40 flex items-center justify-between">
-                          <div>
-                            <span className="text-red-400 font-bold">{item.ipAddress || "Unknown IP"}</span>
-                            <span className="text-[10px] text-slate-400 block">
-                              Target User: {item.user?.email || "Unknown Email"}
-                            </span>
-                          </div>
-                          <span className="text-[10px] text-slate-500">
-                            {new Date(item.createdAt).toLocaleTimeString()}
-                          </span>
-                        </div>
-                      ))}
+                  <p className="text-xs text-zinc-400">{rule.description}</p>
+                  {rule.pattern && (
+                    <div className="p-2 rounded bg-black/60 border border-white/[0.04] text-[10px] font-mono text-[#CCFF00] truncate max-w-2xl">
+                      Pattern: {rule.pattern}
                     </div>
                   )}
                 </div>
-              </div>
-            </>
-          )}
-        </div>
-      )}
 
-      {/* ─── TAB 4: DATABASE & CLOUD DATA ──────────────────────────────────── */}
-      {activeTab === "database" && (
-        <div className="space-y-6">
-          {loadingDb ? (
-            <div className="flex justify-center py-20">
-              <div className="w-8 h-8 border-2 border-slate-700 border-t-[#00F5D4] rounded-full animate-spin" />
-            </div>
-          ) : (
-            <>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="bg-[#050A18] border border-[#121F3D] p-5 rounded-xl">
-                  <span className="text-[10px] text-slate-400 uppercase">DATABASE ENGINE</span>
-                  <p className="text-base font-bold text-[#00F5D4] mt-1">{dbMetrics?.engine}</p>
-                </div>
-                <div className="bg-[#050A18] border border-[#121F3D] p-5 rounded-xl">
-                  <span className="text-[10px] text-slate-400 uppercase">DATABASE STORAGE</span>
-                  <p className="text-base font-bold text-white mt-1">{dbMetrics?.storageMetrics?.databaseSizeMB} MB</p>
-                </div>
-                <div className="bg-[#050A18] border border-[#121F3D] p-5 rounded-xl">
-                  <span className="text-[10px] text-slate-400 uppercase">CLOUD MEDIA STORAGE</span>
-                  <p className="text-base font-bold text-purple-400 mt-1">{dbMetrics?.storageMetrics?.mediaStorageMB} MB</p>
-                </div>
-              </div>
-
-              <div className="bg-[#050A18] border border-[#121F3D] rounded-xl p-6 shadow-xl">
-                <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-4 flex items-center gap-2">
-                  <Database className="w-4 h-4 text-[#00F5D4]" />
-                  <span>Database Tables Telemetry & Row Allocation</span>
-                </h3>
-
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left text-xs font-mono">
-                    <thead className="bg-black/60 text-slate-400 border-b border-[#121F3D] uppercase text-[10px]">
-                      <tr>
-                        <th className="p-3">Table Name</th>
-                        <th className="p-3">Recorded Rows</th>
-                        <th className="p-3">Primary Key Schema</th>
-                        <th className="p-3">Indexes Count</th>
-                        <th className="p-3 text-right">Status</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-[#121F3D]/50 text-slate-300">
-                      {dbTables.map((t) => (
-                        <tr key={t.name} className="hover:bg-white/[0.02]">
-                          <td className="p-3 font-bold text-[#00E1FF]">{t.name}</td>
-                          <td className="p-3 text-white font-bold">{t.rows} Rows</td>
-                          <td className="p-3 text-slate-400">{t.primaryKey}</td>
-                          <td className="p-3 text-slate-300">{t.indexes} Indexes</td>
-                          <td className="p-3 text-right">
-                            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
-                              {t.status}
-                            </span>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </>
-          )}
-        </div>
-      )}
-
-      {/* ─── TAB 5: BUGS & MAINTENANCE SETTINGS ──────────────────────────────── */}
-      {activeTab === "bugs" && (
-        <div className="space-y-6">
-          {loadingBugs ? (
-            <div className="flex justify-center py-20">
-              <div className="w-8 h-8 border-2 border-slate-700 border-t-[#00F5D4] rounded-full animate-spin" />
-            </div>
-          ) : (
-            <>
-              {/* Maintenance Mode Controls */}
-              <div className="bg-[#050A18] border border-[#121F3D] rounded-xl p-6 shadow-xl">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
-                      <Settings className="w-4 h-4 text-amber-400" />
-                      <span>Portal Maintenance Mode Control</span>
-                    </h3>
-                    <p className="text-[10px] text-slate-400 mt-1">
-                      Lock down portal operations for emergency tech updates and server maintenance.
-                    </p>
+                <div className="flex items-center gap-4 shrink-0">
+                  <div className="text-right font-mono">
+                    <span className="text-[10px] text-zinc-500 uppercase block">THREAT HITS</span>
+                    <span className="text-sm font-black text-red-400">{rule.hitsCount || 0}</span>
                   </div>
-
                   <button
-                    onClick={handleToggleMaintenanceMode}
-                    className={`px-4 py-2 rounded-xl text-xs font-bold font-mono uppercase transition-all shadow-lg ${
-                      maintenanceSettings.enabled
-                        ? "bg-amber-500 text-black hover:bg-amber-400"
-                        : "bg-red-600 text-white hover:bg-red-500"
+                    onClick={() => handleToggleFirewallRule(rule.id, rule.enabled)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold border transition-all ${
+                      rule.enabled
+                        ? "bg-[#CCFF00]/10 border-[#CCFF00]/30 text-[#CCFF00]"
+                        : "bg-zinc-900 border-zinc-700 text-zinc-500"
                     }`}
                   >
-                    {maintenanceSettings.enabled ? "Disable Maintenance Mode" : "Enable Maintenance Mode"}
+                    {rule.enabled ? "ACTIVE" : "DISABLED"}
                   </button>
+                  {rule.id.startsWith("FW-RULE-") && rule.category === "CUSTOM" && (
+                    <button
+                      onClick={() => handleDeleteRule(rule.id)}
+                      className="p-1.5 rounded-lg border border-red-500/30 text-red-400 hover:bg-red-500/10"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  )}
                 </div>
               </div>
+            ))}
+          </div>
 
-              {/* Bug Ticket Submission Form */}
-              <div className="bg-[#050A18] border border-[#121F3D] rounded-xl p-6 shadow-xl">
-                <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-4 flex items-center gap-2">
-                  <Bug className="w-4 h-4 text-[#00F5D4]" />
-                  <span>Report Portal Bug & Telemetry Issue</span>
-                </h3>
-
-                <form onSubmit={handleSubmitBug} className="space-y-4 text-xs font-mono">
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <div className="sm:col-span-1">
-                      <label className="ck-label text-[10px]">Bug Title *</label>
-                      <input
-                        className="ck-input"
-                        placeholder="e.g. Session timeout exception on profile edit"
-                        value={newBugTitle}
-                        onChange={(e) => setNewBugTitle(e.target.value)}
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="ck-label text-[10px]">Category</label>
-                      <select
-                        className="ck-input"
-                        value={newBugCategory}
-                        onChange={(e) => setNewBugCategory(e.target.value)}
-                      >
-                        <option value="PORTAL_CORE" className="bg-[#050A18]">PORTAL_CORE</option>
-                        <option value="AUTHENTICATION" className="bg-[#050A18]">AUTHENTICATION</option>
-                        <option value="CERTIFICATE_ENGINE" className="bg-[#050A18]">CERTIFICATE_ENGINE</option>
-                        <option value="EVENT_TELEMETRY" className="bg-[#050A18]">EVENT_TELEMETRY</option>
-                        <option value="UI_UX" className="bg-[#050A18]">UI_UX</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="ck-label text-[10px]">Severity</label>
-                      <select
-                        className="ck-input"
-                        value={newBugSeverity}
-                        onChange={(e) => setNewBugSeverity(e.target.value as any)}
-                      >
-                        <option value="LOW" className="bg-[#050A18]">LOW</option>
-                        <option value="MEDIUM" className="bg-[#050A18]">MEDIUM</option>
-                        <option value="HIGH" className="bg-[#050A18]">HIGH</option>
-                        <option value="CRITICAL" className="bg-[#050A18]">CRITICAL</option>
-                      </select>
-                    </div>
-                  </div>
-
+          {/* Add Rule Modal */}
+          {showAddRuleModal && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="ck-glass-card p-6 w-full max-w-xl space-y-4"
+              >
+                <div className="flex items-center justify-between border-b border-white/[0.06] pb-3">
+                  <h3 className="text-sm font-mono font-bold uppercase text-white">
+                    DEFINE FIREWALL POLICY RULE (LEVEL 2)
+                  </h3>
+                  <button
+                    onClick={() => setShowAddRuleModal(false)}
+                    className="text-zinc-500 hover:text-white"
+                  >
+                    ✕
+                  </button>
+                </div>
+                <form onSubmit={handleCreateRule} className="space-y-3 font-mono text-xs">
                   <div>
-                    <label className="ck-label text-[10px]">Detailed Reproduction Steps & Context *</label>
-                    <textarea
-                      className="ck-input h-20 py-2 resize-none"
-                      placeholder="Describe the bug behavior, steps to reproduce, and environment details..."
-                      value={newBugDesc}
-                      onChange={(e) => setNewBugDesc(e.target.value)}
+                    <label className="block text-zinc-400 mb-1">RULE NAME</label>
+                    <input
                       required
+                      value={newRuleName}
+                      onChange={(e) => setNewRuleName(e.target.value)}
+                      placeholder="e.g. Block Malicious Proxy Scanners"
+                      className="w-full px-3 py-2 rounded-lg bg-black/60 border border-white/[0.08] text-white outline-none focus:border-[#CCFF00]/40"
                     />
                   </div>
-
-                  <button
-                    type="submit"
-                    disabled={submittingBug}
-                    className="ck-btn-primary text-xs py-2 px-4"
-                  >
-                    {submittingBug ? "Submitting Ticket..." : "Submit Bug Report"}
-                  </button>
-                </form>
-              </div>
-
-              {/* Bug Reports Roster */}
-              <div className="bg-[#050A18] border border-[#121F3D] rounded-xl p-6 shadow-xl">
-                <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-4 flex items-center gap-2">
-                  <FileText className="w-4 h-4 text-purple-400" />
-                  <span>Assigned Bug Tickets & Tech Roster</span>
-                </h3>
-
-                {bugs.length === 0 ? (
-                  <p className="text-xs text-slate-500 italic py-6 text-center">No active bug reports logged.</p>
-                ) : (
-                  <div className="space-y-3">
-                    {bugs.map((bug) => (
-                      <div
-                        key={bug.id}
-                        className="p-4 rounded-xl bg-black/40 border border-[#121F3D] flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs"
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-zinc-400 mb-1">CATEGORY</label>
+                      <select
+                        value={newRuleCategory}
+                        onChange={(e) => setNewRuleCategory(e.target.value)}
+                        className="w-full px-3 py-2 rounded-lg bg-black/60 border border-white/[0.08] text-white outline-none"
                       >
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <span className="font-bold text-white text-sm">{bug.title}</span>
-                            <span
-                              className={`px-2 py-0.5 rounded text-[9px] font-bold ${
-                                bug.severity === "CRITICAL"
-                                  ? "bg-red-500/20 text-red-400 border border-red-500/40"
-                                  : bug.severity === "HIGH"
-                                  ? "bg-amber-500/20 text-amber-400 border border-amber-500/40"
-                                  : "bg-blue-500/20 text-blue-400 border border-blue-500/40"
-                              }`}
-                            >
-                              {bug.severity}
-                            </span>
-                            <span className="text-[10px] text-slate-400">[{bug.category}]</span>
-                          </div>
-                          <p className="text-slate-300 mt-1">{bug.description}</p>
-                          <p className="text-[10px] text-slate-500 mt-1">
-                            Reported by {bug.reportedBy} on {new Date(bug.createdAt).toLocaleDateString()}
-                          </p>
-                        </div>
-
-                        <div className="flex items-center gap-2 shrink-0">
-                          {bug.status === "OPEN" && (
-                            <button
-                              onClick={() => handleUpdateBugStatus(bug.id, "IN_PROGRESS")}
-                              className="px-3 py-1 rounded bg-amber-500/20 text-amber-400 border border-amber-500/30 text-[10px] font-bold uppercase"
-                            >
-                              Mark In Progress
-                            </button>
-                          )}
-                          {bug.status !== "RESOLVED" && (
-                            <button
-                              onClick={() => handleUpdateBugStatus(bug.id, "RESOLVED")}
-                              className="px-3 py-1 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[10px] font-bold uppercase"
-                            >
-                              Mark Resolved
-                            </button>
-                          )}
-                          {bug.status === "RESOLVED" && (
-                            <span className="px-3 py-1 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 text-[10px] font-bold uppercase">
-                              RESOLVED
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    ))}
+                        <option value="CUSTOM">Custom Rule</option>
+                        <option value="SQLI">SQL Injection</option>
+                        <option value="XSS">XSS Scripting</option>
+                        <option value="BRUTE_FORCE">Brute Force</option>
+                        <option value="PATH_TRAVERSAL">Path Traversal</option>
+                        <option value="BAD_BOT">Bad Bot / Scanner</option>
+                        <option value="GEO_CIDR">CIDR / IP Range</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-zinc-400 mb-1">TARGET INSPECTION</label>
+                      <select
+                        value={newRuleTarget}
+                        onChange={(e) => setNewRuleTarget(e.target.value as any)}
+                        className="w-full px-3 py-2 rounded-lg bg-black/60 border border-white/[0.08] text-white outline-none"
+                      >
+                        <option value="ALL">All Request Data</option>
+                        <option value="BODY">JSON / Form Body</option>
+                        <option value="QUERY">URL Query Params</option>
+                        <option value="PATH">Request URL Path</option>
+                        <option value="HEADER">HTTP Headers</option>
+                        <option value="USER_AGENT">User-Agent</option>
+                      </select>
+                    </div>
                   </div>
-                )}
-              </div>
-            </>
+                  <div>
+                    <label className="block text-zinc-400 mb-1">DETECTION REGEX PATTERN</label>
+                    <input
+                      value={newRulePattern}
+                      onChange={(e) => setNewRulePattern(e.target.value)}
+                      placeholder="e.g. (evilbot|hacktool|scanner)"
+                      className="w-full px-3 py-2 rounded-lg bg-black/60 border border-white/[0.08] text-white outline-none focus:border-[#CCFF00]/40"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-zinc-400 mb-1">RULE DESCRIPTION</label>
+                    <textarea
+                      required
+                      value={newRuleDescription}
+                      onChange={(e) => setNewRuleDescription(e.target.value)}
+                      rows={2}
+                      placeholder="Briefly describe the threat and mitigation rationale."
+                      className="w-full px-3 py-2 rounded-lg bg-black/60 border border-white/[0.08] text-white outline-none focus:border-[#CCFF00]/40"
+                    />
+                  </div>
+                  <div className="flex justify-end gap-2 pt-2">
+                    <button
+                      type="button"
+                      onClick={() => setShowAddRuleModal(false)}
+                      className="px-4 py-2 rounded-lg bg-zinc-800 text-zinc-300"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className="px-4 py-2 rounded-lg bg-[#CCFF00] text-black font-bold"
+                    >
+                      Enforce Rule
+                    </button>
+                  </div>
+                </form>
+              </motion.div>
+            </div>
           )}
+        </div>
+      )}
+
+      {/* ── TAB 4: IP SECURITY & ATTACKS ── */}
+      {activeTab === "security" && (
+        <div className="space-y-4">
+          <div className="p-4 rounded-xl bg-black/40 border border-white/[0.06]">
+            <h2 className="text-sm font-mono font-bold uppercase text-[var(--ck-text)]">
+              PUBLIC NETWORK IP MANAGEMENT & HARDENING
+            </h2>
+            <p className="text-xs text-zinc-400 mt-0.5">
+              Identifies public network egress gateways, private device LAN addresses, and enforces automated lockout.
+            </p>
+          </div>
+
+          <div className="ck-glass-card overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs font-mono">
+                <thead>
+                  <tr className="border-b border-white/[0.06] bg-black/40 text-zinc-500 uppercase text-[10px]">
+                    <th className="py-2.5 px-4">PUBLIC NETWORK IP</th>
+                    <th className="py-2.5 px-4">PRIVATE DEVICE LAN IP</th>
+                    <th className="py-2.5 px-4">REQUEST COUNT</th>
+                    <th className="py-2.5 px-4">LAST IDENTITY</th>
+                    <th className="py-2.5 px-4">STATUS</th>
+                    <th className="py-2.5 px-4 text-right">ACTION</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/[0.04]">
+                  {loadingSecurity ? (
+                    <tr>
+                      <td colSpan={6} className="py-8 text-center text-zinc-500">
+                        Scanning IP telemetry...
+                      </td>
+                    </tr>
+                  ) : (
+                    ipList.map((ip) => (
+                      <tr key={ip.ipAddress} className="hover:bg-white/[0.02] transition-colors">
+                        <td className="py-3 px-4 font-bold text-white">
+                          <div className="flex items-center gap-1.5">
+                            <Globe className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+                            <span>{ip.publicIp || ip.ipAddress}</span>
+                          </div>
+                        </td>
+                        <td className="py-3 px-4 text-zinc-300">
+                          <div className="flex items-center gap-1.5">
+                            <Wifi className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                            <span>{ip.privateIp || ip.localIp || "192.168.1.100"}</span>
+                          </div>
+                        </td>
+                        <td className="py-3 px-4 text-zinc-400">{ip.requestCount} requests</td>
+                        <td className="py-3 px-4 text-zinc-300">
+                          {ip.lastUser ? `${ip.lastUser.name} (${ip.lastUser.role})` : "Anonymous"}
+                        </td>
+                        <td className="py-3 px-4">
+                          {ip.isBlocked ? (
+                            <span className="px-2 py-0.5 rounded text-[9px] font-bold bg-red-500/10 border border-red-500/30 text-red-400">
+                              BLOCKED BY FIREWALL
+                            </span>
+                          ) : (
+                            <span className="px-2 py-0.5 rounded text-[9px] font-bold bg-emerald-500/10 text-emerald-400">
+                              CLEAN
+                            </span>
+                          )}
+                        </td>
+                        <td className="py-3 px-4 text-right">
+                          <button
+                            onClick={() => handleToggleBlockIp(ip.ipAddress, ip.isBlocked)}
+                            className={`px-3 py-1 rounded text-xs font-bold border transition-all ${
+                              ip.isBlocked
+                                ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20"
+                                : "bg-red-500/10 border-red-500/30 text-red-400 hover:bg-red-500/20"
+                            }`}
+                          >
+                            {ip.isBlocked ? "Unblock IP" : "Ban Public IP"}
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── TAB 5: DATABASE TABLES ── */}
+      {activeTab === "database" && (
+        <div className="space-y-4">
+          <div className="p-4 rounded-xl bg-black/40 border border-white/[0.06]">
+            <h2 className="text-sm font-mono font-bold uppercase text-[var(--ck-text)]">
+              PRISMA DATABASE SCHEMA & STORAGE METRICS
+            </h2>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {dbTables.map((t) => (
+              <div key={t.name} className="ck-glass-card p-4 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-mono font-bold text-white">{t.name}</span>
+                  <span className="px-2 py-0.5 rounded text-[9px] font-mono bg-emerald-500/10 text-emerald-400">
+                    {t.status}
+                  </span>
+                </div>
+                <p className="text-xl font-mono font-black text-[#CCFF00]">{t.rows} Records</p>
+                <div className="flex justify-between text-[10px] font-mono text-zinc-500 border-t border-white/[0.04] pt-2">
+                  <span>PK: {t.primaryKey}</span>
+                  <span>{t.indexes} Indexes</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── TAB 6: SYSTEM BUGS ── */}
+      {activeTab === "bugs" && (
+        <div className="space-y-4">
+          <div className="ck-glass-card p-5">
+            <h2 className="text-sm font-mono font-bold uppercase text-white mb-3">
+              REPORT SYSTEM ISSUE / BUG (LEVEL 2 AUDIT)
+            </h2>
+            <form onSubmit={handleBugSubmit} className="space-y-3 font-mono text-xs">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="sm:col-span-2">
+                  <label className="block text-zinc-400 mb-1">ISSUE TITLE</label>
+                  <input
+                    required
+                    value={newBugTitle}
+                    onChange={(e) => setNewBugTitle(e.target.value)}
+                    placeholder="Brief description of the anomaly..."
+                    className="w-full px-3 py-2 rounded-lg bg-black/60 border border-white/[0.08] text-white outline-none focus:border-[#CCFF00]/40"
+                  />
+                </div>
+                <div>
+                  <label className="block text-zinc-400 mb-1">SEVERITY</label>
+                  <select
+                    value={newBugSeverity}
+                    onChange={(e) => setNewBugSeverity(e.target.value as any)}
+                    className="w-full px-3 py-2 rounded-lg bg-black/60 border border-white/[0.08] text-white outline-none"
+                  >
+                    <option value="LOW">Low</option>
+                    <option value="MEDIUM">Medium</option>
+                    <option value="HIGH">High</option>
+                    <option value="CRITICAL">Critical</option>
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label className="block text-zinc-400 mb-1">TECHNICAL OBSERVATIONS & LOGS</label>
+                <textarea
+                  required
+                  value={newBugDesc}
+                  onChange={(e) => setNewBugDesc(e.target.value)}
+                  rows={3}
+                  placeholder="Steps to reproduce, error message, affected route..."
+                  className="w-full px-3 py-2 rounded-lg bg-black/60 border border-white/[0.08] text-white outline-none focus:border-[#CCFF00]/40"
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={submittingBug}
+                className="px-4 py-2 rounded-lg bg-[#CCFF00] text-black font-bold"
+              >
+                {submittingBug ? "Logging..." : "Submit Technical Bug Report"}
+              </button>
+            </form>
+          </div>
+
+          <div className="space-y-2">
+            {bugs.map((b) => (
+              <div key={b.id} className="ck-glass-card p-4 space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-white font-mono">{b.title}</span>
+                  <span className="px-2 py-0.5 rounded text-[9px] font-mono bg-zinc-800 text-zinc-300">
+                    {b.status}
+                  </span>
+                </div>
+                <p className="text-xs text-zinc-400 font-mono">{b.description}</p>
+                <div className="text-[10px] font-mono text-zinc-500">
+                  Reported by: {b.reportedBy} · {new Date(b.createdAt).toLocaleDateString()}
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </div>

@@ -1,110 +1,134 @@
 import { Request, Response, NextFunction } from "express";
+import { FirewallPolicyManager } from "../lib/firewallRules";
+import { logAuditEvent } from "../lib/auditLogger";
 
 /**
- * Middleware: WAF-lite — Suspicious Payload Detection
+ * Middleware: Level 2 Dynamic WAF & Firewall Policy Enforcement
  *
- * Scans all incoming request bodies, query params, URL paths, and headers
- * for common attack patterns. Rejects with a generic 400 without revealing
- * which pattern was matched (prevents attacker feedback loops).
- *
- * Patterns detected:
- * - Path traversal:    ../  ..\  %2e%2e  %252e
- * - XSS probes:        <script, javascript:, onerror=, onload=, vbscript:
- * - SQLi probes:       ' OR 1=1, UNION SELECT, DROP TABLE, INSERT INTO,
- *                      DELETE FROM, --,  xp_cmdshell, EXEC(
- * - Null bytes:        %00, \x00
- * - SSRF/Open redirect: http://169.254 (AWS metadata), file://
- * - NoSQLi:            $where, $gt, $ne (MongoDB operator injection)
+ * 1. Checks Public IP Ban List.
+ * 2. Scans Request Paths, Query Params, Bodies, and Headers against Level 2 Threat Patterns.
+ * 3. Evaluates custom dynamic firewall rules.
+ * 4. Logs forensic audit events with SECURITY_BLOCK severity.
  */
 
-// ─── Pattern Registry ───────────────────────────────────────────────────────
+// ─── Core Pattern Registry ───────────────────────────────────────────────────
 
-const ATTACK_PATTERNS: RegExp[] = [
+const ATTACK_PATTERNS: Array<{ id: string; category: string; regex: RegExp }> = [
   // Path traversal
-  /\.\.[/\\]/,
-  /%2e%2e[/\\%]/i,
-  /%252e%252e/i,
-
+  { id: "FW-RULE-003", category: "PATH_TRAVERSAL", regex: /\.\.[/\\]|%2e%2e[/\\%]|%252e%252e/i },
   // Null bytes
-  /\x00|%00/,
-
+  { id: "FW-RULE-003", category: "PATH_TRAVERSAL", regex: /\x00|%00/ },
   // XSS probes
-  /<script[\s>]/i,
-  /javascript\s*:/i,
-  /vbscript\s*:/i,
-  /on(?:error|load|click|mouseover|focus|blur|input|change|submit|reset|keydown|keyup|keypress|dblclick|contextmenu)\s*=/i,
-  /data\s*:\s*text\/html/i,
-
+  { id: "FW-RULE-002", category: "XSS", regex: /<script[\s>]|javascript\s*:|vbscript\s*:|on(?:error|load|click|mouseover|focus|blur|input|change|submit|reset|keydown|keyup|keypress|dblclick|contextmenu)\s*=|data\s*:\s*text\/html/i },
   // SQL injection
-  /'\s*(?:or|and)\s+['"\d]/i,
-  /union\s+(?:all\s+)?select/i,
-  /(?:drop|truncate|delete\s+from|insert\s+into|update\s+\w+\s+set)\s+\w/i,
-  /exec\s*\(/i,
-  /xp_cmdshell/i,
-  /(?:--|#)\s*$/m,
-  /\/\*.*\*\//,
-
+  { id: "FW-RULE-001", category: "SQLI", regex: /'\s*(?:or|and)\s+['"\d]|union\s+(?:all\s+)?select|(?:drop|truncate|delete\s+from|insert\s+into|update\s+\w+\s+set)\s+\w|exec\s*\(|xp_cmdshell|(?:\/\*.*\*\/)/i },
   // NoSQL injection (MongoDB)
-  /\$(?:where|gt|lt|ne|gte|lte|in|nin|regex|exists|type|mod|all|size|elemMatch)\b/,
-
-  // SSRF / AWS metadata endpoint
-  /169\.254\.169\.254/,
-  /file:\/\//i,
+  { id: "FW-RULE-007", category: "SQLI", regex: /\$(?:where|gt|lt|ne|gte|lte|in|nin|regex|exists|type|mod|all|size|elemMatch)\b/ },
+  // SSRF / AWS metadata
+  { id: "FW-RULE-005", category: "DOS", regex: /169\.254\.169\.254|file:\/\/|gopher:\/\/|dict:\/\//i },
+  // Attack tools / Scanners
+  { id: "FW-RULE-006", category: "BAD_BOT", regex: /sqlmap|nikto|dirbuster|gobuster|nmap|masscan|wpscan|hydra|acunetix/i },
 ];
 
-// ─── Scanner ────────────────────────────────────────────────────────────────
-
-function isMalicious(value: unknown, depth = 0): boolean {
-  // Prevent deeply nested object DoS
-  if (depth > 10) return false;
+function checkValueMalicious(value: unknown, depth = 0): { malicious: boolean; ruleId?: string; category?: string } {
+  if (depth > 10) return { malicious: false };
 
   if (typeof value === "string") {
-    // Decode common URL encodings before scanning
     let decoded = value;
-    try { decoded = decodeURIComponent(value); } catch { /* leave as-is */ }
+    try { decoded = decodeURIComponent(value); } catch {}
 
-    return ATTACK_PATTERNS.some((pattern) => pattern.test(decoded) || pattern.test(value));
+    for (const rule of ATTACK_PATTERNS) {
+      if (rule.regex.test(decoded) || rule.regex.test(value)) {
+        return { malicious: true, ruleId: rule.id, category: rule.category };
+      }
+    }
   }
 
   if (Array.isArray(value)) {
-    return value.some((item) => isMalicious(item, depth + 1));
+    for (const item of value) {
+      const res = checkValueMalicious(item, depth + 1);
+      if (res.malicious) return res;
+    }
   }
 
   if (value !== null && typeof value === "object") {
-    return Object.values(value as Record<string, unknown>).some((v) => isMalicious(v, depth + 1));
+    for (const v of Object.values(value as Record<string, unknown>)) {
+      const res = checkValueMalicious(v, depth + 1);
+      if (res.malicious) return res;
+    }
   }
 
-  return false;
+  return { malicious: false };
 }
 
-// ─── Middleware ──────────────────────────────────────────────────────────────
+// ─── Middleware Execution ────────────────────────────────────────────────────
 
-export function suspiciousPayload(req: Request, res: Response, next: NextFunction): void {
-  // Scan URL path
-  if (isMalicious(req.path)) {
-    res.status(400).json({ error: "Bad Request" });
-    return;
-  }
+export async function suspiciousPayload(req: Request, res: Response, next: NextFunction): Promise<void> {
+  const forwarded = req.headers["x-forwarded-for"];
+  const publicIp = typeof forwarded === "string" ? forwarded.split(",")[0].trim() : req.ip || req.socket.remoteAddress || "127.0.0.1";
 
-  // Scan query string parameters
-  if (isMalicious(req.query)) {
-    res.status(400).json({ error: "Bad Request" });
-    return;
-  }
+  // 1. Check Public Network IP Blacklist
+  try {
+    const isBlocked = await FirewallPolicyManager.isPublicIpBlocked(publicIp);
+    if (isBlocked) {
+      logAuditEvent({
+        action: "FIREWALL_BLOCKED_IP_REJECTED",
+        outcome: "REJECTED",
+        severity: "SECURITY_BLOCK",
+        category: "FIREWALL",
+        ruleId: "FW-RULE-004",
+        context: {
+          publicIp,
+          path: req.path,
+          method: req.method,
+          reason: "Public Network IP is blocked in Firewall Policy",
+        },
+        req,
+      }).catch(() => {});
 
-  // Scan request body (only if already parsed by express.json)
-  if (req.body && isMalicious(req.body)) {
-    res.status(400).json({ error: "Bad Request" });
-    return;
-  }
-
-  // Scan selected headers that users can control
-  const controllableHeaders = ["x-forwarded-for", "referer", "user-agent", "x-club-slug"];
-  for (const header of controllableHeaders) {
-    if (isMalicious(req.headers[header])) {
-      res.status(400).json({ error: "Bad Request" });
+      res.status(403).json({ error: "Access Denied: Your IP address is blocked by security policy." });
       return;
     }
+  } catch {}
+
+  // 2. Scan Path, Query, Body, Headers
+  let violation = checkValueMalicious(req.path);
+  if (!violation.malicious) violation = checkValueMalicious(req.query);
+  if (!violation.malicious && req.body) violation = checkValueMalicious(req.body);
+
+  if (!violation.malicious) {
+    const checkHeaders = ["user-agent", "x-forwarded-for", "referer", "x-club-slug"];
+    for (const h of checkHeaders) {
+      if (req.headers[h]) {
+        violation = checkValueMalicious(req.headers[h]);
+        if (violation.malicious) break;
+      }
+    }
+  }
+
+  if (violation.malicious) {
+    if (violation.ruleId) {
+      FirewallPolicyManager.recordHit(violation.ruleId);
+    }
+
+    logAuditEvent({
+      action: "WAF_ATTACK_BLOCKED",
+      outcome: "REJECTED",
+      severity: "SECURITY_BLOCK",
+      category: "WAF",
+      ruleId: violation.ruleId || "FW-RULE-WAF",
+      context: {
+        publicIp,
+        path: req.path,
+        method: req.method,
+        category: violation.category,
+        ruleId: violation.ruleId,
+      },
+      req,
+    }).catch(() => {});
+
+    res.status(400).json({ error: "Bad Request" });
+    return;
   }
 
   next();

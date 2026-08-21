@@ -1,4 +1,5 @@
 import { redisGet, redisSet, redisDel } from "./redis";
+import { FirewallPolicyManager } from "./firewallRules";
 
 interface BlockRecord {
   attempts: number;
@@ -118,7 +119,7 @@ export class LoginRateLimiter {
     if (emailKey) keys.push(emailKey);
 
     let maxBlockedUntil = 0;
-    let maxTier: 1 | 2 = 1;
+    let maxTier: number = 1;
     let maxAttempts = 0;
 
     await Promise.all(
@@ -167,6 +168,12 @@ export class LoginRateLimiter {
 
     if (maxBlockedUntil > now) {
       const remainingSec = Math.ceil((maxBlockedUntil - now) / 1000);
+
+      // On Tier 2 lockout (5+ failed attempts), automatically register public IP into Firewall Ban List
+      if (maxTier === 2 && ip && ip !== "127.0.0.1") {
+        FirewallPolicyManager.blockPublicIp(ip, "Exceeded 5 failed login attempts").catch(() => {});
+      }
+
       return {
         blocked: true,
         remainingSeconds: remainingSec,
@@ -175,9 +182,10 @@ export class LoginRateLimiter {
         retryAfterFormatted: formatRemainingTime(remainingSec),
         message: maxTier === 1
           ? `4 failed login attempts reached. Your access is blocked for 20 minutes.`
-          : `Final attempt failed. Your access is blocked for 5 hours.`,
+          : `Final attempt failed. Your public IP has been blocked for 5 hours by firewall policy.`,
       };
     }
+
 
     const remainingAttempts = Math.max(0, 4 - maxAttempts);
     return {
