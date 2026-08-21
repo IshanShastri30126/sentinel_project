@@ -57,7 +57,12 @@ async function executeApiRequest<T>(endpoint: string, options: FetchOptions = {}
     ...rest,
   });
 
-  const data = await res.json();
+  let data: any = {};
+  try {
+    data = await res.json();
+  } catch {
+    data = { error: res.statusText || `HTTP ${res.status}` };
+  }
 
 
   if (!res.ok) {
