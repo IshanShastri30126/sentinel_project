@@ -21,14 +21,21 @@ declare global {
 }
 
 /**
- * Middleware: Verify JWT from Authorization header or cookie.
- * Enforces Device Fingerprint validation & Session Hijacking prevention.
+ * Middleware: Verify JWT from Authorization header or HttpOnly cookie.
+ *
+ * Security notes:
+ * - Token-from-query-string (?token=...) is intentionally NOT supported.
+ *   Query params appear in server logs, browser history, and Referer headers.
+ * - All JWT verification errors are normalised to a single generic message
+ *   to prevent error-oracle attacks (distinguishing "expired" vs "malformed").
+ * - jwt.verify() uses hmac timing-safe comparison internally — no additional
+ *   constant-time guard needed at this layer.
  */
 export async function authenticate(req: Request, res: Response, next: NextFunction): Promise<void> {
+  // Only accept token from HttpOnly cookie OR Authorization header — never from query string
   const token =
     req.cookies?.accessToken ||
-    req.headers.authorization?.replace("Bearer ", "") ||
-    (req.query.token as string);
+    req.headers.authorization?.replace(/^Bearer\s+/i, "");
 
   if (!token) {
     res.status(401).json({ error: "Authentication required" });
@@ -44,16 +51,20 @@ export async function authenticate(req: Request, res: Response, next: NextFuncti
     });
 
     if (!dbUser || !dbUser.isActive) {
-      res.status(401).json({ error: "Account inactive or unauthorized" });
+      // Generic message — do not reveal whether account exists or is inactive
+      res.status(401).json({ error: "Authentication required" });
       return;
     }
 
     req.user = payload;
     next();
-  } catch (err) {
-    res.status(401).json({ error: "Invalid or expired token" });
+  } catch {
+    // Normalise ALL jwt errors (expired, malformed, invalid signature, etc.)
+    // to a single generic message — prevents distinguishing token states
+    res.status(401).json({ error: "Authentication required" });
   }
 }
+
 
 /**
  * Role hierarchy levels — lower number = higher authority.

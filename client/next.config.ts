@@ -57,16 +57,41 @@ const nextConfig: NextConfig = {
   // Strip X-Powered-By header at Next.js level
   poweredByHeader: false,
 
+  // ── Source Map Security ───────────────────────────────────────────────────
+  // Disable browser source maps in production builds.
+  // Without this, ALL original TypeScript source code is visible in
+  // DevTools → Sources tab — even with minification.
+  // NOTE: This only applies to `npm run build`. Dev mode still shows source maps.
+  productionBrowserSourceMaps: false,
+
   async headers() {
     return [
+      // ── Security headers on all routes ──────────────────────────────────
       {
-        // Apply to all routes
         source: "/:path*",
         headers: securityHeaders.filter((h) => h.value !== ""),
+      },
+      // ── No-cache on all dashboard pages ──────────────────────────────────
+      // Prevents sensitive page data from being stored in DevTools
+      // Application → Cache Storage or being re-served from disk cache.
+      {
+        source: "/dashboard/:path*",
+        headers: [
+          { key: "Cache-Control", value: "no-store, no-cache, must-revalidate, private" },
+          { key: "Pragma", value: "no-cache" },
+          { key: "Expires", value: "0" },
+        ],
+      },
+      // ── No-cache on auth pages ─────────────────────────────────────────
+      {
+        source: "/login",
+        headers: [
+          { key: "Cache-Control", value: "no-store, no-cache, must-revalidate, private" },
+          { key: "Pragma", value: "no-cache" },
+        ],
       },
     ];
   },
 };
 
 export default nextConfig;
-
