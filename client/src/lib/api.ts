@@ -90,8 +90,8 @@ async function executeApiRequest<T>(endpoint: string, options: FetchOptions = {}
             return await retryRes.json() as T;
           }
         }
-      } catch (err) {
-        console.error("Silent token refresh failed:", err);
+      } catch {
+        // Silent — do not expose token refresh failures to DevTools
       }
     }
     const errObj = new Error(data.error || `API error: ${res.status}`);
@@ -181,8 +181,8 @@ export async function apiUpload<T = unknown>(endpoint: string, formData: FormDat
         Cookies.set("accessToken", newAccessToken, { expires: 1 });
         res = await makeUploadRequest(newAccessToken);
       }
-    } catch (err) {
-      console.error("Silent token refresh failed (upload):", err);
+    } catch {
+      // Silent — do not expose token refresh failures to DevTools
     }
   }
 
