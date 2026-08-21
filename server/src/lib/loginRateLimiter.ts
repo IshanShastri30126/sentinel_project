@@ -54,15 +54,18 @@ async function deleteRecord(key: string): Promise<void> {
 
 export class LoginRateLimiter {
   /**
-   * Check if IP or Email is currently blocked
+   * Check if IP or Email is currently blocked (Parallel Redis lookups)
    */
   static async checkBlockStatus(ip: string, email?: string) {
     const now = Date.now();
     const ipKey = `ip:${ip}`;
     const emailKey = email ? `email:${email.toLowerCase().trim()}` : null;
 
-    const ipRecord = await getRecord(ipKey);
-    const emailRecord = emailKey ? await getRecord(emailKey) : null;
+    // Parallel fetch from Redis/Memory
+    const [ipRecord, emailRecord] = await Promise.all([
+      getRecord(ipKey),
+      emailKey ? getRecord(emailKey) : Promise.resolve(null),
+    ]);
 
     // Check IP block
     if (ipRecord.blockedUntil > now) {
@@ -91,7 +94,7 @@ export class LoginRateLimiter {
     }
 
     // If block period has expired, check if they are at 4 attempts (Tier 1 expired -> 1 chance remaining)
-    let currentAttempts = Math.max(
+    const currentAttempts = Math.max(
       ipRecord.blockedUntil > 0 && ipRecord.attempts >= 4 ? 4 : ipRecord.attempts,
       emailRecord && emailRecord.blockedUntil > 0 && emailRecord.attempts >= 4 ? 4 : emailRecord?.attempts || 0
     );
@@ -104,7 +107,7 @@ export class LoginRateLimiter {
   }
 
   /**
-   * Record a failed login attempt
+   * Record a failed login attempt (Parallel execution)
    */
   static async recordFailure(ip: string, email?: string) {
     const now = Date.now();
@@ -115,58 +118,52 @@ export class LoginRateLimiter {
     if (emailKey) keys.push(emailKey);
 
     let maxBlockedUntil = 0;
-    let maxRemainingSec = 0;
     let maxTier: 1 | 2 = 1;
     let maxAttempts = 0;
 
-    for (const key of keys) {
-      const rec = await getRecord(key);
-      
-      // If was previously blocked and block expired, they are at attempt 4 (1 chance)
-      let prevAttempts = rec.attempts;
-      if (rec.blockedUntil > 0 && rec.blockedUntil <= now && prevAttempts >= 4) {
-        prevAttempts = 4;
-      }
+    await Promise.all(
+      keys.map(async (key) => {
+        const rec = await getRecord(key);
 
-      let newAttempts = prevAttempts + 1;
-      let blockedUntil = 0;
-      let tier: 1 | 2 = 1;
-      let ttl = 24 * 3600; // default 24h retention
+        let prevAttempts = rec.attempts;
+        if (rec.blockedUntil > 0 && rec.blockedUntil <= now && prevAttempts >= 4) {
+          prevAttempts = 4;
+        }
 
-      if (newAttempts < 4) {
-        // Under 4 attempts
-        blockedUntil = 0;
-      } else if (newAttempts === 4) {
-        // 4th failed attempt -> Block for 20 minutes (1200 seconds)
-        blockedUntil = now + 20 * 60 * 1000;
-        tier = 1;
-        ttl = 25 * 60; // 25 minutes TTL
-      } else {
-        // 5th or higher failed attempt -> Block for 5 hours (18000 seconds)
-        newAttempts = 5;
-        blockedUntil = now + 5 * 60 * 60 * 1000;
-        tier = 2;
-        ttl = 6 * 3600; // 6 hours TTL
-      }
+        const newAttempts = prevAttempts + 1;
+        let blockedUntil = 0;
+        let tier: 1 | 2 = 1;
+        let ttl = 24 * 3600;
 
-      const updatedRecord: BlockRecord = {
-        attempts: newAttempts,
-        blockedUntil,
-        tier,
-      };
+        if (newAttempts < 4) {
+          blockedUntil = 0;
+        } else if (newAttempts === 4) {
+          blockedUntil = now + 20 * 60 * 1000;
+          tier = 1;
+          ttl = 25 * 60;
+        } else {
+          blockedUntil = now + 5 * 60 * 60 * 1000;
+          tier = 2;
+          ttl = 6 * 3600;
+        }
 
-      await setRecord(key, updatedRecord, ttl);
+        const updatedRecord: BlockRecord = {
+          attempts: newAttempts,
+          blockedUntil,
+          tier,
+        };
 
-      if (blockedUntil > now) {
-        if (blockedUntil > maxBlockedUntil) {
+        await setRecord(key, updatedRecord, ttl);
+
+        if (blockedUntil > now && blockedUntil > maxBlockedUntil) {
           maxBlockedUntil = blockedUntil;
           maxTier = tier;
         }
-      }
-      if (newAttempts > maxAttempts) {
-        maxAttempts = newAttempts;
-      }
-    }
+        if (newAttempts > maxAttempts) {
+          maxAttempts = newAttempts;
+        }
+      })
+    );
 
     if (maxBlockedUntil > now) {
       const remainingSec = Math.ceil((maxBlockedUntil - now) / 1000);
@@ -192,15 +189,17 @@ export class LoginRateLimiter {
   }
 
   /**
-   * Record a successful login attempt (reset counter & blocks)
+   * Record a successful login attempt (reset counter & blocks in parallel)
    */
   static async recordSuccess(ip: string, email?: string) {
     const ipKey = `ip:${ip}`;
-    await deleteRecord(ipKey);
+    const promises: Promise<void>[] = [deleteRecord(ipKey)];
 
     if (email) {
       const emailKey = `email:${email.toLowerCase().trim()}`;
-      await deleteRecord(emailKey);
+      promises.push(deleteRecord(emailKey));
     }
+
+    await Promise.all(promises);
   }
 }

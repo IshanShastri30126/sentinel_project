@@ -283,19 +283,6 @@ router.post("/login", validate(loginSchema), async (req: Request, res: Response)
       return;
     }
 
-    // Clear failed attempt counter & block record on successful login
-    await LoginRateLimiter.recordSuccess(clientIp, email);
-
-    // Update last active timestamp
-    try {
-      await prisma.user.update({
-        where: { id: user.id },
-        data: { lastActiveAt: new Date() },
-      });
-    } catch (e) {
-      console.warn("[Auth] lastActiveAt update skipped:", e);
-    }
-
     const payload: AuthPayload = {
       userId: user.id,
       email: user.email,
@@ -304,27 +291,35 @@ router.post("/login", validate(loginSchema), async (req: Request, res: Response)
     };
 
     const { accessToken, refreshToken } = generateTokens(payload);
-    await redisSet(`session:${user.id}`, JSON.stringify(payload), 7 * 24 * 3600);
     setTokenCookies(res, accessToken, refreshToken, clientFingerprint);
 
-    await logAuditEvent({
-      action: "USER_LOGIN",
-      userId: user.id,
-      outcome: "SUCCESS",
-      context: { email, role: user.role, deviceFingerprint: clientFingerprint },
-      req,
-    });
+    // Asynchronous background operations (fire-and-forget to avoid blocking user response)
+    Promise.allSettled([
+      LoginRateLimiter.recordSuccess(clientIp, email),
+      redisSet(`session:${user.id}`, JSON.stringify(payload), 7 * 24 * 3600),
+      prisma.user.update({
+        where: { id: user.id },
+        data: { lastActiveAt: new Date() },
+      }),
+      logAuditEvent({
+        action: "USER_LOGIN",
+        userId: user.id,
+        outcome: "SUCCESS",
+        context: { email, role: user.role, deviceFingerprint: clientFingerprint },
+        req,
+      }),
+    ]).catch(() => {});
 
     if (!user.firstLoginEmailSent) {
       sendLoginNotificationEmail(
         { name: user.name, email: user.email },
         { ip: req.ip || req.socket.remoteAddress, userAgent: req.headers["user-agent"] }
-      ).catch((err) => console.error("[Auth] Login email failed:", err));
+      ).catch(() => {});
 
       prisma.user.update({
         where: { id: user.id },
         data: { firstLoginEmailSent: true },
-      }).catch((err) => console.error("[Auth] Failed to update firstLoginEmailSent:", err));
+      }).catch(() => {});
     }
 
     res.json({

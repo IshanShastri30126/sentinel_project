@@ -66,11 +66,24 @@ function LoginPageContent() {
     }
   };
 
+  // Check IP block status on initial load, and debounce email check
   useEffect(() => {
-    if (isLogin) {
-      checkBlockStatus(email);
+    if (!isLogin) return;
+
+    // If no email entered, only check IP block once
+    if (!email || !email.includes("@") || email.length < 5) {
+      checkBlockStatus();
+      return;
     }
+
+    // Debounce checking specific email block status by 600ms
+    const debounceTimer = setTimeout(() => {
+      checkBlockStatus(email);
+    }, 600);
+
+    return () => clearTimeout(debounceTimer);
   }, [email, isLogin]);
+
 
   // Countdown timer interval for block screen
   useEffect(() => {
