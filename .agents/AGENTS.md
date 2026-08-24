@@ -23,7 +23,19 @@
   13. **Memory Management**: Bounded string functions, explicit resource deallocation at exit points, overflow prevention.
   14. **General Coding Practices**: Built-in language APIs instead of OS shell execution (`eval`/`exec`), explicit variable initialization, locking for shared resources, dependency vulnerability auditing.
 
-role based profile management  in faculty  studentid  should be replaced by the employee id and the semester column will be removed .
+## Mandatory Network Inspection Protection & Security Workflow
+- **Network Inspection Protection Enabled**: For any change made in the project (JS/TS, JSON, API routes, or client pages), ensure Network Inspection Protection is actively enforced:
+  - Strict Content-Security-Policy (CSP) restricting network connections (`connect-src`), frame embedding, script execution, and resource loads.
+  - Disable browser source maps in production (`productionBrowserSourceMaps: false`) to prevent DevTools source inspection.
+  - Strict `Cache-Control: no-store, no-cache, must-revalidate, private` on sensitive routes/APIs/dashboard responses to prevent caching and inspection.
+  - Payload sanitization and defense against network data leakage (strip sensitive tokens, passwords, server internals from network responses).
+  - Production console log sanitization (no credentials, tokens, or PII exposed to browser console/network inspectors).
+- **Mandatory Workflow**:
+  1. Make required changes in code (JS/TS, JSON, Backend, Frontend).
+  2. Ensure Network Inspection Protection, OWASP Secure Coding Rules, and constraints are strictly satisfied.
+  3. Automatically stage all changes (`git add .`), commit with a descriptive message, and push to GitHub repository.
+
+role based profile management in faculty studentid should be replaced by the employee id and the semester column will be removed .
 
 new constraint the 
-mobile number section in any form exactly 10 integer input  , no string or character should returned .
+mobile number section in any form exactly 10 integer input , no string or character should returned .
