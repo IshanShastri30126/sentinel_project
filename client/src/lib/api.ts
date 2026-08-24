@@ -1,5 +1,6 @@
 import Cookies from "js-cookie";
 import { getDeviceFingerprint, getPrivateIpAddress } from "@/lib/deviceFingerprint";
+import { createNetworkInspectionHeaders } from "@/lib/networkSecurity";
 
 export const SERVER_BASE_URL = process.env.NEXT_PUBLIC_WS_URL || "http://localhost:4000";
 export const API_BASE = process.env.NEXT_PUBLIC_API_URL || `${SERVER_BASE_URL}/api`;
@@ -42,6 +43,10 @@ async function executeApiRequest<T>(endpoint: string, options: FetchOptions = {}
   const activeClubSlug = typeof window !== "undefined" ? localStorage.getItem("ck_active_club_slug") || "chakravyuh" : "chakravyuh";
   const deviceFingerprint = typeof window !== "undefined" ? getDeviceFingerprint() : "";
   const localIp = typeof window !== "undefined" ? getPrivateIpAddress() : "192.168.1.100";
+  const requestMethod = (options.method || "GET").toUpperCase();
+
+  // Generate anti-tampering, anti-replay, and network inspection integrity headers
+  const inspectionHeaders = await createNetworkInspectionHeaders(requestMethod, endpoint, rest.body);
 
   const res = await fetch(`${API_BASE}${endpoint}`, {
     credentials: "include",
@@ -52,6 +57,7 @@ async function executeApiRequest<T>(endpoint: string, options: FetchOptions = {}
       ...(deviceFingerprint ? { "X-Device-Fingerprint": deviceFingerprint } : {}),
       "X-Local-IP": localIp,
       "X-Private-IP": localIp,
+      ...inspectionHeaders,
       ...headers,
     },
     ...rest,
@@ -82,6 +88,7 @@ async function executeApiRequest<T>(endpoint: string, options: FetchOptions = {}
           
           Cookies.set("accessToken", newAccessToken, { expires: 1 });
 
+          const retryInspectionHeaders = await createNetworkInspectionHeaders(requestMethod, endpoint, rest.body);
           const retryRes = await fetch(`${API_BASE}${endpoint}`, {
             credentials: "include",
             headers: {
@@ -89,6 +96,7 @@ async function executeApiRequest<T>(endpoint: string, options: FetchOptions = {}
               Authorization: `Bearer ${newAccessToken}`,
               "X-Club-Slug": activeClubSlug,
               ...(deviceFingerprint ? { "X-Device-Fingerprint": deviceFingerprint } : {}),
+              ...retryInspectionHeaders,
               ...headers,
             },
             ...rest,
@@ -154,21 +162,25 @@ export async function apiUpload<T = unknown>(endpoint: string, formData: FormDat
   const activeToken = cookieToken || token;
   const activeClubSlug = typeof window !== "undefined" ? localStorage.getItem("ck_active_club_slug") || "chakravyuh" : "chakravyuh";
   const deviceFingerprint = typeof window !== "undefined" ? getDeviceFingerprint() : "";
+  const uploadMethod = method.toUpperCase();
 
   // Invalidate cache on upload (as it's a mutating action)
   apiCache.clear();
 
-  const makeUploadRequest = (authToken: string | undefined) =>
-    fetch(`${API_BASE}${endpoint}`, {
-      method,
+  const makeUploadRequest = async (authToken: string | undefined) => {
+    const uploadInspectionHeaders = await createNetworkInspectionHeaders(uploadMethod, endpoint, formData);
+    return fetch(`${API_BASE}${endpoint}`, {
+      method: uploadMethod,
       credentials: "include",
       headers: {
         ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
         "X-Club-Slug": activeClubSlug,
         ...(deviceFingerprint ? { "X-Device-Fingerprint": deviceFingerprint } : {}),
+        ...uploadInspectionHeaders,
       },
       body: formData,
     });
+  };
 
   let res = await makeUploadRequest(activeToken);
 

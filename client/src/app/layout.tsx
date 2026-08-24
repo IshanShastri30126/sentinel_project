@@ -4,6 +4,7 @@ import { AuthProvider } from "@/lib/auth-context";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import { ThemeBrandingProvider } from "@/components/ThemeProvider";
 import { PWARegistration } from "@/components/PWARegistration";
+import { NetworkInspectionGuard } from "@/components/NetworkInspectionGuard";
 
 export const metadata: Metadata = {
   title: "Chakravyuh Club — Digital Operations & Cyber Defense Hub",
@@ -35,6 +36,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <AuthProvider>
               {children}
               <PWARegistration />
+              <NetworkInspectionGuard />
             </AuthProvider>
           </ThemeBrandingProvider>
         </GoogleOAuthProvider>

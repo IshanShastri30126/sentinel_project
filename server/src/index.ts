@@ -29,6 +29,7 @@ import oauthRoutes from "./routes/oauth";
 import { requestId } from "./middlewares/requestId";
 import { suspiciousPayload } from "./middlewares/suspiciousPayload";
 import { sanitizeApiResponse } from "./middlewares/sanitizeResponse";
+import { networkInspectionGuard } from "./middlewares/networkInspectionGuard";
 
 const app = express();
 app.set("trust proxy", 1);
@@ -73,6 +74,10 @@ const corsOptions: cors.CorsOptions = {
     "X-Local-IP",
     "X-Private-IP",
     "X-Requested-With",
+    "X-Request-Timestamp",
+    "X-Request-Nonce",
+    "X-Request-Signature",
+    "X-Client-Integrity",
     "Accept",
   ],
   // Do NOT expose internal headers in CORS Allow headers
@@ -148,7 +153,10 @@ app.use(cookieParser());
 //    Applied AFTER body parsing so req.body is available for scanning
 app.use("/api/", suspiciousPayload);
 
-// 8. API response sanitization — adds Cache-Control: no-store + strips error internals
+// 8. Network Inspection & Anti-Tampering Shield (Blocks Burp Suite / Replays / Scanners)
+app.use("/api/", networkInspectionGuard);
+
+// 9. API response sanitization — adds Cache-Control: no-store + strips error internals
 app.use("/api/", sanitizeApiResponse);
 
 // 9. Serve uploaded files statically — restricted headers, no caching of sensitive files
