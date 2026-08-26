@@ -36,9 +36,31 @@ const router = Router();
 router.get("/authorize", authenticate, async (req: Request, res: Response) => {
     try {
         const user = req.user!;
-        const redirectUri =
-            (req.query.redirect_uri as string) ||
-            `${config.ctfWarsUrl}/api/auth/callback`;
+        const rawRedirectUri = (req.query.redirect_uri as string) || `${config.ctfWarsUrl}/api/auth/callback`;
+
+        // ── Open Redirect & SSRF Defense ─────────────────────────────────────
+        // Validate redirect_uri to ensure it only points to trusted endpoints
+        let validRedirectUri = `${config.ctfWarsUrl}/api/auth/callback`;
+        try {
+            const parsedUri = new URL(rawRedirectUri);
+            const clientParsed = new URL(config.clientUrl.split(",")[0].trim() || "http://localhost:3000");
+            const ctfParsed = new URL(config.ctfWarsUrl || "http://localhost:3001");
+
+            const isAllowedHost =
+                parsedUri.host === ctfParsed.host ||
+                parsedUri.host === clientParsed.host ||
+                parsedUri.hostname === "localhost" ||
+                parsedUri.hostname === "127.0.0.1" ||
+                parsedUri.hostname.endsWith(".vercel.app");
+
+            if (isAllowedHost && (parsedUri.protocol === "http:" || parsedUri.protocol === "https:")) {
+                validRedirectUri = rawRedirectUri;
+            } else {
+                console.warn(`[OAuth] Disallowed redirect_uri rejected: ${rawRedirectUri}`);
+            }
+        } catch {
+            validRedirectUri = `${config.ctfWarsUrl}/api/auth/callback`;
+        }
 
         // Generate a cryptographically secure 64-byte random authorization code
         const code = crypto.randomBytes(64).toString("hex");
@@ -61,12 +83,12 @@ router.get("/authorize", authenticate, async (req: Request, res: Response) => {
             action: "OAUTH_AUTHORIZE",
             userId: user.userId,
             outcome: "SUCCESS",
-            context: { redirectUri, targetApp: "ctf-wars" },
+            context: { redirectUri: validRedirectUri, targetApp: "ctf-wars" },
             req,
         });
 
         // Redirect user's browser to CTF Wars with the authorization code
-        const redirectUrl = `${redirectUri}?code=${code}`;
+        const redirectUrl = `${validRedirectUri}?code=${code}`;
         res.redirect(302, redirectUrl);
     } catch (err) {
         console.error("[OAuth] Authorize error:", err);

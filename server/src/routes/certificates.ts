@@ -25,6 +25,59 @@ function generateChecksum(data: string): string {
   return crypto.createHash("sha256").update(data).digest("hex").slice(0, 16);
 }
 
+/**
+ * Contextual HTML entity encoder to prevent HTML Injection / Server-Side XSS in PDF rendering.
+ */
+function escapeHtml(str: unknown): string {
+  if (str === null || str === undefined) return "";
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+/**
+ * SSRF guard: strictly validates image URLs to prevent localhost / cloud metadata probes.
+ */
+function sanitizeImageUrl(url: unknown): string {
+  if (typeof url !== "string") return "";
+  const trimmed = url.trim();
+  if (trimmed.startsWith("data:image/") || trimmed.startsWith("/uploads/")) return trimmed;
+  try {
+    const parsed = new URL(trimmed);
+    if (parsed.protocol === "http:" || parsed.protocol === "https:") {
+      if (
+        parsed.hostname === "169.254.169.254" ||
+        parsed.hostname === "metadata.google.internal" ||
+        parsed.hostname.startsWith("127.") ||
+        parsed.hostname === "localhost"
+      ) {
+        return "";
+      }
+      return trimmed;
+    }
+  } catch {}
+  return "";
+}
+
+/**
+ * Path traversal defense: Ensures files unlinked reside strictly inside the configured uploadDir.
+ */
+function safeUnlinkUpload(relativeOrAbsoluteUrl: string) {
+  try {
+    const baseUploadDir = path.resolve(config.uploadDir);
+    const basename = path.basename(relativeOrAbsoluteUrl);
+    const resolvedPath = path.resolve(baseUploadDir, basename);
+    if (resolvedPath.startsWith(baseUploadDir) && fs.existsSync(resolvedPath)) {
+      fs.unlinkSync(resolvedPath);
+    }
+  } catch (err) {
+    console.warn("[Certs] Safe unlink warning:", err);
+  }
+}
+
 // Ensure cert output directory exists
 const certOutputDir = path.resolve(config.uploadDir, "certificates");
 if (!fs.existsSync(certOutputDir)) { fs.mkdirSync(certOutputDir, { recursive: true }); }
@@ -264,11 +317,22 @@ router.get("/:id/download", authenticate, async (req: Request, res: Response) =>
     const cert = await prisma.certificate.findUnique({
       where: { id: req.params.id },
       include: {
-        event: { select: { title: true, startDate: true } },
+        event: { select: { title: true, startDate: true, creatorId: true } },
         template: true,
       },
     });
     if (!cert) { res.status(404).json({ error: "Certificate not found" }); return; }
+
+    // Authorization check: User must be certificate recipient, event creator, or coordinator (TECH/SC/FACULTY)
+    const user = await prisma.user.findUnique({ where: { id: req.user!.userId }, select: { name: true, email: true, role: true } });
+    const isOwner = user && (cert.recipientEmail === user.email || cert.recipientName === user.name);
+    const isEventCreator = cert.event.creatorId === req.user!.userId;
+    const isCoord = ["FACULTY", "STUDENT_COORDINATOR", "TECH"].includes(req.user!.role);
+
+    if (!isOwner && !isEventCreator && !isCoord) {
+      res.status(403).json({ error: "Unauthorized to download this certificate" });
+      return;
+    }
 
     const certHTML = generateCertificateHTML({
       recipientName: cert.recipientName,
@@ -308,16 +372,27 @@ router.get("/:id/download", authenticate, async (req: Request, res: Response) =>
 });
 
 // ─── GET /api/certificates/:id/view — View certificate (inline) ──
-router.get("/:id/view", async (req: Request, res: Response) => {
+router.get("/:id/view", authenticate, async (req: Request, res: Response) => {
   try {
     const cert = await prisma.certificate.findUnique({
       where: { id: req.params.id },
       include: {
-        event: { select: { title: true, startDate: true } },
+        event: { select: { title: true, startDate: true, creatorId: true } },
         template: true,
       },
     });
     if (!cert) { res.status(404).json({ error: "Certificate not found" }); return; }
+
+    // Authorization check
+    const user = await prisma.user.findUnique({ where: { id: req.user!.userId }, select: { name: true, email: true, role: true } });
+    const isOwner = user && (cert.recipientEmail === user.email || cert.recipientName === user.name);
+    const isEventCreator = cert.event.creatorId === req.user!.userId;
+    const isCoord = ["FACULTY", "STUDENT_COORDINATOR", "TECH"].includes(req.user!.role);
+
+    if (!isOwner && !isEventCreator && !isCoord) {
+      res.status(403).json({ error: "Unauthorized to view this certificate" });
+      return;
+    }
 
     const certHTML = generateCertificateHTML({
       recipientName: cert.recipientName,
@@ -385,8 +460,7 @@ router.delete("/templates/:id", authenticate, requireMinRole("STUDENT_COORDINATO
     const template = await prisma.certificateTemplate.findUnique({ where: { id: req.params.id } });
     if (!template) { res.status(404).json({ error: "Template not found" }); return; }
     if (template.fileUrl) {
-      const filePath = path.resolve(template.fileUrl.startsWith("/") ? template.fileUrl.slice(1) : template.fileUrl);
-      if (fs.existsSync(filePath)) { fs.unlinkSync(filePath); }
+      safeUnlinkUpload(template.fileUrl);
     }
     await prisma.certificateTemplate.delete({ where: { id: req.params.id } });
     res.json({ success: true, message: "Template deleted successfully" });
@@ -402,8 +476,7 @@ router.delete("/:id", authenticate, requireMinRole("TECH"), async (req: Request,
     const cert = await prisma.certificate.findUnique({ where: { id: req.params.id } });
     if (!cert) { res.status(404).json({ error: "Certificate not found" }); return; }
     if (cert.fileUrl) {
-      const filePath = path.resolve(cert.fileUrl.startsWith("/") ? cert.fileUrl.slice(1) : cert.fileUrl);
-      if (fs.existsSync(filePath)) { fs.unlinkSync(filePath); }
+      safeUnlinkUpload(cert.fileUrl);
     }
     await prisma.certificate.delete({ where: { id: req.params.id } });
     res.json({ success: true, message: "Certificate deleted successfully" });
@@ -418,9 +491,15 @@ function generateCertificateHTML(data: {
   recipientName: string; eventTitle: string; eventDate: string;
   uniqueCode: string; template: any | null;
 }): string {
+  const safeRecipientName = escapeHtml(data.recipientName);
+  const safeEventTitle = escapeHtml(data.eventTitle);
+  const safeEventDate = escapeHtml(data.eventDate);
+  const safeUniqueCode = escapeHtml(data.uniqueCode);
+
   if (data.template?.fields?.type === "canvas_builder") {
     const nodes = data.template.fields.nodes || [];
-    const bgUrl = data.template.fileUrl ? `http://localhost:${process.env.PORT || 4000}${data.template.fileUrl}` : null;
+    const bgRaw = data.template.fileUrl ? `/uploads/${path.basename(data.template.fileUrl)}` : null;
+    const bgUrl = bgRaw ? sanitizeImageUrl(bgRaw) : null;
     let html = `<!DOCTYPE html><html><head><meta charset="utf-8">
       <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=Playfair+Display:ital,wght@0,500;0,700;1,500;1,700&family=Share+Tech+Mono&display=swap');
@@ -434,15 +513,15 @@ function generateCertificateHTML(data: {
       if (node.type === "text") {
         let text = node.text || "";
         if (node.isPlaceholder) {
-          if (node.placeholderType === "eventTitle") text = data.eventTitle;
-          if (node.placeholderType === "eventDate") text = data.eventDate;
-          if (node.placeholderType === "recipientName") text = data.recipientName;
-          if (node.placeholderType === "uniqueCode") text = data.uniqueCode;
+          if (node.placeholderType === "eventTitle") text = safeEventTitle;
+          if (node.placeholderType === "eventDate") text = safeEventDate;
+          if (node.placeholderType === "recipientName") text = safeRecipientName;
+          if (node.placeholderType === "uniqueCode") text = safeUniqueCode;
         }
-        text = text.replace(/\[Recipient Name\]/gi, data.recipientName);
-        text = text.replace(/\[Event Title\]/gi, data.eventTitle);
-        text = text.replace(/\[Event Date\]/gi, data.eventDate);
-        content = text.replace(/\n/g, '<br>');
+        text = text.replace(/\[Recipient Name\]/gi, safeRecipientName);
+        text = text.replace(/\[Event Title\]/gi, safeEventTitle);
+        text = text.replace(/\[Event Date\]/gi, safeEventDate);
+        content = escapeHtml(text).replace(/\n/g, '<br>');
         
         const fontFamily = node.fontFamily === "serif" 
           ? "'Playfair Display', serif" 
@@ -465,9 +544,12 @@ function generateCertificateHTML(data: {
       } else if (node.type === "image") {
         const width = node.width ? `${node.width}px` : "auto";
         const height = node.height ? `${node.height}px` : "auto";
-        html += `<div class="node" style="left: ${node.x}px; top: ${node.y}px; transform: rotate(${node.rotation || 0}deg) scale(${node.scaleX || 1}, ${node.scaleY || 1});">
-          <img src="${node.src}" style="width: ${width}; height: ${height}; object-fit: contain;" />
-        </div>`;
+        const safeSrc = sanitizeImageUrl(node.src);
+        if (safeSrc) {
+          html += `<div class="node" style="left: ${node.x}px; top: ${node.y}px; transform: rotate(${node.rotation || 0}deg) scale(${node.scaleX || 1}, ${node.scaleY || 1});">
+            <img src="${safeSrc}" style="width: ${width}; height: ${height}; object-fit: contain;" />
+          </div>`;
+        }
       } else if (node.type === "shape") {
         const width = node.width ? `${node.width}px` : "auto";
         const height = node.height ? `${node.height}px` : "auto";
@@ -484,13 +566,14 @@ function generateCertificateHTML(data: {
   }
 
   const custom = data.template?.fields?.type === "custom_builder" ? data.template.fields : null;
-  const bgUrl = data.template?.fileUrl ? `http://localhost:${config.port}${data.template.fileUrl}` : null;
+  const bgRaw = data.template?.fileUrl ? `/uploads/${path.basename(data.template.fileUrl)}` : null;
+  const bgUrl = bgRaw ? sanitizeImageUrl(bgRaw) : null;
 
-  const borderlineColor = custom?.borderlineColor || "#1e293b";
-  const textColor = custom?.textColor || "#0f172a";
-  const accentColor = custom?.accentColor || "#1d4ed8";
+  const borderlineColor = escapeHtml(custom?.borderlineColor || "#1e293b");
+  const textColor = escapeHtml(custom?.textColor || "#0f172a");
+  const accentColor = escapeHtml(custom?.accentColor || "#1d4ed8");
 
-  const borderStyle = custom?.borderStyle || "solid";
+  const borderStyle = escapeHtml(custom?.borderStyle || "solid");
   let borderWidth: string = String(custom?.borderWidth || 2);
   if (/^\d+$/.test(borderWidth)) borderWidth = borderWidth + "px";
 
@@ -513,17 +596,18 @@ function generateCertificateHTML(data: {
     : "linear-gradient(135deg,#1e1b4b 0%,#0f172a 50%,#164e63 100%)";
   const bgCss = bgUrl ? `url('${bgUrl}') center/cover no-repeat` : defaultBg;
 
-  const logo1 = custom?.logo1 || "";
-  const logo2 = custom?.logo2 || "";
-  const logo3 = custom?.logo3 || "";
-  const logo4 = custom?.logo4 || "";
+  const logo1 = sanitizeImageUrl(custom?.logo1 || "");
+  const logo2 = sanitizeImageUrl(custom?.logo2 || "");
+  const logo3 = sanitizeImageUrl(custom?.logo3 || "");
+  const logo4 = sanitizeImageUrl(custom?.logo4 || "");
 
-  const certTitle = custom?.title || "CERTIFICATE";
-  const certSubtitle = custom?.subtitle || "OF PARTICIPATION";
-  const certPresentationalText = custom?.presentationalText || "This certificate is proudly presented to";
-  let description = custom?.description || "Had participated in the three-day Workshop on [Event Title] organized by the Department, From [Event Date].";
-  description = description.replace(/\[Event Title\]/gi, data.eventTitle).replace(/\[Event Date\]/gi, data.eventDate);
-  description = description.replace(/\{\{eventTitle\}\}/gi, data.eventTitle).replace(/\{\{eventDate\}\}/gi, data.eventDate);
+  const certTitle = escapeHtml(custom?.title || "CERTIFICATE");
+  const certSubtitle = escapeHtml(custom?.subtitle || "OF PARTICIPATION");
+  const certPresentationalText = escapeHtml(custom?.presentationalText || "This certificate is proudly presented to");
+  let rawDescription = custom?.description || "Had participated in the three-day Workshop on [Event Title] organized by the Department, From [Event Date].";
+  rawDescription = rawDescription.replace(/\[Event Title\]/gi, safeEventTitle).replace(/\[Event Date\]/gi, safeEventDate);
+  rawDescription = rawDescription.replace(/\{\{eventTitle\}\}/gi, safeEventTitle).replace(/\{\{eventDate\}\}/gi, safeEventDate);
+  const description = escapeHtml(rawDescription);
 
   const signatures: any[] = custom?.signatures || [];
 
@@ -576,13 +660,18 @@ function generateCertificateHTML(data: {
   </div>` : "";
 
   // Signatures HTML
-  const signaturesHTML = signatures.length > 0 ? signatures.map((sig: any) => `
+  const signaturesHTML = signatures.length > 0 ? signatures.map((sig: any) => {
+    const safeSigImg = sig.signatureImageBase64 ? sanitizeImageUrl(sig.signatureImageBase64) : "";
+    const safeSigName = escapeHtml(sig.name || "");
+    const safeSigTitle = escapeHtml(sig.title || "");
+    return `
     <div style="text-align:center;min-width:160px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;">
-      ${sig.signatureImageBase64 ? `<img src="${sig.signatureImageBase64}" style="height:42px;max-width:140px;object-fit:contain;margin-bottom:-6px;z-index:2;display:block;" alt="Signature"/>` : `<div style="height:42px;"></div>`}
+      ${safeSigImg ? `<img src="${safeSigImg}" style="height:42px;max-width:140px;object-fit:contain;margin-bottom:-6px;z-index:2;display:block;" alt="Signature"/>` : `<div style="height:42px;"></div>`}
       <div style="width:100%;border-bottom:1.5px solid ${borderlineColor};margin-bottom:5px;opacity:0.8;"></div>
-      <div style="font-family:'Playfair Display',serif;font-size:11.5px;font-weight:700;color:${textColor};">${sig.name || ""}</div>
-      <div style="font-family:'Playfair Display',serif;font-size:8px;font-weight:600;opacity:0.75;color:${textColor};line-height:1.3;margin-top:1px;">${sig.title || ""}</div>
-    </div>`).join("") : "";
+      <div style="font-family:'Playfair Display',serif;font-size:11.5px;font-weight:700;color:${textColor};">${safeSigName}</div>
+      <div style="font-family:'Playfair Display',serif;font-size:8px;font-weight:600;opacity:0.75;color:${textColor};line-height:1.3;margin-top:1px;">${safeSigTitle}</div>
+    </div>`;
+  }).join("") : "";
 
   // Logo row HTML
   const logosHTML = [logo1, logo2, logo3, logo4]
@@ -592,17 +681,22 @@ function generateCertificateHTML(data: {
 
   const customTextHTML = (custom?.customTextBlocks || []).map((block: any) => {
     const font = block.fontFamily === "serif" ? "'Playfair Display', serif" : block.fontFamily === "mono" ? "monospace" : "'Inter', sans-serif";
-    return `<div style="position:absolute; left:${block.x}px; top:${block.y}px; font-size:${block.fontSize}px; font-weight:${block.fontWeight}; font-family:${font}; color:${block.color || textColor}; white-space:nowrap; z-index:3;">${block.text}</div>`;
+    const safeBlockText = escapeHtml(block.text || "");
+    return `<div style="position:absolute; left:${block.x}px; top:${block.y}px; font-size:${block.fontSize}px; font-weight:${block.fontWeight}; font-family:${font}; color:${block.color || textColor}; white-space:nowrap; z-index:3;">${safeBlockText}</div>`;
   }).join("");
 
-  const customImagesHTML = (custom?.customImages || []).map((img: any) => `
+  const customImagesHTML = (custom?.customImages || []).map((img: any) => {
+    const safeImg = sanitizeImageUrl(img.imageBase64);
+    if (!safeImg) return "";
+    return `
     <div style="position:absolute; left:${img.x}px; top:${img.y}px; z-index:3;">
-      <img src="${img.imageBase64}" style="width:${img.width}px; height:${img.height}px; object-fit:contain;" />
-    </div>`).join("");
+      <img src="${safeImg}" style="width:${img.width}px; height:${img.height}px; object-fit:contain;" />
+    </div>`;
+  }).join("");
 
   return `<!DOCTYPE html>
 <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Certificate - ${data.recipientName}</title>
+<title>Certificate - ${safeRecipientName}</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=Playfair+Display:ital,wght@0,500;0,700;1,500;1,700&display=swap');
 *{margin:0;padding:0;box-sizing:border-box;}
@@ -643,7 +737,7 @@ ${patternCSS}
       <div class="presented-to">${certPresentationalText}</div>
     </div>
     <div class="recipient-block">
-      <div class="name">${data.recipientName}</div>
+      <div class="name">${safeRecipientName}</div>
       <div class="divider"></div>
     </div>
     <div class="message-block">
@@ -657,7 +751,7 @@ ${patternCSS}
       </div>
       <div>
         <div class="code-label">Certificate ID</div>
-        <div class="code-value">${data.uniqueCode}</div>
+        <div class="code-value">${safeUniqueCode}</div>
       </div>
     </div>
   </div>

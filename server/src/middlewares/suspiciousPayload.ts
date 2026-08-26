@@ -24,8 +24,16 @@ const ATTACK_PATTERNS: Array<{ id: string; category: string; regex: RegExp }> = 
   { id: "FW-RULE-001", category: "SQLI", regex: /'\s*(?:or|and)\s+['"\d]|union\s+(?:all\s+)?select|(?:drop|truncate|delete\s+from|insert\s+into|update\s+\w+\s+set)\s+\w|exec\s*\(|xp_cmdshell|(?:\/\*.*\*\/)/i },
   // NoSQL injection (MongoDB)
   { id: "FW-RULE-007", category: "SQLI", regex: /\$(?:where|gt|lt|ne|gte|lte|in|nin|regex|exists|type|mod|all|size|elemMatch)\b/ },
-  // SSRF / AWS metadata
-  { id: "FW-RULE-005", category: "DOS", regex: /169\.254\.169\.254|file:\/\/|gopher:\/\/|dict:\/\//i },
+  // OS Command Injection
+  { id: "FW-RULE-008", category: "COMMAND_INJECTION", regex: /;\s*(?:cat|ls|dir|whoami|id|uname|curl|wget|bash|sh|nc|powershell|cmd)\b|\|\s*(?:cat|whoami|bash|powershell)|\$\([^)]+\)|`[^`]+`/i },
+  // Prototype Pollution
+  { id: "FW-RULE-009", category: "PROTOTYPE_POLLUTION", regex: /__proto__|constructor\s*\.\s*prototype/i },
+  // XXE (XML External Entity)
+  { id: "FW-RULE-010", category: "XXE", regex: /<!DOCTYPE[^>]*SYSTEM|<!ENTITY[^>]*SYSTEM/i },
+  // CRLF Injection / HTTP Response Splitting
+  { id: "FW-RULE-011", category: "CRLF_INJECTION", regex: /(?:\r\n|%0d%0a)(?:Set-Cookie|Location|Content-Type):/i },
+  // SSRF / AWS metadata / Internal Protocols
+  { id: "FW-RULE-005", category: "DOS", regex: /169\.254\.169\.254|metadata\.google\.internal|file:\/\/|gopher:\/\/|dict:\/\//i },
   // Attack tools / Scanners
   { id: "FW-RULE-006", category: "BAD_BOT", regex: /sqlmap|nikto|dirbuster|gobuster|nmap|masscan|wpscan|hydra|acunetix/i },
 ];

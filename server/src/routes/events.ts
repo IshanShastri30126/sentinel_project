@@ -340,6 +340,19 @@ router.get("/:id/analytics", authenticate, requireMinRole("TECH"), async (req: R
 // PATCH /api/events/:id — Update event
 router.patch("/:id", authenticate, requireMinRole("STUDENT_COORDINATOR"), auditLog("EVENT_UPDATED"), async (req: Request, res: Response) => {
   try {
+    const existingEvent = await prisma.event.findUnique({ where: { id: req.params.id } });
+    if (!existingEvent) {
+      res.status(404).json({ error: "Event not found" });
+      return;
+    }
+
+    // Access Control: Non-faculty coordinators can only edit their own created events
+    const isElevated = ["FACULTY", "TECH"].includes(req.user!.role);
+    if (!isElevated && existingEvent.creatorId !== req.user!.userId) {
+      res.status(403).json({ error: "Unauthorized: You can only edit events you created" });
+      return;
+    }
+
     const d = req.body; const u: any = {};
     if (d.title) u.title = d.title;
     if (d.description !== undefined) u.description = d.description;
@@ -404,7 +417,6 @@ router.patch("/:id", authenticate, requireMinRole("STUDENT_COORDINATOR"), auditL
   } catch (err) { console.error("[Events] Update error:", err); res.status(500).json({ error: "Internal server error" }); }
 });
 
-// PATCH /api/events/:id/publish — Toggle publish + send email to all members
 // PATCH /api/events/:id/publish — Toggle publish
 router.patch("/:id/publish", authenticate, requireMinRole("STUDENT_COORDINATOR"), auditLog("EVENT_PUBLISH_TOGGLED"), async (req: Request, res: Response) => {
   try {
@@ -412,6 +424,12 @@ router.patch("/:id/publish", authenticate, requireMinRole("STUDENT_COORDINATOR")
       where: { id: req.params.id },
     });
     if (!event) { res.status(404).json({ error: "Event not found" }); return; }
+
+    const isElevated = ["FACULTY", "TECH"].includes(req.user!.role);
+    if (!isElevated && event.creatorId !== req.user!.userId) {
+      res.status(403).json({ error: "Unauthorized: You can only publish events you created" });
+      return;
+    }
 
     const willPublish = !event.isPublished;
 
@@ -435,6 +453,12 @@ router.delete("/:id", authenticate, requireMinRole("STUDENT_COORDINATOR"), audit
   try {
     const event = await prisma.event.findUnique({ where: { id: req.params.id } });
     if (!event) { res.status(404).json({ error: "Event not found" }); return; }
+
+    const isElevated = ["FACULTY", "TECH"].includes(req.user!.role);
+    if (!isElevated && event.creatorId !== req.user!.userId) {
+      res.status(403).json({ error: "Unauthorized: You can only delete events you created" });
+      return;
+    }
     
     await prisma.$transaction([
       prisma.attendance.deleteMany({ where: { eventId: req.params.id } }),
@@ -448,7 +472,7 @@ router.delete("/:id", authenticate, requireMinRole("STUDENT_COORDINATOR"), audit
     res.json({ message: "Event deleted successfully", id: req.params.id });
   } catch (err) {
     console.error("[Events] Delete error:", err);
-    res.status(500).json({ error: err instanceof Error ? err.message : "Internal server error" });
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 

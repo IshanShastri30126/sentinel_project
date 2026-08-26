@@ -79,7 +79,7 @@ router.post("/upload", authenticate, requireMinRole("STUDENT_COORDINATOR"), uplo
     res.json({ fileUrl });
   } catch (err) {
     console.error("[Settings] Upload error:", err);
-    res.status(550).json({ error: "Internal server error" });
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
