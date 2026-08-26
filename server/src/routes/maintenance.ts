@@ -141,6 +141,54 @@ router.get("/logs", async (req: Request, res: Response) => {
       andConditions.push({ outcome: { equals: outcomeFilter, mode: "insensitive" } });
     }
 
+    if (severityFilter) {
+      if (severityFilter === "SECURITY_BLOCK") {
+        andConditions.push({ outcome: { in: ["REJECTED", "BLOCKED"] } });
+      } else if (severityFilter === "WARN") {
+        andConditions.push({ outcome: "FAILED" });
+      } else if (severityFilter === "INFO") {
+        andConditions.push({ outcome: "SUCCESS" });
+      }
+    }
+
+    if (categoryFilter) {
+      if (categoryFilter === "FIREWALL" || categoryFilter === "WAF") {
+        andConditions.push({
+          OR: [
+            { action: { contains: "FIREWALL", mode: "insensitive" } },
+            { action: { contains: "WAF", mode: "insensitive" } },
+            { action: { contains: "IP_BLOCK", mode: "insensitive" } },
+          ],
+        });
+      } else if (categoryFilter === "AUTH") {
+        andConditions.push({
+          OR: [
+            { action: { contains: "LOGIN", mode: "insensitive" } },
+            { action: { contains: "AUTH", mode: "insensitive" } },
+            { action: { contains: "REGISTER", mode: "insensitive" } },
+            { action: { contains: "PASSWORD", mode: "insensitive" } },
+          ],
+        });
+      } else if (categoryFilter === "SYSTEM") {
+        andConditions.push({
+          OR: [
+            { action: { contains: "SYSTEM", mode: "insensitive" } },
+            { action: { contains: "SETTINGS", mode: "insensitive" } },
+            { action: { contains: "RULE", mode: "insensitive" } },
+            { action: { contains: "MAINTENANCE", mode: "insensitive" } },
+          ],
+        });
+      } else if (categoryFilter === "EVENTS") {
+        andConditions.push({
+          OR: [
+            { action: { contains: "EVENT", mode: "insensitive" } },
+            { action: { contains: "ATTENDANCE", mode: "insensitive" } },
+            { action: { contains: "CERTIFICATE", mode: "insensitive" } },
+          ],
+        });
+      }
+    }
+
     if (search) {
       andConditions.push({
         OR: [
@@ -149,15 +197,15 @@ router.get("/logs", async (req: Request, res: Response) => {
           { ipAddress: { contains: search, mode: "insensitive" } },
           { userAgent: { contains: search, mode: "insensitive" } },
           { user: { name: { contains: search, mode: "insensitive" } } },
-          { user: { email: { contains: search, mode: "insensitive" } } },
-          { user: { studentId: { contains: search, mode: "insensitive" } } },
+          { user: { email: { mode: "insensitive", contains: search } } },
+          { user: { studentId: { mode: "insensitive", contains: search } } },
         ],
       });
     }
 
     const where = andConditions.length > 0 ? { AND: andConditions } : {};
 
-    const [total, logs] = await Promise.all([
+    const [total, logs, securityBlocksCount, warningsCount, successCount] = await Promise.all([
       prisma.auditLog.count({ where }),
       prisma.auditLog.findMany({
         where,
@@ -177,6 +225,9 @@ router.get("/logs", async (req: Request, res: Response) => {
           },
         },
       }),
+      prisma.auditLog.count({ where: { outcome: { in: ["REJECTED", "BLOCKED"] } } }),
+      prisma.auditLog.count({ where: { outcome: "FAILED" } }),
+      prisma.auditLog.count({ where: { outcome: "SUCCESS" } }),
     ]);
 
     const formattedLogs = logs.map((log) => {
@@ -184,8 +235,16 @@ router.get("/logs", async (req: Request, res: Response) => {
       const ctx = (log.context as Record<string, any>) || {};
 
       // Determine severity & category from context or heuristic
-      const severity = ctx.severity || (log.outcome === "REJECTED" ? "SECURITY_BLOCK" : log.outcome === "FAILED" ? "WARN" : "INFO");
-      const category = ctx.category || (log.action.includes("WAF") || log.action.includes("FIREWALL") ? "FIREWALL" : log.action.includes("LOGIN") || log.action.includes("AUTH") ? "AUTH" : "SYSTEM");
+      const severity = ctx.severity || (["REJECTED", "BLOCKED"].includes(log.outcome) ? "SECURITY_BLOCK" : log.outcome === "FAILED" ? "WARN" : "INFO");
+      const category = ctx.category || (
+        log.action.includes("WAF") || log.action.includes("FIREWALL") || log.action.includes("IP_BLOCK")
+          ? "FIREWALL"
+          : log.action.includes("LOGIN") || log.action.includes("AUTH") || log.action.includes("REGISTER") || log.action.includes("PASSWORD")
+          ? "AUTH"
+          : log.action.includes("EVENT") || log.action.includes("ATTENDANCE") || log.action.includes("CERTIFICATE")
+          ? "EVENTS"
+          : "SYSTEM"
+      );
 
       return {
         ...log,
@@ -206,22 +265,19 @@ router.get("/logs", async (req: Request, res: Response) => {
       };
     });
 
-    // Client-side filtering on formatted properties if severity or category requested
-    let finalLogs = formattedLogs;
-    if (severityFilter) {
-      finalLogs = finalLogs.filter((l) => l.severity === severityFilter);
-    }
-    if (categoryFilter) {
-      finalLogs = finalLogs.filter((l) => l.category === categoryFilter);
-    }
-
     res.json({
-      logs: finalLogs,
+      logs: formattedLogs,
+      stats: {
+        total,
+        securityBlocksCount,
+        warningsCount,
+        successCount,
+      },
       pagination: {
         total,
         page,
         limit,
-        totalPages: Math.ceil(total / limit),
+        totalPages: Math.max(1, Math.ceil(total / limit)),
       },
     });
   } catch (err) {
