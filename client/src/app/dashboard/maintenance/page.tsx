@@ -5,14 +5,13 @@ import { useAuth } from "@/lib/auth-context";
 import { api } from "@/lib/api";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  ShieldAlert, Activity, Cpu, HardDrive, Database, Server,
-  Lock, AlertTriangle, RefreshCw, CheckCircle, XCircle, Search,
-  Filter, Ban, Check, Terminal, FileText, Bug, Settings, Users,
-  Globe, Eye, Clock, ShieldCheck, Zap, AlertCircle, Plus, Trash2,
-  Sliders, Download, Radio, Wifi, Code, ShieldX, CheckSquare,
-  ArrowUpRight, Copy, ChevronLeft, ChevronRight, ChevronDown,
-  Layers, BarChart2, Laptop, Monitor, Smartphone, Maximize2,
-  Minimize2, Share2, CornerDownRight, Shield, List, TerminalSquare
+  ShieldAlert, Activity, Database, Server,
+  AlertTriangle, RefreshCw, CheckCircle, XCircle, Search,
+  Ban, Terminal, FileText, Bug, Users,
+  Globe, Clock, ShieldCheck, Zap, AlertCircle, Plus, Trash2,
+  Download, Radio, Wifi, Code,
+  Copy, ChevronLeft, ChevronRight,
+  BarChart2, Shield, List, TerminalSquare
 } from "lucide-react";
 
 interface SystemMetrics {
@@ -59,7 +58,7 @@ interface AuditLogItem {
   ruleId?: string | null;
   ipAddress?: string | null;
   userAgent?: string | null;
-  context?: Record<string, any> | null;
+  context?: Record<string, unknown> | null;
   createdAt: string;
   user?: {
     id: string;
@@ -78,7 +77,7 @@ interface AuditLogItem {
   browser?: string;
   os?: string;
   time?: string;
-  payloadContext?: Record<string, any>;
+  payloadContext?: Record<string, unknown>;
 }
 
 interface LogStats {
@@ -139,16 +138,23 @@ interface BugReport {
   updatedAt: string;
 }
 
+interface MaintenanceSettings {
+  enabled: boolean;
+  message?: string;
+  ipWhitelist?: string[];
+  loggingLevel?: string;
+}
+
+type TabType = "logs" | "overview" | "firewall" | "security" | "database" | "bugs";
 type LogViewMode = "table" | "terminal" | "timeline" | "analytics";
 
 export default function MaintenancePage() {
-  const { user, token } = useAuth();
-  const [activeTab, setActiveTab] = useState<"logs" | "overview" | "firewall" | "security" | "database" | "bugs">("logs");
+  const { token } = useAuth();
+  const [activeTab, setActiveTab] = useState<TabType>("logs");
 
   // Overview State
   const [systemMetrics, setSystemMetrics] = useState<SystemMetrics | null>(null);
   const [telemetry, setTelemetry] = useState<TelemetryMetrics | null>(null);
-  const [loadingOverview, setLoadingOverview] = useState(true);
 
   // Level 2 Logs State
   const [logs, setLogs] = useState<AuditLogItem[]>([]);
@@ -171,7 +177,6 @@ export default function MaintenancePage() {
 
   // Firewall State
   const [firewallRules, setFirewallRules] = useState<FirewallRule[]>([]);
-  const [loadingFirewall, setLoadingFirewall] = useState(false);
   const [showAddRuleModal, setShowAddRuleModal] = useState(false);
   const [newRuleName, setNewRuleName] = useState("");
   const [newRuleCategory, setNewRuleCategory] = useState("CUSTOM");
@@ -183,19 +188,14 @@ export default function MaintenancePage() {
 
   // Security IP Management State
   const [ipList, setIpList] = useState<IpManagementItem[]>([]);
-  const [passwordPolicy, setPasswordPolicy] = useState<any>(null);
-  const [recentFailedLogins, setRecentFailedLogins] = useState<any[]>([]);
   const [loadingSecurity, setLoadingSecurity] = useState(false);
 
   // Database State
   const [dbTables, setDbTables] = useState<DbTableItem[]>([]);
-  const [dbMetrics, setDbMetrics] = useState<any>(null);
-  const [loadingDb, setLoadingDb] = useState(false);
 
   // Bugs & Maintenance State
   const [bugs, setBugs] = useState<BugReport[]>([]);
-  const [maintenanceSettings, setMaintenanceSettings] = useState<any>({ enabled: false, message: "", ipWhitelist: [] });
-  const [loadingBugs, setLoadingBugs] = useState(false);
+  const [maintenanceSettings, setMaintenanceSettings] = useState<MaintenanceSettings>({ enabled: false, message: "", ipWhitelist: [] });
 
   // Bug Report Form State
   const [newBugTitle, setNewBugTitle] = useState("");
@@ -205,24 +205,21 @@ export default function MaintenancePage() {
   const [submittingBug, setSubmittingBug] = useState(false);
   const [toastMessage, setToastMessage] = useState<{ text: string; type: "success" | "error" | "info" } | null>(null);
 
-  const showToast = (text: string, type: "success" | "error" | "info" = "success") => {
+  const showToast = useCallback((text: string, type: "success" | "error" | "info" = "success") => {
     setToastMessage({ text, type });
     setTimeout(() => setToastMessage(null), 4000);
-  };
+  }, []);
 
   // Fetch Overview Data
-  const fetchOverview = async () => {
-    setLoadingOverview(true);
+  const fetchOverview = useCallback(async () => {
     try {
-      const data = await api<any>("/maintenance/overview", { token: token || undefined });
+      const data = await api<{ system: SystemMetrics; telemetry: TelemetryMetrics }>("/maintenance/overview", { token: token || undefined });
       setSystemMetrics(data.system);
       setTelemetry(data.telemetry);
     } catch (err) {
       console.error("Failed to load maintenance overview", err);
-    } finally {
-      setLoadingOverview(false);
     }
-  };
+  }, [token]);
 
   // Fetch Logs Data
   const fetchLogs = useCallback(async () => {
@@ -237,7 +234,10 @@ export default function MaintenancePage() {
         severity: logsSeverity,
         category: logsCategory,
       });
-      const data = await api<any>(`/maintenance/logs?${params.toString()}`, { token: token || undefined });
+      const data = await api<{ logs: AuditLogItem[]; pagination: { total: number }; stats?: LogStats }>(
+        `/maintenance/logs?${params.toString()}`,
+        { token: token || undefined }
+      );
       setLogs(data.logs || []);
       setLogsTotal(data.pagination?.total || 0);
       if (data.stats) {
@@ -251,80 +251,67 @@ export default function MaintenancePage() {
   }, [token, logsPage, logsLimit, logsSearch, logsAction, logsOutcome, logsSeverity, logsCategory]);
 
   // Fetch Firewall Rules Data
-  const fetchFirewallRules = async () => {
-    setLoadingFirewall(true);
+  const fetchFirewallRules = useCallback(async () => {
     try {
-      const data = await api<any>("/maintenance/firewall/rules", { token: token || undefined });
+      const data = await api<{ rules: FirewallRule[] }>("/maintenance/firewall/rules", { token: token || undefined });
       setFirewallRules(data.rules || []);
     } catch (err) {
       console.error("Failed to load firewall rules", err);
-    } finally {
-      setLoadingFirewall(false);
     }
-  };
+  }, [token]);
 
   // Fetch Security Data
-  const fetchSecurity = async () => {
+  const fetchSecurity = useCallback(async () => {
     setLoadingSecurity(true);
     try {
-      const [ipRes, passRes] = await Promise.all([
-        api<any>("/maintenance/security/ip-management", { token: token || undefined }),
-        api<any>("/maintenance/security/passwords", { token: token || undefined }),
+      const [ipRes] = await Promise.all([
+        api<{ ips: IpManagementItem[] }>("/maintenance/security/ip-management", { token: token || undefined }),
       ]);
       setIpList(ipRes.ips || []);
-      setPasswordPolicy(passRes.policy || null);
-      setRecentFailedLogins(passRes.recentFailedLogins || []);
     } catch (err) {
       console.error("Failed to load security telemetry", err);
     } finally {
       setLoadingSecurity(false);
     }
-  };
+  }, [token]);
 
   // Fetch Database Data
-  const fetchDatabase = async () => {
-    setLoadingDb(true);
+  const fetchDatabase = useCallback(async () => {
     try {
-      const data = await api<any>("/maintenance/database/tables", { token: token || undefined });
+      const data = await api<{ tables: DbTableItem[] }>("/maintenance/database/tables", { token: token || undefined });
       setDbTables(data.tables || []);
-      setDbMetrics(data.database || null);
     } catch (err) {
       console.error("Failed to load database telemetry", err);
-    } finally {
-      setLoadingDb(false);
     }
-  };
+  }, [token]);
 
   // Fetch Bugs & Settings
-  const fetchBugsAndSettings = async () => {
-    setLoadingBugs(true);
+  const fetchBugsAndSettings = useCallback(async () => {
     try {
       const [bugsRes, settingsRes] = await Promise.all([
-        api<any>("/maintenance/bugs", { token: token || undefined }),
-        api<any>("/maintenance/settings", { token: token || undefined }),
+        api<{ bugs: BugReport[] }>("/maintenance/bugs", { token: token || undefined }),
+        api<{ settings: MaintenanceSettings }>("/maintenance/settings", { token: token || undefined }),
       ]);
       setBugs(bugsRes.bugs || []);
       setMaintenanceSettings(settingsRes.settings || { enabled: false });
     } catch (err) {
       console.error("Failed to load bug reports", err);
-    } finally {
-      setLoadingBugs(false);
     }
-  };
+  }, [token]);
 
   useEffect(() => {
-    if (activeTab === "overview") fetchOverview();
-    if (activeTab === "logs") fetchLogs();
-    if (activeTab === "firewall") fetchFirewallRules();
-    if (activeTab === "security") fetchSecurity();
-    if (activeTab === "database") fetchDatabase();
-    if (activeTab === "bugs") fetchBugsAndSettings();
-  }, [activeTab]);
+    if (activeTab === "overview") void fetchOverview();
+    if (activeTab === "logs") void fetchLogs();
+    if (activeTab === "firewall") void fetchFirewallRules();
+    if (activeTab === "security") void fetchSecurity();
+    if (activeTab === "database") void fetchDatabase();
+    if (activeTab === "bugs") void fetchBugsAndSettings();
+  }, [activeTab, fetchOverview, fetchLogs, fetchFirewallRules, fetchSecurity, fetchDatabase, fetchBugsAndSettings]);
 
   useEffect(() => {
     if (activeTab !== "logs") return;
     const timer = setTimeout(() => {
-      fetchLogs();
+      void fetchLogs();
     }, 300);
     return () => clearTimeout(timer);
   }, [activeTab, logsPage, logsLimit, logsSearch, logsAction, logsOutcome, logsSeverity, logsCategory, fetchLogs]);
@@ -333,7 +320,7 @@ export default function MaintenancePage() {
   useEffect(() => {
     if (!autoRefreshLogs || activeTab !== "logs") return;
     const interval = setInterval(() => {
-      fetchLogs();
+      void fetchLogs();
     }, 5000);
     return () => clearInterval(interval);
   }, [autoRefreshLogs, activeTab, fetchLogs]);
@@ -363,7 +350,7 @@ export default function MaintenancePage() {
         )
       );
       showToast(`Public IP ${ipAddress} ${isBlocked ? "Unblocked" : "Blocked & Enforced"} successfully`);
-      if (activeTab === "logs") fetchLogs();
+      if (activeTab === "logs") void fetchLogs();
     } catch (err) {
       showToast(err instanceof Error ? err.message : "Failed to update IP block state", "error");
     }
@@ -381,7 +368,7 @@ export default function MaintenancePage() {
         prev.map((r) => (r.id === ruleId ? { ...r, enabled: !currentEnabled } : r))
       );
       showToast(`Rule ${ruleId} ${!currentEnabled ? "Enabled" : "Disabled"}`);
-    } catch (err) {
+    } catch (_err) {
       showToast("Failed to toggle firewall rule", "error");
     }
   };
@@ -390,7 +377,7 @@ export default function MaintenancePage() {
   const handleCreateRule = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const data = await api<any>("/maintenance/firewall/rules", {
+      const data = await api<{ rule: FirewallRule }>("/maintenance/firewall/rules", {
         method: "POST",
         token: token || undefined,
         body: JSON.stringify({
@@ -410,7 +397,7 @@ export default function MaintenancePage() {
       setNewRuleDescription("");
       setNewRulePattern("");
       showToast("New Firewall Policy Rule Enforced Successfully!");
-    } catch (err) {
+    } catch (_err) {
       showToast("Failed to create firewall rule", "error");
     }
   };
@@ -425,7 +412,7 @@ export default function MaintenancePage() {
       });
       setFirewallRules((prev) => prev.filter((r) => r.id !== ruleId));
       showToast("Firewall Rule Removed");
-    } catch (err) {
+    } catch (_err) {
       showToast("Failed to delete firewall rule", "error");
     }
   };
@@ -473,7 +460,7 @@ export default function MaintenancePage() {
   };
 
   const copyToClipboard = (text: string, label = "Copied") => {
-    navigator.clipboard.writeText(text);
+    void navigator.clipboard.writeText(text);
     showToast(`${label} copied to clipboard`, "info");
   };
 
@@ -512,7 +499,7 @@ export default function MaintenancePage() {
     if (!newBugTitle.trim() || !newBugDesc.trim()) return;
     setSubmittingBug(true);
     try {
-      const data = await api<any>("/maintenance/bugs", {
+      const data = await api<{ bug: BugReport }>("/maintenance/bugs", {
         method: "POST",
         token: token || undefined,
         body: JSON.stringify({
@@ -526,7 +513,7 @@ export default function MaintenancePage() {
       setNewBugTitle("");
       setNewBugDesc("");
       showToast("Bug Report Logged Successfully");
-    } catch (err) {
+    } catch (_err) {
       showToast("Failed to submit bug report", "error");
     } finally {
       setSubmittingBug(false);
@@ -654,12 +641,12 @@ export default function MaintenancePage() {
           <div className="flex flex-wrap items-center gap-2.5">
             <button
               onClick={() => {
-                if (activeTab === "logs") fetchLogs();
-                else if (activeTab === "overview") fetchOverview();
-                else if (activeTab === "firewall") fetchFirewallRules();
-                else if (activeTab === "security") fetchSecurity();
-                else if (activeTab === "database") fetchDatabase();
-                else if (activeTab === "bugs") fetchBugsAndSettings();
+                if (activeTab === "logs") void fetchLogs();
+                else if (activeTab === "overview") void fetchOverview();
+                else if (activeTab === "firewall") void fetchFirewallRules();
+                else if (activeTab === "security") void fetchSecurity();
+                else if (activeTab === "database") void fetchDatabase();
+                else if (activeTab === "bugs") void fetchBugsAndSettings();
                 showToast("Telemetry synced with server", "info");
               }}
               className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-mono font-bold bg-white/[0.04] border border-white/[0.1] text-zinc-300 hover:text-white hover:bg-white/[0.08] transition-all"
@@ -669,7 +656,7 @@ export default function MaintenancePage() {
             </button>
 
             <button
-              onClick={handleToggleMaintenance}
+              onClick={() => void handleToggleMaintenance()}
               className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-mono font-bold uppercase tracking-wider transition-all border ${
                 maintenanceSettings.enabled
                   ? "bg-red-500/20 border-red-500 text-red-400 shadow-[0_0_20px_rgba(255,0,60,0.3)] animate-pulse"
@@ -686,19 +673,19 @@ export default function MaintenancePage() {
       {/* ── NAVIGATION TABS ── */}
       <div className="flex flex-wrap items-center gap-1.5 p-1.5 rounded-2xl bg-black/60 border border-white/[0.08] backdrop-blur-md">
         {[
-          { id: "logs", label: "MAINTENANCE LOGS", icon: TerminalSquare, badge: logsTotal > 0 ? `${logsTotal}` : undefined, highlight: true },
-          { id: "overview", label: "SYSTEM OVERVIEW", icon: Activity },
-          { id: "firewall", label: "FIREWALL POLICIES", icon: ShieldCheck, badge: `${firewallRules.length || 7}` },
-          { id: "security", label: "IP & THREAT INTEL", icon: Ban },
-          { id: "database", label: "DATA METRICS", icon: Database },
-          { id: "bugs", label: "INCIDENT REPORTS", icon: Bug, badge: bugs.length > 0 ? `${bugs.length}` : undefined },
+          { id: "logs" as TabType, label: "MAINTENANCE LOGS", icon: TerminalSquare, badge: logsTotal > 0 ? `${logsTotal}` : undefined },
+          { id: "overview" as TabType, label: "SYSTEM OVERVIEW", icon: Activity },
+          { id: "firewall" as TabType, label: "FIREWALL POLICIES", icon: ShieldCheck, badge: `${firewallRules.length || 7}` },
+          { id: "security" as TabType, label: "IP & THREAT INTEL", icon: Ban },
+          { id: "database" as TabType, label: "DATA METRICS", icon: Database },
+          { id: "bugs" as TabType, label: "INCIDENT REPORTS", icon: Bug, badge: bugs.length > 0 ? `${bugs.length}` : undefined },
         ].map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
           return (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id as any)}
+              onClick={() => setActiveTab(tab.id)}
               className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-mono font-bold uppercase transition-all relative ${
                 isActive
                   ? "bg-[#CCFF00]/12 border border-[#CCFF00]/40 text-[#CCFF00] shadow-[0_0_16px_rgba(204,255,0,0.15)]"
@@ -722,7 +709,7 @@ export default function MaintenancePage() {
       </div>
 
       {/* ══════════════════════════════════════════════════════════════════════ */}
-      {/* ── TAB 1: MAINTENANCE & FORENSIC LOGS (PRIMARY PROPER UI) ── */}
+      {/* ── TAB 1: MAINTENANCE & FORENSIC LOGS ── */}
       {/* ══════════════════════════════════════════════════════════════════════ */}
       {activeTab === "logs" && (
         <div className="space-y-5">
@@ -1212,7 +1199,7 @@ export default function MaintenancePage() {
                                         </div>
                                         {log.publicIp && log.publicIp !== "127.0.0.1" && (
                                           <button
-                                            onClick={() => handleToggleBlockIp(log.publicIp!, false)}
+                                            onClick={() => void handleToggleBlockIp(log.publicIp!, false)}
                                             className="mt-2 w-full py-1.5 rounded-lg bg-red-500/15 border border-red-500/30 text-red-400 text-[10px] font-mono font-bold hover:bg-red-500/25 transition-all flex items-center justify-center gap-1.5"
                                           >
                                             <Ban className="w-3 h-3" /> Ban Public IP ({log.publicIp})
@@ -1667,7 +1654,7 @@ export default function MaintenancePage() {
                     <span className="text-base font-black text-red-400">{rule.hitsCount || 0}</span>
                   </div>
                   <button
-                    onClick={() => handleToggleFirewallRule(rule.id, rule.enabled)}
+                    onClick={() => void handleToggleFirewallRule(rule.id, rule.enabled)}
                     className={`px-3.5 py-1.5 rounded-xl text-xs font-mono font-bold border transition-all ${
                       rule.enabled
                         ? "bg-[#CCFF00]/15 border-[#CCFF00]/40 text-[#CCFF00]"
@@ -1678,7 +1665,7 @@ export default function MaintenancePage() {
                   </button>
                   {rule.id.startsWith("FW-RULE-") && rule.category === "CUSTOM" && (
                     <button
-                      onClick={() => handleDeleteRule(rule.id)}
+                      onClick={() => void handleDeleteRule(rule.id)}
                       className="p-2 rounded-xl border border-red-500/30 text-red-400 hover:bg-red-500/10"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -1740,7 +1727,7 @@ export default function MaintenancePage() {
                       <label className="block text-zinc-400 mb-1">TARGET INSPECTION</label>
                       <select
                         value={newRuleTarget}
-                        onChange={(e) => setNewRuleTarget(e.target.value as any)}
+                        onChange={(e) => setNewRuleTarget(e.target.value as FirewallRule["target"])}
                         className="w-full px-3 py-2 rounded-lg bg-black/60 border border-white/[0.08] text-white outline-none"
                       >
                         <option value="ALL">All Request Data</option>
@@ -1760,6 +1747,36 @@ export default function MaintenancePage() {
                       placeholder="e.g. (evilbot|hacktool|scanner)"
                       className="w-full px-3 py-2 rounded-lg bg-black/60 border border-white/[0.08] text-white outline-none focus:border-[#CCFF00]/40"
                     />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-zinc-400 mb-1">ACTION</label>
+                      <select
+                        value={newRuleAction}
+                        onChange={(e) => setNewRuleAction(e.target.value as FirewallRule["action"])}
+                        className="w-full px-3 py-2 rounded-lg bg-black/60 border border-white/[0.08] text-white outline-none"
+                      >
+                        <option value="BLOCK">Block Request</option>
+                        <option value="CHALLENGE">Challenge</option>
+                        <option value="RATE_LIMIT">Rate Limit</option>
+                        <option value="LOG_ONLY">Log Only</option>
+                        <option value="ALLOW">Allow</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-zinc-400 mb-1">SEVERITY</label>
+                      <select
+                        value={newRuleSeverity}
+                        onChange={(e) => setNewRuleSeverity(e.target.value as FirewallRule["severity"])}
+                        className="w-full px-3 py-2 rounded-lg bg-black/60 border border-white/[0.08] text-white outline-none"
+                      >
+                        <option value="SECURITY_BLOCK">Security Block</option>
+                        <option value="EMERGENCY">Emergency</option>
+                        <option value="CRITICAL">Critical</option>
+                        <option value="WARN">Warning</option>
+                        <option value="INFO">Info</option>
+                      </select>
+                    </div>
                   </div>
                   <div>
                     <label className="block text-zinc-400 mb-1">RULE DESCRIPTION</label>
@@ -1860,7 +1877,7 @@ export default function MaintenancePage() {
                         </td>
                         <td className="py-3.5 px-4 text-right">
                           <button
-                            onClick={() => handleToggleBlockIp(ip.ipAddress, ip.isBlocked)}
+                            onClick={() => void handleToggleBlockIp(ip.ipAddress, ip.isBlocked)}
                             className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all ${
                               ip.isBlocked
                                 ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20"
@@ -1932,10 +1949,26 @@ export default function MaintenancePage() {
                   />
                 </div>
                 <div>
+                  <label className="block text-zinc-400 mb-1">CATEGORY</label>
+                  <select
+                    value={newBugCategory}
+                    onChange={(e) => setNewBugCategory(e.target.value)}
+                    className="w-full px-3 py-2 rounded-lg bg-black/60 border border-white/[0.08] text-white outline-none"
+                  >
+                    <option value="PORTAL_CORE">Portal Core</option>
+                    <option value="FIREWALL">Firewall / WAF</option>
+                    <option value="AUTH">Authentication</option>
+                    <option value="DATABASE">Database</option>
+                    <option value="UI">UI / UX</option>
+                  </select>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 gap-3">
+                <div>
                   <label className="block text-zinc-400 mb-1">SEVERITY</label>
                   <select
                     value={newBugSeverity}
-                    onChange={(e) => setNewBugSeverity(e.target.value as any)}
+                    onChange={(e) => setNewBugSeverity(e.target.value as "LOW" | "MEDIUM" | "HIGH" | "CRITICAL")}
                     className="w-full px-3 py-2 rounded-lg bg-black/60 border border-white/[0.08] text-white outline-none"
                   >
                     <option value="LOW">Low</option>
