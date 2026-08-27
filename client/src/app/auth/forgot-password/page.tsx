@@ -46,11 +46,11 @@ export default function ForgotPasswordPage() {
         <div className="flex justify-center mb-8">
           <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: 0.2, duration: 0.5 }} className="inline-flex items-center gap-4">
             <div className="w-16 h-16 relative">
-              <Image src="/ck-logo.svg" alt="CyberKavach Logo" fill className="object-contain" priority />
+              <Image src="/ck-logo.svg" alt="SENTINAL Logo" fill className="object-contain" priority />
             </div>
             <div className="flex flex-col items-start justify-center pt-1">
               <span className="text-3xl font-black tracking-[0.15em] font-mono leading-none">
-                <span className="text-white">CYBER</span><span className="text-[#FF003C]">KAVACH</span>
+                <span className="text-white">SENTI</span><span className="text-[#00FF66]">NAL</span>
               </span>
               <span className="text-[11px] font-bold text-[#CCFF00] tracking-[0.25em] font-mono mt-2">
                 CYBER SECURITY CLUB

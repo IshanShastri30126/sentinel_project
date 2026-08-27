@@ -13,7 +13,7 @@ import {
   User, Settings, Check, CheckCheck, RotateCw, ShieldAlert, Terminal
 } from "lucide-react";
 import { DefaultAvatar } from "@/components/default-avatar";
-import { CyberKavachLogo } from "@/components/CyberKavachLogo";
+import { SentinalLogo } from "@/components/SentinalLogo";
 
 interface Notification {
   id: string;
@@ -98,7 +98,7 @@ function SidebarNav({
       {/* Logo / Brand */}
       <div className={`border-b border-[#1A1E26] flex relative transition-all duration-200 ${collapsed ? "flex-col items-center justify-center py-4 px-2 gap-3" : "p-5 items-center justify-between"}`}>
         <Link href="/dashboard" className="group min-w-0 flex items-center">
-          <CyberKavachLogo collapsed={collapsed} animateDrawing={false} />
+          <SentinalLogo collapsed={collapsed} animateDrawing={false} />
         </Link>
         {/* Close button — mobile only */}
         {isMobile && setMobileOpen && (
@@ -493,7 +493,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
             {/* Merged Logo Mark + Wordmark inside Sticky Top Bar */}
             <Link href="/dashboard" className="flex items-center gap-2 min-w-0 shrink hover:opacity-90 transition">
-              <CyberKavachLogo collapsed={false} showText={true} animateDrawing={false} className="scale-90 origin-left shrink-0" />
+              <SentinalLogo collapsed={false} showText={true} animateDrawing={false} className="scale-90 origin-left shrink-0" />
             </Link>
           </div>
 

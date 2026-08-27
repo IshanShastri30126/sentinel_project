@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package cyberkavach;
+package sentinal;
 
 // ─── 1. Auth & Identity Service ──────────────────────────────
 service AuthService {

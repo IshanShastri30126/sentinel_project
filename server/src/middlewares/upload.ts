@@ -139,7 +139,7 @@ function createCloudinaryMiddleware(fieldName: string, folder?: string) {
 
       try {
         const result = await uploadToCloudinary(req.file.buffer, {
-          folder: folder || "cyberkavach",
+          folder: folder || "sentinal",
           resourceType: req.file.mimetype.startsWith("image/") ? "image" : "raw",
         });
 

@@ -1307,7 +1307,7 @@ export default function MaintenancePage() {
                     <span className="w-2.5 h-2.5 rounded-full bg-yellow-500/80" />
                     <span className="w-2.5 h-2.5 rounded-full bg-emerald-500/80" />
                   </div>
-                  <span className="text-zinc-400 text-[11px] ml-2">cyberkavach-telemetry-l2: ~ /audit/stream.log</span>
+                  <span className="text-zinc-400 text-[11px] ml-2">sentinal-telemetry-l2: ~ /audit/stream.log</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <button

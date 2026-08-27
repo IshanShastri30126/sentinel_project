@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { CyberKavachLogo } from "@/components/CyberKavachLogo";
+import { SentinalLogo } from "@/components/SentinalLogo";
 import { 
   Shield, 
   ChevronRight, 
@@ -250,7 +250,7 @@ export default function LandingPage() {
       <header className="relative z-50 flex items-center justify-between px-6 py-6 max-w-7xl mx-auto">
         <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="flex items-center gap-4">
           <div className="flex items-center gap-3">
-            <CyberKavachLogo animateDrawing={true} />
+            <SentinalLogo animateDrawing={true} />
           </div>
         </motion.div>
         
@@ -359,7 +359,7 @@ export default function LandingPage() {
       <footer className="border-t border-[#121F3D] bg-[#030712] py-12 relative z-10">
         <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-2">
-            <CyberKavachLogo animateDrawing={false} />
+            <SentinalLogo animateDrawing={false} />
           </div>
           
           {/* Social Links */}

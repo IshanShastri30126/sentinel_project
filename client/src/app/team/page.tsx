@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Shield, ArrowLeft, Users, Mail, Info, LogIn, Eye } from "lucide-react";
 import { api, getFileUrl } from "@/lib/api";
-import { CyberKavachLogo } from "@/components/CyberKavachLogo";
+import { SentinalLogo } from "@/components/SentinalLogo";
 
 const GithubIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} style={{ width: '1em', height: '1em' }}>
@@ -568,7 +568,7 @@ export default function TeamPage() {
           </Link>
           <div className="flex items-center gap-3">
             <Link href="/" className="flex items-center gap-3">
-              <CyberKavachLogo animateDrawing={true} />
+              <SentinalLogo animateDrawing={true} />
             </Link>
           </div>
 
@@ -652,7 +652,7 @@ export default function TeamPage() {
       <footer className="border-t border-[#121F3D] bg-[#030712] py-12 relative z-10">
         <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-2">
-            <CyberKavachLogo animateDrawing={false} />
+            <SentinalLogo animateDrawing={false} />
           </div>
           
           {/* Social Links */}

@@ -1,7 +1,7 @@
-# render.yaml — Render deployment config for CyberKavach 2.0 Backend
+# render.yaml — Render deployment config for SENTINAL Backend
 services:
   - type: web
-    name: cyberkavach-api
+    name: sentinal-api
     runtime: node
     region: oregon
     rootDir: server

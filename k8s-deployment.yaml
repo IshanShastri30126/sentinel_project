@@ -1,34 +1,34 @@
 # ==========================================================
-# CyberKavach 2.0 — Production Kubernetes Deployment Manifests
+# SENTINAL — Production Kubernetes Deployment Manifests
 # ==========================================================
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: cyberkavach-api
-  namespace: cyberkavach
+  name: sentinal-api
+  namespace: sentinal
   labels:
-    app: cyberkavach-api
+    app: sentinal-api
 spec:
   replicas: 3
   selector:
     matchLabels:
-      app: cyberkavach-api
+      app: sentinal-api
   template:
     metadata:
       labels:
-        app: cyberkavach-api
+        app: sentinal-api
     spec:
       containers:
         - name: api
-          image: cyberkavach/api:latest
+          image: sentinal/api:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 5000
           envFrom:
             - configMapRef:
-                name: cyberkavach-config
+                name: sentinal-config
             - secretRef:
-                name: cyberkavach-secrets
+                name: sentinal-secrets
           resources:
             limits:
               cpu: "1000m"
@@ -52,11 +52,11 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: cyberkavach-api-service
-  namespace: cyberkavach
+  name: sentinal-api-service
+  namespace: sentinal
 spec:
   selector:
-    app: cyberkavach-api
+    app: sentinal-api
   ports:
     - protocol: TCP
       port: 80
@@ -66,28 +66,28 @@ spec:
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: cyberkavach-api-hpa
-  namespace: cyberkavach
+  name: sentinal-api-hpa
+  namespace: sentinal
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: cyberkavach-api
+    name: sentinal-api
   minReplicas: 3
   maxReplicas: 25
   metrics:
     - type: Resource
       resource:
         name: cpu
-        target:
-          type: Utilization
-          averageUtilization: 70
+      target:
+        type: Utilization
+        averageUtilization: 70
     - type: Resource
       resource:
         name: memory
-        target:
-          type: Utilization
-          averageUtilization: 80
+      target:
+        type: Utilization
+        averageUtilization: 80
 ---
 # ==========================================================
 # Worker Deployment (Consuming BullMQ Heavy Jobs)
@@ -95,29 +95,29 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: cyberkavach-worker
-  namespace: cyberkavach
+  name: sentinal-worker
+  namespace: sentinal
   labels:
-    app: cyberkavach-worker
+    app: sentinal-worker
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: cyberkavach-worker
+      app: sentinal-worker
   template:
     metadata:
       labels:
-        app: cyberkavach-worker
+        app: sentinal-worker
     spec:
       containers:
         - name: worker
-          image: cyberkavach/worker:latest
+          image: sentinal/worker:latest
           imagePullPolicy: Always
           envFrom:
             - configMapRef:
-                name: cyberkavach-config
+                name: sentinal-config
             - secretRef:
-                name: cyberkavach-secrets
+                name: sentinal-secrets
           resources:
             limits:
               cpu: "1500m"
@@ -129,22 +129,22 @@ spec:
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: cyberkavach-worker-hpa
-  namespace: cyberkavach
+  name: sentinal-worker-hpa
+  namespace: sentinal
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: cyberkavach-worker
+    name: sentinal-worker
   minReplicas: 2
   maxReplicas: 10
   metrics:
     - type: Resource
       resource:
         name: cpu
-        target:
-          type: Utilization
-          averageUtilization: 75
+      target:
+        type: Utilization
+        averageUtilization: 75
 ---
 # ==========================================================
 # Ingress Controller Routing (Envoy / NGINX)
@@ -152,27 +152,27 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: cyberkavach-ingress
-  namespace: cyberkavach
+  name: sentinal-ingress
+  namespace: sentinal
   annotations:
     kubernetes.io/ingress.class: "nginx"
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
     nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
     nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
-    nginx.ingress.kubernetes.io/websocket-services: "cyberkavach-api-service"
+    nginx.ingress.kubernetes.io/websocket-services: "sentinal-api-service"
 spec:
   rules:
-    - host: api.cyberkavach.org
+    - host: api.sentinal.org
       http:
         paths:
           - path: /
             pathType: Prefix
             backend:
               service:
-                name: cyberkavach-api-service
+                name: sentinal-api-service
                 port:
                   number: 80
   tls:
     - hosts:
-        - api.cyberkavach.org
-      secretName: cyberkavach-tls-certs
+        - api.sentinal.org
+      secretName: sentinal-tls-certs

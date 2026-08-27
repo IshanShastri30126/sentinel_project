@@ -1,5 +1,5 @@
 // ==========================================================
-// CyberKavach 2.0 — Prisma Schema
+// SENTINAL — Prisma Schema
 // ==========================================================
 // Covers: Users, Roles, Events, Teams, Attendance, Certificates,
 //         Approvals, Appreciation, Badges, Notifications, Audit, Settings

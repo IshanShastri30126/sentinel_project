@@ -49,8 +49,8 @@ const getGoogleCalendarUrl = (ev: EventDetail) => {
     
   const text = encodeURIComponent(ev.title);
   const dates = `${start}/${end}`;
-  const details = encodeURIComponent(ev.description || "CyberKavach Event");
-  const location = encodeURIComponent(ev.venue || "Online / CyberKavach Hub");
+  const details = encodeURIComponent(ev.description || "SENTINAL Event");
+  const location = encodeURIComponent(ev.venue || "Online / SENTINAL Hub");
   
   return `https://www.google.com/calendar/render?action=TEMPLATE&text=${text}&dates=${dates}&details=${details}&location=${location}`;
 };

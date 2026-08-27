@@ -1,7 +1,7 @@
 {
-  "name": "cyberkavach-server",
+  "name": "sentinal-server",
   "version": "2.0.0",
-  "description": "CyberKavach 2.0 Backend API Server",
+  "description": "SENTINAL Backend API Server",
   "main": "dist/index.js",
   "scripts": {
     "dev": "tsx watch src/index.ts",

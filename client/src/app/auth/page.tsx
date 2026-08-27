@@ -8,7 +8,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Shield, Mail, Lock, User, ArrowRight, Eye, EyeOff, AlertCircle, CheckCircle, Smartphone, Building, GraduationCap, Sparkles, ShieldAlert } from "lucide-react";
 import { GoogleLogin } from "@react-oauth/google";
 import PlexusBackground from "@/components/PlexusBackground";
-import { CyberKavachLogo } from "@/components/CyberKavachLogo";
+import { SentinalLogo } from "@/components/SentinalLogo";
 import { api } from "@/lib/api";
 export const INSTITUTES = ["CSPIT", "DEPSTAR", "PDPIAS", "CMPICA", "IIIM"] as const;
 
@@ -272,7 +272,7 @@ function LoginPageContent() {
           <Link href="/" className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-[#121F3D] bg-black/40 hover:border-[#00F5D4]/40 hover:text-[#00F5D4] transition-all font-mono text-[10px] text-zinc-400 font-bold">
             <ArrowLeft className="w-3.5 h-3.5" /> Back to Terminal
           </Link>
-          <CyberKavachLogo animateDrawing={false} />
+          <SentinalLogo animateDrawing={false} />
         </div>
         <div className="hidden sm:flex items-center gap-2 text-xs font-mono text-[#00F5D4] bg-black/40 px-3 py-1.5 rounded-full border border-[#00F5D4]/30 backdrop-blur">
           <Shield className="w-3.5 h-3.5 text-[#00F5D4]" />

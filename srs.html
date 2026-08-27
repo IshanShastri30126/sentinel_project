@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>CyberKavach 2.0 — Software Requirements Specification (SRS)</title>
+  <title>SENTINAL — Software Requirements Specification (SRS)</title>
   <style>
     /* ─── Global Reset & Typography ───────────────────────────── */
     @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=JetBrains+Mono:wght@400;600&family=Outfit:wght@300;400;500;600;700&display=swap');
@@ -438,7 +438,7 @@
     <div class="cover-security-banner">CLASSIFIED: INTERNAL CLUB USE ONLY</div>
     
     <div class="cover-title-container">
-      <div class="cover-logo">CYBERKAVACH 2.0</div>
+      <div class="cover-logo">SENTINAL</div>
       <div class="cover-title">Software Requirements Specification (SRS)</div>
       <div class="cover-subtitle">Centralized Operations & Cyber Command Portal</div>
     </div>
@@ -446,7 +446,7 @@
     <div class="cover-meta">
       <div class="meta-item">
         <strong>Document ID</strong>
-        CK2-SRS-2026-V2.0
+        SENTINAL-SRS-2026-V2.0
       </div>
       <div class="meta-item">
         <strong>Revision Date</strong>
@@ -454,11 +454,11 @@
       </div>
       <div class="meta-item">
         <strong>Author</strong>
-        Lead Architect, CyberKavach
+        Lead Architect, SENTINAL
       </div>
       <div class="meta-item">
         <strong>Target Portal</strong>
-        https://github.com/IshanShastri30126/Cyberkavach2.0
+        https://github.com/IshanShastri30126/Chakravyuhclub
       </div>
       <div class="meta-item">
         <strong>Classification</strong>
@@ -476,7 +476,7 @@
        =================================================================== -->
   <div class="page" style="padding-top: 10mm; height: 100vh;">
     <div class="doc-header">
-      <span class="doc-title-mini">CyberKavach 2.0 — SRS Document</span>
+      <span class="doc-title-mini">SENTINAL — SRS Document</span>
       <span>Page TOC-1</span>
     </div>
 
@@ -581,7 +581,7 @@
     </ul>
 
     <div class="doc-footer">
-      <span>CyberKavach 2.0 Operative Documentation</span>
+      <span>SENTINAL Operative Documentation</span>
       <span>Classification: CONFIDENTIAL</span>
     </div>
   </div>
@@ -599,12 +599,12 @@
     
     <h3 class="subsection-title">1.1 Document Purpose</h3>
     <p>
-      This Software Requirements Specification (SRS) establishes the baseline requirements, software architecture, data structures, and operational features of the <strong>CyberKavach 2.0</strong> operations portal. This document acts as the definitive design contract for students, faculty, developers, and administrators.
+      This Software Requirements Specification (SRS) establishes the baseline requirements, software architecture, data structures, and operational features of the <strong>SENTINAL</strong> operations portal. This document acts as the definitive design contract for students, faculty, developers, and administrators.
     </p>
 
     <h3 class="subsection-title">1.2 System Overview</h3>
     <p>
-      CyberKavach 2.0 is a centralized operational hub designed specifically for cyber security clubs and technical student organizations. The platform handles end-to-end event organization, secure student and coordinator onboarding, biometric/QR code physical attendance logging, batch certificate compilation, multi-level approval hierarchies, newsletter editing, social media copy generation, real-time activity streaming, and analytical dashboard telemetry.
+      SENTINAL is a centralized operational hub designed specifically for cyber security clubs and technical student organizations. The platform handles end-to-end event organization, secure student and coordinator onboarding, biometric/QR code physical attendance logging, batch certificate compilation, multi-level approval hierarchies, newsletter editing, social media copy generation, real-time activity streaming, and analytical dashboard telemetry.
     </p>
 
     <h3 class="subsection-title">1.3 Technology Stack</h3>
@@ -645,7 +645,7 @@
     </div>
 
     <div class="doc-footer">
-      <span>CyberKavach 2.0 Operative Documentation</span>
+      <span>SENTINAL Operative Documentation</span>
       <span>Classification: CONFIDENTIAL</span>
     </div>
   </div>
@@ -717,7 +717,7 @@
     </div>
 
     <div class="doc-footer">
-      <span>CyberKavach 2.0 Operative Documentation</span>
+      <span>SENTINAL Operative Documentation</span>
       <span>Classification: CONFIDENTIAL</span>
     </div>
   </div>
@@ -756,7 +756,7 @@
     </ul>
 
     <div class="doc-footer">
-      <span>CyberKavach 2.0 Operative Documentation</span>
+      <span>SENTINAL Operative Documentation</span>
       <span>Classification: CONFIDENTIAL</span>
     </div>
   </div>
@@ -786,14 +786,14 @@
       For team-based contests, members register by establishing or joining collaborative groups.
     </p>
     <ul>
-      <li><strong>Team Code Generation:</strong> Creating a team inserts a <code>Team</code> record and generates a unique, alphanumeric 6-digit invitation code (e.g., <code>KAVACH-X7</code>). Sharing this code allows peer members to join.</li>
+      <li><strong>Team Code Generation:</strong> Creating a team inserts a <code>Team</code> record and generates a unique, alphanumeric 6-digit invitation code (e.g., <code>SENTINAL-X7</code>). Sharing this code allows peer members to join.</li>
       <li><strong>Peer invitations Gating:</strong> Submitting a code to join checks if the user is already registered for that event, validates that the team is not full (does not exceed <code>maxTeamSize</code>), and checks if the member account is approved and active.</li>
       <li><strong>Roster Cloning (Cloning & Signing):</strong> Users can clone a past successful team roster into a new event. The system queries the members of the old team, verifies their active status, and performs a bulk insert creating a new team with a fresh code, outputting a console feedback animation: <i>"Identity Cloned & Signed."</i></li>
       <li><strong>QR Access Token:</strong> The team leader can download a generated QR Code (pointing to the team ID) which represents their digital check-in passport.</li>
     </ul>
 
     <div class="doc-footer">
-      <span>CyberKavach 2.0 Operative Documentation</span>
+      <span>SENTINAL Operative Documentation</span>
       <span>Classification: CONFIDENTIAL</span>
     </div>
   </div>
@@ -835,7 +835,7 @@
     </ul>
 
     <div class="doc-footer">
-      <span>CyberKavach 2.0 Operative Documentation</span>
+      <span>SENTINAL Operative Documentation</span>
       <span>Classification: CONFIDENTIAL</span>
     </div>
   </div>
@@ -880,7 +880,7 @@
     </ul>
 
     <div class="doc-footer">
-      <span>CyberKavach 2.0 Operative Documentation</span>
+      <span>SENTINAL Operative Documentation</span>
       <span>Classification: CONFIDENTIAL</span>
     </div>
   </div>
@@ -1011,7 +1011,7 @@
     </table>
 
     <div class="doc-footer">
-      <span>CyberKavach 2.0 Operative Documentation</span>
+      <span>SENTINAL Operative Documentation</span>
       <span>Classification: CONFIDENTIAL</span>
     </div>
   </div>
@@ -1174,7 +1174,7 @@
     </table>
 
     <div class="doc-footer">
-      <span>CyberKavach 2.0 Operative Documentation</span>
+      <span>SENTINAL Operative Documentation</span>
       <span>Classification: CONFIDENTIAL</span>
     </div>
   </div>
@@ -1331,7 +1331,7 @@
     </table>
 
     <div class="doc-footer">
-      <span>CyberKavach 2.0 Operative Documentation</span>
+      <span>SENTINAL Operative Documentation</span>
       <span>Classification: CONFIDENTIAL</span>
     </div>
   </div>
@@ -1347,7 +1347,7 @@
 
     <h1 class="section-title">5. Query Optimizations & Caching</h1>
     <p>
-      To prevent database N+1 bottlenecks and ensure lightning-fast responsiveness under high load, CyberKavach 2.0 implements 16 specific optimizations across all routes:
+      To prevent database N+1 bottlenecks and ensure lightning-fast responsiveness under high load, SENTINAL implements 16 specific optimizations across all routes:
     </p>
 
     <h3 class="subsection-title">5.1 Parallel Query Execution via <code>Promise.all()</code></h3>
@@ -1385,7 +1385,7 @@
     </p>
 
     <div class="doc-footer">
-      <span>CyberKavach 2.0 Operative Documentation</span>
+      <span>SENTINAL Operative Documentation</span>
       <span>Classification: CONFIDENTIAL</span>
     </div>
   </div>
@@ -1439,7 +1439,7 @@
     </ul>
 
     <div class="doc-footer">
-      <span>CyberKavach 2.0 Operative Documentation</span>
+      <span>SENTINAL Operative Documentation</span>
       <span>Classification: CONFIDENTIAL</span>
     </div>
   </div>
@@ -1480,7 +1480,7 @@
     </p>
 
     <div class="doc-footer">
-      <span>CyberKavach 2.0 Operative Documentation</span>
+      <span>SENTINAL Operative Documentation</span>
       <span>Classification: CONFIDENTIAL</span>
     </div>
   </div>

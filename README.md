@@ -111,8 +111,8 @@ NEXT_PUBLIC_WS_URL="http://localhost:4000"
 
 ### 1. Clone the repository
 ```bash
-git clone https://github.com/IshanShastri30126/Cyberkavach2.0.git
-cd Cyberkavach2.0
+git clone https://github.com/IshanShastri30126/Chakravyuhclub.git
+cd Chakravyuhclub
 ```
 
 ### 2. Install Dependencies

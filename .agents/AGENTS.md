@@ -6,7 +6,7 @@
 - **Git Binary Path**: On this Windows environment, use `& "C:\Program Files\Git\cmd\git.exe"` if standard `git` command is not in PATH.
 
 ## Mandatory OWASP Secure Coding Practices Rule
-- **Mandatory Security Rule**: Apply all security constraints from the OWASP-based 67-page Secure Coding Practices guide ([SKILL.md](file:///a:/cyberkavach2.0/.agents/skills/secure-coding-practices/SKILL.md)) across ALL project development, website creation, API design, database queries, and system configuration without requiring explicit user instructions.
+- **Mandatory Security Rule**: Apply all security constraints from the OWASP-based 67-page Secure Coding Practices guide ([SKILL.md](file:///a:/SENITINAL-MAIN%C2%A9/.agents/skills/secure-coding-practices/SKILL.md)) across ALL project development, website creation, API design, database queries, and system configuration without requiring explicit user instructions.
 - **Core Security Directives**:
   1. **Input Validation**: Server-side validation, allowlists, canonicalization, reject invalid input, screen hazardous chars (`< > ' " % ( ) & + \`), null bytes (`%00`), traversal (`../`).
   2. **Output Encoding**: Contextual output encoding (HTML body/attr, JS, CSS, URL) to prevent XSS.

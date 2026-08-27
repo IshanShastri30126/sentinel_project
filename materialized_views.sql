@@ -1,5 +1,5 @@
 -- ==========================================================
--- CyberKavach 2.0 — Database Performance & Analytics Optimizations
+-- SENTINAL — Database Performance & Analytics Optimizations
 -- ==========================================================
 
 -- 1. Indexing Optimizations for High-Traffic Scans & Lookups

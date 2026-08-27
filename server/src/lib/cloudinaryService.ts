@@ -21,7 +21,7 @@ export async function uploadToCloudinary(
     publicId?: string;
   } = {}
 ): Promise<{ url: string; publicId: string }> {
-  const { folder = "cyberkavach", resourceType = "auto", publicId } = options;
+  const { folder = "sentinal", resourceType = "auto", publicId } = options;
 
   return new Promise((resolve, reject) => {
     const uploadStream = cloudinary.uploader.upload_stream(

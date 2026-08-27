@@ -1,9 +1,11 @@
 const fs = require('fs');
-let content = fs.readFileSync('c:/cyberkavach2.0/server/src/routes/certificates.ts', 'utf-8');
+const path = require('path');
+let filePath = path.join(__dirname, 'src/routes/certificates.ts');
+let content = fs.readFileSync(filePath, 'utf-8');
 let lines = content.split('\n');
 for (let i = 424; i < lines.length; i++) {
   lines[i] = lines[i].replace(/\\\$\{/g, '${');
   lines[i] = lines[i].replace(/\\\`/g, '`');
 }
-fs.writeFileSync('c:/cyberkavach2.0/server/src/routes/certificates.ts', lines.join('\n'));
+fs.writeFileSync(filePath, lines.join('\n'));
 console.log("Done");

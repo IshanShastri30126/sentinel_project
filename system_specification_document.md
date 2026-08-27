@@ -1,12 +1,12 @@
-# CyberKavach 2.0 — Comprehensive System Specification & Architecture Document
+# SENTINAL — Comprehensive System Specification & Architecture Document
 
-This document provides a detailed technical specification of the **CyberKavach 2.0** digital operations platform. It covers the system architecture, design tokens, frontend routes, form validation animations, backend REST API routes, Prisma PostgreSQL models, and analytical reporting features.
+This document provides a detailed technical specification of the **SENTINAL** digital operations platform. It covers the system architecture, design tokens, frontend routes, form validation animations, backend REST API routes, Prisma PostgreSQL models, and analytical reporting features.
 
 ---
 
 ## 1. Executive Summary & Design Aesthetics
 
-**CyberKavach 2.0** is a centralized operational command center designed for technical cybersecurity clubs. It facilitates real-time event coordination, team formation, automated attendance tracking via QR-telemetry, cryptographic certificate generation, gamified member leaderboard tracking, multi-level hierarchy approvals, and public landing page administration.
+**SENTINAL** is a centralized operational command center designed for technical cybersecurity clubs. It facilitates real-time event coordination, team formation, automated attendance tracking via QR-telemetry, cryptographic certificate generation, gamified member leaderboard tracking, multi-level hierarchy approvals, and public landing page administration.
 
 ### Design Paradigm: SpaceX Cybersecurity Theme
 The entire interface is built using a dark-mode theme utilizing high-contrast, premium accents matching aerospace dashboards:
@@ -22,7 +22,7 @@ The entire interface is built using a dark-mode theme utilizing high-contrast, p
 
 ## 2. System Architecture Overview
 
-CyberKavach 2.0 is structured as a decoupled monorepo:
+SENTINAL is structured as a decoupled monorepo:
 * **Frontend**: Next.js App Router (v16.2.6), Tailwind CSS v4, Framer Motion for animations, and Lucide React icons.
 * **Backend**: Node.js Express server configured with TypeScript (tsc), Prisma client, JWT authentication, and local multer upload streaming.
 * **Database**: PostgreSQL storing users, events, check-ins, certificates, gamification logs, notifications, and club settings.
@@ -39,7 +39,7 @@ graph TD
 
 ## 3. Database Schema Mapping (Prisma Models)
 
-The data layer is defined in [schema.prisma](file:///c:/cyberkavach2.0/server/prisma/schema.prisma) and maps out all key models, enums, and relations:
+The data layer is defined in [schema.prisma](file:///a:/SENITINAL-MAIN©/server/prisma/schema.prisma) and maps out all key models, enums, and relations:
 
 ### 3.1. Enumerations
 

@@ -7,7 +7,7 @@ import {
   Building, Share2, Link2, ShieldAlert, Check, Users
 } from "lucide-react";
 import { api, getFileUrl } from "@/lib/api";
-import { CyberKavachLogo } from "@/components/CyberKavachLogo";
+import { SentinalLogo } from "@/components/SentinalLogo";
 import { ProfileCard } from "@/components/ProfileCard";
 
 interface TeamMember {
@@ -142,7 +142,7 @@ export default function MemberProfilePage() {
           </button>
           <div className="flex items-center gap-3">
             <Link href="/" className="flex items-center gap-3">
-              <CyberKavachLogo animateDrawing={false} />
+              <SentinalLogo animateDrawing={false} />
             </Link>
           </div>
         </div>
@@ -511,9 +511,9 @@ export default function MemberProfilePage() {
       <footer className="border-t border-white/10 bg-black py-12 relative z-10">
         <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-2">
-            <CyberKavachLogo animateDrawing={false} />
+            <SentinalLogo animateDrawing={false} />
           </div>
-          <p className="text-slate-500 text-sm">© {new Date().getFullYear()} CyberKavach. All rights reserved.</p>
+          <p className="text-slate-500 text-sm">© {new Date().getFullYear()} SENTINAL. All rights reserved.</p>
         </div>
       </footer>
 

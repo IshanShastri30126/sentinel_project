@@ -3,7 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { ArrowLeft, Shield, CheckCircle2, Users, Trophy, Terminal, Award } from "lucide-react";
-import { CyberKavachLogo } from "@/components/CyberKavachLogo";
+import { SentinalLogo } from "@/components/SentinalLogo";
 
 const LinkedinIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
   <svg viewBox="0 0 24 24" fill="currentColor" className={className} style={{ width: "1em", height: "1em" }}>
@@ -36,7 +36,7 @@ export default function AboutPage() {
             <Link href="/" className="p-2 rounded-lg bg-black/40 border border-[#121F3D] hover:border-[#00F5D4] text-slate-300 hover:text-[#00F5D4] transition-all">
               <ArrowLeft className="w-4 h-4" />
             </Link>
-            <CyberKavachLogo animateDrawing={false} />
+            <SentinalLogo animateDrawing={false} />
           </div>
 
           <div className="flex items-center gap-4 text-xs font-mono">

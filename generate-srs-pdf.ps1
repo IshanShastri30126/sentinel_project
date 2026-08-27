@@ -34,8 +34,8 @@ if ($null -eq $chromePath) {
 
 Write-Host "Found Google Chrome at: $chromePath"
 
-$htmlPath = "C:\cyberkavach2.0\srs.html"
-$pdfPath = "C:\cyberkavach2.0\srs.pdf"
+$htmlPath = Join-Path $PSScriptRoot "srs.html"
+$pdfPath = Join-Path $PSScriptRoot "srs.pdf"
 
 if (-not (Test-Path $htmlPath)) {
     Write-Error "HTML file not found at: $htmlPath"
