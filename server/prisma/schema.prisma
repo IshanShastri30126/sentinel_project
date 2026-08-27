@@ -1,0 +1,614 @@
+// ==========================================================
+// SENTINAL — Prisma Schema
+// ==========================================================
+// Covers: Users, Roles, Events, Teams, Attendance, Certificates,
+//         Approvals, Appreciation, Badges, Notifications, Audit, Settings
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Enums ──────────────────────────────────────────────────
+
+enum Role {
+  FACULTY
+  STUDENT_COORDINATOR
+  TECH
+  CONTENT
+  SOCIAL_MEDIA
+  MEMBER
+  GUEST
+}
+
+enum ApprovalStatus {
+  PENDING
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
+}
+
+enum ApprovalType {
+  EVENT_PERMISSION
+  RESOURCE_VENUE
+  BUDGET
+  SOCIAL_MEDIA_POST
+  CONTENT_PUBLISH
+  CERTIFICATE_AUTH
+  EXTERNAL_COLLAB
+}
+
+enum AttendanceType {
+  CHECK_IN
+  CHECK_OUT
+}
+
+enum CertificateStatus {
+  PENDING
+  GENERATING
+  GENERATED
+  FAILED
+}
+
+enum NotificationType {
+  APPROVAL_UPDATE
+  EVENT_REMINDER
+  TEAM_UPDATE
+  POINTS_RECEIVED
+  BADGE_EARNED
+  SYSTEM
+  ACCOUNT_APPROVED
+}
+
+// ─── User ──────────────────────────────────────────────────
+
+model User {
+  id            String   @id @default(uuid())
+  email         String   @unique
+  passwordHash  String
+  name          String
+  studentId     String?  @unique
+  phone         String?
+  department    String?
+  institute     String?
+  semester      String?
+  role          Role     @default(GUEST)
+  avatarUrl     String?
+  isActive      Boolean  @default(true)
+  isApproved    Boolean  @default(false)
+  firstLoginEmailSent Boolean @default(false)
+  resetToken          String?   @unique
+  resetTokenExpiry    DateTime?
+  deviceFingerprint   String?
+  boundDeviceId       String?
+  lastActiveAt        DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  approvalRequests     ApprovalRequest[]    @relation("Requester")
+  approvalDecisions    ApprovalStep[]       @relation("Approver")
+  eventRegistrations   EventRegistration[]
+  attendanceRecords    Attendance[]
+  pointsGiven          AppreciationPoint[]  @relation("PointGiver")
+  pointsReceived       AppreciationPoint[]  @relation("PointReceiver")
+  auditLogs            AuditLog[]
+  createdEvents        Event[]              @relation("EventCreator")
+  notifications        Notification[]
+  badges               UserBadge[]
+  teamsLed             Team[]               @relation("TeamLeader")
+  teamMemberships      TeamMember[]
+  createdTemplates     CertificateTemplate[] @relation("TemplateCreator")
+
+  // CTF Wars relations
+  oauthCodes           OAuthCode[]
+  ctfParticipants      CtfParticipant[]
+
+  @@map("users")
+}
+
+// ─── Approval System ────────────────────────────────────────
+
+model ApprovalRequest {
+  id            String         @id @default(uuid())
+  title         String
+  description   String?
+  type          ApprovalType
+  status        ApprovalStatus @default(PENDING)
+  metadata      Json?
+  currentLevel  Int            @default(1)
+  maxLevel      Int            @default(2)
+  escalatedAt   DateTime?
+  lastActionAt  DateTime?
+
+  requesterId   String
+  requester     User           @relation("Requester", fields: [requesterId], references: [id])
+
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  steps         ApprovalStep[]
+
+  @@index([status])
+  @@index([requesterId])
+  @@map("approval_requests")
+}
+
+model ApprovalStep {
+  id          String         @id @default(uuid())
+  level       Int
+  role        Role
+  status      ApprovalStatus @default(PENDING)
+  comment     String?
+
+  approverId  String?
+  approver    User?          @relation("Approver", fields: [approverId], references: [id])
+
+  requestId   String
+  request     ApprovalRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+
+  decidedAt   DateTime?
+  createdAt   DateTime       @default(now())
+
+  @@unique([requestId, level])
+  @@index([approverId])
+  @@map("approval_steps")
+}
+
+// ─── Events & Teams ─────────────────────────────────────────
+
+model Event {
+  id                   String    @id @default(uuid())
+  title                String
+  description          String?
+  venue                String?
+  startDate            DateTime
+  endDate              DateTime
+  registrationDeadline DateTime?
+  posterUrl            String?
+  slug                 String    @unique
+  rules                String?
+  tags                 String[]  @default([])
+  minTeamSize          Int?
+  maxTeamSize          Int?
+  isPublished          Boolean   @default(false)
+  isDraft              Boolean   @default(true)
+  isApproved           Boolean   @default(true)
+  maxCapacity          Int?
+  eventType            String    @default("general")
+  googleFormUrl        String?
+  documentUrl          String?
+  organizers           String?
+  socialLinks          String?
+
+  creatorId            String
+  creator              User      @relation("EventCreator", fields: [creatorId], references: [id])
+
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  registrations        EventRegistration[]
+  attendance           Attendance[]
+  certificates         Certificate[]
+  teams                Team[]
+  appreciationPoints   AppreciationPoint[]
+
+  @@index([isPublished, isApproved, endDate])
+  @@map("events")
+}
+
+model Team {
+  id        String   @id @default(uuid())
+  name      String
+  teamCode  String   @unique
+  qrCode    String?
+
+  leaderId  String
+  leader    User     @relation("TeamLeader", fields: [leaderId], references: [id])
+
+  eventId   String
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  members       TeamMember[]
+  registrations EventRegistration[]
+
+  @@index([eventId])
+  @@index([leaderId])
+  @@map("teams")
+}
+
+model TeamMember {
+  id       String @id @default(uuid())
+  teamId   String
+  team     Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  userId   String
+  user     User   @relation(fields: [userId], references: [id])
+
+  joinedAt DateTime @default(now())
+
+  @@unique([teamId, userId])
+  @@map("team_members")
+}
+
+model EventRegistration {
+  id        String   @id @default(uuid())
+  userId    String
+  eventId   String
+  teamId    String?
+
+  user      User     @relation(fields: [userId], references: [id])
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  team      Team?    @relation(fields: [teamId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, eventId])
+  @@map("event_registrations")
+}
+
+// ─── Attendance ─────────────────────────────────────────────
+
+model Attendance {
+  id        String         @id @default(uuid())
+  type      AttendanceType
+  timestamp DateTime       @default(now())
+  isLate    Boolean        @default(false)
+  isEarly   Boolean        @default(false)
+
+  userId    String
+  eventId   String
+
+  user      User  @relation(fields: [userId], references: [id])
+  event     Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@index([userId, eventId])
+  @@map("attendance")
+}
+
+// ─── Certificates ───────────────────────────────────────────
+
+model CertificateTemplate {
+  id        String   @id @default(uuid())
+  name      String
+  fileUrl   String
+  fileType  String   @default("png")
+  fields    Json?
+  createdById String
+  createdBy User    @relation("TemplateCreator", fields: [createdById], references: [id])
+  createdAt DateTime @default(now())
+
+  certificates Certificate[]
+
+  @@map("certificate_templates")
+}
+
+model Certificate {
+  id             String            @id @default(uuid())
+  uniqueCode     String            @unique
+  recipientName  String
+  recipientEmail String?
+  eventId        String
+  templateId     String?
+  fileUrl        String?
+  checksum       String?
+  status         CertificateStatus @default(PENDING)
+  generatedAt    DateTime?
+  createdAt      DateTime          @default(now())
+
+  event          Event             @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  template       CertificateTemplate? @relation(fields: [templateId], references: [id])
+
+  @@map("certificates")
+}
+
+// ─── Appreciation / Gamification ────────────────────────────
+
+model AppreciationPoint {
+  id        String   @id @default(uuid())
+  points    Int
+  category  String
+  reason    String?
+  isDeduction Boolean @default(false)
+
+  giverId    String
+  giver      User    @relation("PointGiver", fields: [giverId], references: [id])
+
+  receiverId String
+  receiver   User    @relation("PointReceiver", fields: [receiverId], references: [id])
+
+  eventId    String?
+  event      Event?  @relation(fields: [eventId], references: [id])
+
+  createdAt  DateTime @default(now())
+
+  @@map("appreciation_points")
+}
+
+model Badge {
+  id             String   @id @default(uuid())
+  name           String   @unique
+  description    String?
+  icon           String?
+  pointThreshold Int
+  createdAt      DateTime @default(now())
+
+  users UserBadge[]
+
+  @@map("badges")
+}
+
+model UserBadge {
+  id        String   @id @default(uuid())
+  userId    String
+  badgeId   String
+  awardedAt DateTime @default(now())
+
+  user  User  @relation(fields: [userId], references: [id])
+  badge Badge @relation(fields: [badgeId], references: [id])
+
+  @@unique([userId, badgeId])
+  @@map("user_badges")
+}
+
+// ─── Notifications ──────────────────────────────────────────
+
+model Notification {
+  id        String           @id @default(uuid())
+  type      NotificationType
+  title     String
+  message   String
+  isRead    Boolean          @default(false)
+  metadata  Json?
+
+  userId    String
+  user      User             @relation(fields: [userId], references: [id])
+
+  createdAt DateTime         @default(now())
+
+  @@index([userId, isRead])
+  @@map("notifications")
+}
+
+// ─── Audit Log ──────────────────────────────────────────────
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  action    String
+  outcome   String   @default("SUCCESS")
+  ipAddress String?
+  userAgent String?
+  context   Json?
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@index([action, createdAt])
+  @@map("audit_logs")
+}
+
+// ─── Club Settings ──────────────────────────────────────────
+
+model ClubSettings {
+  id                String   @id @default(uuid())
+  key               String   @unique
+  value             Json
+  updatedAt         DateTime @updatedAt
+
+  @@map("club_settings")
+}
+
+// ==========================================================
+// CTF Wars — OAuth & Game Tables
+// ==========================================================
+
+// ─── CTF Enums ──────────────────────────────────────────────
+
+enum CtfCompetitionState {
+  DRAFT
+  OPEN
+  ACTIVE
+  PAUSED
+  ENDED
+}
+
+enum CtfChallengeCategory {
+  WEB
+  CRYPTO
+  REVERSING
+  FORENSICS
+  OSINT
+  STEGO
+  MISC
+}
+
+enum CtfDifficulty {
+  EASY
+  MEDIUM
+  HARD
+  INSANE
+}
+
+enum CtfFlagType {
+  EXACT
+  REGEX
+  MANUAL_REVIEW
+}
+
+enum CtfSubmissionResult {
+  CORRECT
+  INCORRECT
+  PENDING_REVIEW
+}
+
+enum CtfTier {
+  APPRENTICE
+  JOURNEYMAN
+  MASTER
+  GRANDMASTER
+}
+
+enum CtfActivityStatus {
+  OPENED
+  ATTEMPTED
+  SOLVED
+}
+
+// ─── OAuth Authorization Codes (for CTF Wars SSO) ──────────
+
+model OAuthCode {
+  id        String   @id @default(uuid())
+  code      String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([code])
+  @@map("oauth_codes")
+}
+
+// ─── CTF Competitions ───────────────────────────────────────
+
+model CtfCompetition {
+  id          String               @id @default(uuid())
+  title       String
+  description String?
+  rules       String?
+  state       CtfCompetitionState  @default(DRAFT)
+  startTime   DateTime?
+  endTime     DateTime?
+  inviteCode  String?              @unique
+  version     Int                  @default(1)
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+
+  challenges   CtfChallenge[]
+  participants CtfParticipant[]
+
+  @@map("ctf_competitions")
+}
+
+// ─── CTF Challenges ─────────────────────────────────────────
+
+model CtfChallenge {
+  id            String               @id @default(uuid())
+  title         String
+  description   String?
+  category      CtfChallengeCategory
+  difficulty    CtfDifficulty        @default(EASY)
+  flagHash      String
+  flagType      CtfFlagType          @default(EXACT)
+
+  initialPoints Int                  @default(500)
+  decayCount    Int                  @default(20)
+  minimumPoints Int                  @default(50)
+  currentPoints Int                  @default(500)
+
+  solveCount    Int                  @default(0)
+  version       Int                  @default(1)
+  createdAt     DateTime             @default(now())
+  updatedAt     DateTime             @updatedAt
+
+  competitionId String
+  competition   CtfCompetition       @relation(fields: [competitionId], references: [id], onDelete: Cascade)
+  hints         CtfHint[]
+  submissions   CtfSubmission[]
+  activities    CtfChallengeActivity[]
+
+  @@map("ctf_challenges")
+}
+
+// ─── CTF Hints ──────────────────────────────────────────────
+
+model CtfHint {
+  id         String   @id @default(uuid())
+  content    String
+  pointCost  Int      @default(0)
+  orderIndex Int      @default(0)
+  createdAt  DateTime @default(now())
+
+  challengeId String
+  challenge   CtfChallenge @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+
+  @@map("ctf_hints")
+}
+
+// ─── CTF Participants ───────────────────────────────────────
+
+model CtfParticipant {
+  id          String   @id @default(uuid())
+  totalScore  Int      @default(0)
+  tier        CtfTier  @default(APPRENTICE)
+  lastSolveAt DateTime?
+  version     Int      @default(1)
+  joinedAt    DateTime @default(now())
+
+  userId        String
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  competitionId String
+  competition   CtfCompetition @relation(fields: [competitionId], references: [id], onDelete: Cascade)
+  submissions   CtfSubmission[]
+  activities    CtfChallengeActivity[]
+
+  @@unique([userId, competitionId])
+  @@map("ctf_participants")
+}
+
+// ─── CTF Challenge Activity ─────────────────────────────────
+
+model CtfChallengeActivity {
+  id        String            @id @default(uuid())
+  status    CtfActivityStatus @default(OPENED)
+  updatedAt DateTime          @updatedAt
+
+  participantId String
+  participant   CtfParticipant @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  challengeId   String
+  challenge     CtfChallenge   @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+
+  @@unique([participantId, challengeId])
+  @@map("ctf_challenge_activity")
+}
+
+// ─── CTF Submissions ────────────────────────────────────────
+
+model CtfSubmission {
+  id            String              @id @default(uuid())
+  submittedHash String
+  result        CtfSubmissionResult @default(INCORRECT)
+  pointsAwarded Int                 @default(0)
+  submittedAt   DateTime            @default(now())
+
+  participantId String
+  participant   CtfParticipant @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  challengeId   String
+  challenge     CtfChallenge   @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+
+  @@map("ctf_submissions")
+}
+
+// ─── CTF Audit Logs ─────────────────────────────────────────
+
+model CtfAuditLog {
+  id        String   @id @default(uuid())
+  action    String
+  severity  String   @default("INFO")
+  outcome   String   @default("SUCCESS")
+  metadata  Json?
+  ipAddress String?
+  userAgent String?
+  userId    String?
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@map("ctf_audit_logs")
+}

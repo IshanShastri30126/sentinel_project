@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Chakravyuh Club Portal 2.0 - Complete Technical & Operational Documentation</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600;700&family=Inter:wght@300;400;600;700;800;900&display=swap');
+
+    @page {
+      size: A4;
+      margin: 15mm;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: #030712;
+      color: #F1F5F9;
+      line-height: 1.6;
+      margin: 0;
+      padding: 0;
+      font-size: 11pt;
+    }
+
+    .cover-page {
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 40px;
+      background: radial-gradient(circle at 50% 30%, #0F172A 0%, #030712 100%);
+      border: 2px solid #1E293B;
+      page-break-after: always;
+    }
+
+    .cover-header {
+      border-bottom: 2px solid #EF4444;
+      padding-bottom: 20px;
+    }
+
+    .cover-title {
+      font-family: 'Fira Code', monospace;
+      font-size: 32pt;
+      font-weight: 900;
+      color: #FFFFFF;
+      text-transform: uppercase;
+      letter-spacing: -1px;
+      margin: 0;
+      line-height: 1.1;
+    }
+
+    .cover-subtitle {
+      font-family: 'Fira Code', monospace;
+      font-size: 14pt;
+      color: #EF4444;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-top: 10px;
+    }
+
+    .cover-badge {
+      display: inline-block;
+      padding: 6px 14px;
+      background-color: rgba(239, 68, 68, 0.15);
+      border: 1px solid #EF4444;
+      color: #EF4444;
+      font-family: 'Fira Code', monospace;
+      font-size: 9pt;
+      font-weight: 700;
+      border-radius: 6px;
+      text-transform: uppercase;
+      margin-top: 15px;
+    }
+
+    .cover-meta {
+      border-top: 1px solid #334155;
+      padding-top: 20px;
+      font-family: 'Fira Code', monospace;
+      font-size: 9pt;
+      color: #94A3B8;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+    }
+
+    .page {
+      padding: 20px 0;
+      page-break-after: always;
+    }
+
+    .page:last-child {
+      page-break-after: avoid;
+    }
+
+    h1 {
+      font-family: 'Fira Code', monospace;
+      font-size: 20pt;
+      font-weight: 800;
+      color: #FFFFFF;
+      border-bottom: 2px solid #334155;
+      padding-bottom: 8px;
+      margin-top: 30px;
+      margin-bottom: 20px;
+      text-transform: uppercase;
+      letter-spacing: -0.5px;
+    }
+
+    h1 span.sec-num {
+      color: #EF4444;
+      margin-right: 8px;
+    }
+
+    h2 {
+      font-family: 'Fira Code', monospace;
+      font-size: 14pt;
+      font-weight: 700;
+      color: #38BDF8;
+      margin-top: 24px;
+      margin-bottom: 12px;
+      border-left: 3px solid #38BDF8;
+      padding-left: 10px;
+    }
+
+    h3 {
+      font-size: 11pt;
+      font-weight: 700;
+      color: #F8FAFC;
+      margin-top: 16px;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    p {
+      margin-top: 0;
+      margin-bottom: 14px;
+      color: #CBD5E1;
+      text-align: justify;
+    }
+
+    ul, ol {
+      margin-top: 0;
+      margin-bottom: 14px;
+      padding-left: 24px;
+      color: #CBD5E1;
+    }
+
+    li {
+      margin-bottom: 6px;
+    }
+
+    code {
+      font-family: 'Fira Code', monospace;
+      background-color: #0F172A;
+      color: #F43F5E;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 9.5pt;
+      border: 1px solid #1E293B;
+    }
+
+    pre {
+      font-family: 'Fira Code', monospace;
+      background-color: #090D16;
+      border: 1px solid #1E293B;
+      border-left: 4px solid #EF4444;
+      color: #E2E8F0;
+      padding: 14px;
+      border-radius: 8px;
+      font-size: 8.5pt;
+      line-height: 1.5;
+      overflow-x: auto;
+      margin-top: 12px;
+      margin-bottom: 16px;
+      white-space: pre-wrap;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 14px;
+      margin-bottom: 20px;
+      font-size: 9.5pt;
+    }
+
+    th {
+      font-family: 'Fira Code', monospace;
+      background-color: #0F172A;
+      color: #38BDF8;
+      text-align: left;
+      padding: 10px 12px;
+      border: 1px solid #334155;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    td {
+      padding: 9px 12px;
+      border: 1px solid #1E293B;
+      color: #E2E8F0;
+      background-color: #050914;
+    }
+
+    tr:nth-child(even) td {
+      background-color: #090E1A;
+    }
+
+    .callout {
+      background-color: rgba(15, 23, 42, 0.8);
+      border: 1px solid #334155;
+      border-left: 4px solid #10B981;
+      padding: 14px 18px;
+      border-radius: 8px;
+      margin-top: 14px;
+      margin-bottom: 18px;
+    }
+
+    .callout-title {
+      font-family: 'Fira Code', monospace;
+      font-weight: 700;
+      color: #10B981;
+      font-size: 10pt;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    .callout-warning {
+      border-left-color: #F59E0B;
+    }
+    .callout-warning .callout-title {
+      color: #F59E0B;
+    }
+
+    .callout-danger {
+      border-left-color: #EF4444;
+    }
+    .callout-danger .callout-title {
+      color: #EF4444;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-family: 'Fira Code', monospace;
+      font-size: 8pt;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .badge-get { background: rgba(56, 189, 248, 0.2); color: #38BDF8; border: 1px solid #38BDF8; }
+    .badge-post { background: rgba(16, 185, 129, 0.2); color: #10B981; border: 1px solid #10B981; }
+    .badge-patch { background: rgba(245, 158, 11, 0.2); color: #F59E0B; border: 1px solid #F59E0B; }
+    .badge-delete { background: rgba(239, 68, 68, 0.2); color: #EF4444; border: 1px solid #EF4444; }
+
+    .toc-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px stroke #1E293B;
+      font-family: 'Fira Code', monospace;
+      font-size: 10pt;
+    }
+
+    .toc-dots {
+      flex-grow: 1;
+      border-bottom: 1px dotted #334155;
+      margin: 0 10px;
+      position: relative;
+      top: -4px;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- COVER PAGE -->
+  <div class="cover-page">
+    <div class="cover-header">
+      <h1 class="cover-title">Chakravyuh Club<br>Portal 2.0</h1>
+      <div class="cover-subtitle">Complete Architecture, Environment, Security & Operational Manual</div>
+      <div class="cover-badge">CSPIT Computer Engineering • Cybersecurity Infrastructure</div>
+    </div>
+
+    <div style="margin: 40px 0;">
+      <p style="font-size: 12pt; color: #94A3B8; font-family: 'Fira Code', monospace; line-height: 1.8;">
+        SYSTEM REFERENCE MANUAL & ENTERPRISE ARCHITECTURE SPECIFICATION<br>
+        • Full-Stack Architecture & API Routes<br>
+        • Environment (.env) Variables Configuration<br>
+        • Authentication & Cookie Security (HttpOnly / CSRF / JWT)<br>
+        • Redis In-Memory Caching & Cloudinary Integration<br>
+        • Database Query System & Prisma ORM Model Specifications<br>
+        • Operating Workflows for Members, Coordinators & Admins
+      </p>
+    </div>
+
+    <div class="cover-meta">
+      <div>
+        <strong>ORGANIZATION:</strong> CHARUSAT / CSPIT CE<br>
+        <strong>REPOSITORY:</strong> IshanShastri30126/Chakravyuhclub<br>
+        <strong>SECURITY COMPLIANCE:</strong> OWASP Top-10 Compliant
+      </div>
+      <div>
+        <strong>DATE GENERATED:</strong> August 9, 2026<br>
+        <strong>VERSION:</strong> Release v2.0.4<br>
+        <strong>AUTHOR:</strong> Antigravity Core AI & Engineering
+      </div>
+    </div>
+  </div>
+
+  <!-- TABLE OF CONTENTS -->
+  <div class="page">
+    <h1><span class="sec-num">00.</span> Table of Contents</h1>
+    
+    <div style="margin-top: 30px;">
+      <div class="toc-item">
+        <span>01. Executive System Overview</span>
+        <span class="toc-dots"></span>
+        <span>Page 03</span>
+      </div>
+      <div class="toc-item">
+        <span>02. Frontend Architecture (Next.js 16 App Router)</span>
+        <span class="toc-dots"></span>
+        <span>Page 04</span>
+      </div>
+      <div class="toc-item">
+        <span>03. Backend Micro-Server Architecture & REST API</span>
+        <span class="toc-dots"></span>
+        <span>Page 06</span>
+      </div>
+      <div class="toc-item">
+        <span>04. Environment (.env) Variables Reference Guide</span>
+        <span class="toc-dots"></span>
+        <span>Page 08</span>
+      </div>
+      <div class="toc-item">
+        <span>05. System Operation & Workflow Architecture</span>
+        <span class="toc-dots"></span>
+        <span>Page 10</span>
+      </div>
+      <div class="toc-item">
+        <span>06. Cookie Storage, Session & OWASP Security Model</span>
+        <span class="toc-dots"></span>
+        <span>Page 12</span>
+      </div>
+      <div class="toc-item">
+        <span>07. Redis Caching Engine & Cloud Service Mechanics</span>
+        <span class="toc-dots"></span>
+        <span>Page 14</span>
+      </div>
+      <div class="toc-item">
+        <span>08. Database Query System & Prisma ORM Specifications</span>
+        <span class="toc-dots"></span>
+        <span>Page 16</span>
+      </div>
+      <div class="toc-item">
+        <span>09. User & Administrator Portal Operating Manual</span>
+        <span class="toc-dots"></span>
+        <span>Page 18</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 01: EXECUTIVE SYSTEM OVERVIEW -->
+  <div class="page">
+    <h1><span class="sec-num">01.</span> Executive System Overview</h1>
+    <p>
+      The <strong>Chakravyuh Club Portal 2.0</strong> is an enterprise cybersecurity interest group management ecosystem designed for the Computer Engineering Department at CSPIT, CHARUSAT University. The portal unifies event registration, attendance tracking via QR scanner consoles, dynamic certificate verification, role-based clearance permissions, and team roster management.
+    </p>
+
+    <div class="callout">
+      <div class="callout-title">Core Technology Stack</div>
+      <ul>
+        <li><strong>Frontend Framework:</strong> Next.js 16 (React 19, Turbopack, Framer Motion 3D, Lucide Icons, Vanilla Tailwind/CSS).</li>
+        <li><strong>Backend Engine:</strong> Node.js + Express.js TypeScript micro-server architecture.</li>
+        <li><strong>Database Tier:</strong> PostgreSQL managed via Prisma ORM v5 with strictly typed prepared statements.</li>
+        <li><strong>In-Memory Cache & Rate Limiting:</strong> Redis v7 instance for session state, API request throttling, and fast leaderboard reads.</li>
+        <li><strong>Storage & Delivery:</strong> Cloudinary API for encrypted document and image asset delivery.</li>
+      </ul>
+    </div>
+
+    <h2>High-Level System Topology</h2>
+    <pre>
++-----------------------------------------------------------------------------------+
+|                                  CLIENT LAYER                                     |
+| Next.js 16 App Router | React 19 Client Components | AuthContext State | Vanilla CSS  |
++------------------------------------------+----------------------------------------+
+                                           | HTTPS / JSON API Calls
+                                           v
++-----------------------------------------------------------------------------------+
+|                                  BACKEND SERVER                                   |
+| Express.js Pipeline | JWT Auth & Role Access Control | Audit Logger | Helmet & RateLimiter |
++------------------+-----------------------+------------------------+---------------+
+                   |                       |                        |
+                   v                       v                        v
+         +-------------------+    +-------------------+   +--------------------+
+         |   PRISMA ORM      |    |   REDIS CACHE     |   | CLOUDINARY STORAGE |
+         | PostgreSQL Engine |    | Session & RateLim |   | Image & Doc Assets |
+         +-------------------+    +-------------------+   +--------------------+
+    </pre>
+  </div>
+
+  <!-- SECTION 02: FRONTEND ARCHITECTURE -->
+  <div class="page">
+    <h1><span class="sec-num">02.</span> Frontend Architecture</h1>
+    <p>
+      The client-side architecture leverages <strong>Next.js 16</strong> utilizing the App Router specification with client component hydration. The user interface prioritizes visual elegance through glassmorphism UI cards, responsive grid structures, dynamic SVG canvas backgrounds (`PlexusBackground`), and 3D interactive components (`ProfileCard`).
+    </p>
+
+    <h2>App Router Page Directory Map</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Route Path</th>
+          <th>Access Clearance</th>
+          <th>Description & Core Capabilities</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>/</code></td>
+          <td>Public</td>
+          <td>Landing portal featuring interactive 7-tier Chakravyuh canvas background, club stats, and event CTAs.</td>
+        </tr>
+        <tr>
+          <td><code>/about</code></td>
+          <td>Public</td>
+          <td>Club vision, working Saturday peer learning overview, and core strategic pillars grid.</td>
+        </tr>
+        <tr>
+          <td><code>/team</code></td>
+          <td>Public</td>
+          <td>Roster directory of Faculty Mentors, Coordinators, Tech Team, and Creative Division with "Join Our Team" CTA.</td>
+        </tr>
+        <tr>
+          <td><code>/team/[id]</code></td>
+          <td>Public</td>
+          <td>Detailed officer dossier displaying member stats and interactive 3D <code>ProfileCard</code> component.</td>
+        </tr>
+        <tr>
+          <td><code>/events</code> & <code>/[slug]</code></td>
+          <td>Public / Auth</td>
+          <td>Event catalog and registration modal with constrained height (`max-h-[90vh]`) and sticky submit footer.</td>
+        </tr>
+        <tr>
+          <td><code>/auth</code></td>
+          <td>Public</td>
+          <td>Authentication gateway for Login, Signup, and Google OAuth with 10-digit numeric phone enforcement.</td>
+        </tr>
+        <tr>
+          <td><code>/dashboard/*</code></td>
+          <td>Authenticated</td>
+          <td>Consoles for Analytics, Events Management, Attendance Scanner, Approvals, Profile, and Certificates.</td>
+        </tr>
+        <tr>
+          <td><code>/verify/[code]</code></td>
+          <td>Public</td>
+          <td>Authentic certificate verification gateway returning certificate cryptographic hash details.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>Key UI Components</h2>
+    <ul>
+      <li><strong>ProfileCard.tsx:</strong> Open-source React Bits 3D interactive component utilizing mouse pointer math (`--pointer-x`, `--pointer-y`), radial cursor glow, and holographic glare overlays.</li>
+      <li><strong>SentinalLogo.tsx:</strong> Vector animated logo with SVG path drawing animations.</li>
+      <li><strong>AuthContext.tsx:</strong> Central client state store managing JWT tokens, user profile state, role checks (`isCoord`, `isCore`), and automatic logout handling.</li>
+    </ul>
+  </div>
+
+  <!-- SECTION 03: BACKEND MICRO-SERVER ARCHITECTURE -->
+  <div class="page">
+    <h1><span class="sec-num">03.</span> Backend Architecture & REST API</h1>
+    <p>
+      The backend micro-service operates on <strong>Node.js + Express.js (TypeScript)</strong> located under the <code>server/</code> directory. All incoming HTTP requests pass through a defensive middleware security pipeline before reaching modular router endpoints.
+    </p>
+
+    <h2>Primary Micro-Server REST Endpoints</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Method & Endpoint</th>
+          <th>Auth / Role</th>
+          <th>Functionality</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="badge badge-post">POST</span> <code>/api/auth/register</code></td>
+          <td>Public</td>
+          <td>Registers user, hashes password (bcrypt), sanitizes 10-digit phone, returns complete user payload.</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-post">POST</span> <code>/api/auth/login</code></td>
+          <td>Public</td>
+          <td>Authenticates credentials, issues JWT token and HttpOnly session cookie, updates audit log.</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-get">GET</span> <code>/api/users/me</code></td>
+          <td>Authenticated</td>
+          <td>Retrieves active authenticated user dossier including studentId / employeeId, role, and department.</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-patch">PATCH</span> <code>/api/users/profile</code></td>
+          <td>Authenticated</td>
+          <td>Updates profile attributes (phone sanitized to 10 digits; faculty replaces studentId with employeeId).</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-post">POST</span> <code>/api/events</code></td>
+          <td>Coordinator / Core</td>
+          <td>Creates new event; automatically includes Faculty Coordinators and organises team roster.</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-post">POST</span> <code>/api/events/:id/register</code></td>
+          <td>Authenticated</td>
+          <td>Registers student for an event, checks capacity, generates dynamic QR code registration pass.</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-get">GET</span> <code>/api/settings/landing-team</code></td>
+          <td>Public</td>
+          <td>Fetches officer team roster sorted by hierarchy clearance (Faculty -> Coordinator -> Tech -> Media).</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-post">POST</span> <code>/api/approvals/:id/decide</code></td>
+          <td>Core / Admin</td>
+          <td>Decides pending event clearance request (APPROVED / REJECTED) with audit logging.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>Middleware Pipeline Pipeline Execution Sequence</h2>
+    <ol>
+      <li><strong>Helmet Headers:</strong> Suppresses <code>X-Powered-By</code>, enforces CSP, HSTS, and <code>X-Frame-Options: DENY</code>.</li>
+      <li><strong>Rate Limiter (Redis):</strong> Throttles IP requests to 100 req/15min to prevent brute-force attacks.</li>
+      <li><strong>CORS Policy:</strong> Strictly validates origin against <code>CLIENT_URL</code> allowlist.</li>
+      <li><strong>Cookie Parser:</strong> Parses encrypted <code>HttpOnly</code> cookies.</li>
+      <li><strong>Authentication Guard (<code>authMiddleware</code>):</strong> Verifies JWT signature and extracts identity.</li>
+      <li><strong>Role Access Guard (<code>requireRole</code>):</strong> Enforces role authorization (FACULTY, STUDENT_COORDINATOR, TECH, MEMBER).</li>
+      <li><strong>Audit Logger:</strong> Records timestamp, user ID, IP address, endpoint, and outcome into audit table.</li>
+    </ol>
+  </div>
+
+  <!-- SECTION 04: ENVIRONMENT VARIABLES REFERENCE GUIDE -->
+  <div class="page">
+    <h1><span class="sec-num">04.</span> Environment Variables Reference</h1>
+    <p>
+      The system relies on strict environment variable isolation configured in root <code>.env</code> and <code>server/.env</code> / <code>client/.env.local</code> files. Never commit private secret keys to public version control repositories.
+    </p>
+
+    <h2>Server Environment Specifications (<code>server/.env</code>)</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Variable Key</th>
+          <th>Example / Default Value</th>
+          <th>Description & Purpose</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>PORT</code></td>
+          <td><code>5000</code></td>
+          <td>TCP port number for Express backend micro-server.</td>
+        </tr>
+        <tr>
+          <td><code>DATABASE_URL</code></td>
+          <td><code>postgresql://user:pass@localhost:5432/chakravyuh</code></td>
+          <td>PostgreSQL connection string with pooling configuration.</td>
+        </tr>
+        <tr>
+          <td><code>JWT_SECRET</code></td>
+          <td><code>super_secret_csprng_key_32bytes_min</code></td>
+          <td>HMAC-SHA256 secret key for signing JSON Web Tokens.</td>
+        </tr>
+        <tr>
+          <td><code>JWT_EXPIRES_IN</code></td>
+          <td><code>7d</code></td>
+          <td>Lifetime duration of issued JWT authentication tokens.</td>
+        </tr>
+        <tr>
+          <td><code>CLIENT_URL</code></td>
+          <td><code>http://localhost:3000</code></td>
+          <td>Allowed client origin for CORS header matching.</td>
+        </tr>
+        <tr>
+          <td><code>REDIS_URL</code></td>
+          <td><code>redis://default:secret@localhost:6379</code></td>
+          <td>Redis in-memory instance connection URI.</td>
+        </tr>
+        <tr>
+          <td><code>CLOUDINARY_CLOUD_NAME</code></td>
+          <td><code>chakravyuh-cloud</code></td>
+          <td>Cloudinary API tenant identifier for cloud assets.</td>
+        </tr>
+        <tr>
+          <td><code>CLOUDINARY_API_KEY</code></td>
+          <td><code>837492817492019</code></td>
+          <td>Authenticated Cloudinary API public key.</td>
+        </tr>
+        <tr>
+          <td><code>CLOUDINARY_API_SECRET</code></td>
+          <td><code>aB9_xK210Lskq-wPzmQw19zLsk</code></td>
+          <td>Private Cloudinary API signature secret.</td>
+        </tr>
+        <tr>
+          <td><code>SMTP_HOST</code></td>
+          <td><code>smtp.gmail.com</code></td>
+          <td>SMTP mailer host for automated email broadcasts.</td>
+        </tr>
+        <tr>
+          <td><code>SMTP_PORT</code></td>
+          <td><code>587</code></td>
+          <td>SMTP mailer TCP port (587 TLS / 465 SSL).</td>
+        </tr>
+        <tr>
+          <td><code>SMTP_USER</code></td>
+          <td><code>notifications@chakravyuhclub.com</code></td>
+          <td>Authenticated mail sender account address.</td>
+        </tr>
+        <tr>
+          <td><code>SMTP_PASS</code></td>
+          <td><code>app_specific_password_here</code></td>
+          <td>Encrypted app-specific application password.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>Client Environment Specifications (<code>client/.env.local</code>)</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Variable Key</th>
+          <th>Default Value</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>NEXT_PUBLIC_API_URL</code></td>
+          <td><code>http://localhost:5000/api</code></td>
+          <td>Base REST API URL consumed by client API utility.</td>
+        </tr>
+        <tr>
+          <td><code>NEXT_PUBLIC_SITE_URL</code></td>
+          <td><code>http://localhost:3000</code></td>
+          <td>Public site URL for canonical metadata & QR verification links.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- SECTION 05: SYSTEM OPERATION & WORKFLOW ARCHITECTURE -->
+  <div class="page">
+    <h1><span class="sec-num">05.</span> System Operation & Workflows</h1>
+    <p>
+      The portal manages critical event lifecycles, user registrations, certificate generation, and member verification.
+    </p>
+
+    <h2>1. User Authentication & Profile Lifecycle</h2>
+    <ol>
+      <li>User visits <code>/auth</code> and submits signup form specifying Role (STUDENT / FACULTY / COORDINATOR).</li>
+      <li>Form enforces 10-digit numeric mobile validation (clearing non-numeric input).</li>
+      <li>Server hashes password using bcrypt with salt round 12, creates database record, generates JWT, and sets <code>HttpOnly</code> cookie.</li>
+      <li>Client receives full user payload (`studentId` or `employeeId`, `department`, `institute`, `semester`).</li>
+      <li>Profile section on <code>/dashboard/profile</code> displays dossier. For Faculty roles, Student ID changes to <strong>Employee ID</strong>, and Semester is omitted.</li>
+    </ol>
+
+    <h2>2. Event Creation & Organizer Auto-Population Workflow</h2>
+    <ol>
+      <li>Coordinator logs in and navigates to <code>/dashboard/events</code> -> clicks <strong>Create Event</strong>.</li>
+      <li>Client automatically queries <code>/api/settings/landing-team</code> for active roster officers.</li>
+      <li>System automatically pre-populates all <strong>Faculty Coordinators</strong> into the event organizers array.</li>
+      <li>Form provides a Student Coordinator dropdown selector; choosing a coordinator auto-fills their Name, Role, Email, and Phone.</li>
+      <li>Upon submission, if required, an <code>EVENT_PERMISSION</code> request is sent to Core Admin for approval.</li>
+    </ol>
+  </div>
+
+  <!-- SECTION 06: COOKIE STORAGE & OWASP SECURITY MODEL -->
+  <div class="page">
+    <h1><span class="sec-num">06.</span> Cookie Storage & OWASP Security</h1>
+    <p>
+      Security is implemented based on the OWASP Top-10 specifications.
+    </p>
+
+    <div class="callout callout-danger">
+      <div class="callout-title">Session Cookie Storage Mechanics</div>
+      <p>
+        Authentication session tokens are delivered via <strong>HttpOnly, Secure, SameSite=Strict</strong> HTTP Response Cookies named <code>chakravyuh_session</code>.
+      </p>
+      <ul>
+        <li><strong>HttpOnly Flag:</strong> Prevents client-side JavaScript (e.g. <code>document.cookie</code>) from reading the cookie, completely mitigating Session Hijacking via XSS.</li>
+        <li><strong>Secure Flag:</strong> Ensures cookies are transmitted exclusively over encrypted HTTPS connections in production.</li>
+        <li><strong>SameSite=Strict:</strong> Inhibits browser from sending session cookies on cross-site requests, mitigating Cross-Site Request Forgery (CSRF).</li>
+      </ul>
+    </div>
+
+    <h2>OWASP Security Controls Checklist</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Security Domain</th>
+          <th>Implementation Mechanism</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Input Validation</td>
+          <td>Server-side allowlisting, regex numerical extraction (`\D`), canonicalization, parameter truncation.</td>
+        </tr>
+        <tr>
+          <td>Output Encoding</td>
+          <td>Context-aware HTML body, attribute, and JavaScript encoding to prevent Cross-Site Scripting (XSS).</td>
+        </tr>
+        <tr>
+          <td>SQL Injection Defense</td>
+          <td>100% prepared parameterized queries enforced via Prisma ORM engine. Zero raw concatenated SQL strings.</td>
+        </tr>
+        <tr>
+          <td>Password Hashing</td>
+          <td>Bcrypt algorithm with salt factor 12. Generic error response ("Invalid credentials").</td>
+        </tr>
+        <tr>
+          <td>Access Control</td>
+          <td>Deny by Default. Server-side role authorization checks (`requireRole`) on every API request.</td>
+        </tr>
+        <tr>
+          <td>Audit Logging</td>
+          <td>All auth, access denial, and approval decisions written to <code>AuditLog</code> table with UTC timestamp and IP.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- SECTION 07: REDIS CACHING & CLOUD SERVICES -->
+  <div class="page">
+    <h1><span class="sec-num">07.</span> Redis Caching & Cloud Services</h1>
+    
+    <h2>1. Redis In-Memory Engine Roles</h2>
+    <p>
+      Redis v7 acts as the high-speed caching and rate-limiting memory store.
+    </p>
+    <ul>
+      <li><strong>API Rate Limiting:</strong> Tracks client IP request frequencies (key: <code>ratelimit:ip:{ip}</code>) with TTL window reset.</li>
+      <li><strong>Session Cache:</strong> Caches active JWT invalidation blacklists for immediate session termination on logout.</li>
+      <li><strong>Roster & Leaderboard Caching:</strong> Caches landing team roster queries (<code>cache:landing_team</code>) with 10-minute cache expiration, reducing PostgreSQL query overhead.</li>
+    </ul>
+
+    <h2>2. Cloudinary File Upload Integration</h2>
+    <p>
+      File uploads (event posters, document guides, avatar images) are managed securely:
+    </p>
+    <ol>
+      <li>Multer middleware receives multipart file upload in memory.</li>
+      <li>Validates file extension allowlist (<code>.jpg</code>, <code>.png</code>, <code>.webp</code>, <code>.pdf</code>) and MIME header.</li>
+      <li>Generates non-predictable UUID filename.</li>
+      <li>Streams file buffer directly to Cloudinary authenticated storage API.</li>
+      <li>Stores returning HTTPS CDN URL in database.</li>
+    </ol>
+  </div>
+
+  <!-- SECTION 08: DATABASE QUERY SYSTEM & PRISMA ORM -->
+  <div class="page">
+    <h1><span class="sec-num">08.</span> Database Query System</h1>
+    <p>
+      The data layer uses <strong>PostgreSQL</strong> managed through <strong>Prisma ORM</strong>.
+    </p>
+
+    <h2>Prisma Core Schema Models</h2>
+    <pre>
+model User {
+  id           String    @id @default(uuid())
+  email        String    @unique
+  passwordHash String
+  name         String
+  role         Role      @default(MEMBER)
+  studentId    String?   // Stores Employee ID for Faculty
+  phone        String?   // Exactly 10 numeric digits
+  department   String?
+  institute    String?   @default("CSPIT")
+  semester     String?   // Null for Faculty
+  avatarUrl    String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  registrations Registration[]
+  auditLogs     AuditLog[]
+}
+
+model Event {
+  id                   String   @id @default(uuid())
+  title                String
+  slug                 String   @unique
+  description          String
+  venue                String
+  startDate            DateTime
+  endDate              DateTime
+  maxCapacity          Int
+  organizers           String   // JSON string of Organizer[]
+  status               String   @default("DRAFT")
+  createdAt            DateTime @default(now())
+}
+    </pre>
+
+    <h2>Database Query Optimization</h2>
+    <ul>
+      <li><strong>Indexed Fields:</strong> Unique indexes placed on <code>User.email</code>, <code>Event.slug</code>, and <code>Certificate.code</code>.</li>
+      <li><strong>Parameterized Queries:</strong> Prisma automatically parameterizes inputs, ensuring immunity against SQL injection vulnerabilities.</li>
+    </ul>
+  </div>
+
+  <!-- SECTION 09: USER & ADMIN OPERATING MANUAL -->
+  <div class="page">
+    <h1><span class="sec-num">09.</span> User & Administrator Manual</h1>
+
+    <h2>Member Operating Workflow</h2>
+    <ol>
+      <li><strong>Sign Up:</strong> Visit <code>/auth</code>, select Student or Faculty, enter 10-digit mobile number and details.</li>
+      <li><strong>Browse Events:</strong> Go to <code>/events</code>, select an active event card to view rules, schedule, and team size.</li>
+      <li><strong>Register:</strong> Click <em>Register Now</em> inside <code>/events/[slug]</code>. The modal opens with a scrollable container and sticky submit button.</li>
+      <li><strong>View Profile:</strong> Navigate to <code>/dashboard/profile</code> to view your dossier, credentials, and registered events.</li>
+    </ol>
+
+    <h2>Coordinator & Admin Workflow</h2>
+    <ol>
+      <li><strong>Create Event:</strong> Open <code>/dashboard/events</code> -> click <em>Create Event</em>. Faculty Coordinators auto-populate; pick Student Coordinators from the dropdown.</li>
+      <li><strong>Scan Attendance:</strong> Launch <code>/dashboard/attendance</code> QR scanner to mark student attendance at event venues.</li>
+      <li><strong>Issue Certificates:</strong> Access <code>/dashboard/certificates/builder</code> to issue verified certificates.</li>
+      <li><strong>Approve Requests:</strong> Administrators use <code>/dashboard/approvals</code> to grant or reject event permissions.</li>
+    </ol>
+
+    <div style="margin-top: 50px; text-align: center; border-top: 1px solid #334155; padding-top: 20px;">
+      <p style="font-family: 'Fira Code', monospace; font-size: 9pt; color: #64748B;">
+        END OF OPERATING MANUAL • CHAKRAVYUH CLUB PORTAL 2.0
+      </p>
+    </div>
+  </div>
+
+  <!-- SECTION 10: PROGRESSIVE RATE LIMITING & TCP/SYN FLOOD DEFENSE -->
+  <div class="page">
+    <h1><span class="sec-num">10.</span> Rate Limiting & TCP/SYN Flood Defense</h1>
+    <p>
+      The platform implements enterprise-grade multi-tier defenses against brute-force authentication attacks and network-layer Denial of Service (DoS / TCP / SYN flood) attacks.
+    </p>
+
+    <h2>1. Progressive Login Rate Limiting & Evasion Prevention</h2>
+    <p>
+      The authentication gateway (<code>/api/auth/login</code>) enforces progressive lockouts tracked simultaneously by <strong>Client IP Address</strong> and <strong>Target Account Email</strong> to prevent evasion via Incognito, Private Browsing, cookie clearing, or IP rotation:
+    </p>
+    <ul>
+      <li><strong>Initial Allowance:</strong> 4 failed login attempts permitted per IP / email pair.</li>
+      <li><strong>Tier 1 Lockout (20 Minutes):</strong> Reaching 4 failed attempts triggers an automatic <strong>20-minute (1,200 seconds)</strong> complete access block. Requests from any browser window or device targeting the blocked IP or account are rejected with HTTP 429 and a live countdown timer.</li>
+      <li><strong>Tier 1 Expiry (1 Chance):</strong> Upon 20-minute expiry, the user/IP receives exactly <strong>1 attempt (5th attempt)</strong>. If successful, attempt counters and lockouts are cleared to 0.</li>
+      <li><strong>Tier 2 Lockout (5 Hours):</strong> If the 5th attempt fails, the user/IP is placed under a strict <strong>5-hour (18,000 seconds)</strong> maximum security lockout.</li>
+    </ul>
+
+    <h2>2. TCP & SYN Flood Defense Architecture</h2>
+    <p>
+      Defenses operate across both application (Node.js runtime) and network infrastructure (Linux OS Kernel & Firewall) layers:
+    </p>
+    
+    <h3>A. Node.js Runtime HTTP Server Hardening</h3>
+    <pre>
+// Node.js TCP Socket & HTTP Header Timeout Configuration (server/src/index.ts)
+httpServer.headersTimeout = 10000;    // 10s header read limit (prevents Slowloris attack)
+httpServer.requestTimeout = 15000;    // 15s max request duration
+httpServer.keepAliveTimeout = 5000;   // 5s idle connection release
+httpServer.maxHeadersCount = 100;     // Prevents header flood memory consumption
+
+// Active TCP Socket Connection Limiter
+const activeConnectionsByIp = new Map&lt;string, number&gt;();
+httpServer.on("connection", (socket) =&gt; {
+  const ip = socket.remoteAddress || "127.0.0.1";
+  const count = (activeConnectionsByIp.get(ip) || 0) + 1;
+  activeConnectionsByIp.set(ip, count);
+
+  if (count &gt; 50) {
+    // Destroy sockets exceeding 50 concurrent TCP connections per IP
+    socket.destroy();
+  }
+});
+    </pre>
+
+    <h3>B. Linux OS Kernel SYN Flood Hardening (/etc/sysctl.conf)</h3>
+    <pre>
+# Enable SYN Cookies when TCP SYN backlog fills up
+net.ipv4.tcp_syncookies = 1
+
+# Increase max TCP SYN queue size
+net.ipv4.tcp_max_syn_backlog = 4096
+
+# Limit SYN-ACK retries before dropping half-open connection
+net.ipv4.tcp_synack_retries = 2
+
+# Fast socket release on FIN-WAIT-2
+net.ipv4.tcp_fin_timeout = 15
+    </pre>
+
+    <h3>C. Firewall & NGINX Reverse Proxy Rate Limiting</h3>
+    <pre>
+# iptables SYN flood mitigation rule
+iptables -A INPUT -p tcp --syn -m limit --limit 1/s --limit-burst 3 -j ACCEPT
+
+# NGINX Connection Limiting (/etc/nginx/nginx.conf)
+limit_conn_zone $binary_remote_addr zone=conn_limit_per_ip:10m;
+limit_conn conn_limit_per_ip 30;
+    </pre>
+
+    <div style="margin-top: 50px; text-align: center; border-top: 1px solid #334155; padding-top: 20px;">
+      <p style="font-family: 'Fira Code', monospace; font-size: 9pt; color: #64748B;">
+        END OF DOCUMENTATION • CHAKRAVYUH CLUB PORTAL 2.0 • COMPLIANT WITH OWASP SECURE STANDARDS
+      </p>
+    </div>
+  </div>
+
+</body>
+</html>
