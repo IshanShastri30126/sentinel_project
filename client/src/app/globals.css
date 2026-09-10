@@ -1,5 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600;700&display=swap');
 @import "tailwindcss";
+@import "../styles/tokens.css";
 
 @theme {
   --font-sans: 'Space Grotesk', sans-serif;
@@ -79,10 +80,10 @@
   --ck-sidebar-width:           280px;
   --ck-sidebar-collapsed-width: 64px;
   --ck-topbar-height:           56px;
-  --ck-radius-sm:  0px;
-  --ck-radius-md:  2px;
-  --ck-radius-lg:  2px;
-  --ck-radius-xl:  4px;
+  --ck-radius-sm:  4px;
+  --ck-radius-md:  8px;
+  --ck-radius-lg:  12px;
+  --ck-radius-xl:  16px;
 }
 
 /* Custom Chakravyuh & Hacker Glow Utilities */
@@ -946,11 +947,12 @@ body.drawer-open { overflow: hidden; touch-action: none; }
   animation: cursor-blink 0.8s step-end infinite;
 }
 
-/* Sharp theme utility layout overrides (forcing boxy corners on cards, inputs, buttons, wrappers, panels) */
-.rounded-sm, .rounded-md, .rounded-lg, .rounded-xl, .rounded-2xl, .rounded-3xl, .rounded-4xl {
-  border-radius: 2px !important;
+/* ─── Modern Cyber Geometric Enhancements ─────────────────────── */
+.ck-card, .ck-holo-card, .ck-stat-card, .ck-glass-card {
+  border-radius: var(--ck-radius-lg);
 }
-.ck-card, .ck-holo-card, .ck-btn-primary, .ck-btn-secondary, .ck-btn-danger, .ck-btn-orange, .ck-input, .ck-field-input, .ck-stat-card, .ck-glass-card {
-  border-radius: 2px !important;
+
+.ck-btn-primary, .ck-btn-secondary, .ck-btn-danger, .ck-btn-orange, .ck-input, .ck-field-input {
+  border-radius: var(--ck-radius-md);
 }
 

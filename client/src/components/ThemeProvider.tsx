@@ -49,11 +49,13 @@ export function ThemeBrandingProvider({ children }: { children: React.ReactNode 
     root.style.setProperty("--ck-green", pColor);
     root.style.setProperty("--ck-primary", pColor);
     root.style.setProperty("--ck-primary-light", pColor);
+    root.style.setProperty("--primary", pColor);
 
     root.style.setProperty("--ck-orange", sColor);
     root.style.setProperty("--ck-blue", sColor);
     root.style.setProperty("--ck-accent", sColor);
     root.style.setProperty("--ck-accent-light", sColor);
+    root.style.setProperty("--accent", sColor);
 
     if (branding.fontFamily) {
       const fontId = `ck-font-${branding.fontFamily.replace(/\s+/g, "-").toLowerCase()}`;

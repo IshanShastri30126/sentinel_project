@@ -1,0 +1,208 @@
+/**
+ * SENTINAL CYBER COMMAND CENTER DESIGN TOKENS
+ * Unified design token foundation for cybersecurity platform.
+ */
+
+:root {
+  /* ─── Surface Hierarchy ────────────────────────────────────────── */
+  --surface-0: #000000;          /* Pure pitch-black void base */
+  --surface-1: #060B12;          /* Primary dark canvas / container base */
+  --surface-2: #0B1320;          /* Standard card, panel, section surface */
+  --surface-3: #111C2E;          /* Elevated surface: modals, popovers, dropdowns */
+  --surface-4: #17263C;          /* Active surface: hover states, selected rows */
+  --surface-glass: rgba(6, 11, 18, 0.82);
+  --surface-glass-card: rgba(11, 19, 32, 0.75);
+
+  /* ─── Border Hierarchy ─────────────────────────────────────────── */
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --border-default: rgba(255, 255, 255, 0.12);
+  --border-strong: rgba(255, 255, 255, 0.22);
+  --border-primary: rgba(0, 245, 212, 0.35);
+  --border-primary-strong: rgba(0, 245, 212, 0.7);
+  --border-accent: rgba(0, 225, 255, 0.35);
+  --border-accent-strong: rgba(0, 225, 255, 0.7);
+  --border-danger: rgba(255, 0, 85, 0.4);
+  --border-warning: rgba(255, 184, 0, 0.4);
+
+  /* ─── Core Cyber Identity Palette ──────────────────────────────── */
+  --primary: #00F5D4;
+  --primary-light: #52FFE3;
+  --primary-dark: #00BFA5;
+  --primary-rgb: 0, 245, 212;
+
+  --accent: #00E1FF;
+  --accent-light: #66ECFF;
+  --accent-dark: #00A3B8;
+  --accent-rgb: 0, 225, 255;
+
+  /* ─── Security Operational State Colors ────────────────────────── */
+  --security-normal: #00F5D4;     /* Level 1: Normal operational status */
+  --security-info: #00E1FF;       /* Level 2: Information / advisory */
+  --security-warning: #FFB800;    /* Level 3: Elevated threat / anomaly */
+  --security-danger: #FF0055;     /* Level 4: Critical vulnerability / incident */
+  --security-critical: #FF0033;   /* Level 5: System breach / containment */
+
+  /* ─── Competition / Category Palette ───────────────────────────── */
+  --cat-web: #00F5D4;
+  --cat-crypto: #00E1FF;
+  --cat-rev: #A855F7;
+  --cat-pwn: #FF0055;
+  --cat-forensics: #3B82F6;
+  --cat-misc: #EAB308;
+
+  /* ─── Text Hierarchy ───────────────────────────────────────────── */
+  --text-primary: #F8FAFC;
+  --text-secondary: #94A3B8;
+  --text-muted: #64748B;
+  --text-dim: #475569;
+  --text-glow-primary: rgba(0, 245, 212, 0.9);
+  --text-glow-accent: rgba(0, 225, 255, 0.9);
+
+  /* ─── Glow Radiations ──────────────────────────────────────────── */
+  --glow-primary-sm: 0 0 10px rgba(0, 245, 212, 0.25);
+  --glow-primary: 0 0 20px rgba(0, 245, 212, 0.35);
+  --glow-primary-lg: 0 0 35px rgba(0, 245, 212, 0.45);
+
+  --glow-accent-sm: 0 0 10px rgba(0, 225, 255, 0.25);
+  --glow-accent: 0 0 20px rgba(0, 225, 255, 0.35);
+  --glow-accent-lg: 0 0 35px rgba(0, 225, 255, 0.45);
+
+  --glow-danger: 0 0 20px rgba(255, 0, 85, 0.4);
+  --glow-warning: 0 0 20px rgba(255, 184, 0, 0.4);
+
+  /* ─── Elevation Shadows ────────────────────────────────────────── */
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.6);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.75);
+  --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.85);
+  --shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.95);
+  --shadow-floating: 0 20px 60px rgba(0, 0, 0, 0.98), 0 0 30px rgba(0, 245, 212, 0.1);
+
+  /* ─── Component Radii (Removing rigid 2px global lock) ─────────── */
+  --radius-xs: 2px;
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl: 20px;
+  --radius-full: 9999px;
+
+  /* ─── Transitions & Curves ─────────────────────────────────────── */
+  --ease-spring: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  --ease-smooth: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-linear: linear;
+  --duration-fast: 150ms;
+  --duration-normal: 250ms;
+  --duration-slow: 400ms;
+}
+
+/* ─── Semantic Surface Classes ─────────────────────────────────── */
+.surface-0 { background-color: var(--surface-0); }
+.surface-1 { background-color: var(--surface-1); }
+.surface-2 { background-color: var(--surface-2); }
+.surface-3 { background-color: var(--surface-3); }
+.surface-4 { background-color: var(--surface-4); }
+
+.surface-glass {
+  background-color: var(--surface-glass);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.surface-glass-card {
+  background: linear-gradient(135deg, rgba(17, 28, 46, 0.7) 0%, rgba(6, 11, 18, 0.85) 100%);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid var(--border-default);
+}
+
+/* ─── Command Center Border Utilities ──────────────────────────── */
+.border-cyber-subtle { border: 1px solid var(--border-subtle); }
+.border-cyber-default { border: 1px solid var(--border-default); }
+.border-cyber-primary { border: 1px solid var(--border-primary); }
+.border-cyber-accent { border: 1px solid var(--border-accent); }
+.border-cyber-danger { border: 1px solid var(--border-danger); }
+
+/* Corner Bracket Accents (HUD / Sci-Fi Tactical Framing) */
+.hud-brackets {
+  position: relative;
+}
+.hud-brackets::before,
+.hud-brackets::after {
+  content: '';
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  pointer-events: none;
+}
+.hud-brackets::before {
+  top: -1px;
+  left: -1px;
+  border-top: 2px solid var(--primary);
+  border-left: 2px solid var(--primary);
+}
+.hud-brackets::after {
+  bottom: -1px;
+  right: -1px;
+  border-bottom: 2px solid var(--primary);
+  border-right: 2px solid var(--primary);
+}
+
+/* Diagonal Cut Corner Geometry (Chamfered Corner) */
+.cyber-chamfer {
+  clip-path: polygon(
+    0 0,
+    calc(100% - 12px) 0,
+    100% 12px,
+    100% 100%,
+    12px 100%,
+    0 calc(100% - 12px)
+  );
+}
+
+.cyber-chamfer-top {
+  clip-path: polygon(
+    0 0,
+    calc(100% - 14px) 0,
+    100% 14px,
+    100% 100%,
+    0 100%
+  );
+}
+
+/* ─── Subtle Cyber Grid Overlay ────────────────────────────────── */
+.cyber-grid-pattern {
+  background-size: 32px 32px;
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+}
+
+.cyber-dot-pattern {
+  background-size: 24px 24px;
+  background-image: radial-gradient(circle, rgba(0, 245, 212, 0.12) 1px, transparent 1px);
+}
+
+/* ─── Keyframe Animations ──────────────────────────────────────── */
+@keyframes border-beam {
+  100% {
+    offset-distance: 100%;
+  }
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* ─── Reduced Motion Support ───────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
