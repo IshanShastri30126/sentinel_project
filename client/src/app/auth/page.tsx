@@ -164,7 +164,7 @@ function LoginPageContent() {
           setSelectedClubId(data.clubs[0].id);
         }
       } catch (err) {
-        console.error("Failed to load clubs", err);
+        console.warn("Clubs load notice:", err);
       }
     }
     loadClubs();

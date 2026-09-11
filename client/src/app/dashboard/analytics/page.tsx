@@ -239,7 +239,7 @@ export default function AnalyticsPage() {
           setTopAchiever(leaderboardData.leaderboard[0]);
         }
       } catch (err) { 
-        console.error(err); 
+        console.warn("Analytics load notice:", err); 
       } finally { 
         setLoading(false); 
       }

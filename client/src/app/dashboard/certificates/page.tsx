@@ -83,7 +83,7 @@ export default function CertificatesPage() {
           api<{ events: { id: string; title: string }[] }>("/events/all", { token }),
         ]);
         setTemplates(t.templates); setEvents(e.events);
-      } catch (err) { console.error(err); }
+      } catch (err) { console.warn("Certificates template notice:", err); }
     };
     load();
   }, [token]);
@@ -92,7 +92,7 @@ export default function CertificatesPage() {
     try {
       const data = await api<{ certificates: Certificate[] }>(`/certificates/event/${eventId}`, { token: token || undefined });
       setCerts(data.certificates);
-    } catch (err) { console.error(err); }
+    } catch (err) { console.warn("Certificates load notice:", err); }
   }, [token]);
 
   useEffect(() => { if (selectedEvent) loadCerts(selectedEvent); }, [selectedEvent, loadCerts]);

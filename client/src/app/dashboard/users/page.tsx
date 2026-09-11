@@ -62,7 +62,7 @@ export default function UsersPage() {
       setTotalItems(approvedData.total);
       setTotalPages(approvedData.pages);
     } catch (err) { 
-      console.error(err); 
+      console.warn("Users load warning:", err); 
     } finally { 
       setLoading(false); 
     }

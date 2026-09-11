@@ -116,7 +116,7 @@ export default function EventDetailPage() {
           api<{ registrations: Registration[] }>(`/events/${eventId}/registrations`, { token }),
         ]);
         setEvent(e.event); setAnalytics(a); setRegistrations(r.registrations);
-      } catch (err) { console.error(err); }
+      } catch (err) { console.warn("Event load notice:", err); }
       finally { setLoading(false); }
     };
     load();

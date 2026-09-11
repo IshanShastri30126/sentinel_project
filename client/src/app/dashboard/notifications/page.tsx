@@ -39,7 +39,7 @@ export default function NotificationsPage() {
     try {
       const data = await api<{ notifications: Notification[] }>("/notifications", { token: token || undefined });
       setNotifications(data.notifications);
-    } catch (err) { console.error(err); }
+    } catch (err) { console.warn("Notifications load notice:", err); }
     finally { setLoading(false); }
   };
 

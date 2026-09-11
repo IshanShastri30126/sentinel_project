@@ -277,7 +277,7 @@ export default function EventsPage() {
           setAvailableStudentCoords(coords);
         }
       } catch (err) {
-        console.error("Failed to load team roster for event organizers", err);
+        console.warn("Roster fetch notice:", err);
       }
     }
     fetchRoster();
@@ -306,7 +306,7 @@ export default function EventsPage() {
           })
           .catch(() => {});
       }
-    } catch (err) { console.error(err); }
+    } catch (err) { console.warn("Events load notice:", err); }
     finally { setLoading(false); }
   }, [isCore, searchQuery, isCoord, statusFilter, token]);
 

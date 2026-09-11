@@ -66,7 +66,7 @@ export default function ApprovalsPage() {
       const params = filter !== "ALL" ? `?status=${filter}` : "";
       const data = await api<{ requests: Approval[] }>(`/approvals${params}`, { token: token || undefined });
       setApprovals(data.requests);
-    } catch (err) { console.error(err); }
+    } catch (err) { console.warn("Approvals load notice:", err); }
     finally { setLoading(false); }
   };
 
@@ -86,7 +86,7 @@ export default function ApprovalsPage() {
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 4000);
       load();
-    } catch (err) { console.error(err); }
+    } catch (err) { console.warn("Approval create notice:", err); }
     finally { setCreating(false); }
   };
 
@@ -98,7 +98,7 @@ export default function ApprovalsPage() {
         body: JSON.stringify({ status, comment: decisionComment }),
       });
       setDecisionComment(""); load();
-    } catch (err) { console.error(err); }
+    } catch (err) { console.warn("Approval decision notice:", err); }
   };
 
   const statusFilters = ["ALL", "PENDING", "UNDER_REVIEW", "APPROVED", "REJECTED"];

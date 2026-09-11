@@ -185,7 +185,7 @@ function PublicEventPageContent() {
           setSelectedClubId(data.clubs[0].id);
         }
       } catch (err) {
-        console.error("Failed to load clubs", err);
+        console.warn("Clubs load notice:", err);
       }
     }
     loadClubs();
@@ -650,7 +650,7 @@ function PublicEventPageContent() {
                 try {
                   organizers = JSON.parse(event.organizers);
                 } catch (e) {
-                  console.error(e);
+                  console.warn("Organizers parse notice:", e);
                 }
               }
               if (organizers.length === 0) return null;

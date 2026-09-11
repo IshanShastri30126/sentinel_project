@@ -183,7 +183,7 @@ export default function MyCertificatesPage() {
         const data = await api<{ certificates: MyCertificate[] }>("/certificates/my-certificates", { token });
         setCertificates(data.certificates);
       } catch (err) {
-        console.error(err);
+        console.warn("Certificates fetch warning:", err);
       } finally {
         setLoading(false);
       }

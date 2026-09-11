@@ -205,7 +205,7 @@ export default function LandingPage() {
         }
       })
       .catch((err) => {
-        console.error("Failed to load operations:", err);
+        console.warn("Operations fetch notice:", err);
       })
       .finally(() => {
         setEventsLoading(false);

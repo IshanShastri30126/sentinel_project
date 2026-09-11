@@ -71,7 +71,7 @@ export default function PublicEventsPage() {
         const data = await api<{ events: Event[] }>(`/events${qs}`);
         setEvents(data.events || []);
       } catch (err) {
-        console.error("Failed to load operations", err);
+        console.warn("Operations load notice:", err);
       } finally {
         setLoading(false);
       }

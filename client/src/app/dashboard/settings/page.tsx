@@ -119,7 +119,7 @@ export default function SettingsPage() {
       await refreshBranding(); // Apply styles immediately
       setTimeout(() => setSaved(false), 3000);
     } catch (err) {
-      console.error(err);
+      console.warn("Settings save warning:", err);
     } finally {
       setSaving(false);
     }

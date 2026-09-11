@@ -246,7 +246,7 @@ function CertificateBuilderContent() {
         const data = await api<{ templates: {id: string, name: string, fileUrl?: string, fields?: Record<string, unknown>}[] }>("/certificates/templates", { token });
         setUserTemplates(data.templates);
       } catch (err) {
-        console.error("Failed to load templates:", err);
+        console.warn("Templates load notice:", err);
       }
     };
     fetchTemplates();
@@ -323,7 +323,7 @@ function CertificateBuilderContent() {
         const data = await api<{ events: {id: string, title: string, startDate?: string}[] }>("/events/all", { token });
         setEvents(data.events);
       } catch (err) {
-        console.error("Failed to load events:", err);
+        console.warn("Events load notice:", err);
       }
     };
     fetchEvents();

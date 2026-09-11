@@ -68,104 +68,40 @@ const getModuleCategoryKey = (label: string): string => {
   return "core";
 };
 
-interface SidebarUser {
-  name: string;
-  avatarUrl?: string | null;
-  role: Role;
-}
-
-function SidebarNav({
-  user,
-  pathname,
-  filteredNav,
-  collapsed,
-  isMobile,
-  setMobileOpen,
-  logout,
-  router,
+function AnimatedHamburger({
+  isOpen,
+  onClick,
 }: {
-  user: SidebarUser;
-  pathname: string;
-  filteredNav: typeof NAV_ITEMS;
-  collapsed?: boolean;
-  isMobile?: boolean;
-  setMobileOpen?: (open: boolean) => void;
-  logout: () => void;
-  router: ReturnType<typeof useRouter>;
+  isOpen: boolean;
+  onClick: () => void;
 }) {
   return (
-    <>
-      {/* Logo / Brand */}
-      <div className={`border-b border-[#1A1E26] flex relative transition-all duration-200 ${collapsed ? "flex-col items-center justify-center py-4 px-2 gap-3" : "p-5 items-center justify-between"}`}>
-        <Link href="/dashboard" className="group min-w-0 flex items-center">
-          <SentinalLogo collapsed={collapsed} animateDrawing={false} />
-        </Link>
-        {/* Close button — mobile only */}
-        {isMobile && setMobileOpen && (
-          <button
-            onClick={() => setMobileOpen(false)}
-            className="ck-drawer-close"
-            aria-label="Close navigation"
-          >
-            <X className="w-4 h-4" />
-          </button>
-        )}
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={isOpen ? "Close navigation menu" : "Open navigation menu"}
+      aria-expanded={isOpen}
+      className="flex shrink-0 min-w-[44px] min-h-[44px] w-11 h-11 rounded-lg border border-[var(--ck-border)] bg-[var(--ck-bg-secondary)] items-center justify-center hover:border-[#00F5D4]/50 hover:bg-[#00F5D4]/5 transition-all duration-200 cursor-pointer group"
+      title={isOpen ? "Close Navigation Gateway" : "Open Navigation Gateway"}
+    >
+      <div className="w-5 h-3.5 relative flex flex-col justify-between items-center">
+        <motion.span
+          animate={isOpen ? { rotate: 45, y: 6 } : { rotate: 0, y: 0 }}
+          transition={{ type: "spring", stiffness: 280, damping: 22 }}
+          className="w-5 h-0.5 bg-[#8892A4] group-hover:bg-[#00F5D4] rounded-full transition-colors origin-center block"
+        />
+        <motion.span
+          animate={isOpen ? { opacity: 0, scaleX: 0 } : { opacity: 1, scaleX: 1 }}
+          transition={{ duration: 0.15 }}
+          className="w-5 h-0.5 bg-[#8892A4] group-hover:bg-[#00F5D4] rounded-full transition-colors origin-center block"
+        />
+        <motion.span
+          animate={isOpen ? { rotate: -45, y: -6 } : { rotate: 0, y: 0 }}
+          transition={{ type: "spring", stiffness: 280, damping: 22 }}
+          className="w-5 h-0.5 bg-[#8892A4] group-hover:bg-[#00F5D4] rounded-full transition-colors origin-center block"
+        />
       </div>
-
-      {/* Navigation links */}
-      <nav className="flex-1 px-3 py-3 space-y-0.5 overflow-y-auto hacker-scanline-bg">
-        {filteredNav.map((item) => {
-          const isActive = pathname === item.href;
-          return (
-            <Link key={item.href} href={item.href}
-              className={`ck-sidebar-link text-[13px] tracking-wide ${isActive ? "active" : ""} ${collapsed ? "justify-center px-0" : ""}`}
-              title={collapsed ? item.label : undefined}
-              style={isActive ? { color: "#00F5D4", background: "rgba(0, 245, 212, 0.08)" } : {}}
-            >
-              <div className="ck-sidebar-icon-container" style={isActive ? { color: "#00F5D4" } : {}}>
-                {item.icon}
-              </div>
-              {!collapsed && <span className="flex-1">{item.label}</span>}
-              {!collapsed && isActive && <div className="w-1.5 h-1.5 rounded-full" style={{ background: "#00F5D4", boxShadow: "0 0 10px rgba(0,245,212,0.9)" }} />}
-            </Link>
-          );
-        })}
-      </nav>
-
-      {/* User profile section — at bottom */}
-      <div className="px-3 pb-2">
-        <Link
-          href="/dashboard/profile"
-          className={`flex items-center p-3 rounded-xl border border-[#121F3D] bg-[#04070A] hover:border-[#00F5D4]/40 transition-all duration-200 ${collapsed ? 'justify-center' : 'gap-3'}`}
-        >
-          <DefaultAvatar
-            src={user.avatarUrl ? getFileUrl(user.avatarUrl) : null}
-            alt={user.name}
-            className="w-9 h-9 shrink-0 border border-[#00F5D4]/30"
-          />
-          {!collapsed && (
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold truncate" style={{ color: "#F0F8FF", fontFamily: "'Space Grotesk', sans-serif" }}>{user.name}</p>
-              <p className="text-[10px] truncate font-mono tracking-wider" style={{ color: "#00F5D4" }}>{ROLE_LABELS[user.role as Role]}</p>
-            </div>
-          )}
-        </Link>
-      </div>
-
-      {/* Sign out */}
-      <div className="p-3 border-t border-[#121F3D]">
-        <button onClick={() => { logout(); router.push("/"); }}
-          className={`ck-sidebar-link w-full hover:bg-[rgba(255,0,85,0.08)] ${collapsed ? 'justify-center px-0' : ''}`}
-          style={{ color: "#FF0055" }}
-          title={collapsed ? "Sign Out" : undefined}
-        >
-          <div className="ck-sidebar-icon-container">
-            <LogOut className="w-5 h-5" />
-          </div>
-          {!collapsed && <span className="font-mono text-[10px] uppercase tracking-widest">Terminate Session</span>}
-        </button>
-      </div>
-    </>
+    </button>
   );
 }
 
@@ -212,7 +148,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       setUnreadCount((prev) => Math.max(0, prev - 1));
       setActiveToast(null);
     } catch (err) {
-      console.error(err);
+      console.warn("Toast read notice:", err);
     }
   };
 
@@ -272,7 +208,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       setUnreadNotifications((prev) => prev.filter((n) => n.id !== id));
       setUnreadCount((prev) => Math.max(0, prev - 1));
     } catch (err) {
-      console.error(err);
+      console.warn("Notification read notice:", err);
     }
   };
 
@@ -283,7 +219,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       setUnreadCount(0);
       setShowNotificationModal(false);
     } catch (err) {
-      console.error(err);
+      console.warn("Mark all read notice:", err);
     }
   };
 
@@ -345,14 +281,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="flex min-h-screen relative overflow-x-hidden" style={{ background: "var(--ck-bg-gradient, var(--ck-bg))" }}>
-      {/* Topbar Dropdown Navigation Gateway (Universal across Mobile, Tablet, and Desktop) */}
+      {/* Vertical Navigation Drawer on Left Side */}
       <AnimatePresence>
         {mobileOpen && (
           <>
             {/* Click-outside backdrop */}
             <motion.div
-              key="universal-nav-backdrop"
-              className="fixed inset-0 top-[52px] sm:top-[56px] z-40 bg-black/75 backdrop-blur-sm"
+              key="vertical-nav-backdrop"
+              className="fixed inset-0 z-40 bg-black/80 backdrop-blur-sm"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -360,113 +296,146 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               onClick={() => setMobileOpen(false)}
             />
 
-            {/* Topbar Dropdown Menu Panel */}
-            <motion.div
-              key="universal-nav-dropdown"
-              className="fixed top-[52px] sm:top-[56px] left-0 right-0 z-50 bg-[#050711]/97 border-b border-[#121F3D] shadow-[0_20px_50px_rgba(0,0,0,0.8),_0_0_30px_rgba(0,245,212,0.05)] p-4 sm:p-6 max-h-[85vh] overflow-y-auto backdrop-blur-2xl"
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.2 }}
+            {/* Left Vertical Drawer Panel */}
+            <motion.aside
+              key="vertical-nav-drawer"
+              className="fixed inset-y-0 left-0 z-50 w-72 sm:w-80 h-full bg-[#050711]/98 border-r border-[#121F3D] shadow-[15px_0_50px_rgba(0,0,0,0.85),_0_0_30px_rgba(0,245,212,0.06)] flex flex-col backdrop-blur-2xl overflow-hidden"
+              initial={{ x: "-100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "-100%" }}
+              transition={{ type: "spring", damping: 28, stiffness: 260 }}
             >
-              {/* Top Neon Accent line */}
-              <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-[#00F5D4] via-[#00E1FF] to-[#FF0055] opacity-80" />
+              {/* Right-edge neon gradient vertical accent line */}
+              <div className="absolute top-0 right-0 bottom-0 w-[2px] bg-gradient-to-b from-[#00F5D4] via-[#00E1FF] to-[#FF0055] opacity-75 shadow-[0_0_12px_rgba(0,245,212,0.4)]" />
 
-              {/* Navigation Items Grid */}
-              <div className="text-[10px] font-mono text-[#00F5D4] uppercase tracking-widest mb-4 flex items-center justify-between">
-                <span className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#00F5D4] animate-ping" />
-                  NAVIGATION GATEWAY // MISSION MODULES
-                </span>
-                <span className="text-zinc-500">{filteredNav.length} MODULES DETECTED</span>
+              {/* Drawer Top Header */}
+              <div className="h-[52px] sm:h-[56px] px-4 border-b border-[#121F3D] flex items-center justify-between shrink-0 bg-[#050A18]/80">
+                <Link
+                  href="/dashboard"
+                  onClick={() => setMobileOpen(false)}
+                  className="flex items-center gap-2 hover:opacity-90 transition"
+                >
+                  <SentinalLogo collapsed={false} showText={true} animateDrawing={false} className="scale-90 origin-left" />
+                </Link>
+
+                <button
+                  type="button"
+                  onClick={() => setMobileOpen(false)}
+                  className="w-8 h-8 rounded-lg border border-[#1A284D] flex items-center justify-center text-[#8892A4] hover:text-[#00F5D4] hover:border-[#00F5D4]/40 transition-all duration-200 cursor-pointer group"
+                  aria-label="Close navigation"
+                >
+                  <X className="w-4 h-4 group-hover:rotate-90 transition-transform duration-200" />
+                </button>
               </div>
 
-              {(() => {
-                const groupedNav: Record<string, typeof NAV_ITEMS> = {
-                  core: [],
-                  tactical: [],
-                  credentials: [],
-                  clearance: []
-                };
-                filteredNav.forEach((item) => {
-                  const catKey = getModuleCategoryKey(item.label);
-                  groupedNav[catKey].push(item);
-                });
+              {/* Cyber Sub-header Banner */}
+              <div className="text-[9px] font-mono text-[#00F5D4] uppercase tracking-widest px-4 py-2 border-b border-white/[0.04] bg-[#080E24]/60 flex items-center justify-between shrink-0">
+                <span className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#00F5D4] animate-ping" />
+                  NAVIGATION // VERTICAL GATEWAY
+                </span>
+                <span className="text-zinc-500 font-bold">{filteredNav.length} MODS</span>
+              </div>
 
-                return (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                    {Object.entries(MODULE_CATEGORIES).map(([key, cat]) => {
-                      const items = groupedNav[key];
-                      if (items.length === 0) return null;
-                      return (
-                        <div key={key} className="flex flex-col gap-3 p-4 rounded-xl bg-[#080E24]/60 border border-[#13203E]/60 backdrop-blur-md relative overflow-hidden group/cat hover:border-[#1E315E] transition-all duration-300">
-                          {/* Category Header */}
-                          <div className="flex items-center justify-between pb-2 border-b border-white/[0.04]">
-                            <div className="flex items-center gap-2">
-                              <span className={`w-1.5 h-1.5 rounded-full ${cat.dotColor} shadow-[0_0_8px_currentColor]`} />
-                              <span className="text-[10px] font-mono font-bold tracking-widest text-slate-400 uppercase">{cat.label}</span>
-                            </div>
-                            <span className="text-[8px] font-mono text-zinc-600">{items.length} MODS</span>
-                          </div>
+              {/* Scrollable Navigation Body */}
+              <div className="flex-1 overflow-y-auto px-3 py-3 space-y-4 custom-scrollbar">
+                {(() => {
+                  const groupedNav: Record<string, typeof NAV_ITEMS> = {
+                    core: [],
+                    tactical: [],
+                    credentials: [],
+                    clearance: []
+                  };
+                  filteredNav.forEach((item) => {
+                    const catKey = getModuleCategoryKey(item.label);
+                    groupedNav[catKey].push(item);
+                  });
 
-                          {/* Cards Grid */}
-                          <div className="grid grid-cols-1 gap-2">
-                            {items.map((item) => {
-                              const isActive = pathname === item.href;
-                              return (
-                                <Link
-                                  key={item.href}
-                                  href={item.href}
-                                  onClick={() => setMobileOpen(false)}
-                                  className={`group relative flex items-center justify-between px-3 py-2.5 rounded-xl border font-mono text-[11px] transition-all duration-200 ${
-                                    isActive
-                                      ? "bg-[#00F5D4]/10 border-[#00F5D4] text-[#00F5D4] font-bold shadow-[0_0_12px_rgba(0,245,212,0.15)]"
-                                      : "bg-[#050A16] border-[#13203E] text-slate-300 hover:border-[#00F5D4]/40 hover:text-white hover:bg-[#0A1124]"
-                                  }`}
-                                >
-                                  <div className="flex items-center gap-2.5 min-w-0">
-                                    <div className={`p-1 rounded transition-colors ${isActive ? "text-[#00F5D4]" : "text-slate-400 group-hover:text-[#00F5D4]"}`}>
-                                      {item.icon}
-                                    </div>
-                                    <span className="truncate">{item.label}</span>
-                                  </div>
-                                  <ChevronRight className="w-3 h-3 opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all text-[#00F5D4]" />
-                                </Link>
-                              );
-                            })}
+                  return Object.entries(MODULE_CATEGORIES).map(([key, cat]) => {
+                    const items = groupedNav[key];
+                    if (items.length === 0) return null;
+                    return (
+                      <div key={key} className="space-y-1.5">
+                        {/* Category Label */}
+                        <div className="px-2 pb-1 flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className={`w-1.5 h-1.5 rounded-full ${cat.dotColor} shadow-[0_0_8px_currentColor]`} />
+                            <span className="text-[10px] font-mono font-bold tracking-widest text-slate-400 uppercase">{cat.label}</span>
                           </div>
+                          <span className="text-[8px] font-mono text-zinc-600">{items.length}</span>
                         </div>
-                      );
-                    })}
-                  </div>
-                );
-              })()}
 
-              {/* User Profile Card & Sign Out at bottom of dropdown */}
-              <div className="pt-4 border-t border-[#121F3D] flex flex-col sm:flex-row items-center justify-between gap-4">
-                <div className="flex items-center gap-3 bg-[#080E24] border border-[#121F3D]/80 rounded-xl p-3.5 w-full sm:w-auto min-w-[280px]">
+                        {/* Navigation Items */}
+                        <div className="space-y-1">
+                          {items.map((item) => {
+                            const isActive = pathname === item.href;
+                            return (
+                              <Link
+                                key={item.href}
+                                href={item.href}
+                                onClick={() => setMobileOpen(false)}
+                                className={`group relative flex items-center justify-between px-3 py-2 rounded-xl border font-mono text-[11px] transition-all duration-200 ${
+                                  isActive
+                                    ? "bg-[#00F5D4]/10 border-[#00F5D4] text-[#00F5D4] font-bold shadow-[0_0_12px_rgba(0,245,212,0.15)]"
+                                    : "bg-[#080E24]/60 border-[#121F3D]/80 text-slate-300 hover:border-[#00F5D4]/40 hover:text-white hover:bg-[#0A122A] hover:translate-x-1"
+                                }`}
+                              >
+                                {isActive && (
+                                  <div className="absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-r bg-[#00F5D4] shadow-[0_0_8px_#00F5D4]" />
+                                )}
+                                <div className="flex items-center gap-2.5 min-w-0">
+                                  <div className={`p-1 rounded transition-colors ${isActive ? "text-[#00F5D4]" : "text-slate-400 group-hover:text-[#00F5D4]"}`}>
+                                    {item.icon}
+                                  </div>
+                                  <span className="truncate">{item.label}</span>
+                                </div>
+                                <div className="flex items-center gap-1.5">
+                                  {isActive && (
+                                    <div className="w-1.5 h-1.5 rounded-full bg-[#00F5D4] shadow-[0_0_8px_#00F5D4]" />
+                                  )}
+                                  <ChevronRight className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all text-[#00F5D4]" />
+                                </div>
+                              </Link>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    );
+                  });
+                })()}
+              </div>
+
+              {/* Bottom Pinned User Profile Card & Sign Out */}
+              <div className="p-3 border-t border-[#121F3D] bg-[#050A18]/90 shrink-0 space-y-2.5">
+                <Link
+                  href="/dashboard/profile"
+                  onClick={() => setMobileOpen(false)}
+                  className="flex items-center gap-3 bg-[#080E24] border border-[#121F3D] rounded-xl p-2.5 hover:border-[#00F5D4]/40 transition-all duration-200 group"
+                >
                   <DefaultAvatar
                     src={user.avatarUrl ? getFileUrl(user.avatarUrl) : null}
                     alt={user.name}
-                    className="w-10 h-10 border border-[#00F5D4]/30 shrink-0"
+                    className="w-9 h-9 border border-[#00F5D4]/30 shrink-0"
                   />
                   <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <p className="text-xs font-bold text-white truncate">{user.name}</p>
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#00F5D4] animate-pulse shadow-[0_0_8px_#00F5D4]" title="Active Session" />
+                    <div className="flex items-center gap-1.5">
+                      <p className="text-xs font-bold text-white truncate group-hover:text-[#00F5D4] transition-colors">{user.name}</p>
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#00F5D4] animate-pulse shadow-[0_0_6px_#00F5D4]" title="Active Session" />
                     </div>
                     <p className="text-[9px] font-mono text-[#00F5D4] tracking-wider uppercase mt-0.5">{ROLE_LABELS[user.role as Role]}</p>
                   </div>
-                </div>
+                  <ChevronRight className="w-3.5 h-3.5 text-slate-500 group-hover:text-[#00F5D4] group-hover:translate-x-0.5 transition-all" />
+                </Link>
 
                 <button
+                  type="button"
                   onClick={() => { setMobileOpen(false); logout(); router.push("/"); }}
-                  className="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-[#FF0055]/10 border border-[#FF0055]/30 text-[#FF0055] font-mono text-[10px] font-bold uppercase tracking-widest hover:bg-[#FF0055] hover:text-black hover:shadow-[0_0_20px_rgba(255,0,85,0.4)] transition-all duration-300 cursor-pointer min-h-[44px] flex items-center justify-center gap-2"
+                  className="w-full py-2.5 px-4 rounded-xl bg-[#FF0055]/10 border border-[#FF0055]/30 text-[#FF0055] font-mono text-[10px] font-bold uppercase tracking-widest hover:bg-[#FF0055] hover:text-black hover:shadow-[0_0_18px_rgba(255,0,85,0.4)] transition-all duration-200 cursor-pointer min-h-[44px] flex items-center justify-center gap-2"
                 >
                   <LogOut className="w-4 h-4" /> TERMINATE SESSION
                 </button>
               </div>
-            </motion.div>
+            </motion.aside>
           </>
         )}
       </AnimatePresence>
@@ -474,22 +443,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <main className="flex-1 overflow-x-hidden min-w-0 w-full max-w-full">
         {/* Universal Top Navigation Bar (Single Unified Row ~52px) */}
         <div className="flex items-center justify-between px-3 sm:px-6 lg:px-8 border-b border-[var(--ck-border)] sticky top-0 z-30 bg-[#050A18] h-[52px] sm:h-[56px] w-full">
-          {/* Top Bar Left: [Menu Toggle Icon] [Merged Logo Mark + Wordmark] [Breadcrumb Title] */}
+          {/* Top Bar Left: [Menu Toggle Icon] [Merged Logo Mark + Wordmark] */}
           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-            {/* Menu Toggle Button (Universal, ≥44x44px touch target) */}
-            <button
+            {/* Animated Hamburger Button with Micro-Animations */}
+            <AnimatedHamburger
+              isOpen={mobileOpen}
               onClick={() => setMobileOpen(!mobileOpen)}
-              className="flex shrink-0 min-w-[44px] min-h-[44px] rounded-lg border border-[var(--ck-border)] bg-[var(--ck-bg-secondary)] items-center justify-center hover:border-[#00F5D4]/40 transition cursor-pointer"
-              title="Toggle Navigation Gateway"
-              aria-label="Toggle Navigation Gateway"
-              aria-expanded={mobileOpen}
-            >
-              {mobileOpen ? (
-                <X className="w-5 h-5 text-[#00F5D4]" />
-              ) : (
-                <Menu className="w-5 h-5 text-[#8892A4] hover:text-[#00F5D4] transition-colors" />
-              )}
-            </button>
+            />
 
             {/* Merged Logo Mark + Wordmark inside Sticky Top Bar */}
             <Link href="/dashboard" className="flex items-center gap-2 min-w-0 shrink hover:opacity-90 transition">
@@ -653,87 +613,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               )}
             </AnimatePresence>
           </div>
-
-          {/* Mobile Navigation Bar Dropdown Menu */}
-          <AnimatePresence>
-            {mobileOpen && (
-              <>
-                {/* Click-outside backdrop */}
-                <motion.div
-                  key="mobile-nav-backdrop"
-                  className="fixed inset-0 top-[var(--ck-topbar-height)] z-40 bg-black/70 backdrop-blur-sm md:hidden"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.2 }}
-                  onClick={() => setMobileOpen(false)}
-                />
-
-                {/* Mobile Navbar Dropdown Menu Panel */}
-                <motion.div
-                  key="mobile-nav-dropdown"
-                  className="absolute top-full left-0 right-0 z-50 bg-[#050A18]/95 border-b border-[#121F3D] shadow-2xl p-4 md:hidden max-h-[85vh] overflow-y-auto backdrop-blur-xl"
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  {/* Navigation Items Grid */}
-                  <div className="text-[10px] font-mono text-[#00F5D4] uppercase tracking-widest mb-3 flex items-center justify-between">
-                    <span>Navigation Gateway</span>
-                    <span className="text-zinc-500">{filteredNav.length} Modules</span>
-                  </div>
-
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 mb-4">
-                    {filteredNav.map((item) => {
-                      const isActive = pathname === item.href;
-                      return (
-                        <Link
-                          key={item.href}
-                          href={item.href}
-                          onClick={() => setMobileOpen(false)}
-                          className={`flex items-center gap-2.5 p-2.5 rounded-xl border text-xs font-mono transition-all duration-200 ${
-                            isActive
-                              ? "bg-[#00F5D4]/10 border-[#00F5D4] text-[#00F5D4] font-bold shadow-[0_0_12px_rgba(0,245,212,0.2)]"
-                              : "bg-[#080E24] border-[#121F3D] text-slate-300 hover:border-[#00F5D4]/40 hover:text-white"
-                          }`}
-                        >
-                          <div className={`p-1 rounded-lg ${isActive ? "text-[#00F5D4]" : "text-slate-400"}`}>
-                            {item.icon}
-                          </div>
-                          <span className="truncate">{item.label}</span>
-                        </Link>
-                      );
-                    })}
-                  </div>
-
-                  {/* User Profile Card & Sign Out at bottom of dropdown */}
-                  <div className="pt-3 border-t border-[#121F3D] flex flex-col gap-2">
-                    <div className="flex items-center justify-between p-2.5 rounded-xl bg-[#080E24] border border-[#121F3D]">
-                      <div className="flex items-center gap-2.5 min-w-0">
-                        <DefaultAvatar
-                          src={user.avatarUrl ? getFileUrl(user.avatarUrl) : null}
-                          alt={user.name}
-                          className="w-8 h-8 border border-[#00F5D4]/30 shrink-0"
-                        />
-                        <div className="min-w-0">
-                          <p className="text-xs font-bold text-white truncate">{user.name}</p>
-                          <p className="text-[9px] font-mono text-[#00F5D4] truncate">{ROLE_LABELS[user.role as Role]}</p>
-                        </div>
-                      </div>
-
-                      <button
-                        onClick={() => { setMobileOpen(false); logout(); router.push("/"); }}
-                        className="px-3 py-1.5 rounded-lg bg-[rgba(255,0,85,0.1)] border border-[rgba(255,0,85,0.3)] text-[#FF0055] font-mono text-[10px] font-bold uppercase tracking-wider hover:bg-[rgba(255,0,85,0.2)] transition shrink-0 cursor-pointer"
-                      >
-                        Sign Out
-                      </button>
-                    </div>
-                  </div>
-                </motion.div>
-              </>
-            )}
-          </AnimatePresence>
         </div>
 
         {/* Bottom Right Slide-in toast notification popup */}

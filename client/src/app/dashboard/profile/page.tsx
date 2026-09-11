@@ -61,7 +61,7 @@ export default function ProfilePage() {
         const data = await api<any>(`/appreciation/user/${user.id}/history`, { token });
         setHistory(data);
       } catch (err) {
-        console.error(err);
+        console.warn("Profile history notice:", err);
       } finally {
         setLoading(false);
       }
@@ -117,7 +117,7 @@ export default function ProfilePage() {
         window.location.reload();
       }, 2800);
     } catch (err: any) {
-      console.error(err);
+      console.warn("Profile update notice:", err);
       alert(err instanceof Error ? err.message : "Error updating profile");
     } finally {
       setSubmitting(false);

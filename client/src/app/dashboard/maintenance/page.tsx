@@ -217,7 +217,7 @@ export default function MaintenancePage() {
       setSystemMetrics(data.system);
       setTelemetry(data.telemetry);
     } catch (err) {
-      console.error("Failed to load maintenance overview", err);
+      console.warn("Failed to load maintenance overview", err);
     }
   }, [token]);
 
@@ -244,7 +244,7 @@ export default function MaintenancePage() {
         setLogStats(data.stats);
       }
     } catch (err) {
-      console.error("Failed to load maintenance logs", err);
+      console.warn("Failed to load maintenance logs", err);
     } finally {
       setLoadingLogs(false);
     }
@@ -256,7 +256,7 @@ export default function MaintenancePage() {
       const data = await api<{ rules: FirewallRule[] }>("/maintenance/firewall/rules", { token: token || undefined });
       setFirewallRules(data.rules || []);
     } catch (err) {
-      console.error("Failed to load firewall rules", err);
+      console.warn("Failed to load firewall rules", err);
     }
   }, [token]);
 
@@ -269,7 +269,7 @@ export default function MaintenancePage() {
       ]);
       setIpList(ipRes.ips || []);
     } catch (err) {
-      console.error("Failed to load security telemetry", err);
+      console.warn("Failed to load security telemetry", err);
     } finally {
       setLoadingSecurity(false);
     }
@@ -281,7 +281,7 @@ export default function MaintenancePage() {
       const data = await api<{ tables: DbTableItem[] }>("/maintenance/database/tables", { token: token || undefined });
       setDbTables(data.tables || []);
     } catch (err) {
-      console.error("Failed to load database telemetry", err);
+      console.warn("Failed to load database telemetry", err);
     }
   }, [token]);
 
@@ -295,7 +295,7 @@ export default function MaintenancePage() {
       setBugs(bugsRes.bugs || []);
       setMaintenanceSettings(settingsRes.settings || { enabled: false });
     } catch (err) {
-      console.error("Failed to load bug reports", err);
+      console.warn("Failed to load bug reports", err);
     }
   }, [token]);
 

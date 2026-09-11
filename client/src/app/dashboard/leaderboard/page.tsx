@@ -55,7 +55,7 @@ export default function LeaderboardPage() {
         const badgeData = await api<{ badges: any[] }>("/appreciation/badges");
         setBadges(badgeData.badges);
       }
-    } catch (err) { console.error(err); }
+    } catch (err) { console.warn("Leaderboard data notice:", err); }
     finally { setLoading(false); }
   };
 

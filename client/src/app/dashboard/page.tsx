@@ -246,6 +246,27 @@ export default function DashboardPage() {
     return () => clearInterval(interval);
   }, []);
 
+const DEFAULT_CLUB_DATA: ClubAnalytics = {
+  overview: {
+    totalUsers: 0,
+    totalEvents: 0,
+    totalCertificates: 0,
+    totalBadges: 0,
+    pendingApprovals: 0,
+    activeAttendanceRate: 0,
+  },
+  roleDistribution: [],
+  recentEvents: [],
+  approvalStats: [],
+};
+
+const DEFAULT_OPS_DATA: OpsData = {
+  pendingApprovals: 0,
+  pendingUsers: 0,
+  upcomingEvents: [],
+  recentAttendance: [],
+};
+
   useEffect(() => {
     if (!token || !user) return;
     const load = async () => {
@@ -253,20 +274,20 @@ export default function DashboardPage() {
         if (["FACULTY", "STUDENT_COORDINATOR", "TECH"].includes(user.role)) {
           const [clubRes, opsRes, usersRes] = await Promise.all([
             api<ClubAnalytics>("/analytics/club", { token }).catch((err) => {
-              console.error("Club analytics error:", err);
+              console.warn("Club analytics notice:", err);
               return null;
             }),
             api<OpsData>("/analytics/operations", { token }).catch((err) => {
-              console.error("Ops analytics error:", err);
+              console.warn("Ops analytics notice:", err);
               return null;
             }),
             api<{ users: any[] }>("/users?approved=true", { token }).catch((err) => {
-              console.error("Users fetch error:", err);
+              console.warn("Users fetch notice:", err);
               return null;
             })
           ]);
-          if (clubRes) setClubData(clubRes);
-          if (opsRes) setOpsData(opsRes);
+          setClubData(clubRes || DEFAULT_CLUB_DATA);
+          setOpsData(opsRes || DEFAULT_OPS_DATA);
           if (usersRes && usersRes.users) {
             setDbMembers(
               usersRes.users.map((u, idx) => ({
@@ -284,15 +305,15 @@ export default function DashboardPage() {
           // Fetch personal stats for regular member
           const [historyRes, eventsRes, regRes] = await Promise.all([
             api<MemberHistory>(`/appreciation/user/${user.id}/history`, { token }).catch((err) => {
-              console.error("Appreciation history error:", err);
+              console.warn("Appreciation history notice:", err);
               return null;
             }),
             api<{ events: PublicEvent[] }>("/events", { token }).catch((err) => {
-              console.error("Events list error:", err);
+              console.warn("Events list notice:", err);
               return null;
             }),
             api<{ events: PublicEvent[] }>("/events/registered", { token }).catch((err) => {
-              console.error("Registered events list error:", err);
+              console.warn("Registered events list notice:", err);
               return null;
             })
           ]);
@@ -309,7 +330,7 @@ export default function DashboardPage() {
           }
         }
       } catch (err) {
-        console.error("Dashboard error:", err);
+        console.warn("Dashboard load notice:", err);
       } finally {
         setLoading(false);
       }
@@ -402,7 +423,7 @@ export default function DashboardPage() {
         )
       );
     } catch (err: unknown) {
-      console.error(err);
+      console.warn("Register error notice:", err);
       const msg = err instanceof Error ? err.message : "Failed to register.";
       showNotification(msg, "error");
     } finally {
