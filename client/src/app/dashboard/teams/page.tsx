@@ -61,14 +61,14 @@ export default function TeamsPage() {
   const loadData = async () => {
     try {
       const endpoint = (isManagement && activeTab === "all")
-        ? (filterEventId ? `/teams/event/${filterEventId}` : "/teams/my")
+        ? (filterEventId ? `/teams/event/${filterEventId}` : "/teams")
         : "/teams/my";
       const [t, e] = await Promise.all([
         api<{ teams: Team[] }>(endpoint, { token: token || undefined }),
         api<{ events: any[] }>("/events", { token: token || undefined }),
       ]);
-      setTeams(t.teams); setEvents(e.events);
-    } catch (err) { console.error(err); }
+      setTeams(t.teams || []); setEvents(e.events || []);
+    } catch (err) { console.warn("[TeamsPage] Load data error:", err); }
     finally { setLoading(false); }
   };
 
@@ -208,7 +208,7 @@ export default function TeamsPage() {
       const data = await api<{ team: Team }>(`/teams/${teamId}`, { token: token || undefined });
       setTeams((prev) => prev.map((t) => t.id === teamId ? { ...t, members: data.team.members, leader: data.team.leader } : t));
       setExpandedTeam(teamId);
-    } catch (err) { console.error(err); }
+    } catch (err) { console.warn("[TeamsPage] Load team details error:", err); }
   };
 
   const displayedTeams = teams

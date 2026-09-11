@@ -386,4 +386,70 @@ router.post("/join", authenticate, async (req: Request, res: Response) => {
   }
 });
 
+// GET /api/teams — All teams (Management only)
+router.get("/", authenticate, requireMinRole("TECH"), async (_req: Request, res: Response) => {
+  try {
+    const teams = await prisma.team.findMany({
+      include: {
+        members: { include: { user: { select: { id: true, name: true, email: true, studentId: true } } } },
+        leader: { select: { id: true, name: true, email: true } },
+        event: { select: { id: true, title: true, startDate: true } },
+        _count: { select: { members: true } },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+    res.json({ teams });
+  } catch (err) {
+    console.error("[Teams] Get all teams error:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// DELETE /api/teams/:id — Delete a team (Leader or Management)
+router.delete("/:id", authenticate, auditLog("TEAM_DELETED"), async (req: Request, res: Response) => {
+  try {
+    const team = await prisma.team.findUnique({ where: { id: req.params.id } });
+    if (!team) { res.status(404).json({ error: "Team not found" }); return; }
+
+    const { role, userId } = req.user!;
+    const isCoord = ["FACULTY", "STUDENT_COORDINATOR", "TECH"].includes(role);
+    if (team.leaderId !== userId && !isCoord) {
+      res.status(403).json({ error: "Only the team leader or an administrator can delete this team" });
+      return;
+    }
+
+    // Remove event registrations associated with this team
+    await prisma.eventRegistration.deleteMany({ where: { teamId: team.id } });
+    await prisma.teamMember.deleteMany({ where: { teamId: team.id } });
+    await prisma.team.delete({ where: { id: team.id } });
+
+    res.json({ message: "Team removed successfully" });
+  } catch (err) {
+    console.error("[Teams] Delete team error:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// PATCH /api/teams/:id/disqualify — Disqualify a team (Management only)
+router.patch("/:id/disqualify", authenticate, requireMinRole("TECH"), auditLog("TEAM_DISQUALIFIED"), async (req: Request, res: Response) => {
+  try {
+    const team = await prisma.team.findUnique({ where: { id: req.params.id } });
+    if (!team) { res.status(404).json({ error: "Team not found" }); return; }
+
+    const { reason } = req.body;
+    await sendNotification({
+      userId: team.leaderId,
+      type: "TEAM_UPDATE",
+      title: "Team Disqualified",
+      message: `Team "${team.name}" has been disqualified. Reason: ${reason || "Administrative decision"}`,
+      metadata: { teamId: team.id, reason },
+    });
+
+    res.json({ message: "Team marked as disqualified", teamId: team.id });
+  } catch (err) {
+    console.error("[Teams] Disqualify error:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 export default router;

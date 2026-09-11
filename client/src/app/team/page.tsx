@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Shield, Users, Mail, Eye, MessageSquare } from "lucide-react";
 import { api, getFileUrl } from "@/lib/api";
+import { FALLBACK_TEAM_CADRE, formatSocialUrl, TeamCadreMember } from "@/lib/fallbackTeam";
 import { Navbar } from "@/components/navigation/Navbar";
 import { Footer } from "@/components/navigation/Footer";
 import { CyberBadge } from "@/components/ui/CyberBadge";
@@ -200,21 +201,7 @@ const getClearanceLevel = (role: string) => {
   }
 };
 
-interface TeamMemberItem {
-  id: string;
-  name: string;
-  role: string;
-  designation: string;
-  avatarUrl?: string;
-  imageUrl?: string;
-  coverPosterUrl?: string;
-  cyberAvatarUrl?: string;
-  bio?: string;
-  about?: string;
-  linkedin?: string;
-  instagram?: string;
-  email?: string;
-}
+interface TeamMemberItem extends TeamCadreMember {}
 
 const ROLE_LABELS: Record<string, string> = {
   FACULTY: "Faculty Mentor",
@@ -234,13 +221,9 @@ const TeamMemberCard = ({ member, idx }: { member: TeamMemberItem; idx: number }
   const router = useRouter();
   const [imageFailed, setImageFailed] = useState(false);
 
-  const linkedInUrl = member.linkedin
-    ? `https://linkedin.com/in/${member.linkedin.trim()}`
-    : `https://linkedin.com/search/results/all/?keywords=${encodeURIComponent(member.name)}`;
-  const instagramUrl = member.instagram
-    ? `https://www.instagram.com/${member.instagram.trim()}/`
-    : `https://www.instagram.com/chakravyuh.charusat/`;
-  const emailUrl = member.email ? `mailto:${member.email}` : `mailto:support@chakravyuhclub.com`;
+  const linkedInUrl = formatSocialUrl("linkedin", member.linkedin);
+  const instagramUrl = formatSocialUrl("instagram", member.instagram);
+  const emailUrl = member.email ? `mailto:${member.email.trim()}` : `mailto:support@chakravyuhclub.com`;
 
   const rawImg = member.imageUrl || member.avatarUrl || member.cyberAvatarUrl || member.coverPosterUrl;
   const avatarSrc = rawImg ? getFileUrl(rawImg) : null;
@@ -372,15 +355,23 @@ const TeamGrid = ({ list, title, tag }: { list: TeamMemberItem[]; title: string;
  * @returns {JSX.Element} Rendered team directory.
  */
 export default function TeamPage() {
-  const [team, setTeam] = useState<TeamMemberItem[]>([]);
+  const [team, setTeam] = useState<TeamMemberItem[]>(FALLBACK_TEAM_CADRE);
+  const [isIpRestricted, setIsIpRestricted] = useState(false);
 
   useEffect(() => {
     const loadTeam = async () => {
       try {
         const res = await api<{ team: TeamMemberItem[] }>("/settings/landing-team");
-        if (res.team) setTeam(res.team);
+        if (res.team && res.team.length > 0) {
+          setTeam(res.team);
+          setIsIpRestricted(false);
+        }
       } catch (err) {
-        console.error("Failed to load team roster", err);
+        const errMsg = err instanceof Error ? err.message : String(err);
+        if (errMsg.includes("IP address is blocked") || (err as any)?.status === 403) {
+          setIsIpRestricted(true);
+        }
+        console.warn("[TeamPage] Live roster load suspended, fallback cadre activated:", err);
       }
     };
     loadTeam();
@@ -421,6 +412,13 @@ export default function TeamPage() {
             </p>
           </div>
         </SectionReveal>
+
+        {isIpRestricted && (
+          <div className="mb-8 p-3 rounded-xl border border-cyan-500/30 bg-[#070D18]/90 max-w-xl mx-auto flex items-center justify-center gap-2.5 text-xs font-mono text-[#00F5D4] shadow-lg">
+            <Shield className="w-4 h-4 text-[#00F5D4] shrink-0" />
+            <span>[// SECURE RECONNAISSANCE // CACHED OPERATIVE CADRE ACTIVE]</span>
+          </div>
+        )}
 
         {team.length === 0 ? (
           <div className="text-center py-16 bg-[#070D18]/60 border border-white/[0.08] rounded-xl max-w-xl mx-auto p-6">

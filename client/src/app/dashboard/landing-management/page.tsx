@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { api, apiUpload, getFileUrl } from "@/lib/api";
+import { FALLBACK_TEAM_CADRE } from "@/lib/fallbackTeam";
 import { 
   Plus, Trash2, Save, Users, GripVertical, CheckCircle, X, 
   Edit, Eye, Upload, Link as LinkIcon, Globe, Shield, 
@@ -25,9 +26,14 @@ export default function LandingManagementPage() {
     const fetchTeam = async () => {
       try {
         const data = await api<any>("/settings/landing-team");
-        setTeam(data.team || []);
+        if (data.team && data.team.length > 0) {
+          setTeam(data.team);
+        } else {
+          setTeam(FALLBACK_TEAM_CADRE);
+        }
       } catch (err) {
-        console.error("Failed to load landing team", err);
+        console.warn("[LandingManagement] Remote roster load failed, using local cadre cache:", err);
+        setTeam(FALLBACK_TEAM_CADRE);
       } finally {
         setLoading(false);
       }
@@ -105,12 +111,24 @@ export default function LandingManagementPage() {
 
   const handleSaveModal = () => {
     if (!activeMember) return;
-    const exists = team.some(m => m.id === activeMember.id);
+    const isFac = activeMember.role === "FACULTY";
+    const idVal = activeMember.employeeId || activeMember.studentId || "";
+    const cleanMember = {
+      ...activeMember,
+      phone: activeMember.phone ? activeMember.phone.replace(/\D/g, "").slice(0, 10) : "",
+      ...(isFac ? {
+        employeeId: idVal,
+        studentId: idVal,
+      } : {
+        employeeId: undefined,
+      }),
+    };
+    const exists = team.some(m => m.id === cleanMember.id);
     let updatedTeam;
     if (exists) {
-      updatedTeam = team.map(m => m.id === activeMember.id ? activeMember : m);
+      updatedTeam = team.map(m => m.id === cleanMember.id ? cleanMember : m);
     } else {
-      updatedTeam = [...team, activeMember];
+      updatedTeam = [...team, cleanMember];
     }
     setTeam(updatedTeam);
     setActiveMember(null);
@@ -413,8 +431,15 @@ export default function LandingManagementPage() {
                       <input 
                         type="text"
                         className="ck-input w-full mt-1"
-                        value={activeMember.studentId || ""} 
-                        onChange={(e) => setActiveMember({ ...activeMember, studentId: e.target.value })}
+                        value={(activeMember.role === "FACULTY" ? (activeMember.employeeId || activeMember.studentId) : activeMember.studentId) || ""} 
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setActiveMember({
+                            ...activeMember,
+                            studentId: val,
+                            ...(activeMember.role === "FACULTY" ? { employeeId: val } : {}),
+                          });
+                        }}
                         placeholder={activeMember.role === "FACULTY" ? "e.g. EMP101" : "e.g. 22DCS116"}
                       />
                     </div>

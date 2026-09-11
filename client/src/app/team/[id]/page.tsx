@@ -17,6 +17,7 @@ import {
   Check 
 } from "lucide-react";
 import { api, getFileUrl } from "@/lib/api";
+import { FALLBACK_TEAM_CADRE, formatSocialUrl, formatPhoneNumber } from "@/lib/fallbackTeam";
 import { Navbar } from "@/components/navigation/Navbar";
 import { Footer } from "@/components/navigation/Footer";
 import { ProfileCard } from "@/components/ProfileCard";
@@ -34,6 +35,7 @@ interface TeamMember {
   email?: string;
   phone?: string;
   studentId?: string;
+  employeeId?: string;
   joinedDate?: string;
   about?: string;
   imageUrl?: string;
@@ -95,12 +97,18 @@ export default function MemberProfilePage() {
     const fetchMember = async () => {
       try {
         const res = await api<{ team: TeamMember[] }>("/settings/landing-team");
-        if (res.team) {
-          const found = res.team.find((m: TeamMember) => m.id === id);
-          if (found) setMember(found);
+        const list = (res.team && res.team.length > 0) ? res.team : FALLBACK_TEAM_CADRE;
+        const found = list.find((m: TeamMember) => m.id === id);
+        if (found) {
+          setMember(found);
+        } else {
+          const fallbackFound = FALLBACK_TEAM_CADRE.find((m) => m.id === id);
+          if (fallbackFound) setMember(fallbackFound as TeamMember);
         }
       } catch (err) {
-        console.error("Failed to load operative dossier", err);
+        console.warn("[MemberProfilePage] Remote dossier unavailable, utilizing secure cache:", err);
+        const found = FALLBACK_TEAM_CADRE.find((m) => m.id === id);
+        if (found) setMember(found as TeamMember);
       } finally {
         setLoading(false);
       }
@@ -148,6 +156,8 @@ export default function MemberProfilePage() {
 
   const skillLines = member.about ? member.about.split("\n").filter((l: string) => l.trim().length > 0) : [];
   const isFaculty = member.role === "FACULTY";
+  const identifierCode = isFaculty ? (member.employeeId || member.studentId) : member.studentId;
+  const sanitizedPhone = formatPhoneNumber(member.phone);
 
   return (
     <div className="min-h-screen bg-[#02050B] text-slate-100 font-sans relative selection:bg-[#00F5D4]/20 overflow-x-hidden">
@@ -261,6 +271,35 @@ export default function MemberProfilePage() {
                 </div>
               )}
             </CyberCard>
+
+            {/* Cyber Operative Profile (Lore & Tactical Ability) */}
+            {(member.cyberName || member.cyberSpecialAbility || member.cyberBackstory) && (
+              <CyberCard variant="panel" className="p-6 bg-[#070D18] border-white/[0.08] space-y-4">
+                <SystemLabel prefix="[// TACTICAL]" showDot={true}>
+                  CYBER OPERATIVE PROFILE
+                </SystemLabel>
+                <div className="space-y-3 font-mono text-xs">
+                  {member.cyberName && (
+                    <div className="flex items-center justify-between border-b border-white/[0.06] pb-2">
+                      <span className="text-slate-400 uppercase text-[10px]">Callsign</span>
+                      <span className="text-[#00F5D4] font-bold tracking-wider">{member.cyberName}</span>
+                    </div>
+                  )}
+                  {member.cyberSpecialAbility && (
+                    <div className="border-b border-white/[0.06] pb-2 space-y-1">
+                      <span className="text-slate-400 uppercase text-[10px] block">Special Ability / Tactical Focus</span>
+                      <span className="text-white font-semibold">{member.cyberSpecialAbility}</span>
+                    </div>
+                  )}
+                  {member.cyberBackstory && (
+                    <div className="pt-1 space-y-1">
+                      <span className="text-slate-400 uppercase text-[10px] block">Tactical Briefing</span>
+                      <p className="text-slate-300 leading-relaxed font-sans text-xs">{member.cyberBackstory}</p>
+                    </div>
+                  )}
+                </div>
+              </CyberCard>
+            )}
           </div>
 
           {/* Right Column: Holographic ID Card & Telemetry */}
@@ -270,7 +309,7 @@ export default function MemberProfilePage() {
               <ProfileCard
                 name={member.name}
                 title={member.designation || member.role}
-                handle={member.studentId || member.id || "operative"}
+                handle={identifierCode || member.id || "operative"}
                 status="Active Clearance"
                 contactText="Send Mail"
                 avatarUrl={
@@ -301,7 +340,7 @@ export default function MemberProfilePage() {
               </h3>
 
               <div className="flex items-center gap-3">
-                <User className="w-4 h-4 text-[#00F5D4]" />
+                <User className="w-4 h-4 text-[#00F5D4] shrink-0" />
                 <div>
                   <p className="text-[9px] uppercase text-slate-500">Classification</p>
                   <p className="text-white uppercase font-bold">{member.role.replace("_", " ")}</p>
@@ -310,7 +349,7 @@ export default function MemberProfilePage() {
 
               {member.department && (
                 <div className="flex items-center gap-3">
-                  <Building className="w-4 h-4 text-[#00F5D4]" />
+                  <Building className="w-4 h-4 text-[#00F5D4] shrink-0" />
                   <div>
                     <p className="text-[9px] uppercase text-slate-500">Department</p>
                     <p className="text-white uppercase">{member.department}</p>
@@ -320,7 +359,7 @@ export default function MemberProfilePage() {
 
               {member.joinedDate && (
                 <div className="flex items-center gap-3">
-                  <Calendar className="w-4 h-4 text-[#00F5D4]" />
+                  <Calendar className="w-4 h-4 text-[#00F5D4] shrink-0" />
                   <div>
                     <p className="text-[9px] uppercase text-slate-500">Commission Date</p>
                     <p className="text-white">{member.joinedDate}</p>
@@ -329,21 +368,21 @@ export default function MemberProfilePage() {
               )}
 
               {/* Role-based identifier constraint: Employee ID for Faculty, Student ID for others */}
-              {member.studentId && (
+              {identifierCode && (
                 <div className="flex items-center gap-3">
-                  <IdCard className="w-4 h-4 text-[#00F5D4]" />
+                  <IdCard className="w-4 h-4 text-[#00F5D4] shrink-0" />
                   <div>
                     <p className="text-[9px] uppercase text-slate-500">
                       {isFaculty ? "Employee ID" : "Student ID"}
                     </p>
-                    <p className="text-white font-bold">{member.studentId}</p>
+                    <p className="text-white font-bold">{identifierCode}</p>
                   </div>
                 </div>
               )}
             </div>
 
             {/* Contact Channels */}
-            {(member.email || member.phone) && (
+            {(member.email || sanitizedPhone || member.linkedin || member.github || member.instagram) && (
               <div className="rounded-xl border border-white/[0.08] bg-[#070D18] p-5 space-y-3 font-mono text-xs">
                 <h3 className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-3">
                   {"// SECURE CONTACT"}
@@ -351,7 +390,7 @@ export default function MemberProfilePage() {
 
                 {member.email && (
                   <div className="flex items-center gap-3 truncate">
-                    <Mail className="w-4 h-4 text-[#00F5D4]" />
+                    <Mail className="w-4 h-4 text-[#00F5D4] shrink-0" />
                     <div className="truncate">
                       <p className="text-[9px] uppercase text-slate-500">Email</p>
                       <a href={`mailto:${member.email.trim()}`} className="text-white hover:text-[#00F5D4] transition break-all">
@@ -361,13 +400,64 @@ export default function MemberProfilePage() {
                   </div>
                 )}
 
-                {member.phone && (
+                {sanitizedPhone && (
                   <div className="flex items-center gap-3">
-                    <Phone className="w-4 h-4 text-[#00F5D4]" />
+                    <Phone className="w-4 h-4 text-[#00F5D4] shrink-0" />
                     <div>
-                      <p className="text-[9px] uppercase text-slate-500">Secure Line</p>
-                      <a href={`tel:${member.phone.trim()}`} className="text-white hover:text-[#00F5D4] transition">
-                        {member.phone}
+                      <p className="text-[9px] uppercase text-slate-500">Secure Line (10-Digit)</p>
+                      <a href={`tel:${sanitizedPhone}`} className="text-white hover:text-[#00F5D4] transition font-mono">
+                        {sanitizedPhone}
+                      </a>
+                    </div>
+                  </div>
+                )}
+
+                {member.linkedin && (
+                  <div className="flex items-center gap-3 truncate">
+                    <LinkedinIcon className="w-4 h-4 text-[#00F5D4] shrink-0" />
+                    <div className="truncate">
+                      <p className="text-[9px] uppercase text-slate-500">LinkedIn</p>
+                      <a
+                        href={formatSocialUrl("linkedin", member.linkedin)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-white hover:text-[#00F5D4] transition truncate block font-mono"
+                      >
+                        {member.linkedin.replace(/^https?:\/\/(www\.)?linkedin\.com\/in\//, "").replace(/\/$/, "")}
+                      </a>
+                    </div>
+                  </div>
+                )}
+
+                {member.github && (
+                  <div className="flex items-center gap-3 truncate">
+                    <GithubIcon className="w-4 h-4 text-[#00F5D4] shrink-0" />
+                    <div className="truncate">
+                      <p className="text-[9px] uppercase text-slate-500">GitHub</p>
+                      <a
+                        href={formatSocialUrl("github", member.github)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-white hover:text-[#00F5D4] transition truncate block font-mono"
+                      >
+                        {member.github.replace(/^https?:\/\/(www\.)?github\.com\//, "").replace(/\/$/, "")}
+                      </a>
+                    </div>
+                  </div>
+                )}
+
+                {member.instagram && (
+                  <div className="flex items-center gap-3 truncate">
+                    <InstagramIcon className="w-4 h-4 text-[#00F5D4] shrink-0" />
+                    <div className="truncate">
+                      <p className="text-[9px] uppercase text-slate-500">Instagram</p>
+                      <a
+                        href={formatSocialUrl("instagram", member.instagram)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-white hover:text-[#00F5D4] transition truncate block font-mono"
+                      >
+                        @{member.instagram.replace(/^https?:\/\/(www\.)?instagram\.com\//, "").replace(/\/$/, "").replace(/^@/, "")}
                       </a>
                     </div>
                   </div>

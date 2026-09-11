@@ -114,7 +114,7 @@ export function ThemeBrandingProvider({ children }: { children: React.ReactNode 
         applyBranding(data.club);
       }
     } catch (err) {
-      console.error("[ThemeProvider] Failed to load branding:", err);
+      console.warn("[ThemeProvider] Remote branding unavailable, applying cyber default:", err);
     } finally {
       setLoading(false);
     }
