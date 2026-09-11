@@ -87,13 +87,9 @@ async function cleanDatabase() {
   const delNotifs = await prisma.notification.deleteMany({});
   console.log(`    → Deleted: ${delNotifs.count} notifications`);
 
-  console.log(">>> [12/15] Purging Non-Pritesh Audit Logs...");
-  const delAudit = await prisma.auditLog.deleteMany({
-    where: {
-      userId: { not: verifiedPriteshId }
-    }
-  });
-  console.log(`    → Deleted: ${delAudit.count} test/dummy audit logs`);
+  console.log(">>> [12/15] Purging All Audit Logs...");
+  const delAudit = await prisma.auditLog.deleteMany({});
+  console.log(`    → Deleted: ${delAudit.count} audit logs`);
 
   console.log(">>> [13/15] Purging All Users Except Dr. Priteshkumar Prajapati...");
   const delUsers = await prisma.user.deleteMany({
