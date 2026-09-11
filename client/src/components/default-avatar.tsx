@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { getFileUrl } from "@/lib/api";
 
 interface DefaultAvatarProps {
   className?: string;
@@ -8,12 +9,17 @@ interface DefaultAvatarProps {
 
 export function DefaultAvatar({ className = "w-10 h-10", src, alt = "Participant Avatar" }: DefaultAvatarProps) {
   const [imgError, setImgError] = useState(false);
+  const resolvedSrc = src ? getFileUrl(src) : null;
+
+  useEffect(() => {
+    setImgError(false);
+  }, [src]);
 
   // If a profile image URL is passed and valid, display the participant's custom image
-  if (src && !imgError) {
+  if (resolvedSrc && !imgError) {
     return (
       <img
-        src={src}
+        src={resolvedSrc}
         alt={alt}
         className={`${className} rounded-xl object-cover border border-[#00F5D4]/40 shadow-[0_0_12px_rgba(0,245,212,0.3)] shrink-0`}
         onError={() => setImgError(true)}

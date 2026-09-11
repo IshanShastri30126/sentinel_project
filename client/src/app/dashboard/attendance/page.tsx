@@ -11,7 +11,7 @@ import {
   QrCode, Camera, Download, Search, ArrowLeft,
   Activity, CheckCircle, XCircle, ChevronRight, Radio,
   Wifi, WifiOff, Zap, RotateCcw, UserPlus, Eye,
-  BarChart2, Shield, Pencil, X
+  BarChart2, Shield, Pencil, X, MapPin
 } from "lucide-react";
 import { Html5QrcodeScanner } from "html5-qrcode";
 import { io, Socket } from "socket.io-client";
@@ -118,20 +118,20 @@ function TimelineChart({ data }: { data: TimelineEntry[] }) {
       <svg width="100%" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="overflow-visible">
         <defs>
           <linearGradient id="tl-grad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#CCFF00" stopOpacity="0.25" />
-            <stop offset="100%" stopColor="#CCFF00" stopOpacity="0" />
+            <stop offset="0%" stopColor="#00F5D4" stopOpacity="0.25" />
+            <stop offset="100%" stopColor="#00F5D4" stopOpacity="0" />
           </linearGradient>
         </defs>
         <polygon points={area} fill="url(#tl-grad)" />
-        <polyline points={polyline} fill="none" stroke="#CCFF00" strokeWidth="1.5"
+        <polyline points={polyline} fill="none" stroke="#00F5D4" strokeWidth="1.5"
           strokeLinecap="round" strokeLinejoin="round"
-          style={{ filter: "drop-shadow(0 0 4px rgba(204,255,0,0.5))" }} />
+          style={{ filter: "drop-shadow(0 0 4px rgba(0,245,212,0.5))" }} />
         {data.map((d, i) => {
           const x = pad + (i / Math.max(data.length - 1, 1)) * (W - pad * 2);
           const y = H - pad - ((d.count / maxVal) * (H - pad * 2));
           return (
             <g key={i}>
-              <circle cx={x} cy={y} r="3" fill="#CCFF00" opacity={0.9} />
+              <circle cx={x} cy={y} r="3" fill="#00F5D4" opacity={0.9} />
               <title>{new Date(d.hour).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} — {d.count}</title>
             </g>
           );
@@ -164,7 +164,7 @@ function PresencePanel({ data, loading }: { data: PresenceData | null; loading: 
           <Eye className="w-4 h-4" style={{ color: "#00F5D4" }} />
           <span className="text-[10px] font-mono uppercase tracking-widest text-[var(--ck-text)] font-bold">LIVE PRESENCE</span>
         </div>
-        {loading && <div className="w-3 h-3 border border-[#CCFF00]/40 border-t-[#CCFF00] rounded-full animate-spin" />}
+        {loading && <div className="w-3 h-3 border border-[#00F5D4]/40 border-t-[#00F5D4] rounded-full animate-spin" />}
       </div>
 
       {/* Tabs */}
@@ -189,7 +189,7 @@ function PresencePanel({ data, loading }: { data: PresenceData | null; loading: 
         <Search className="absolute left-5.5 top-1/2 -translate-y-1/2 w-3 h-3 text-[#4B5563]" />
         <input value={search} onChange={e => setSearch(e.target.value)}
           placeholder="Filter by name or email..."
-          className="w-full bg-black/30 border border-white/[0.04] rounded-lg text-[11px] font-mono text-[var(--ck-text)] pl-7 pr-3 py-1.5 outline-none focus:border-[rgba(204,255,0,0.2)] placeholder-[#4B5563]" />
+          className="w-full bg-black/30 border border-white/[0.04] rounded-lg text-[11px] font-mono text-[var(--ck-text)] pl-7 pr-3 py-1.5 outline-none focus:border-[rgba(0,245,212,0.2)] placeholder-[#4B5563]" />
       </div>
 
       {/* List */}
@@ -375,7 +375,7 @@ function ManualOverridePanel({
 const QR_STYLE = `
   #qr-reader { border: none !important; }
   #qr-reader__dashboard_section_csr button {
-    background: #CCFF00 !important; color: #000 !important;
+    background: #00F5D4 !important; color: #000 !important;
     padding: 5px 10px !important; border: none !important;
     border-radius: 4px !important; font-size: 11px !important;
     font-family: 'JetBrains Mono', monospace !important;
@@ -711,7 +711,7 @@ export default function AttendancePage() {
             initial={{ opacity: 0, y: 40, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 20 }}
             className="fixed bottom-5 right-5 z-50 flex items-center gap-3 px-5 py-3.5 rounded-xl border text-sm font-mono font-semibold shadow-2xl backdrop-blur-lg"
             style={toast.type === "success"
-              ? { background: "rgba(204,255,0,0.06)", borderColor: "rgba(204,255,0,0.25)", color: "#CCFF00" }
+              ? { background: "rgba(0,245,212,0.06)", borderColor: "rgba(0,245,212,0.25)", color: "#00F5D4" }
               : { background: "rgba(255,0,60,0.06)", borderColor: "rgba(255,0,60,0.25)", color: "#FF003C" }}
           >
             {toast.type === "success" ? <CheckCircle className="w-4 h-4 shrink-0" /> : <XCircle className="w-4 h-4 shrink-0" />}
@@ -725,20 +725,20 @@ export default function AttendancePage() {
         className="flex items-center justify-between flex-wrap gap-4">
         <div>
           <div className="flex items-center gap-2.5 mb-1.5">
-            <Radio className="w-3.5 h-3.5" style={{ color: "#CCFF00" }} />
-            <span className="text-[10px] font-mono uppercase tracking-widest" style={{ color: "#CCFF00" }}>
+            <Radio className="w-3.5 h-3.5" style={{ color: "#00F5D4" }} />
+            <span className="text-[10px] font-mono uppercase tracking-widest" style={{ color: "#00F5D4" }}>
               {selectedEvent ? "MISSION ACTIVE" : "SELECT MISSION"}
             </span>
           </div>
           <h1 className="text-3xl font-black tracking-tight text-[var(--ck-text)]" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
-            ATTENDANCE <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#CCFF00] to-[#99BF00]">STREAM</span>
+            ATTENDANCE <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#00F5D4] to-[#99BF00]">STREAM</span>
           </h1>
         </div>
         {selectedEvent && (
           <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
-            className="flex items-center gap-2.5 px-3.5 py-2 rounded-xl border border-[#CCFF00]/15 bg-[#CCFF00]/[0.03] backdrop-blur-sm">
-            <div className="w-2 h-2 rounded-full animate-pulse" style={{ background: "#CCFF00", boxShadow: "0 0 10px #CCFF00" }} />
-            <span className="text-[10px] font-mono uppercase tracking-widest" style={{ color: "#CCFF00" }}>LIVE · SOCKET ACTIVE</span>
+            className="flex items-center gap-2.5 px-3.5 py-2 rounded-xl border border-[#00F5D4]/15 bg-[#00F5D4]/[0.03] backdrop-blur-sm">
+            <div className="w-2 h-2 rounded-full animate-pulse" style={{ background: "#00F5D4", boxShadow: "0 0 10px #00F5D4" }} />
+            <span className="text-[10px] font-mono uppercase tracking-widest" style={{ color: "#00F5D4" }}>LIVE · SOCKET ACTIVE</span>
           </motion.div>
         )}
       </motion.div>
@@ -749,7 +749,7 @@ export default function AttendancePage() {
         <div className="flex items-center gap-2.5">
           {isOnline ? <Wifi className="w-4 h-4 text-[var(--ck-primary)]" /> : <WifiOff className="w-4 h-4 text-[var(--ck-danger)]" />}
           <div className={`w-2 h-2 rounded-full ${!isOnline || offlineCount > 0 ? "animate-pulse" : ""}`}
-            style={{ background: isOnline ? "#CCFF00" : "#FF003C", boxShadow: `0 0 8px ${isOnline ? "#CCFF00" : "#FF003C"}` }} />
+            style={{ background: isOnline ? "#00F5D4" : "#FF003C", boxShadow: `0 0 8px ${isOnline ? "#00F5D4" : "#FF003C"}` }} />
           <span className={isOnline ? "text-[var(--ck-text)]" : "text-red-400"}>
             NETWORK: {isOnline ? "ONLINE" : "OFFLINE"}
           </span>
@@ -813,8 +813,8 @@ export default function AttendancePage() {
                         <p className="text-xs text-[#4B5563] line-clamp-2 mb-4 font-mono">{ev.description || "No description."}</p>
                         <div className="flex items-center justify-between border-t border-white/[0.04] pt-3">
                           <span className="text-[10px] font-mono text-[#4B5563]">{fmtDate(ev.startDate)}</span>
-                          {ev.venue && <span className="text-[9px] font-mono text-[#4B5563] truncate max-w-[120px]">📍 {ev.venue}</span>}
-                          <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform shrink-0" style={{ color: "#CCFF00" }} />
+                          {ev.venue && <span className="inline-flex items-center gap-1 text-[9px] font-mono text-[#4B5563] truncate max-w-[120px]"><MapPin className="w-3 h-3 text-[#00F5D4] shrink-0" />{ev.venue}</span>}
+                          <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform shrink-0" style={{ color: "#00F5D4" }} />
                         </div>
                       </motion.button>
                     );
@@ -845,7 +845,7 @@ export default function AttendancePage() {
                           <h3 className="font-bold text-[var(--ck-text)] mb-1 line-clamp-1" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>{ev.title}</h3>
                           <div className="flex items-center justify-between border-t border-white/[0.04] pt-3 mt-3">
                             <span className="text-[10px] font-mono text-[#4B5563]">{fmtDate(ev.startDate)}</span>
-                            <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" style={{ color: "#CCFF00" }} />
+                            <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" style={{ color: "#00F5D4" }} />
                           </div>
                         </motion.button>
                       );
@@ -864,11 +864,11 @@ export default function AttendancePage() {
             className="ck-glass-card flex items-center justify-between flex-wrap gap-3 p-4">
             <div className="flex items-center gap-3">
               <button onClick={() => setSelectedEvent("")}
-                className="flex items-center justify-center w-8 h-8 rounded-lg border border-white/[0.06] bg-black/40 text-[#8892A4] hover:border-[rgba(204,255,0,0.3)] hover:text-[var(--ck-primary)] transition-all">
+                className="flex items-center justify-center w-8 h-8 rounded-lg border border-white/[0.06] bg-black/40 text-[#8892A4] hover:border-[rgba(0,245,212,0.3)] hover:text-[var(--ck-primary)] transition-all">
                 <ArrowLeft className="w-4 h-4" />
               </button>
               <div>
-                <p className="text-[9px] font-mono uppercase tracking-widest" style={{ color: "#CCFF00" }}>MY REGISTERED MISSION</p>
+                <p className="text-[9px] font-mono uppercase tracking-widest" style={{ color: "#00F5D4" }}>MY REGISTERED MISSION</p>
                 <h2 className="font-bold text-[var(--ck-text)] text-sm" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
                   {events.find(e => e.id === selectedEvent)?.title}
                 </h2>
@@ -885,10 +885,10 @@ export default function AttendancePage() {
           ) : participantCheckedIn ? (
             <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
               className="ck-glass-card p-8 text-center flex flex-col items-center justify-center max-w-xl mx-auto gap-4"
-              style={{ borderColor: "rgba(204,255,0,0.2)" }}>
-              <div className="w-16 h-16 rounded-full flex items-center justify-center bg-gradient-to-br from-[#CCFF00]/20 to-[#99BF00]/20 border border-[#CCFF00]/40"
-                style={{ boxShadow: "0 0 20px rgba(204,255,0,0.15)" }}>
-                <CheckCircle className="w-8 h-8" style={{ color: "#CCFF00" }} />
+              style={{ borderColor: "rgba(0,245,212,0.2)" }}>
+              <div className="w-16 h-16 rounded-full flex items-center justify-center bg-gradient-to-br from-[#00F5D4]/20 to-[#99BF00]/20 border border-[#00F5D4]/40"
+                style={{ boxShadow: "0 0 20px rgba(0,245,212,0.15)" }}>
+                <CheckCircle className="w-8 h-8" style={{ color: "#00F5D4" }} />
               </div>
               <div>
                 <h3 className="text-lg font-bold text-[var(--ck-text)] uppercase font-mono tracking-wider">Attendance Verified</h3>
@@ -937,17 +937,17 @@ export default function AttendancePage() {
                   <p className="text-xs text-[#8892A4] mt-1">Confirm your attendance and provide event feedback.</p>
                 </div>
                 <form onSubmit={handleSubmitAttendance} className="space-y-5">
-                  <div className="p-3.5 rounded-xl border border-[#CCFF00]/15 bg-[#CCFF00]/[0.02] text-xs font-mono space-y-1.5">
-                    <p className="text-[var(--ck-text)]"><span className="text-[rgba(204,255,0,0.7)]">EVENT:</span> {activeEvent?.title}</p>
-                    <p className="text-[var(--ck-text)]"><span className="text-[rgba(204,255,0,0.7)]">CONCLUDED:</span> {activeEvent?.endDate ? new Date(activeEvent.endDate).toLocaleString() : "Recently"}</p>
+                  <div className="p-3.5 rounded-xl border border-[#00F5D4]/15 bg-[#00F5D4]/[0.02] text-xs font-mono space-y-1.5">
+                    <p className="text-[var(--ck-text)]"><span className="text-[rgba(0,245,212,0.7)]">EVENT:</span> {activeEvent?.title}</p>
+                    <p className="text-[var(--ck-text)]"><span className="text-[rgba(0,245,212,0.7)]">CONCLUDED:</span> {activeEvent?.endDate ? new Date(activeEvent.endDate).toLocaleString() : "Recently"}</p>
                   </div>
                   <div>
                     <label className="text-[10px] font-mono uppercase tracking-widest text-[#8892A4] mb-2 block">Event Rating</label>
                     <div className="flex gap-2">
                       {[1, 2, 3, 4, 5].map(star => (
                         <button key={star} type="button" onClick={() => setRating(star)}
-                          className="w-10 h-10 rounded-lg border border-white/[0.06] bg-black/30 flex items-center justify-center transition-all hover:scale-105 hover:border-[#CCFF00]/40"
-                          style={{ color: rating >= star ? "#CCFF00" : "#4B5563" }}>
+                          className="w-10 h-10 rounded-lg border border-white/[0.06] bg-black/30 flex items-center justify-center transition-all hover:scale-105 hover:border-[#00F5D4]/40"
+                          style={{ color: rating >= star ? "#00F5D4" : "#4B5563" }}>
                           <Zap className="w-5 h-5 fill-current" />
                         </button>
                       ))}
@@ -960,7 +960,7 @@ export default function AttendancePage() {
                   </div>
                   <label className="flex items-start gap-3 p-3.5 rounded-xl border border-white/[0.04] bg-white/[0.01] cursor-pointer hover:bg-white/[0.02] transition-colors select-none">
                     <input type="checkbox" checked={agreeAttended} onChange={e => setAgreeAttended(e.target.checked)}
-                      className="w-4 h-4 mt-0.5 cursor-pointer" style={{ accentColor: "#CCFF00" }} />
+                      className="w-4 h-4 mt-0.5 cursor-pointer" style={{ accentColor: "#00F5D4" }} />
                     <span className="text-xs text-[var(--ck-text)] leading-relaxed">
                       I confirm that I attended this event and my feedback is accurate.
                     </span>
@@ -985,11 +985,11 @@ export default function AttendancePage() {
             className="ck-glass-card flex items-center justify-between flex-wrap gap-3 p-4">
             <div className="flex items-center gap-3">
               <button onClick={() => { setSelectedEvent(""); setStats(null); setRecords([]); setPresence(null); }}
-                className="flex items-center justify-center w-8 h-8 rounded-lg border border-white/[0.06] bg-black/40 text-[#8892A4] hover:border-[rgba(204,255,0,0.3)] hover:text-[var(--ck-primary)] transition-all">
+                className="flex items-center justify-center w-8 h-8 rounded-lg border border-white/[0.06] bg-black/40 text-[#8892A4] hover:border-[rgba(0,245,212,0.3)] hover:text-[var(--ck-primary)] transition-all">
                 <ArrowLeft className="w-4 h-4" />
               </button>
               <div>
-                <p className="text-[9px] font-mono uppercase tracking-widest" style={{ color: "#CCFF00" }}>ACTIVE MISSION</p>
+                <p className="text-[9px] font-mono uppercase tracking-widest" style={{ color: "#00F5D4" }}>ACTIVE MISSION</p>
                 <h2 className="font-bold text-[var(--ck-text)] text-sm" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
                   {events.find(e => e.id === selectedEvent)?.title}
                 </h2>
@@ -1129,7 +1129,7 @@ export default function AttendancePage() {
                     <div className="flex gap-1.5">
                       <span className="w-2.5 h-2.5 rounded-full bg-[#FF003C]/80" />
                       <span className="w-2.5 h-2.5 rounded-full bg-[#FF4D00]/80" />
-                      <span className="w-2.5 h-2.5 rounded-full bg-[#CCFF00]/80" />
+                      <span className="w-2.5 h-2.5 rounded-full bg-[#00F5D4]/80" />
                     </div>
                     <span className="text-[10px] font-mono uppercase tracking-widest text-[var(--ck-text)] font-semibold">LIVE LOG STREAM</span>
                   </div>
@@ -1151,7 +1151,7 @@ export default function AttendancePage() {
                       <button key={f} onClick={() => setFilterType(f)}
                         className="px-2.5 py-1.5 rounded-md text-[9px] font-mono uppercase tracking-wide transition-all"
                         style={filterType === f
-                          ? { background: "rgba(204,255,0,0.08)", color: "#CCFF00", border: "1px solid rgba(204,255,0,0.15)" }
+                          ? { background: "rgba(0,245,212,0.08)", color: "#00F5D4", border: "1px solid rgba(0,245,212,0.15)" }
                           : { color: "#4B5563", border: "1px solid transparent" }}>
                         {f === "ALL" ? "ALL" : f.replace("_", " ")}
                       </button>
@@ -1160,7 +1160,7 @@ export default function AttendancePage() {
                   <div className="relative w-48">
                     <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3 h-3 text-[#4B5563]" />
                     <input value={logSearchQuery} onChange={e => setLogSearchQuery(e.target.value)}
-                      placeholder="Filter logs..." className="w-full bg-black/40 border border-white/[0.04] rounded-lg text-[11px] font-mono text-[var(--ck-text)] pl-7 pr-3 py-1.5 outline-none focus:border-[rgba(204,255,0,0.2)] placeholder-[#4B5563]" />
+                      placeholder="Filter logs..." className="w-full bg-black/40 border border-white/[0.04] rounded-lg text-[11px] font-mono text-[var(--ck-text)] pl-7 pr-3 py-1.5 outline-none focus:border-[rgba(0,245,212,0.2)] placeholder-[#4B5563]" />
                   </div>
                 </div>
 
@@ -1180,7 +1180,7 @@ export default function AttendancePage() {
                         className="flex items-center gap-2.5 py-2 px-2.5 rounded-lg hover:bg-white/[0.02] transition-colors group">
                         <span className="text-[9px] font-mono text-[#4B5563] shrink-0 w-16">{fmtTime(r.timestamp)}</span>
                         <span className="text-[10px] font-mono font-bold shrink-0 w-14 px-1.5 py-0.5 rounded text-center"
-                          style={{ color: r.type === "CHECK_IN" ? "#CCFF00" : "#FF4D00", background: r.type === "CHECK_IN" ? "rgba(204,255,0,0.06)" : "rgba(255,77,0,0.06)" }}>
+                          style={{ color: r.type === "CHECK_IN" ? "#00F5D4" : "#FF4D00", background: r.type === "CHECK_IN" ? "rgba(0,245,212,0.06)" : "rgba(255,77,0,0.06)" }}>
                           {r.type === "CHECK_IN" ? "→ IN" : "← OUT"}
                         </span>
                         <DefaultAvatar src={r.user?.avatarUrl ? getFileUrl(r.user.avatarUrl) : null} alt={r.user?.name} className="w-6 h-6 shrink-0" />
@@ -1214,13 +1214,13 @@ export default function AttendancePage() {
                 <div className="ck-glass-card overflow-hidden">
                   <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.04]">
                     <div className="flex items-center gap-2">
-                      <QrCode className="w-4 h-4" style={{ color: "#CCFF00" }} />
+                      <QrCode className="w-4 h-4" style={{ color: "#00F5D4" }} />
                       <span className="text-[10px] font-mono uppercase tracking-widest text-[var(--ck-text)] font-bold">SCAN CORE</span>
                     </div>
                     <button onClick={() => setShowScanner(!showScanner)}
                       className="flex items-center gap-1.5 text-[9px] font-mono uppercase px-2.5 py-1.5 rounded-lg border transition-all"
                       style={showScanner
-                        ? { color: "#CCFF00", borderColor: "rgba(204,255,0,0.25)", background: "rgba(204,255,0,0.06)" }
+                        ? { color: "#00F5D4", borderColor: "rgba(0,245,212,0.25)", background: "rgba(0,245,212,0.06)" }
                         : { color: "#4B5563", borderColor: "rgba(255,255,255,0.06)" }}>
                       <Camera className="w-3 h-3" />
                       {showScanner ? "ACTIVE" : "START"}
@@ -1234,7 +1234,7 @@ export default function AttendancePage() {
                         <button key={t} onClick={() => setCheckinType(t)}
                           className="flex-1 py-2 rounded-md text-[10px] font-mono uppercase font-bold transition-all"
                           style={checkinType === t
-                            ? { background: t === "CHECK_IN" ? "rgba(204,255,0,0.08)" : "rgba(255,77,0,0.08)", color: t === "CHECK_IN" ? "#CCFF00" : "#FF4D00", border: `1px solid ${t === "CHECK_IN" ? "rgba(204,255,0,0.2)" : "rgba(255,77,0,0.2)"}` }
+                            ? { background: t === "CHECK_IN" ? "rgba(0,245,212,0.08)" : "rgba(255,77,0,0.08)", color: t === "CHECK_IN" ? "#00F5D4" : "#FF4D00", border: `1px solid ${t === "CHECK_IN" ? "rgba(0,245,212,0.2)" : "rgba(255,77,0,0.2)"}` }
                             : { color: "#4B5563", border: "1px solid transparent" }}>
                           {t === "CHECK_IN" ? "→ IN" : "← OUT"}
                         </button>
@@ -1243,20 +1243,20 @@ export default function AttendancePage() {
 
                     {/* QR scanner */}
                     {showScanner && (
-                      <div className="relative rounded-xl border overflow-hidden bg-[var(--ck-bg)]" style={{ borderColor: "rgba(204,255,0,0.15)" }}>
+                      <div className="relative rounded-xl border overflow-hidden bg-[var(--ck-bg)]" style={{ borderColor: "rgba(0,245,212,0.15)" }}>
                         {["tl", "tr", "bl", "br"].map(c => (
                           <div key={c} className="absolute w-3.5 h-3.5" style={{
                             top: c.startsWith("t") ? 4 : undefined, bottom: c.startsWith("b") ? 4 : undefined,
                             left: c.endsWith("l") ? 4 : undefined, right: c.endsWith("r") ? 4 : undefined,
-                            borderTop: c.startsWith("t") ? "2px solid #CCFF00" : undefined,
-                            borderBottom: c.startsWith("b") ? "2px solid #CCFF00" : undefined,
-                            borderLeft: c.endsWith("l") ? "2px solid #CCFF00" : undefined,
-                            borderRight: c.endsWith("r") ? "2px solid #CCFF00" : undefined,
+                            borderTop: c.startsWith("t") ? "2px solid #00F5D4" : undefined,
+                            borderBottom: c.startsWith("b") ? "2px solid #00F5D4" : undefined,
+                            borderLeft: c.endsWith("l") ? "2px solid #00F5D4" : undefined,
+                            borderRight: c.endsWith("r") ? "2px solid #00F5D4" : undefined,
                             zIndex: 10,
                           }} />
                         ))}
                         <div className="qr-scan-line absolute left-0 right-0 h-0.5 z-10"
-                          style={{ background: "linear-gradient(90deg, transparent, #CCFF00, transparent)", boxShadow: "0 0 12px rgba(204,255,0,0.8)", top: "4%" }} />
+                          style={{ background: "linear-gradient(90deg, transparent, #00F5D4, transparent)", boxShadow: "0 0 12px rgba(0,245,212,0.8)", top: "4%" }} />
                         <div id="qr-reader" className="w-full" />
                       </div>
                     )}
@@ -1265,11 +1265,11 @@ export default function AttendancePage() {
                     <div>
                       <p className="text-[9px] font-mono text-[#4B5563] uppercase tracking-widest mb-2">MANUAL ENTRY</p>
                       <div className="relative">
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] font-mono font-bold" style={{ color: "#CCFF00" }}>&gt;</span>
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] font-mono font-bold" style={{ color: "#00F5D4" }}>&gt;</span>
                         <input value={qrInput} onChange={e => setQrInput(e.target.value)}
                           onKeyDown={e => { if (e.key === "Enter" && qrInput.trim()) handleCheckIn(); }}
                           placeholder="Team code or member ID..."
-                          className="w-full bg-black/40 border border-white/[0.04] rounded-lg text-[11px] font-mono text-[var(--ck-text)] pl-8 pr-3 py-2.5 outline-none focus:border-[rgba(204,255,0,0.2)] placeholder-[#4B5563]" />
+                          className="w-full bg-black/40 border border-white/[0.04] rounded-lg text-[11px] font-mono text-[var(--ck-text)] pl-8 pr-3 py-2.5 outline-none focus:border-[rgba(0,245,212,0.2)] placeholder-[#4B5563]" />
                       </div>
                     </div>
 
@@ -1285,7 +1285,7 @@ export default function AttendancePage() {
                 {stats && (
                   <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
                     className="ck-glass-card ck-breathe p-5 text-center"
-                    style={{ borderColor: "rgba(204,255,0,0.1)" }}>
+                    style={{ borderColor: "rgba(0,245,212,0.1)" }}>
                     <p className="text-[9px] font-mono uppercase tracking-widest text-[#4B5563] mb-2">CURRENTLY INSIDE</p>
                     <motion.p className="text-5xl font-black font-mono"
                       key={stats.currentlyPresent}

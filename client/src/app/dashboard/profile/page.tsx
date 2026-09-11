@@ -153,21 +153,16 @@ export default function ProfilePage() {
       </div>
 
       {/* Profile Header Dossier Card */}
-      <div className="ck-card p-6 sm:p-8 relative overflow-hidden bg-black/40 border border-[var(--ck-border)] shadow-md hover:border-[#CCFF00]/25 transition-all">
-        <div className="absolute top-0 right-0 h-full w-1/3 bg-gradient-to-l from-[#CCFF00]/5 to-transparent pointer-events-none" />
+      <div className="ck-card p-6 sm:p-8 relative overflow-hidden bg-black/40 border border-[var(--ck-border)] shadow-md hover:border-[#00F5D4]/25 transition-all">
+        <div className="absolute top-0 right-0 h-full w-1/3 bg-gradient-to-l from-[#00F5D4]/5 to-transparent pointer-events-none" />
         
         <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 text-center sm:text-left relative z-10">
           <div className="relative shrink-0 group">
-            {user?.avatarUrl && !imgError ? (
-              <img
-                src={getFileUrl(user.avatarUrl)}
-                alt="Avatar"
-                onError={() => setImgError(true)}
-                className="w-24 h-24 rounded-2xl object-cover border-2 border-[#CCFF00]/60 shadow-[0_0_15px_rgba(204,255,0,0.25)]"
-              />
-            ) : (
-              <DefaultAvatar className="w-24 h-24 rounded-2xl border-2 border-[#CCFF00]/20" />
-            )}
+            <DefaultAvatar
+              src={user?.avatarUrl}
+              alt={user?.name || "Avatar"}
+              className="w-24 h-24 rounded-2xl border-2 border-[#00F5D4]/60 shadow-[0_0_15px_rgba(0,245,212,0.25)]"
+            />
             <div className="absolute inset-0 rounded-2xl bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity cursor-pointer" onClick={() => setShowEditModal(true)}>
               <Edit2 className="w-5 h-5 text-[var(--ck-text)]" />
             </div>
@@ -212,11 +207,11 @@ export default function ProfilePage() {
         <motion.div
           variants={itemVariants}
           whileHover={{ y: -4, scale: 1.01 }}
-          className="ck-card p-5 bg-gradient-to-br from-zinc-950/60 to-black border-[var(--ck-border)] hover:border-[#CCFF00]/30 transition-all duration-300 relative group overflow-hidden"
+          className="ck-card p-5 bg-gradient-to-br from-zinc-950/60 to-black border-[var(--ck-border)] hover:border-[#00F5D4]/30 transition-all duration-300 relative group overflow-hidden"
         >
-          <div className="absolute -right-4 -bottom-4 w-12 h-12 rounded-full bg-[#CCFF00]/5 group-hover:bg-[#CCFF00]/10 transition-colors pointer-events-none" />
+          <div className="absolute -right-4 -bottom-4 w-12 h-12 rounded-full bg-[#00F5D4]/5 group-hover:bg-[#00F5D4]/10 transition-colors pointer-events-none" />
           <div className="flex items-center gap-4">
-            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[#CCFF00]/15 to-transparent text-[var(--ck-primary)] border border-[#CCFF00]/30 flex items-center justify-center shadow-[0_0_10px_rgba(204,255,0,0.1)]">
+            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[#00F5D4]/15 to-transparent text-[var(--ck-primary)] border border-[#00F5D4]/30 flex items-center justify-center shadow-[0_0_10px_rgba(0,245,212,0.1)]">
               <Star className="w-5 h-5" />
             </div>
             <div>
@@ -252,11 +247,11 @@ export default function ProfilePage() {
         <motion.div
           variants={itemVariants}
           whileHover={{ y: -4, scale: 1.01 }}
-          className="ck-card p-5 bg-gradient-to-br from-zinc-950/60 to-black border-[var(--ck-border)] hover:border-[#CCFF00]/30 transition-all duration-300 relative group overflow-hidden"
+          className="ck-card p-5 bg-gradient-to-br from-zinc-950/60 to-black border-[var(--ck-border)] hover:border-[#00F5D4]/30 transition-all duration-300 relative group overflow-hidden"
         >
-          <div className="absolute -right-4 -bottom-4 w-12 h-12 rounded-full bg-[#CCFF00]/5 group-hover:bg-[#CCFF00]/10 transition-colors pointer-events-none" />
+          <div className="absolute -right-4 -bottom-4 w-12 h-12 rounded-full bg-[#00F5D4]/5 group-hover:bg-[#00F5D4]/10 transition-colors pointer-events-none" />
           <div className="flex items-center gap-4">
-            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[#CCFF00]/15 to-transparent text-[var(--ck-primary)] border border-[#CCFF00]/30 flex items-center justify-center shadow-[0_0_10px_rgba(204,255,0,0.1)]">
+            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[#00F5D4]/15 to-transparent text-[var(--ck-primary)] border border-[#00F5D4]/30 flex items-center justify-center shadow-[0_0_10px_rgba(0,245,212,0.1)]">
               <Calendar className="w-5 h-5" />
             </div>
             <div>
@@ -272,7 +267,7 @@ export default function ProfilePage() {
       {/* Operative Details Grid */}
       <div className="ck-card p-6 bg-black/30 border border-[var(--ck-border)] shadow-md">
         <h3 className="text-sm font-bold mb-5 flex items-center gap-2 uppercase tracking-tight text-[var(--ck-text)] font-mono border-b border-zinc-850 pb-3">
-          <User className="w-4 h-4" style={{ color: "#CCFF00" }} /> OPERATIVE DOSSIER DETAILS
+          <User className="w-4 h-4" style={{ color: "#00F5D4" }} /> OPERATIVE DOSSIER DETAILS
         </h3>
         
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm font-mono">
@@ -307,7 +302,7 @@ export default function ProfilePage() {
               <p className="text-[10px] uppercase tracking-wider text-[var(--ck-text-muted)] font-semibold">
                 {user?.role === "FACULTY" ? "Employee ID" : "Student ID"}
               </p>
-              <p className="font-bold mt-0.5 text-[var(--ck-text)] truncate">{user?.studentId || "N/A"}</p>
+              <p className="font-bold mt-0.5 text-[var(--ck-text)] truncate">{((user as any)?.employeeId || user?.studentId || "N/A")}</p>
             </div>
           </div>
 
@@ -372,10 +367,10 @@ export default function ProfilePage() {
                 initial={{ scale: 0.9, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 whileHover={{ scale: 1.05 }}
-                className="p-3.5 rounded-xl text-center border border-[var(--ck-border)] bg-zinc-950/40 hover:border-[#CCFF00]/30 min-w-[90px] transition-all cursor-help"
+                className="p-3.5 rounded-xl text-center border border-[var(--ck-border)] bg-zinc-950/40 hover:border-[#00F5D4]/30 min-w-[90px] transition-all cursor-help"
                 title={b.badge.description}
               >
-                <span className="text-3xl drop-shadow-[0_0_8px_rgba(204,255,0,0.35)]">{b.badge.icon}</span>
+                <span className="text-3xl drop-shadow-[0_0_8px_rgba(0,245,212,0.35)]">{b.badge.icon}</span>
                 <p className="text-[10px] font-mono font-bold mt-1.5 text-[var(--ck-text-secondary)] uppercase">{b.badge.name}</p>
               </motion.div>
             ))}
@@ -387,7 +382,7 @@ export default function ProfilePage() {
       {history?.points?.length > 0 && (
         <div className="ck-card p-6 bg-black/30 border border-[var(--ck-border)] shadow-md">
           <h3 className="text-sm font-bold mb-4 flex items-center gap-2 uppercase tracking-tight text-[var(--ck-text)] font-mono border-b border-zinc-850 pb-3">
-            <TrendingUp className="w-4 h-4" style={{ color: "#CCFF00" }} /> CONTRIBUTION LEDGER
+            <TrendingUp className="w-4 h-4" style={{ color: "#00F5D4" }} /> CONTRIBUTION LEDGER
           </h3>
           <div className="space-y-2 max-h-[360px] overflow-y-auto pr-1">
             {history.points.slice(0, 20).map((p: any) => (
@@ -431,6 +426,10 @@ export default function ProfilePage() {
                     <label className="ck-label">Mobile Number (10 Digits)</label>
                     <input 
                       className="ck-input" 
+                      type="tel"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      placeholder="10-digit mobile number"
                       value={editPhone} 
                       maxLength={10}
                       onChange={(e) => setEditPhone(e.target.value.replace(/\D/g, "").slice(0, 10))} 
@@ -503,11 +502,22 @@ export default function ProfilePage() {
 
                 <div>
                   <label className="ck-label">Avatar Photograph</label>
-                  <div className="relative">
-                    <input type="file" accept="image/*" onChange={(e) => setEditAvatar(e.target.files?.[0] || null)} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
-                    <div className="ck-input flex items-center justify-between pointer-events-none">
-                      <span className="truncate">{editAvatar ? editAvatar.name : "Select an image..."}</span>
-                      <Upload className="w-4 h-4 text-[var(--ck-primary-light)]" />
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-xl border border-[#00F5D4]/30 overflow-hidden bg-black/40 shrink-0 flex items-center justify-center">
+                      {editAvatar ? (
+                        <img src={URL.createObjectURL(editAvatar)} alt="Preview" className="w-full h-full object-cover" />
+                      ) : user?.avatarUrl ? (
+                        <img src={getFileUrl(user.avatarUrl)} alt="Current Avatar" className="w-full h-full object-cover" />
+                      ) : (
+                        <DefaultAvatar className="w-12 h-12" />
+                      )}
+                    </div>
+                    <div className="relative flex-1">
+                      <input type="file" accept="image/*" onChange={(e) => setEditAvatar(e.target.files?.[0] || null)} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" />
+                      <div className="ck-input flex items-center justify-between pointer-events-none">
+                        <span className="truncate">{editAvatar ? editAvatar.name : "Choose new avatar photo..."}</span>
+                        <Upload className="w-4 h-4 text-[#00F5D4]" />
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -529,10 +539,10 @@ export default function ProfilePage() {
             exit={{ opacity: 0 }} 
             className="fixed inset-0 bg-black/95 backdrop-blur-md flex flex-col items-center justify-center z-50 p-6"
           >
-            <div className="relative w-48 h-48 flex items-center justify-center border border-[#CCFF00]/20 rounded-full bg-zinc-900/50 shadow-[0_0_50px_rgba(204,255,0,0.1)] mb-6 overflow-hidden">
+            <div className="relative w-48 h-48 flex items-center justify-center border border-[#00F5D4]/20 rounded-full bg-zinc-900/50 shadow-[0_0_50px_rgba(0,245,212,0.1)] mb-6 overflow-hidden">
               {/* Scan line */}
               <motion.div 
-                className="absolute left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#CCFF00] to-transparent shadow-[0_0_8px_rgba(204,255,0,0.8)]"
+                className="absolute left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#00F5D4] to-transparent shadow-[0_0_8px_rgba(0,245,212,0.8)]"
                 animate={{ top: ["0%", "100%", "0%"] }}
                 transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
               />
@@ -540,11 +550,11 @@ export default function ProfilePage() {
                 animate={{ scale: [0.95, 1.05, 0.95] }}
                 transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
               >
-                <Fingerprint className="w-20 h-20 text-[var(--ck-primary)] drop-shadow-[0_0_15px_rgba(204,255,0,0.5)]" />
+                <Fingerprint className="w-20 h-20 text-[#00F5D4] drop-shadow-[0_0_15px_rgba(0,245,212,0.5)]" />
               </motion.div>
             </div>
             
-            <h3 className="text-xl font-bold font-mono uppercase tracking-widest mb-2" style={{ color: "#CCFF00" }}>
+            <h3 className="text-xl font-bold font-mono uppercase tracking-widest mb-2 text-[#00F5D4]">
               BIOMETRIC VERIFIED
             </h3>
             <p className="text-[10px] text-[var(--ck-text-secondary)] font-mono uppercase tracking-wider text-center max-w-sm">

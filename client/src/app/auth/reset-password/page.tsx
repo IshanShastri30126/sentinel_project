@@ -6,9 +6,19 @@ import { Lock, ArrowRight, ArrowLeft, CheckCircle, AlertCircle, Eye, EyeOff } fr
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { api } from "@/lib/api";
-import { BinarySkullBackground } from "@/components/BinarySkullBackground";
-import Image from "next/image";
+import PlexusBackground from "@/components/PlexusBackground";
+import { SentinalLogo } from "@/components/SentinalLogo";
+import { CyberButton } from "@/components/ui/CyberButton";
+import { SystemLabel } from "@/components/ui/SystemLabel";
+import { BorderBeam } from "@/components/effects/BorderBeam";
 
+/**
+ * ResetPasswordPageContent
+ *
+ * Handles resetting user password using an encrypted URL token.
+ *
+ * @returns {JSX.Element} Rendered password reset form.
+ */
 function ResetPasswordPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -23,7 +33,7 @@ function ResetPasswordPageContent() {
 
   useEffect(() => {
     if (!token) {
-      setError("Invalid or missing reset token. Please request a new password reset.");
+      setError("Invalid or missing reset token. Please request a new password recovery link.");
     }
   }, [token]);
 
@@ -52,70 +62,70 @@ function ResetPasswordPageContent() {
       setSuccess(true);
       setTimeout(() => {
         router.push("/auth");
-      }, 3000);
+      }, 2500);
     } catch (err: any) {
-      setError(err.message || "Failed to reset password. The token may have expired.");
+      setError(err.message || "Failed to reset password. The recovery token may have expired.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center lg:justify-end p-4 lg:pr-32 relative overflow-hidden bg-black text-white">
-      <BinarySkullBackground />
+    <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden bg-[#02050B] text-slate-100 font-sans">
+      <PlexusBackground />
 
       <motion.div
-        initial={{ opacity: 0, y: 30 }}
+        initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, ease: "easeOut" }}
-        className="w-full max-w-md transition-all duration-300 relative z-10"
+        transition={{ duration: 0.4 }}
+        className="w-full max-w-md relative z-10"
       >
-        {/* Logo */}
-        <div className="flex justify-center mb-8">
-          <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: 0.2, duration: 0.5 }} className="inline-flex items-center gap-4">
-            <div className="w-16 h-16 relative">
-              <Image src="/ck-logo.svg" alt="SENTINAL Logo" fill className="object-contain" priority />
-            </div>
-            <div className="flex flex-col items-start justify-center pt-1">
-              <span className="text-3xl font-black tracking-[0.15em] font-mono leading-none">
-                <span className="text-white">SENTI</span><span className="text-[#00FF66]">NAL</span>
-              </span>
-              <span className="text-[11px] font-bold text-[#CCFF00] tracking-[0.25em] font-mono mt-2">
-                CYBER SECURITY CLUB
-              </span>
-            </div>
-          </motion.div>
-        </div>
+        <div className="relative rounded-xl bg-[#070D18]/95 backdrop-blur-2xl p-6 sm:p-8 border border-white/[0.12] shadow-[0_12px_40px_rgba(0,0,0,0.8),0_0_25px_rgba(0,245,212,0.08)] hud-brackets">
+          <BorderBeam size={160} duration={10} />
 
-        {/* Card */}
-        <div className="ck-glass rounded-xl p-5 sm:p-8 shadow-2xl relative overflow-hidden border border-red-900/30">
-          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-red-500 to-transparent opacity-50" />
+          {/* Logo */}
+          <div className="flex justify-center mb-6">
+            <SentinalLogo animateDrawing={false} />
+          </div>
 
           {success ? (
-            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="text-center">
-              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-green-900 to-green-600 flex items-center justify-center mx-auto mb-4 shadow-[0_0_15px_rgba(16,185,129,0.5)] border border-green-500/30">
-                <CheckCircle className="w-8 h-8 text-white" />
+            <div className="text-center space-y-4">
+              <div className="w-14 h-14 rounded-full bg-cyan-500/10 border border-[#00F5D4] flex items-center justify-center mx-auto text-[#00F5D4] shadow-[0_0_20px_rgba(0,245,212,0.3)]">
+                <CheckCircle className="w-7 h-7" />
               </div>
-              <h2 className="text-xl font-bold text-white mb-2 font-mono">PASSWORD UPDATED</h2>
-              <p className="text-slate-400 text-sm mb-6">
-                Your password has been successfully reset. Redirecting to login...
+              <h2 className="text-lg font-bold text-white font-mono uppercase tracking-wide">
+                CREDENTIALS UPDATED
+              </h2>
+              <p className="text-slate-300 text-xs font-mono leading-relaxed">
+                Your passphrase has been updated and securely re-hashed. Redirecting to gateway...
               </p>
-              <Link href="/auth" className="ck-btn-primary w-full flex justify-center items-center gap-2">
-                LOGIN NOW
+              <Link href="/auth">
+                <CyberButton variant="primary" size="md" className="w-full mt-4">
+                  LOGIN NOW
+                </CyberButton>
               </Link>
-            </motion.div>
+            </div>
           ) : (
             <>
-              <div className="mb-6 text-center">
-                <h2 className="text-xl font-bold text-white mb-2 font-mono">NEW PASSWORD</h2>
-                <p className="text-slate-400 text-sm">Enter your new secure password below</p>
+              <div className="mb-6 text-center space-y-1">
+                <SystemLabel prefix="[// SECURITY]" showDot={true}>
+                  KEY ROTATION PROTOCOL
+                </SystemLabel>
+                <h2 className="text-xl font-bold text-white font-mono tracking-wide">
+                  SET NEW PASSWORD
+                </h2>
+                <p className="font-mono text-xs text-slate-400">
+                  Define your new high-entropy security credentials.
+                </p>
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                  <label className="ck-label">New Password</label>
-                  <div className="ck-input-icon-wrapper">
-                    <Lock className="w-4 h-4 text-red-500/70" />
+                  <label className="block font-mono text-xs font-medium uppercase tracking-wider text-slate-300 mb-1">
+                    NEW PASSWORD
+                  </label>
+                  <div className="relative">
+                    <Lock className="w-4 h-4 text-[#00F5D4] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                     <input
                       type={showPassword ? "text" : "password"}
                       placeholder="Enter new password"
@@ -123,19 +133,24 @@ function ResetPasswordPageContent() {
                       onChange={(e) => setPassword(e.target.value)}
                       required
                       minLength={6}
-                      className="ck-input ck-input-with-icon border-red-900/50 focus:border-red-500"
-                      style={{ paddingRight: "3rem" }}
+                      className="w-full h-10 rounded-md bg-[#050A14] border border-white/[0.12] pl-10 pr-10 font-mono text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-[#00F5D4] focus:ring-1 focus:ring-[#00F5D4]/40"
                     />
-                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-red-500/70 hover:text-red-400 transition z-10">
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition cursor-pointer"
+                    >
                       {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
                   </div>
                 </div>
 
                 <div>
-                  <label className="ck-label">Confirm Password</label>
-                  <div className="ck-input-icon-wrapper">
-                    <Lock className="w-4 h-4 text-red-500/70" />
+                  <label className="block font-mono text-xs font-medium uppercase tracking-wider text-slate-300 mb-1">
+                    CONFIRM PASSWORD
+                  </label>
+                  <div className="relative">
+                    <Lock className="w-4 h-4 text-[#00F5D4] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                     <input
                       type={showPassword ? "text" : "password"}
                       placeholder="Confirm new password"
@@ -143,35 +158,40 @@ function ResetPasswordPageContent() {
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       required
                       minLength={6}
-                      className="ck-input ck-input-with-icon border-red-900/50 focus:border-red-500"
-                      style={{ paddingRight: "3rem" }}
+                      className="w-full h-10 rounded-md bg-[#050A14] border border-white/[0.12] pl-10 pr-10 font-mono text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-[#00F5D4] focus:ring-1 focus:ring-[#00F5D4]/40"
                     />
                   </div>
                 </div>
 
                 {error && (
-                  <motion.div initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} className="flex items-center gap-2 text-sm text-red-500 bg-red-950/50 border border-red-900/50 px-4 py-3 rounded-lg">
-                    <AlertCircle className="w-4 h-4 shrink-0" />
-                    {error}
-                  </motion.div>
+                  <div className="flex items-center gap-2 text-xs text-[#FF0055] bg-[rgba(255,0,85,0.08)] border border-[rgba(255,0,85,0.35)] p-3 rounded-md font-mono">
+                    <AlertCircle className="w-4 h-4 shrink-0 text-[#FF0055]" />
+                    <span>{error}</span>
+                  </div>
                 )}
 
-                <button type="submit" disabled={loading || !token} className="ck-btn-primary w-full mt-2">
-                  {loading ? (
-                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin mx-auto" />
-                  ) : (
-                    <span className="flex items-center justify-center gap-2">
-                      UPDATE PASSWORD <ArrowRight className="w-4 h-4" />
-                    </span>
-                  )}
-                </button>
-                
+                <CyberButton
+                  type="submit"
+                  variant="primary"
+                  size="md"
+                  glow="primary"
+                  disabled={loading || !token}
+                  isLoading={loading}
+                  className="w-full mt-2"
+                  rightIcon={<ArrowRight className="w-4 h-4" />}
+                >
+                  UPDATE CREDENTIALS
+                </CyberButton>
+
                 {!token && (
-                   <div className="text-center mt-6">
-                   <Link href="/auth/forgot-password" className="text-sm text-red-400 hover:text-red-300 flex items-center justify-center gap-1 transition-colors">
-                     Request new reset link
-                   </Link>
-                 </div>
+                  <div className="text-center mt-6">
+                    <Link
+                      href="/auth/forgot-password"
+                      className="font-mono text-xs text-[#00F5D4] hover:underline transition-colors"
+                    >
+                      Request new recovery link
+                    </Link>
+                  </div>
                 )}
               </form>
             </>
@@ -184,11 +204,13 @@ function ResetPasswordPageContent() {
 
 export default function ResetPasswordPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center bg-black text-white">
-        <div className="w-10 h-10 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-[#02050B] text-[#00F5D4] font-mono text-xs">
+          <div className="w-8 h-8 border-2 border-cyan-500/30 border-t-[#00F5D4] rounded-full animate-spin" />
+        </div>
+      }
+    >
       <ResetPasswordPageContent />
     </Suspense>
   );

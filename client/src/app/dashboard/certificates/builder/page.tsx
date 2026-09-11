@@ -219,7 +219,7 @@ function CertificateBuilderContent() {
         width: 760,
         height: 520,
         fill: "transparent",
-        stroke: fields.borderlineColor || "#CCFF00",
+        stroke: fields.borderlineColor || "#00F5D4",
         strokeWidth: fields.borderWidth || 2,
         radius: 12,
         rotation: 0, scaleX: 1, scaleY: 1

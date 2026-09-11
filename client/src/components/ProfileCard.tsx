@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useCallback, useMemo } from 'react';
 import './ProfileCard.css';
 
-const DEFAULT_INNER_GRADIENT = 'linear-gradient(145deg, #60496e8c 0%, #71C4FF44 100%)';
+const DEFAULT_INNER_GRADIENT = 'linear-gradient(145deg, rgba(0, 245, 212, 0.12) 0%, rgba(4, 9, 18, 0.95) 60%, rgba(2, 5, 12, 0.98) 100%)';
 
 const ANIMATION_CONFIG = {
   INITIAL_DURATION: 1200,
@@ -318,7 +318,7 @@ const ProfileCardComponent: React.FC<ProfileCardProps> = ({
       '--icon': iconUrl ? `url(${iconUrl})` : 'none',
       '--grain': grainUrl ? `url(${grainUrl})` : 'none',
       '--inner-gradient': innerGradient ?? DEFAULT_INNER_GRADIENT,
-      '--behind-glow-color': behindGlowColor ?? 'rgba(125, 190, 255, 0.67)',
+      '--behind-glow-color': behindGlowColor ?? 'rgba(0, 245, 212, 0.45)',
       '--behind-glow-size': behindGlowSize ?? '50%'
     } as React.CSSProperties),
     [iconUrl, grainUrl, innerGradient, behindGlowColor, behindGlowSize]
@@ -344,8 +344,12 @@ const ProfileCardComponent: React.FC<ProfileCardProps> = ({
                 alt={`${name || 'User'} avatar`}
                 loading="lazy"
                 onError={e => {
-                  const t = e.target as HTMLElement;
-                  t.style.display = 'none';
+                  const t = e.target as HTMLImageElement;
+                  if (typeof window !== 'undefined' && !t.src.includes('/images/cyber_avatar.png')) {
+                    t.src = '/images/cyber_avatar.png';
+                  } else {
+                    t.style.display = 'none';
+                  }
                 }}
               />
               {showUserInfo && (
@@ -359,8 +363,9 @@ const ProfileCardComponent: React.FC<ProfileCardProps> = ({
                         loading="lazy"
                         onError={e => {
                           const t = e.target as HTMLImageElement;
-                          t.style.opacity = '0.5';
-                          t.src = avatarUrl;
+                          if (typeof window !== 'undefined' && !t.src.includes('/images/cyber_avatar.png')) {
+                            t.src = '/images/cyber_avatar.png';
+                          }
                         }}
                       />
                     </div>

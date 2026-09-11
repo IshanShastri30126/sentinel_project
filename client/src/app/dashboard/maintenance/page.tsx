@@ -596,7 +596,7 @@ export default function MaintenancePage() {
             className="fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-3 rounded-xl border font-mono text-xs font-semibold shadow-2xl backdrop-blur-xl"
             style={
               toastMessage.type === "success"
-                ? { background: "rgba(204,255,0,0.08)", borderColor: "rgba(204,255,0,0.3)", color: "#CCFF00" }
+                ? { background: "rgba(0,245,212,0.08)", borderColor: "rgba(0,245,212,0.3)", color: "#00F5D4" }
                 : toastMessage.type === "error"
                 ? { background: "rgba(255,0,60,0.08)", borderColor: "rgba(255,0,60,0.3)", color: "#FF003C" }
                 : { background: "rgba(0,245,212,0.08)", borderColor: "rgba(0,245,212,0.3)", color: "#00F5D4" }
@@ -612,14 +612,14 @@ export default function MaintenancePage() {
 
       {/* ── HEADER BANNER ── */}
       <div className="relative overflow-hidden rounded-2xl border border-white/[0.08] bg-gradient-to-b from-[#0A101D] to-[#040810] p-5 sm:p-6 shadow-2xl">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-[#CCFF00]/5 rounded-full blur-3xl pointer-events-none -mr-20 -mt-20" />
+        <div className="absolute top-0 right-0 w-96 h-96 bg-[#00F5D4]/5 rounded-full blur-3xl pointer-events-none -mr-20 -mt-20" />
         <div className="absolute bottom-0 left-1/3 w-64 h-64 bg-[#00F5D4]/5 rounded-full blur-3xl pointer-events-none" />
 
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <div className="flex flex-wrap items-center gap-2 mb-1.5">
-              <span className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-extrabold bg-[#CCFF00]/10 border border-[#CCFF00]/30 text-[#CCFF00]">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#CCFF00] animate-pulse" />
+              <span className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-extrabold bg-[#00F5D4]/10 border border-[#00F5D4]/30 text-[#00F5D4]">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#00F5D4] animate-pulse" />
                 ENTERPRISE LEVEL 2 AUDIT CORE
               </span>
               <span className="px-2 py-0.5 rounded-full text-[10px] font-mono bg-cyan-500/10 border border-cyan-500/30 text-cyan-400">
@@ -630,7 +630,7 @@ export default function MaintenancePage() {
               </span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-black font-mono tracking-tight text-white flex items-center gap-3">
-              MAINTENANCE &amp; <span className="text-[#CCFF00]">FORENSIC TELEMETRY</span>
+              MAINTENANCE &amp; <span className="text-[#00F5D4]">FORENSIC TELEMETRY</span>
             </h1>
             <p className="text-xs text-zinc-400 font-mono mt-1">
               Live zero-trust event telemetry, automated IDS/WAF threat blocking, and audit verification.
@@ -651,7 +651,7 @@ export default function MaintenancePage() {
               }}
               className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-mono font-bold bg-white/[0.04] border border-white/[0.1] text-zinc-300 hover:text-white hover:bg-white/[0.08] transition-all"
             >
-              <RefreshCw className={`w-3.5 h-3.5 ${loadingLogs ? "animate-spin text-[#CCFF00]" : ""}`} />
+              <RefreshCw className={`w-3.5 h-3.5 ${loadingLogs ? "animate-spin text-[#00F5D4]" : ""}`} />
               SYNC LOGS
             </button>
 
@@ -688,7 +688,7 @@ export default function MaintenancePage() {
               onClick={() => setActiveTab(tab.id)}
               className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-mono font-bold uppercase transition-all relative ${
                 isActive
-                  ? "bg-[#CCFF00]/12 border border-[#CCFF00]/40 text-[#CCFF00] shadow-[0_0_16px_rgba(204,255,0,0.15)]"
+                  ? "bg-[#00F5D4]/12 border border-[#00F5D4]/40 text-[#00F5D4] shadow-[0_0_16px_rgba(0,245,212,0.15)]"
                   : "text-zinc-400 hover:text-zinc-200 border border-transparent hover:bg-white/[0.03]"
               }`}
             >
@@ -697,7 +697,7 @@ export default function MaintenancePage() {
               {tab.badge && (
                 <span
                   className={`px-1.5 py-0.2 rounded-full text-[9px] font-mono font-bold ${
-                    isActive ? "bg-[#CCFF00] text-black" : "bg-zinc-800 text-zinc-300"
+                    isActive ? "bg-[#00F5D4] text-black" : "bg-zinc-800 text-zinc-300"
                   }`}
                 >
                   {tab.badge}
@@ -754,16 +754,16 @@ export default function MaintenancePage() {
               </div>
             </div>
 
-            <div className="rounded-xl p-4 bg-[#0A101D]/90 border border-[#CCFF00]/20 backdrop-blur-sm relative overflow-hidden">
+            <div className="rounded-xl p-4 bg-[#0A101D]/90 border border-[#00F5D4]/20 backdrop-blur-sm relative overflow-hidden">
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-mono uppercase tracking-wider text-[#CCFF00]">STREAM RADAR</span>
+                <span className="text-[10px] font-mono uppercase tracking-wider text-[#00F5D4]">STREAM RADAR</span>
                 <span className="flex h-2 w-2 relative">
-                  <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${autoRefreshLogs ? "bg-[#CCFF00]" : "bg-zinc-600"}`} />
-                  <span className={`relative inline-flex rounded-full h-2 w-2 ${autoRefreshLogs ? "bg-[#CCFF00]" : "bg-zinc-500"}`} />
+                  <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${autoRefreshLogs ? "bg-[#00F5D4]" : "bg-zinc-600"}`} />
+                  <span className={`relative inline-flex rounded-full h-2 w-2 ${autoRefreshLogs ? "bg-[#00F5D4]" : "bg-zinc-500"}`} />
                 </span>
               </div>
               <div className="flex items-baseline gap-2 mt-2">
-                <span className="text-2xl sm:text-3xl font-black font-mono text-[#CCFF00]">
+                <span className="text-2xl sm:text-3xl font-black font-mono text-[#00F5D4]">
                   {autoRefreshLogs ? "LIVE" : "PAUSED"}
                 </span>
                 <span className="text-xs font-mono text-zinc-400">{autoRefreshLogs ? "(5s sync)" : "Manual"}</span>
@@ -788,7 +788,7 @@ export default function MaintenancePage() {
                     setLogsPage(1);
                   }}
                   placeholder="Search user, email, public/private IP, rule ID, action..."
-                  className="w-full pl-10 pr-9 py-2 rounded-xl bg-black/60 border border-white/[0.1] text-xs font-mono text-white placeholder-zinc-500 outline-none focus:border-[#CCFF00]/50 transition-all shadow-inner"
+                  className="w-full pl-10 pr-9 py-2 rounded-xl bg-black/60 border border-white/[0.1] text-xs font-mono text-white placeholder-zinc-500 outline-none focus:border-[#00F5D4]/50 transition-all shadow-inner"
                 />
                 {logsSearch && (
                   <button
@@ -819,7 +819,7 @@ export default function MaintenancePage() {
                       onClick={() => setLogsViewMode(vm.mode)}
                       className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition-all ${
                         isSelected
-                          ? "bg-[#CCFF00] text-black shadow-[0_0_10px_rgba(204,255,0,0.3)]"
+                          ? "bg-[#00F5D4] text-black shadow-[0_0_10px_rgba(0,245,212,0.3)]"
                           : "text-zinc-400 hover:text-white"
                       }`}
                     >
@@ -836,7 +836,7 @@ export default function MaintenancePage() {
                   onClick={() => setAutoRefreshLogs(!autoRefreshLogs)}
                   className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-mono font-bold border transition-all ${
                     autoRefreshLogs
-                      ? "bg-[#CCFF00]/15 border-[#CCFF00]/40 text-[#CCFF00] shadow-[0_0_12px_rgba(204,255,0,0.2)]"
+                      ? "bg-[#00F5D4]/15 border-[#00F5D4]/40 text-[#00F5D4] shadow-[0_0_12px_rgba(0,245,212,0.2)]"
                       : "bg-white/[0.03] border-white/[0.08] text-zinc-400 hover:text-white"
                   }`}
                 >
@@ -848,9 +848,9 @@ export default function MaintenancePage() {
                   <button
                     onClick={handleExportJSON}
                     title="Export Logs as JSON"
-                    className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-mono font-bold bg-white/[0.03] border border-white/[0.08] text-zinc-300 hover:text-white hover:border-[#CCFF00]/30 transition-all"
+                    className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-mono font-bold bg-white/[0.03] border border-white/[0.08] text-zinc-300 hover:text-white hover:border-[#00F5D4]/30 transition-all"
                   >
-                    <Download className="w-3.5 h-3.5 text-[#CCFF00]" />
+                    <Download className="w-3.5 h-3.5 text-[#00F5D4]" />
                     <span className="hidden md:inline">JSON</span>
                   </button>
                   <button
@@ -876,14 +876,14 @@ export default function MaintenancePage() {
                     setLogsSeverity(e.target.value);
                     setLogsPage(1);
                   }}
-                  className="px-2.5 py-1 rounded-lg bg-black/60 border border-white/[0.08] text-xs font-mono text-zinc-200 outline-none focus:border-[#CCFF00]/40"
+                  className="px-2.5 py-1 rounded-lg bg-black/60 border border-white/[0.08] text-xs font-mono text-zinc-200 outline-none focus:border-[#00F5D4]/40"
                 >
                   <option value="">All Severities</option>
-                  <option value="SECURITY_BLOCK">🛡️ Security Block</option>
-                  <option value="EMERGENCY">⚡ Emergency</option>
-                  <option value="CRITICAL">⚠️ Critical</option>
-                  <option value="WARN">⚡ Warning</option>
-                  <option value="INFO">ℹ️ Info</option>
+                  <option value="SECURITY_BLOCK">[BLOCK] Security Block</option>
+                  <option value="EMERGENCY">[EMERG] Emergency</option>
+                  <option value="CRITICAL">[CRIT] Critical</option>
+                  <option value="WARN">[WARN] Warning</option>
+                  <option value="INFO">[INFO] Info</option>
                 </select>
               </div>
 
@@ -896,7 +896,7 @@ export default function MaintenancePage() {
                     setLogsCategory(e.target.value);
                     setLogsPage(1);
                   }}
-                  className="px-2.5 py-1 rounded-lg bg-black/60 border border-white/[0.08] text-xs font-mono text-zinc-200 outline-none focus:border-[#CCFF00]/40"
+                  className="px-2.5 py-1 rounded-lg bg-black/60 border border-white/[0.08] text-xs font-mono text-zinc-200 outline-none focus:border-[#00F5D4]/40"
                 >
                   <option value="">All Categories</option>
                   <option value="FIREWALL">Firewall &amp; WAF</option>
@@ -915,7 +915,7 @@ export default function MaintenancePage() {
                     setLogsOutcome(e.target.value);
                     setLogsPage(1);
                   }}
-                  className="px-2.5 py-1 rounded-lg bg-black/60 border border-white/[0.08] text-xs font-mono text-zinc-200 outline-none focus:border-[#CCFF00]/40"
+                  className="px-2.5 py-1 rounded-lg bg-black/60 border border-white/[0.08] text-xs font-mono text-zinc-200 outline-none focus:border-[#00F5D4]/40"
                 >
                   <option value="">All Outcomes</option>
                   <option value="SUCCESS">Success</option>
@@ -940,7 +940,7 @@ export default function MaintenancePage() {
                     }}
                     className={`px-2 py-0.5 rounded text-[10px] font-mono border transition-all ${
                       logsAction === preset.action
-                        ? "bg-[#CCFF00]/20 border-[#CCFF00]/50 text-[#CCFF00]"
+                        ? "bg-[#00F5D4]/20 border-[#00F5D4]/50 text-[#00F5D4]"
                         : "bg-white/[0.02] border-white/[0.06] text-zinc-400 hover:text-zinc-200"
                     }`}
                   >
@@ -984,7 +984,7 @@ export default function MaintenancePage() {
                       <tr>
                         <td colSpan={9} className="py-12 text-center text-zinc-400">
                           <div className="flex flex-col items-center justify-center gap-3">
-                            <RefreshCw className="w-6 h-6 animate-spin text-[#CCFF00]" />
+                            <RefreshCw className="w-6 h-6 animate-spin text-[#00F5D4]" />
                             <span className="font-mono text-xs text-zinc-300">Fetching Level 2 Forensic Telemetry Stream...</span>
                           </div>
                         </td>
@@ -999,7 +999,7 @@ export default function MaintenancePage() {
                             {hasActiveFilters && (
                               <button
                                 onClick={resetAllFilters}
-                                className="mt-2 px-3 py-1.5 rounded-lg bg-[#CCFF00]/10 border border-[#CCFF00]/30 text-[#CCFF00] text-xs font-mono"
+                                className="mt-2 px-3 py-1.5 rounded-lg bg-[#00F5D4]/10 border border-[#00F5D4]/30 text-[#00F5D4] text-xs font-mono"
                               >
                                 Reset All Filters
                               </button>
@@ -1042,7 +1042,7 @@ export default function MaintenancePage() {
                                     {log.action}
                                   </span>
                                   {log.ruleId && (
-                                    <span className="text-[9px] text-[#CCFF00] font-mono mt-0.5">
+                                    <span className="text-[9px] text-[#00F5D4] font-mono mt-0.5">
                                       Rule: {log.ruleId}
                                     </span>
                                   )}
@@ -1090,7 +1090,7 @@ export default function MaintenancePage() {
                                     <span className="text-[10px] text-zinc-400 truncate font-mono" title={log.user.email}>
                                       {log.user.email}
                                     </span>
-                                    <span className="text-[9px] text-[#CCFF00] font-mono uppercase">
+                                    <span className="text-[9px] text-[#00F5D4] font-mono uppercase">
                                       {log.user.role} {log.user.role === "FACULTY" && log.user.employeeId ? `· EMP: ${log.user.employeeId}` : log.user.studentId ? `· ID: ${log.user.studentId}` : ""}
                                     </span>
                                   </div>
@@ -1112,7 +1112,7 @@ export default function MaintenancePage() {
                                       e.stopPropagation();
                                       setSelectedRawLog(log);
                                     }}
-                                    className="p-1.5 rounded-lg bg-black/60 border border-white/[0.08] text-zinc-300 hover:text-white hover:border-[#CCFF00]/40 transition-all"
+                                    className="p-1.5 rounded-lg bg-black/60 border border-white/[0.08] text-zinc-300 hover:text-white hover:border-[#00F5D4]/40 transition-all"
                                     title="View Raw JSON"
                                   >
                                     <Code className="w-3.5 h-3.5" />
@@ -1124,7 +1124,7 @@ export default function MaintenancePage() {
                                     }}
                                     className={`px-2.5 py-1 rounded-lg border text-[10px] font-mono font-bold transition-all ${
                                       isExpanded
-                                        ? "bg-[#CCFF00] text-black border-[#CCFF00]"
+                                        ? "bg-[#00F5D4] text-black border-[#00F5D4]"
                                         : "bg-black/60 border-white/[0.1] text-zinc-300 hover:text-white"
                                     }`}
                                   >
@@ -1136,7 +1136,7 @@ export default function MaintenancePage() {
 
                             {/* Expanded Forensic Drawer */}
                             {isExpanded && (
-                              <tr className="bg-black/80 border-y border-[#CCFF00]/20">
+                              <tr className="bg-black/80 border-y border-[#00F5D4]/20">
                                 <td colSpan={9} className="p-4 sm:p-5">
                                   <motion.div
                                     initial={{ opacity: 0, y: -6 }}
@@ -1145,8 +1145,8 @@ export default function MaintenancePage() {
                                   >
                                     <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/[0.08] pb-3">
                                       <div className="flex items-center gap-2">
-                                        <Shield className="w-4 h-4 text-[#CCFF00]" />
-                                        <span className="text-xs font-mono font-bold text-[#CCFF00] uppercase tracking-wider">
+                                        <Shield className="w-4 h-4 text-[#00F5D4]" />
+                                        <span className="text-xs font-mono font-bold text-[#00F5D4] uppercase tracking-wider">
                                           FORENSIC TELEMETRY CONTEXT &amp; HARDENED AUDIT TRAIL
                                         </span>
                                         <span className="text-[10px] font-mono text-zinc-500">ID: {log.id}</span>
@@ -1185,7 +1185,7 @@ export default function MaintenancePage() {
                                         <span className="text-[10px] text-zinc-500 block uppercase">AUTHENTICATED IDENTITY</span>
                                         <div className="text-zinc-200 mt-1 space-y-0.5">
                                           <p>Name: <span className="text-white font-bold">{log.user?.name || "Anonymous Gateway"}</span></p>
-                                          <p>Role: <span className="text-[#CCFF00] font-bold">{log.user?.role || "NONE"}</span></p>
+                                          <p>Role: <span className="text-[#00F5D4] font-bold">{log.user?.role || "NONE"}</span></p>
                                           <p>ID: <span className="text-zinc-400">{log.user?.role === "FACULTY" ? log.user.employeeId || "EMP-N/A" : log.user?.studentId || log.user?.id?.slice(0, 8) || "N/A"}</span></p>
                                         </div>
                                       </div>
@@ -1236,7 +1236,7 @@ export default function MaintenancePage() {
                   <span>
                     Showing <strong className="text-white">{logs.length > 0 ? (logsPage - 1) * logsLimit + 1 : 0}</strong> to{" "}
                     <strong className="text-white">{Math.min(logsPage * logsLimit, logsTotal)}</strong> of{" "}
-                    <strong className="text-[#CCFF00]">{logsTotal.toLocaleString()}</strong> events
+                    <strong className="text-[#00F5D4]">{logsTotal.toLocaleString()}</strong> events
                   </span>
 
                   <div className="flex items-center gap-1.5 ml-2">
@@ -1273,7 +1273,7 @@ export default function MaintenancePage() {
                     <ChevronLeft className="w-4 h-4" />
                   </button>
 
-                  <div className="px-3 py-1 rounded-lg bg-[#CCFF00]/10 border border-[#CCFF00]/30 text-[#CCFF00] font-bold">
+                  <div className="px-3 py-1 rounded-lg bg-[#00F5D4]/10 border border-[#00F5D4]/30 text-[#00F5D4] font-bold">
                     {logsPage} / {totalPages}
                   </div>
 
@@ -1361,7 +1361,7 @@ export default function MaintenancePage() {
                         <span className={`font-bold ${isBlock ? "text-red-400" : log.outcome === "SUCCESS" ? "text-emerald-400" : "text-yellow-400"}`}>
                           {log.outcome}
                         </span>
-                        <span className="ml-auto opacity-0 group-hover:opacity-100 text-[10px] text-[#CCFF00]">
+                        <span className="ml-auto opacity-0 group-hover:opacity-100 text-[10px] text-[#00F5D4]">
                           [INSPECT]
                         </span>
                       </div>
@@ -1393,7 +1393,7 @@ export default function MaintenancePage() {
                               ? "bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.8)]"
                               : isWarn
                               ? "bg-yellow-500 shadow-[0_0_8px_rgba(234,179,8,0.8)]"
-                              : "bg-[#CCFF00] shadow-[0_0_8px_rgba(204,255,0,0.8)]"
+                              : "bg-[#00F5D4] shadow-[0_0_8px_rgba(0,245,212,0.8)]"
                           }`}
                         />
 
@@ -1518,7 +1518,7 @@ export default function MaintenancePage() {
                                 setLogsSearch(ip);
                                 setLogsViewMode("table");
                               }}
-                              className="px-2 py-0.5 rounded bg-white/[0.05] text-[10px] text-[#CCFF00] hover:bg-[#CCFF00]/10"
+                              className="px-2 py-0.5 rounded bg-white/[0.05] text-[10px] text-[#00F5D4] hover:bg-[#00F5D4]/10"
                             >
                               Filter IP
                             </button>
@@ -1548,7 +1548,7 @@ export default function MaintenancePage() {
             </div>
             <div className="rounded-2xl bg-[#0A101D]/90 border border-white/[0.08] p-5 backdrop-blur-md">
               <span className="text-[10px] font-mono uppercase tracking-wider text-zinc-400">ACTIVE FIREWALL POLICIES</span>
-              <p className="text-2xl sm:text-3xl font-black font-mono text-[#CCFF00] mt-2">
+              <p className="text-2xl sm:text-3xl font-black font-mono text-[#00F5D4] mt-2">
                 {telemetry?.activeFirewallRulesCount || 7}
               </p>
             </div>
@@ -1569,7 +1569,7 @@ export default function MaintenancePage() {
           {/* System Environment Telemetry */}
           <div className="rounded-2xl bg-[#0A101D]/90 border border-white/[0.08] p-6 backdrop-blur-md space-y-4">
             <div className="flex items-center gap-2">
-              <Server className="w-5 h-5 text-[#CCFF00]" />
+              <Server className="w-5 h-5 text-[#00F5D4]" />
               <h2 className="text-sm font-mono font-bold uppercase tracking-wider text-white">
                 HOST ENVIRONMENT &amp; OWASP ASVS LEVEL 2 TELEMETRY
               </h2>
@@ -1591,7 +1591,7 @@ export default function MaintenancePage() {
               </div>
               <div className="p-3.5 rounded-xl bg-black/40 border border-white/[0.06]">
                 <p className="text-zinc-500">SECURITY COMPLIANCE</p>
-                <p className="text-[#CCFF00] font-bold mt-1 text-sm">100% Level 2 OWASP</p>
+                <p className="text-[#00F5D4] font-bold mt-1 text-sm">100% Level 2 OWASP</p>
               </div>
             </div>
           </div>
@@ -1614,7 +1614,7 @@ export default function MaintenancePage() {
             </div>
             <button
               onClick={() => setShowAddRuleModal(true)}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#CCFF00] text-black text-xs font-mono font-bold hover:bg-[#CCFF00]/90 transition-all shadow-[0_0_12px_rgba(204,255,0,0.2)]"
+              className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#00F5D4] text-black text-xs font-mono font-bold hover:bg-[#00F5D4]/90 transition-all shadow-[0_0_12px_rgba(0,245,212,0.2)]"
             >
               <Plus className="w-4 h-4" />
               CREATE POLICY RULE
@@ -1642,7 +1642,7 @@ export default function MaintenancePage() {
                   </div>
                   <p className="text-xs text-zinc-400 font-mono">{rule.description}</p>
                   {rule.pattern && (
-                    <div className="p-2 rounded-lg bg-black/80 border border-white/[0.06] text-[10px] font-mono text-[#CCFF00] truncate max-w-2xl">
+                    <div className="p-2 rounded-lg bg-black/80 border border-white/[0.06] text-[10px] font-mono text-[#00F5D4] truncate max-w-2xl">
                       Pattern: {rule.pattern}
                     </div>
                   )}
@@ -1657,7 +1657,7 @@ export default function MaintenancePage() {
                     onClick={() => void handleToggleFirewallRule(rule.id, rule.enabled)}
                     className={`px-3.5 py-1.5 rounded-xl text-xs font-mono font-bold border transition-all ${
                       rule.enabled
-                        ? "bg-[#CCFF00]/15 border-[#CCFF00]/40 text-[#CCFF00]"
+                        ? "bg-[#00F5D4]/15 border-[#00F5D4]/40 text-[#00F5D4]"
                         : "bg-zinc-900 border-zinc-700 text-zinc-500"
                     }`}
                   >
@@ -1703,7 +1703,7 @@ export default function MaintenancePage() {
                       value={newRuleName}
                       onChange={(e) => setNewRuleName(e.target.value)}
                       placeholder="e.g. Block Malicious Proxy Scanners"
-                      className="w-full px-3 py-2 rounded-lg bg-black/60 border border-white/[0.08] text-white outline-none focus:border-[#CCFF00]/40"
+                      className="w-full px-3 py-2 rounded-lg bg-black/60 border border-white/[0.08] text-white outline-none focus:border-[#00F5D4]/40"
                     />
                   </div>
                   <div className="grid grid-cols-2 gap-3">
@@ -1745,7 +1745,7 @@ export default function MaintenancePage() {
                       value={newRulePattern}
                       onChange={(e) => setNewRulePattern(e.target.value)}
                       placeholder="e.g. (evilbot|hacktool|scanner)"
-                      className="w-full px-3 py-2 rounded-lg bg-black/60 border border-white/[0.08] text-white outline-none focus:border-[#CCFF00]/40"
+                      className="w-full px-3 py-2 rounded-lg bg-black/60 border border-white/[0.08] text-white outline-none focus:border-[#00F5D4]/40"
                     />
                   </div>
                   <div className="grid grid-cols-2 gap-3">
@@ -1786,7 +1786,7 @@ export default function MaintenancePage() {
                       onChange={(e) => setNewRuleDescription(e.target.value)}
                       rows={2}
                       placeholder="Briefly describe the threat and mitigation rationale."
-                      className="w-full px-3 py-2 rounded-lg bg-black/60 border border-white/[0.08] text-white outline-none focus:border-[#CCFF00]/40"
+                      className="w-full px-3 py-2 rounded-lg bg-black/60 border border-white/[0.08] text-white outline-none focus:border-[#00F5D4]/40"
                     />
                   </div>
                   <div className="flex justify-end gap-2 pt-2">
@@ -1799,7 +1799,7 @@ export default function MaintenancePage() {
                     </button>
                     <button
                       type="submit"
-                      className="px-4 py-2 rounded-lg bg-[#CCFF00] text-black font-bold"
+                      className="px-4 py-2 rounded-lg bg-[#00F5D4] text-black font-bold"
                     >
                       Enforce Rule
                     </button>
@@ -1916,7 +1916,7 @@ export default function MaintenancePage() {
                     {t.status}
                   </span>
                 </div>
-                <p className="text-xl font-mono font-black text-[#CCFF00]">{t.rows} Records</p>
+                <p className="text-xl font-mono font-black text-[#00F5D4]">{t.rows} Records</p>
                 <div className="flex justify-between text-[10px] font-mono text-zinc-500 border-t border-white/[0.04] pt-2">
                   <span>PK: {t.primaryKey}</span>
                   <span>{t.indexes} Indexes</span>
@@ -1945,7 +1945,7 @@ export default function MaintenancePage() {
                     value={newBugTitle}
                     onChange={(e) => setNewBugTitle(e.target.value)}
                     placeholder="Brief description of the anomaly..."
-                    className="w-full px-3 py-2 rounded-lg bg-black/60 border border-white/[0.08] text-white outline-none focus:border-[#CCFF00]/40"
+                    className="w-full px-3 py-2 rounded-lg bg-black/60 border border-white/[0.08] text-white outline-none focus:border-[#00F5D4]/40"
                   />
                 </div>
                 <div>
@@ -1986,13 +1986,13 @@ export default function MaintenancePage() {
                   onChange={(e) => setNewBugDesc(e.target.value)}
                   rows={3}
                   placeholder="Steps to reproduce, error message, affected route..."
-                  className="w-full px-3 py-2 rounded-lg bg-black/60 border border-white/[0.08] text-white outline-none focus:border-[#CCFF00]/40"
+                  className="w-full px-3 py-2 rounded-lg bg-black/60 border border-white/[0.08] text-white outline-none focus:border-[#00F5D4]/40"
                 />
               </div>
               <button
                 type="submit"
                 disabled={submittingBug}
-                className="px-5 py-2.5 rounded-xl bg-[#CCFF00] text-black font-bold hover:bg-[#CCFF00]/90 transition-all shadow-[0_0_12px_rgba(204,255,0,0.2)]"
+                className="px-5 py-2.5 rounded-xl bg-[#00F5D4] text-black font-bold hover:bg-[#00F5D4]/90 transition-all shadow-[0_0_12px_rgba(0,245,212,0.2)]"
               >
                 {submittingBug ? "Logging..." : "Submit Technical Bug Report"}
               </button>
@@ -2028,7 +2028,7 @@ export default function MaintenancePage() {
           >
             <div className="flex items-center justify-between border-b border-white/[0.08] pb-3">
               <div className="flex items-center gap-2">
-                <Code className="w-4 h-4 text-[#CCFF00]" />
+                <Code className="w-4 h-4 text-[#00F5D4]" />
                 <span className="text-xs font-bold text-white uppercase">RAW FORENSIC TELEMETRY JSON</span>
               </div>
               <button
@@ -2052,7 +2052,7 @@ export default function MaintenancePage() {
               </button>
               <button
                 onClick={() => setSelectedRawLog(null)}
-                className="px-4 py-1.5 rounded-lg bg-[#CCFF00] text-black font-bold text-xs"
+                className="px-4 py-1.5 rounded-lg bg-[#00F5D4] text-black font-bold text-xs"
               >
                 Close
               </button>

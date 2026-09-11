@@ -3,7 +3,11 @@ import React, { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { api, apiUpload } from "@/lib/api";
 import { motion, AnimatePresence } from "framer-motion";
-import { ClipboardList, CheckCircle, XCircle, Clock, Plus, X, ChevronDown, ChevronUp, Eye, MessageSquare, Paperclip, FileText, Upload, Check, Send, Zap, Shield, AlertTriangle, ArrowRight, Filter } from "lucide-react";
+import { 
+  ClipboardList, CheckCircle, XCircle, Clock, Plus, X, ChevronDown, ChevronUp, Eye, 
+  MessageSquare, Paperclip, FileText, Upload, Check, Send, Zap, Shield, AlertTriangle, 
+  ArrowRight, Filter, Calendar, Building2, CreditCard, Share2, Award, Handshake 
+} from "lucide-react";
 
 interface ApprovalStep { id: string; level: number; role: string; status: string; comment?: string; approver?: { name: string; role: string }; decidedAt?: string; createdAt: string; }
 interface Approval {
@@ -21,13 +25,13 @@ const STATUS_CONFIG: Record<string, { color: string; bg: string; border: string;
 };
 
 const APPROVAL_TYPES = [
-  { value: "EVENT_PERMISSION",  label: "Event Permission",      icon: "🎪" },
-  { value: "RESOURCE_VENUE",    label: "Resource / Venue",      icon: "🏛️" },
-  { value: "BUDGET",            label: "Budget Approval",       icon: "💰" },
-  { value: "SOCIAL_MEDIA_POST", label: "Social Media Post",     icon: "📣" },
-  { value: "CONTENT_PUBLISH",   label: "Content Publishing",    icon: "📝" },
-  { value: "CERTIFICATE_AUTH",  label: "Certificate Auth",      icon: "🎓" },
-  { value: "EXTERNAL_COLLAB",   label: "External Collaboration",icon: "🤝" },
+  { value: "EVENT_PERMISSION",  label: "Event Permission",      icon: Calendar },
+  { value: "RESOURCE_VENUE",    label: "Resource / Venue",      icon: Building2 },
+  { value: "BUDGET",            label: "Budget Approval",       icon: CreditCard },
+  { value: "SOCIAL_MEDIA_POST", label: "Social Media Post",     icon: Share2 },
+  { value: "CONTENT_PUBLISH",   label: "Content Publishing",    icon: FileText },
+  { value: "CERTIFICATE_AUTH",  label: "Certificate Auth",      icon: Award },
+  { value: "EXTERNAL_COLLAB",   label: "External Collaboration",icon: Handshake },
 ];
 
 function StatusBadge({ status }: { status: string }) {
@@ -194,8 +198,11 @@ export default function ApprovalsPage() {
                   className="w-full p-6 flex items-center gap-6 text-left hover:bg-white/3 transition-colors"
                 >
                   {/* Icon */}
-                  <div className="text-2xl shrink-0 w-14 h-14 rounded-2xl flex items-center justify-center border border-white/5 bg-white/3">
-                    {typeInfo?.icon || "📋"}
+                  <div className="shrink-0 w-14 h-14 rounded-2xl flex items-center justify-center border border-white/5 bg-white/3 text-amber-400">
+                    {(() => {
+                      const TypeIcon = typeInfo?.icon || ClipboardList;
+                      return <TypeIcon className="w-6 h-6" />;
+                    })()}
                   </div>
 
                   <div className="flex-1 min-w-0">
@@ -332,17 +339,20 @@ export default function ApprovalsPage() {
                   <div>
                     <label className="block text-[10px] font-bold uppercase tracking-widest text-[var(--ck-text-muted)] mb-2 font-mono">REQUEST TYPE</label>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                      {APPROVAL_TYPES.map(t => (
-                        <button key={t.value} type="button"
-                          onClick={() => setForm(f => ({ ...f, type: t.value }))}
-                          className={`flex items-center gap-2 p-3 rounded-xl text-left text-xs transition-all border ${form.type === t.value
-                            ? "border-amber-500/40 bg-amber-950/25 text-amber-200"
-                            : "border-white/5 bg-white/3 text-[var(--ck-text-muted)] hover:border-white/10 hover:text-[var(--ck-text)]"}`}
-                        >
-                          <span className="text-base">{t.icon}</span>
-                          <span className="font-semibold leading-tight">{t.label}</span>
-                        </button>
-                      ))}
+                      {APPROVAL_TYPES.map(t => {
+                        const TypeIcon = t.icon;
+                        return (
+                          <button key={t.value} type="button"
+                            onClick={() => setForm(f => ({ ...f, type: t.value }))}
+                            className={`flex items-center gap-2.5 p-3 rounded-xl text-left text-xs transition-all border ${form.type === t.value
+                              ? "border-amber-500/40 bg-amber-950/25 text-amber-200"
+                              : "border-white/5 bg-white/3 text-[var(--ck-text-muted)] hover:border-white/10 hover:text-[var(--ck-text)]"}`}
+                          >
+                            <TypeIcon className="w-4 h-4 shrink-0 text-amber-400" />
+                            <span className="font-semibold leading-tight">{t.label}</span>
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
 

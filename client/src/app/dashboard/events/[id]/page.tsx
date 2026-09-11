@@ -358,7 +358,7 @@ export default function EventDetailPage() {
           <div className="overflow-x-auto w-full">
             <table className="ck-table ck-table-responsive whitespace-nowrap">
               <thead>
-                <tr><th>#</th><th>Name</th><th>Email</th><th>Student ID</th><th>Department</th><th>Team</th><th>Registered</th></tr>
+                <tr><th>#</th><th>Name</th><th>Email</th><th>ID (Student / Employee)</th><th>Department</th><th>Team</th><th>Registered</th></tr>
               </thead>
               <tbody>
                 {filteredRegs.map((r, i) => (
@@ -366,7 +366,9 @@ export default function EventDetailPage() {
                     <td className="text-xs" data-label="#">{i + 1}</td>
                     <td className="text-sm font-medium" data-label="Name">{r.user.name}</td>
                     <td className="text-xs" data-label="Email">{r.user.email}</td>
-                    <td className="text-xs" data-label="Student ID">{r.user.studentId || "—"}</td>
+                    <td className="text-xs font-mono" data-label="ID">
+                      {r.user.studentId ? (r.user.role === "FACULTY" ? `EMP: ${r.user.studentId}` : r.user.studentId) : "—"}
+                    </td>
                     <td className="text-xs" data-label="Department">{r.user.department || "—"}</td>
                     <td data-label="Team">{r.team ? <span className="ck-badge ck-badge-primary text-[10px]">{r.team.name} ({r.team.teamCode})</span> : <span className="text-xs" style={{ color: "var(--ck-text-muted)" }}>Individual</span>}</td>
                     <td className="text-xs" style={{ color: "var(--ck-text-muted)" }} data-label="Registered">{new Date(r.createdAt).toLocaleDateString()}</td>

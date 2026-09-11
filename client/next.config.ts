@@ -29,10 +29,10 @@ const securityHeaders = [
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       // Fonts from Google
       "font-src 'self' https://fonts.gstatic.com",
-      // Images: self + data URIs + Cloudinary CDN
-      "img-src 'self' data: blob: https://res.cloudinary.com https://lh3.googleusercontent.com",
+      // Images: self + data URIs + Cloudinary CDN + Google CDN + local backend ports
+      "img-src 'self' data: blob: http://localhost:* http://127.0.0.1:* https: https://res.cloudinary.com https://*.cloudinary.com https://lh3.googleusercontent.com https://*.googleusercontent.com",
       // Connect: self + backend API + WebSocket + Google OAuth endpoints
-      `connect-src 'self' ${process.env.NEXT_PUBLIC_API_URL || ""} ${process.env.NEXT_PUBLIC_WS_URL || ""} wss: https://accounts.google.com`,
+      `connect-src 'self' ${[process.env.NEXT_PUBLIC_API_URL, process.env.NEXT_PUBLIC_WS_URL].filter(Boolean).join(" ")} http://localhost:* http://127.0.0.1:* https: wss: https://accounts.google.com`,
       // Frames: Google OAuth popup only
       "frame-src https://accounts.google.com",
       // Workers: self only
@@ -49,13 +49,24 @@ const securityHeaders = [
   },
   // Allow Google OAuth popup
   { key: "Cross-Origin-Opener-Policy", value: "same-origin-allow-popups" },
-  // Block cross-origin reads of API responses
-  { key: "Cross-Origin-Resource-Policy", value: "same-site" },
+  // Allow cross-origin media and assets
+  { key: "Cross-Origin-Resource-Policy", value: "cross-origin" },
 ];
 
 const nextConfig: NextConfig = {
   // Strip X-Powered-By header at Next.js level
   poweredByHeader: false,
+
+  // Remote image patterns for next/image
+  images: {
+    remotePatterns: [
+      { protocol: "https", hostname: "res.cloudinary.com" },
+      { protocol: "https", hostname: "*.cloudinary.com" },
+      { protocol: "https", hostname: "*.googleusercontent.com" },
+      { protocol: "http", hostname: "localhost" },
+      { protocol: "http", hostname: "127.0.0.1" },
+    ],
+  },
 
   // ── Source Map Security ───────────────────────────────────────────────────
   // Disable browser source maps in production builds.

@@ -2,6 +2,7 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { api, getFileUrl } from "@/lib/api";
+import { DefaultAvatar } from "@/components/default-avatar";
 import { motion } from "framer-motion";
 import { 
   BarChart3, Users, Calendar, FileCheck, Award, TrendingUp, 
@@ -19,7 +20,18 @@ const ROLE_COLORS: Record<string, string> = {
   GUEST: "#64748b",
 };
 
-const MEDALS = ["🥇", "🥈", "🥉"];
+function RankBadge({ rank }: { rank: number }) {
+  if (rank === 0) {
+    return <span className="text-[10px] font-mono font-black px-2 py-0.5 rounded bg-[#00F5D4]/15 border border-[#00F5D4]/50 text-[#00F5D4] shadow-[0_0_8px_rgba(0,245,212,0.3)]">#01</span>;
+  }
+  if (rank === 1) {
+    return <span className="text-[10px] font-mono font-black px-2 py-0.5 rounded bg-[#00E1FF]/15 border border-[#00E1FF]/50 text-[#00E1FF] shadow-[0_0_8px_rgba(0,225,255,0.3)]">#02</span>;
+  }
+  if (rank === 2) {
+    return <span className="text-[10px] font-mono font-black px-2 py-0.5 rounded bg-[#A855F7]/15 border border-[#A855F7]/50 text-[#A855F7] shadow-[0_0_8px_rgba(168,85,247,0.3)]">#03</span>;
+  }
+  return <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-white/5 border border-white/10 text-zinc-400">#{rank + 1}</span>;
+}
 
 function CircleGauge({ value, max, label, color, icon }: { value: number; max: number; label: string; color: string; icon: React.ReactNode }) {
   const pct = Math.min((value / Math.max(max, 1)) * 100, 100);
@@ -105,10 +117,10 @@ function Sparkline({ data }: { data: { date: string; count: number }[] }) {
     <svg width={width} height={height} className="overflow-visible">
       <polyline
         fill="none"
-        stroke="#CCFF00"
+        stroke="#00F5D4"
         strokeWidth="1.5"
         points={points}
-        style={{ filter: "drop-shadow(0 0 3px rgba(204,255,0,0.5))" }}
+        style={{ filter: "drop-shadow(0 0 3px rgba(0,245,212,0.5))" }}
       />
     </svg>
   );
@@ -293,17 +305,17 @@ export default function AnalyticsPage() {
             <span className="text-[10px] font-mono uppercase tracking-widest text-cyan-400">LIVE TELEMETRY FEED</span>
           </div>
           <h1 className="text-4xl font-black font-mono tracking-tighter text-[var(--ck-text)]">
-            ANALYTICS <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-[#CCFF00] to-cyan-400">DASHBOARD</span>
+            ANALYTICS <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-[#00F5D4] to-cyan-400">DASHBOARD</span>
           </h1>
           <p className="text-sm text-zinc-550 mt-1 font-mono">CLUB TELEMETRY // ENGAGEMENT METRICS // ADJUDICATION PERFORMANCE</p>
         </div>
         <motion.div
-          animate={{ borderColor: ["rgba(34,197,94,0.2)", "rgba(34,197,94,0.4)", "rgba(34,197,94,0.2)"] }}
+          animate={{ borderColor: ["rgba(0,245,212,0.2)", "rgba(0,245,212,0.5)", "rgba(0,245,212,0.2)"] }}
           transition={{ duration: 2, repeat: Infinity }}
-          className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl border bg-green-950/10 backdrop-blur-sm"
+          className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl border bg-cyan-950/20 backdrop-blur-sm border-[#00F5D4]/30"
         >
-          <Radio className="w-4 h-4 text-green-400 animate-pulse" />
-          <span className="text-xs font-mono text-green-400 font-bold">SYSTEM ACTIVE</span>
+          <Radio className="w-4 h-4 text-[#00F5D4] animate-pulse" />
+          <span className="text-xs font-mono text-[#00F5D4] font-bold">SYSTEM ACTIVE</span>
         </motion.div>
       </motion.div>
 
@@ -315,24 +327,22 @@ export default function AnalyticsPage() {
           transition={{ delay: 0.05 }}
           className="rounded-2xl ck-glass-card ck-mesh-bg p-6 relative overflow-hidden"
         >
-          <div className="absolute top-0 left-0 right-0 h-[2px]" style={{ background: "linear-gradient(90deg, transparent, #CCFF00, #FF003C, transparent)" }} />
+          <div className="absolute top-0 left-0 right-0 h-[2px]" style={{ background: "linear-gradient(90deg, transparent, #00F5D4, #FF003C, transparent)" }} />
           
           <div className="flex flex-col md:flex-row items-center justify-between gap-6 relative z-10">
             <div className="flex items-center gap-5 flex-col md:flex-row text-center md:text-left">
-              <div className="relative w-24 h-24 rounded-2xl overflow-hidden border-2 border-[#CCFF00]/40 shadow-[0_0_20px_rgba(204,255,0,0.2)] shrink-0 mx-auto md:mx-0">
-                {topAchiever.user?.avatarUrl ? (
-                  <img src={getFileUrl(topAchiever.user.avatarUrl)} alt={topAchiever.user.name} className="w-full h-full object-cover" />
-                ) : (
-                  <div className="w-full h-full bg-[var(--ck-bg-card)] flex items-center justify-center">
-                    <Users className="w-10 h-10 text-zinc-650" />
-                  </div>
-                )}
-                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#CCFF00]/20 to-transparent translate-y-[-100%] animate-[scan_2.5s_linear_infinite]" />
+              <div className="relative w-24 h-24 rounded-2xl overflow-hidden border-2 border-[#00F5D4]/40 shadow-[0_0_20px_rgba(0,245,212,0.2)] shrink-0 mx-auto md:mx-0">
+                <DefaultAvatar
+                  src={topAchiever.user?.avatarUrl ? getFileUrl(topAchiever.user.avatarUrl) : null}
+                  alt={topAchiever.user?.name}
+                  className="w-full h-full rounded-2xl"
+                />
+                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#00F5D4]/20 to-transparent translate-y-[-100%] animate-[scan_2.5s_linear_infinite] pointer-events-none" />
               </div>
 
               <div>
                 <div className="flex items-center justify-center md:justify-start gap-2 mb-1.5">
-                  <div className="w-2 h-2 rounded-full bg-[#CCFF00] animate-pulse" />
+                  <div className="w-2 h-2 rounded-full bg-[#00F5D4] animate-pulse shadow-[0_0_8px_#00F5D4]" />
                   <span className="text-[10px] font-mono text-[var(--ck-primary)] uppercase tracking-widest font-black">HIGH XP LEADER</span>
                 </div>
                 <h2 className="text-2xl font-black font-mono tracking-tighter text-[var(--ck-text)] uppercase">{topAchiever.user?.name}</h2>
@@ -343,8 +353,8 @@ export default function AnalyticsPage() {
                 {topAchiever.badges && topAchiever.badges.length > 0 && (
                   <div className="flex flex-wrap gap-1.5 mt-3 justify-center md:justify-start">
                     {topAchiever.badges.map((b, idx: number) => (
-                      <span key={idx} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white/[0.04] border border-white/[0.06] text-[9px] font-mono text-[var(--ck-text-secondary)]" title={b.description}>
-                        <span>🏅</span>
+                      <span key={idx} className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-white/[0.04] border border-white/[0.06] text-[9px] font-mono text-[var(--ck-text-secondary)]" title={b.description}>
+                        <Award className="w-3 h-3 text-[#00F5D4]" />
                         <span>{b.name}</span>
                       </span>
                     ))}
@@ -356,7 +366,7 @@ export default function AnalyticsPage() {
             <div className="flex gap-5 sm:gap-6 shrink-0 bg-black/40 backdrop-blur-sm border border-white/[0.05] p-5 rounded-xl font-mono text-center md:text-left min-w-[260px] justify-around">
               <div>
                 <p className="text-[9px] text-[var(--ck-text-muted)] uppercase tracking-widest mb-1">XP RANK</p>
-                <p className="text-3xl font-black text-[var(--ck-primary)]" style={{ textShadow: "0 0 20px rgba(204,255,0,0.3)" }}>#01</p>
+                <p className="text-3xl font-black text-[var(--ck-primary)]" style={{ textShadow: "0 0 20px rgba(0,245,212,0.3)" }}>#01</p>
               </div>
               <div className="w-px bg-white/[0.06] self-stretch" />
               <div>
@@ -387,8 +397,8 @@ export default function AnalyticsPage() {
             </h3>
             <div className="space-y-3">
               {top3Data.events.map((e, idx: number) => (
-                <div key={e.id} className="flex items-center gap-3 p-3 rounded-xl bg-white/3 border border-white/5 group hover:border-[#CCFF00]/30 transition-all">
-                  <span className="text-xl shrink-0 font-bold">{MEDALS[idx] || "⭐"}</span>
+                <div key={e.id} className="flex items-center gap-3 p-3 rounded-xl bg-white/3 border border-white/5 group hover:border-[#00F5D4]/30 transition-all">
+                  <RankBadge rank={idx} />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-bold text-[var(--ck-text)] truncate">{e.title}</p>
                     <p className="text-[10px] text-zinc-550 font-mono uppercase">{e.eventType} · {new Date(e.startDate).toLocaleDateString("en-IN")}</p>
@@ -410,16 +420,12 @@ export default function AnalyticsPage() {
             <div className="space-y-3">
               {top3Data.members.map((m, idx: number) => (
                 <div key={m.id} className="flex items-center gap-3 p-3 rounded-xl bg-white/3 border border-white/5 group hover:border-[#06b6d4]/30 transition-all">
-                  <span className="text-xl shrink-0 font-bold">{MEDALS[idx] || "⭐"}</span>
-                  <div className="relative w-8 h-8 rounded-full border border-white/10 overflow-hidden shrink-0">
-                    {m.avatarUrl ? (
-                      <img src={getFileUrl(m.avatarUrl)} alt={m.name} className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="w-full h-full bg-[var(--ck-bg-card)] flex items-center justify-center text-[10px] font-bold text-[var(--ck-text-secondary)]">
-                        {m.name[0]}
-                      </div>
-                    )}
-                  </div>
+                  <RankBadge rank={idx} />
+                  <DefaultAvatar
+                    src={m.avatarUrl ? getFileUrl(m.avatarUrl) : null}
+                    alt={m.name}
+                    className="w-8 h-8 rounded-full"
+                  />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-bold text-[var(--ck-text)] truncate">{m.name}</p>
                     <p className="text-[10px] text-zinc-550 font-mono uppercase">{m.role.replace(/_/g, " ")}</p>
@@ -441,7 +447,7 @@ export default function AnalyticsPage() {
             <div className="space-y-3">
               {top3Data.teams.map((t, idx: number) => (
                 <div key={t.id} className="flex items-center gap-3 p-3 rounded-xl bg-white/3 border border-white/5 group hover:border-[#FF003C]/30 transition-all">
-                  <span className="text-xl shrink-0 font-bold">{MEDALS[idx] || "⭐"}</span>
+                  <RankBadge rank={idx} />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-bold text-[var(--ck-text)] truncate">{t.name}</p>
                     <p className="text-[10px] text-zinc-550 font-mono uppercase truncate">{t.eventTitle}</p>
@@ -587,15 +593,11 @@ export default function AnalyticsPage() {
               return (
                 <div key={c.id} className="rounded-xl border border-white/5 bg-white/1 p-4 flex flex-col justify-between hover:border-[#06b6d4]/30 hover:bg-white/2 transition-all">
                   <div className="flex items-center gap-3 pb-3 border-b border-white/5">
-                    <div className="w-10 h-10 rounded-xl overflow-hidden border border-white/10 shrink-0">
-                      {c.avatarUrl ? (
-                        <img src={getFileUrl(c.avatarUrl)} alt={c.name} className="w-full h-full object-cover" />
-                      ) : (
-                        <div className="w-full h-full bg-[var(--ck-bg-card)] flex items-center justify-center font-bold text-sm text-[var(--ck-text-secondary)]">
-                          {c.name[0]}
-                        </div>
-                      )}
-                    </div>
+                    <DefaultAvatar
+                      src={c.avatarUrl ? getFileUrl(c.avatarUrl) : null}
+                      alt={c.name}
+                      className="w-10 h-10 rounded-xl shrink-0"
+                    />
                     <div className="min-w-0">
                       <p className="text-sm font-bold text-zinc-100 truncate">{c.name}</p>
                       <p className="text-[10px] text-[var(--ck-text-muted)] font-mono uppercase">{c.role.replace(/_/g, " ")}</p>

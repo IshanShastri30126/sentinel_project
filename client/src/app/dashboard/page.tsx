@@ -31,8 +31,25 @@ import {
   FileText,
   CheckCircle,
   Eye,
-  LogIn
+  LogIn,
+  Crosshair,
+  Sun,
+  Terminal,
+  Bug,
+  Trophy,
+  Mic,
+  Lightbulb,
+  Key,
+  Network,
+  GraduationCap,
+  Code,
+  Flame,
+  Crown,
+  Ghost,
+  Radio,
+  Moon
 } from "lucide-react";
+import { CountUp } from "@/components/effects";
 
 interface ClubAnalytics {
   overview: Record<string, number>;
@@ -77,7 +94,7 @@ interface PublicEvent {
   _count: { registrations: number };
 }
 
-// ── Trend / stat helpers ──
+// Trend / stat helpers
 const STAT_ICONS: Record<string, React.ReactNode> = {
   totalUsers: <Users className="w-5 h-5" />,
   totalEvents: <Calendar className="w-5 h-5" />,
@@ -90,19 +107,19 @@ const STAT_ICONS: Record<string, React.ReactNode> = {
 };
 
 const STAT_ACCENTS = [
-  { gradient: "from-[#CCFF00] to-[#99BF00]", text: "#CCFF00", glow: "rgba(204,255,0,0.25)" },
-  { gradient: "from-[#FF4D00] to-[#CC3D00]", text: "#FF4D00", glow: "rgba(255,77,0,0.25)" },
-  { gradient: "from-[#FF003C] to-[#CC002F]", text: "#FF003C", glow: "rgba(255,0,60,0.25)" },
-  { gradient: "from-[#06b6d4] to-[#0891b2]", text: "#06b6d4", glow: "rgba(6,182,212,0.25)" },
-  { gradient: "from-[#8b5cf6] to-[#7c3aed]", text: "#8b5cf6", glow: "rgba(139,92,246,0.25)" },
-  { gradient: "from-[#10b981] to-[#059669]", text: "#10b981", glow: "rgba(16,185,129,0.25)" },
-  { gradient: "from-[#f59e0b] to-[#d97706]", text: "#f59e0b", glow: "rgba(245,158,11,0.25)" },
-  { gradient: "from-[#ec4899] to-[#db2777]", text: "#ec4899", glow: "rgba(236,72,153,0.25)" },
+  { gradient: "from-[#00F5D4] to-[#00B4D8]", text: "#00F5D4", glow: "rgba(0,245,212,0.25)" },
+  { gradient: "from-[#00E1FF] to-[#0077B6]", text: "#00E1FF", glow: "rgba(0,225,255,0.25)" },
+  { gradient: "from-[#FF0055] to-[#CC0044]", text: "#FF0055", glow: "rgba(255,0,85,0.25)" },
+  { gradient: "from-[#A855F7] to-[#7C3AED]", text: "#A855F7", glow: "rgba(168,85,247,0.25)" },
+  { gradient: "from-[#FFB800] to-[#D97706]", text: "#FFB800", glow: "rgba(255,184,0,0.25)" },
+  { gradient: "from-[#10B981] to-[#059669]", text: "#10B981", glow: "rgba(16,185,129,0.25)" },
+  { gradient: "from-[#38BDF8] to-[#0284C7]", text: "#38BDF8", glow: "rgba(56,189,248,0.25)" },
+  { gradient: "from-[#EC4899] to-[#DB2777]", text: "#EC4899", glow: "rgba(236,72,153,0.25)" },
 ];
 
-// ── Unique Badge Visuals (LeetCode-style themed icons per badge) ──
+// Unique Badge Visuals (Lucide icon themed per badge - ZERO emojis)
 interface BadgeTheme {
-  emoji: string;
+  icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>;
   gradient: string;
   glow: string;
   label?: string;
@@ -110,35 +127,33 @@ interface BadgeTheme {
 
 const BADGE_THEME_MAP: Record<string, BadgeTheme> = {
   // --- Achievement badges ---
-  "first blood":       { emoji: "🩸", gradient: "from-red-700 to-rose-900",     glow: "rgba(220,38,38,0.35)" },
-  "early bird":        { emoji: "🌅", gradient: "from-amber-500 to-orange-700",  glow: "rgba(245,158,11,0.35)" },
-  "hacker":            { emoji: "💻", gradient: "from-green-600 to-emerald-800", glow: "rgba(34,197,94,0.35)" },
-  "bug hunter":        { emoji: "🐛", gradient: "from-yellow-500 to-lime-700",   glow: "rgba(132,204,22,0.35)" },
-  "ctf champion":      { emoji: "🏆", gradient: "from-yellow-400 to-amber-600",  glow: "rgba(251,191,36,0.45)" },
-  "team player":       { emoji: "🤝", gradient: "from-blue-600 to-indigo-800",   glow: "rgba(99,102,241,0.35)" },
-  "presenter":         { emoji: "🎙️", gradient: "from-violet-600 to-purple-800", glow: "rgba(139,92,246,0.35)" },
-  "innovator":         { emoji: "💡", gradient: "from-yellow-400 to-orange-500", glow: "rgba(251,146,60,0.35)" },
-  "security guard":    { emoji: "🛡️", gradient: "from-blue-700 to-cyan-900",     glow: "rgba(6,182,212,0.35)" },
-  "crypto master":     { emoji: "🔐", gradient: "from-teal-600 to-emerald-800",  glow: "rgba(20,184,166,0.35)" },
-  "network ninja":     { emoji: "🕸️", gradient: "from-slate-600 to-zinc-800",    glow: "rgba(148,163,184,0.3)" },
-  "top scorer":        { emoji: "⭐", gradient: "from-yellow-300 to-amber-500",  glow: "rgba(252,211,77,0.5)" },
-  "workshop guru":     { emoji: "🎓", gradient: "from-indigo-600 to-blue-800",   glow: "rgba(99,102,241,0.35)" },
-  "contributor":       { emoji: "🤖", gradient: "from-cyan-600 to-blue-800",     glow: "rgba(34,211,238,0.35)" },
-  "speedster":         { emoji: "⚡", gradient: "from-[#CCFF00] to-[#99BF00]",   glow: "rgba(204,255,0,0.4)" },
-  "phoenix":           { emoji: "🔥", gradient: "from-orange-600 to-red-800",    glow: "rgba(249,115,22,0.4)" },
-  "legend":            { emoji: "👑", gradient: "from-amber-400 to-yellow-600",  glow: "rgba(251,191,36,0.5)" },
-  "ghost":             { emoji: "👻", gradient: "from-slate-500 to-gray-700",    glow: "rgba(148,163,184,0.3)" },
-  "social butterfly":  { emoji: "🦋", gradient: "from-pink-500 to-rose-700",     glow: "rgba(244,63,94,0.35)" },
-  "night owl":         { emoji: "🦉", gradient: "from-indigo-800 to-slate-900",  glow: "rgba(67,56,202,0.35)" },
+  "first blood":       { icon: Crosshair, gradient: "from-red-700 to-rose-900",     glow: "rgba(220,38,38,0.35)" },
+  "early bird":        { icon: Sun, gradient: "from-amber-500 to-orange-700",  glow: "rgba(245,158,11,0.35)" },
+  "hacker":            { icon: Terminal, gradient: "from-emerald-600 to-teal-800", glow: "rgba(34,197,94,0.35)" },
+  "bug hunter":        { icon: Bug, gradient: "from-yellow-500 to-lime-700",   glow: "rgba(132,204,22,0.35)" },
+  "ctf champion":      { icon: Trophy, gradient: "from-yellow-400 to-amber-600",  glow: "rgba(251,191,36,0.45)" },
+  "team player":       { icon: Users, gradient: "from-blue-600 to-indigo-800",   glow: "rgba(99,102,241,0.35)" },
+  "presenter":         { icon: Mic, gradient: "from-violet-600 to-purple-800", glow: "rgba(139,92,246,0.35)" },
+  "innovator":         { icon: Lightbulb, gradient: "from-yellow-400 to-orange-500", glow: "rgba(251,146,60,0.35)" },
+  "security guard":    { icon: Shield, gradient: "from-blue-700 to-cyan-900",     glow: "rgba(6,182,212,0.35)" },
+  "crypto master":     { icon: Key, gradient: "from-teal-600 to-emerald-800",  glow: "rgba(20,184,166,0.35)" },
+  "network ninja":     { icon: Network, gradient: "from-slate-600 to-zinc-800",    glow: "rgba(148,163,184,0.3)" },
+  "top scorer":        { icon: Star, gradient: "from-yellow-300 to-amber-500",  glow: "rgba(252,211,77,0.5)" },
+  "workshop guru":     { icon: GraduationCap, gradient: "from-indigo-600 to-blue-800",   glow: "rgba(99,102,241,0.35)" },
+  "contributor":       { icon: Code, gradient: "from-cyan-600 to-blue-800",     glow: "rgba(34,211,238,0.35)" },
+  "speedster":         { icon: Zap, gradient: "from-[#00F5D4] to-[#00B4D8]",   glow: "rgba(0,245,212,0.4)" },
+  "phoenix":           { icon: Flame, gradient: "from-orange-600 to-red-800",    glow: "rgba(249,115,22,0.4)" },
+  "legend":            { icon: Crown, gradient: "from-amber-400 to-yellow-600",  glow: "rgba(251,191,36,0.5)" },
+  "ghost":             { icon: Ghost, gradient: "from-slate-500 to-gray-700",    glow: "rgba(148,163,184,0.3)" },
+  "social butterfly":  { icon: Radio, gradient: "from-pink-500 to-rose-700",     glow: "rgba(244,63,94,0.35)" },
+  "night owl":         { icon: Moon, gradient: "from-indigo-800 to-slate-900",  glow: "rgba(67,56,202,0.35)" },
   // --- Default fallback ---
-  "_default":          { emoji: "🏅", gradient: "from-zinc-700 to-zinc-900",     glow: "rgba(161,161,170,0.3)" },
+  "_default":          { icon: Award, gradient: "from-zinc-700 to-zinc-900",     glow: "rgba(161,161,170,0.3)" },
 };
 
 function getBadgeTheme(badgeName: string): BadgeTheme {
   const key = badgeName.toLowerCase().trim();
-  // Try exact match first
   if (BADGE_THEME_MAP[key]) return BADGE_THEME_MAP[key];
-  // Try partial match
   for (const [k, v] of Object.entries(BADGE_THEME_MAP)) {
     if (k !== "_default" && (key.includes(k) || k.includes(key))) return v;
   }
@@ -420,7 +435,7 @@ export default function DashboardPage() {
     const now = new Date();
     const start = new Date(ev.startDate);
     const end = new Date(ev.endDate || ev.startDate);
-    if (now >= start && now <= end) return { label: "LIVE", color: "#CCFF00", dot: true };
+    if (now >= start && now <= end) return { label: "LIVE", color: "#00F5D4", dot: true };
     if (now < start) return { label: "UPCOMING", color: "#FF4D00", dot: false };
     return { label: "ENDED", color: "#4B5563", dot: false };
   };
@@ -447,9 +462,9 @@ export default function DashboardPage() {
             exit={{ opacity: 0, y: -20, scale: 0.95 }}
             className="fixed top-4 right-4 z-50 flex items-center gap-3 px-5 py-3.5 rounded-xl border shadow-2xl font-mono text-xs uppercase tracking-wider"
             style={{
-              background: notification.type === "success" ? "rgba(204,255,0,0.08)" : "rgba(255,0,60,0.08)",
-              borderColor: notification.type === "success" ? "rgba(204,255,0,0.3)" : "rgba(255,0,60,0.3)",
-              color: notification.type === "success" ? "#CCFF00" : "#FF003C",
+              background: notification.type === "success" ? "rgba(0,245,212,0.08)" : "rgba(255,0,60,0.08)",
+              borderColor: notification.type === "success" ? "rgba(0,245,212,0.3)" : "rgba(255,0,60,0.3)",
+              color: notification.type === "success" ? "#00F5D4" : "#FF003C",
               backdropFilter: "blur(16px)",
             }}
           >
@@ -467,19 +482,19 @@ export default function DashboardPage() {
         className="relative overflow-hidden rounded-2xl ck-glass-card ck-mesh-bg p-5 sm:p-7 lg:p-8"
       >
         {/* Animated gradient border accent at top */}
-        <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#CCFF00] to-transparent opacity-60" />
+        <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#00F5D4] to-transparent opacity-60" />
 
         {/* Scanlines overlay */}
-        <div className="absolute inset-0 bg-[repeating-linear-gradient(0deg,transparent,transparent_2px,rgba(204,255,0,0.008)_2px,rgba(204,255,0,0.008)_4px)] pointer-events-none z-[1]" />
+        <div className="absolute inset-0 bg-[repeating-linear-gradient(0deg,transparent,transparent_2px,rgba(0,245,212,0.008)_2px,rgba(0,245,212,0.008)_4px)] pointer-events-none z-[1]" />
 
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative z-10">
           <div className="min-w-0">
-            <div className="flex items-center gap-2.5 text-[10px] tracking-widest uppercase font-mono mb-2.5" style={{ color: "#CCFF00" }}>
-              <span className={`inline-block w-2 h-2 rounded-full transition-all duration-500 ${livePulse ? "opacity-100 scale-100" : "opacity-30 scale-75"}`} style={{ backgroundColor: "#CCFF00", boxShadow: "0 0 12px #CCFF00" }} />
+            <div className="flex items-center gap-2.5 text-[10px] tracking-widest uppercase font-mono mb-2.5" style={{ color: "#00F5D4" }}>
+              <span className={`inline-block w-2 h-2 rounded-full transition-all duration-500 ${livePulse ? "opacity-100 scale-100" : "opacity-30 scale-75"}`} style={{ backgroundColor: "#00F5D4", boxShadow: "0 0 12px #00F5D4" }} />
               SYSTEM STATUS: SYNCED // OPERATIVE
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[var(--ck-text)]">
-              {greeting}, <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#CCFF00] via-[#FF4D00] to-[#FF003C]">{user?.name}</span>
+              {greeting}, <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#00F5D4] via-[#FF4D00] to-[#FF003C]">{user?.name}</span>
             </h1>
             <p className="mt-2 text-xs sm:text-sm text-[var(--ck-text-secondary)] font-mono">
               Welcome back to your Chakravyuh Club portal. Managed clearances: <span className="font-semibold uppercase text-[var(--ck-text)] font-mono">{user?.role?.replace(/_/g, " ")}</span>.
@@ -488,7 +503,7 @@ export default function DashboardPage() {
           <div className="rounded-xl bg-black/50 backdrop-blur-sm p-3.5 flex flex-col justify-center min-w-[140px] font-mono text-center shrink-0 self-start sm:self-auto border border-white/5">
             <span className="text-[10px] uppercase text-[var(--ck-text-muted)] tracking-wider">Operative Date</span>
             <span className="text-sm font-bold text-[var(--ck-text)] mt-0.5">{new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span>
-            <span className="text-[10px] mt-0.5 uppercase tracking-widest font-semibold" style={{ color: "#CCFF00" }}>{new Date().toLocaleDateString("en-US", { weekday: "long" })}</span>
+            <span className="text-[10px] mt-0.5 uppercase tracking-widest font-semibold" style={{ color: "#00F5D4" }}>{new Date().toLocaleDateString("en-US", { weekday: "long" })}</span>
           </div>
         </div>
       </motion.div>
@@ -525,7 +540,7 @@ export default function DashboardPage() {
                       </span>
                     </div>
                     <p className="text-2xl sm:text-3xl font-extrabold font-mono tracking-tighter relative z-[3]" style={{ color: accent.text }}>
-                      {String(value).padStart(2, "0")}
+                      <CountUp end={Number(value) || 0} durationMs={1200} />
                     </p>
                     <p className="text-[10px] mt-1.5 uppercase font-mono font-bold tracking-widest text-[var(--ck-text-secondary)] relative z-[3]">
                       {STAT_LABELS[key] || key}
@@ -544,9 +559,9 @@ export default function DashboardPage() {
               {opsData && (
                 <motion.div variants={itemVariants} className="ck-glass-card p-5 sm:p-6">
                   <div className="ck-section-header">
-                    <Calendar className="w-4.5 h-4.5" style={{ color: "#CCFF00" }} />
+                    <Calendar className="w-4.5 h-4.5" style={{ color: "#00F5D4" }} />
                     <h2 className="text-sm sm:text-base font-bold uppercase tracking-tight text-[var(--ck-text)] font-mono">Upcoming events</h2>
-                    <span className="ml-auto text-[10px] font-mono px-2.5 py-1 rounded-full" style={{ backgroundColor: "rgba(204,255,0,0.08)", border: "1px solid rgba(204,255,0,0.2)", color: "#CCFF00" }}>
+                    <span className="ml-auto text-[10px] font-mono px-2.5 py-1 rounded-full" style={{ backgroundColor: "rgba(0,245,212,0.08)", border: "1px solid rgba(0,245,212,0.2)", color: "#00F5D4" }}>
                       {opsData.upcomingEvents.length} Active
                     </span>
                   </div>
@@ -567,17 +582,17 @@ export default function DashboardPage() {
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: idx * 0.06 }}
                             onClick={() => router.push(`/dashboard/events/${event.id}`)}
-                            className="flex items-center justify-between p-3.5 rounded-xl border border-white/[0.04] hover:border-[rgba(204,255,0,0.2)] bg-white/[0.02] hover:bg-white/[0.04] transition-all duration-300 group cursor-pointer"
+                            className="flex items-center justify-between p-3.5 rounded-xl border border-white/[0.04] hover:border-[rgba(0,245,212,0.2)] bg-white/[0.02] hover:bg-white/[0.04] transition-all duration-300 group cursor-pointer"
                           >
                             <div className="flex items-center gap-3.5 sm:gap-4 min-w-0">
-                              <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-black/60 flex flex-col items-center justify-center shrink-0 border border-white/[0.06] font-mono group-hover:border-[rgba(204,255,0,0.2)] transition-colors">
-                                <span className="text-xs font-bold leading-none" style={{ color: "#CCFF00" }}>{day}</span>
+                              <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-black/60 flex flex-col items-center justify-center shrink-0 border border-white/[0.06] font-mono group-hover:border-[rgba(0,245,212,0.2)] transition-colors">
+                                <span className="text-xs font-bold leading-none" style={{ color: "#00F5D4" }}>{day}</span>
                                 <span className="text-[9px] text-[var(--ck-text-muted)] mt-0.5 leading-none">{month}</span>
                               </div>
                               <div className="min-w-0">
                                 <p className="text-sm font-semibold text-[var(--ck-text)] group-hover:text-[var(--ck-primary)] transition-colors truncate">{event.title}</p>
                                 <p className="text-xs flex items-center gap-1.5 text-[var(--ck-text-muted)] mt-0.5">
-                                  <Clock className="w-3.5 h-3.5 shrink-0" style={{ color: "#CCFF00" }} />
+                                  <Clock className="w-3.5 h-3.5 shrink-0" style={{ color: "#00F5D4" }} />
                                   {new Date(event.startDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                 </p>
                               </div>
@@ -586,7 +601,7 @@ export default function DashboardPage() {
                               <div className="flex flex-col items-end">
                                 <span className="ck-badge ck-badge-primary text-[10px] px-2 py-0.5">{event._count.registrations} REG</span>
                                 {event._count.attendance > 0 && (
-                                  <span className="text-[9px] font-mono mt-0.5" style={{ color: "#CCFF00" }}>{event._count.attendance} ATTENDED</span>
+                                  <span className="text-[9px] font-mono mt-0.5" style={{ color: "#00F5D4" }}>{event._count.attendance} ATTENDED</span>
                                 )}
                               </div>
                               <ChevronRight className="w-4 h-4 text-[var(--ck-text-muted)] group-hover:text-[var(--ck-primary)] group-hover:translate-x-0.5 transition-all hidden sm:block" />
@@ -608,14 +623,14 @@ export default function DashboardPage() {
                       <div className="flex gap-1.5">
                         <span className="w-2.5 h-2.5 rounded-full bg-[#FF003C]/80" />
                         <span className="w-2.5 h-2.5 rounded-full bg-[#FF4D00]/80" />
-                        <span className="w-2.5 h-2.5 rounded-full bg-[#CCFF00]/80" />
+                        <span className="w-2.5 h-2.5 rounded-full bg-[#00F5D4]/80" />
                       </div>
                       <h2 className="text-xs font-bold flex items-center gap-2 uppercase tracking-wider text-[var(--ck-text)] font-mono">
-                        <Activity className="w-3.5 h-3.5" style={{ color: "#CCFF00" }} /> LIVE ATTENDANCE STREAM
+                        <Activity className="w-3.5 h-3.5" style={{ color: "#00F5D4" }} /> LIVE ATTENDANCE STREAM
                       </h2>
                     </div>
-                    <span className="flex items-center gap-2 text-[9px] font-mono px-2.5 py-1 rounded-full" style={{ backgroundColor: "rgba(204,255,0,0.06)", border: "1px solid rgba(204,255,0,0.15)", color: "#CCFF00" }}>
-                      <span className="w-1.5 h-1.5 rounded-full animate-ping" style={{ backgroundColor: "#CCFF00" }} />
+                    <span className="flex items-center gap-2 text-[9px] font-mono px-2.5 py-1 rounded-full" style={{ backgroundColor: "rgba(0,245,212,0.06)", border: "1px solid rgba(0,245,212,0.15)", color: "#00F5D4" }}>
+                      <span className="w-1.5 h-1.5 rounded-full animate-ping" style={{ backgroundColor: "#00F5D4" }} />
                       MONITORING
                     </span>
                   </div>
@@ -637,12 +652,12 @@ export default function DashboardPage() {
                             className="flex items-center justify-between py-2.5 px-3 rounded-lg hover:bg-white/[0.02] transition-colors text-xs font-mono gap-2"
                           >
                             <div className="flex items-center gap-3 min-w-0">
-                              <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: "#CCFF00", boxShadow: "0 0 8px #CCFF00" }} />
+                              <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: "#00F5D4", boxShadow: "0 0 8px #00F5D4" }} />
                               <div className="min-w-0">
                                 <span className="text-[var(--ck-text)] font-semibold">{record.user.name}</span>
                                 <span className="text-[var(--ck-text-muted)] mx-1.5 hidden sm:inline">checked in to</span>
                                 <span className="text-[var(--ck-text-muted)] mx-1 sm:hidden"> → </span>
-                                <span style={{ color: "#CCFF00" }}>{record.event.title}</span>
+                                <span style={{ color: "#00F5D4" }}>{record.event.title}</span>
                               </div>
                             </div>
                             <span className="text-[10px] text-[var(--ck-text-secondary)] shrink-0">
@@ -720,14 +735,14 @@ export default function DashboardPage() {
               {clubData && (
                 <motion.div variants={itemVariants} className="ck-glass-card p-5 sm:p-6">
                   <div className="ck-section-header">
-                    <Users className="w-4.5 h-4.5" style={{ color: "#CCFF00" }} />
+                    <Users className="w-4.5 h-4.5" style={{ color: "#00F5D4" }} />
                     <h2 className="text-sm font-bold uppercase tracking-tight text-[var(--ck-text)] font-mono">Team Distribution</h2>
                   </div>
                   <div className="space-y-4">
                     {clubData.roleDistribution.map((r, idx) => {
                       const total = clubData.overview.totalUsers || 1;
                       const pct = Math.round((r.count / total) * 100);
-                      const barColors = ["from-[#CCFF00] to-[#99BF00]", "from-[#FF4D00] to-[#CC3D00]", "from-[#06b6d4] to-[#0891b2]", "from-[#8b5cf6] to-[#7c3aed]", "from-[#FF003C] to-[#CC002F]", "from-[#10b981] to-[#059669]"];
+                      const barColors = ["from-[#00F5D4] to-[#00BFA5]", "from-[#FF4D00] to-[#CC3D00]", "from-[#06b6d4] to-[#0891b2]", "from-[#8b5cf6] to-[#7c3aed]", "from-[#FF003C] to-[#CC002F]", "from-[#10b981] to-[#059669]"];
                       return (
                         <div key={r.role}>
                           <div className="flex justify-between text-xs font-mono mb-2">
@@ -757,10 +772,10 @@ export default function DashboardPage() {
           <motion.div variants={itemVariants} className="ck-glass-card p-5 sm:p-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-5 gap-2">
               <div className="ck-section-header mb-0 pb-0 border-b-0">
-                <Database className="w-4.5 h-4.5" style={{ color: "#CCFF00" }} />
+                <Database className="w-4.5 h-4.5" style={{ color: "#00F5D4" }} />
                 <h2 className="text-sm sm:text-base font-bold uppercase tracking-tight text-[var(--ck-text)] font-mono">Member Directory</h2>
               </div>
-              <span className="text-[10px] font-mono px-2.5 py-1 rounded-full self-start sm:self-auto" style={{ backgroundColor: "rgba(204,255,0,0.08)", border: "1px solid rgba(204,255,0,0.2)", color: "#CCFF00" }}>
+              <span className="text-[10px] font-mono px-2.5 py-1 rounded-full self-start sm:self-auto" style={{ backgroundColor: "rgba(0,245,212,0.08)", border: "1px solid rgba(0,245,212,0.2)", color: "#00F5D4" }}>
                 {filteredMembers.length} Records
               </span>
             </div>
@@ -768,7 +783,7 @@ export default function DashboardPage() {
             {/* Search & Filter Bar */}
             <div className="ck-filter-bar mb-4">
               <div className="ck-search-container flex-1" style={{ minWidth: "200px" }}>
-                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 z-10 pointer-events-none" style={{ color: "#CCFF00" }} />
+                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 z-10 pointer-events-none" style={{ color: "#00F5D4" }} />
                 <input
                   type="text"
                   placeholder="Search by name, email, ID..."
@@ -834,7 +849,7 @@ export default function DashboardPage() {
                     paginatedMembers.map((member) => (
                       <tr key={member.id}>
                         <td data-label="ID">
-                          <span className="font-mono font-bold text-xs" style={{ color: "#CCFF00" }}>{member.id}</span>
+                          <span className="font-mono font-bold text-xs" style={{ color: "#00F5D4" }}>{member.id}</span>
                         </td>
                         <td data-label="Name">
                           <span className="font-semibold text-[var(--ck-text)]">{member.name}</span>
@@ -920,7 +935,7 @@ export default function DashboardPage() {
                 </div>
                 <div className="min-w-0 relative z-[3]">
                   <p className="text-2xl sm:text-3xl font-extrabold font-mono tracking-tighter" style={{ color: stat.accent.text }}>
-                    {stat.value}
+                    <CountUp end={Number(stat.value) || 0} durationMs={1200} />
                   </p>
                   <p className="text-[10px] uppercase font-mono tracking-widest text-[var(--ck-text-secondary)] font-bold">{stat.label}</p>
                 </div>
@@ -937,7 +952,7 @@ export default function DashboardPage() {
               {/* My Registered Events Section */}
               <motion.div variants={itemVariants} className="ck-glass-card p-5 sm:p-6">
                 <div className="ck-section-header">
-                  <Shield className="w-4.5 h-4.5 animate-pulse" style={{ color: "#CCFF00" }} />
+                  <Shield className="w-4.5 h-4.5 animate-pulse" style={{ color: "#00F5D4" }} />
                   <h2 className="text-sm sm:text-base font-bold uppercase tracking-tight text-[var(--ck-text)] font-mono">My Registered Events</h2>
                   <span className="ml-auto text-[10px] font-mono text-[var(--ck-text-muted)]">
                     {registeredEvents.length} Event{registeredEvents.length !== 1 ? "s" : ""}
@@ -958,7 +973,7 @@ export default function DashboardPage() {
                           key={event.id}
                           variants={itemVariants}
                           whileHover={{ y: -4, transition: { duration: 0.2 } }}
-                          className="flex flex-col rounded-2xl border border-white/[0.04] bg-black/30 overflow-hidden hover:border-[rgba(204,255,0,0.2)] hover:shadow-[0_8px_32px_rgba(204,255,0,0.06)] transition-all duration-300 relative group"
+                          className="flex flex-col rounded-2xl border border-white/[0.04] bg-black/30 overflow-hidden hover:border-[rgba(0,245,212,0.2)] hover:shadow-[0_8px_32px_rgba(0,245,212,0.06)] transition-all duration-300 relative group"
                         >
                           {/* Image Poster with Status Badge */}
                           <div className="h-32 sm:h-40 relative overflow-hidden">
@@ -1007,7 +1022,7 @@ export default function DashboardPage() {
 
                               <div className="mt-3 sm:mt-4 space-y-2 font-mono text-[10px] text-[var(--ck-text-secondary)]">
                                 <div className="flex items-center gap-2">
-                                  <Clock className="w-3.5 h-3.5 shrink-0" style={{ color: "#CCFF00" }} />
+                                  <Clock className="w-3.5 h-3.5 shrink-0" style={{ color: "#00F5D4" }} />
                                   <span>
                                     {new Date(event.startDate).toLocaleDateString("en-IN", {
                                       day: "numeric",
@@ -1023,7 +1038,7 @@ export default function DashboardPage() {
                                 </div>
                                 {event.venue && (
                                   <div className="flex items-center gap-2">
-                                    <MapPin className="w-3.5 h-3.5 shrink-0" style={{ color: "#CCFF00" }} />
+                                    <MapPin className="w-3.5 h-3.5 shrink-0" style={{ color: "#00F5D4" }} />
                                     <span className="truncate">{event.venue}</span>
                                   </div>
                                 )}
@@ -1077,7 +1092,7 @@ export default function DashboardPage() {
 
               <motion.div variants={itemVariants} className="ck-glass-card p-5 sm:p-6">
                 <div className="ck-section-header">
-                  <Calendar className="w-4.5 h-4.5 animate-pulse" style={{ color: "#CCFF00" }} />
+                  <Calendar className="w-4.5 h-4.5 animate-pulse" style={{ color: "#00F5D4" }} />
                   <h2 className="text-sm sm:text-base font-bold uppercase tracking-tight text-[var(--ck-text)] font-mono">Upcoming Cyber Events</h2>
                   <span className="ml-auto text-[10px] font-mono text-[var(--ck-text-muted)]">Register to participate</span>
                 </div>
@@ -1098,7 +1113,7 @@ export default function DashboardPage() {
                           key={event.id}
                           variants={itemVariants}
                           whileHover={{ y: -4, transition: { duration: 0.2 } }}
-                          className="flex flex-col rounded-2xl border border-white/[0.04] bg-black/30 overflow-hidden hover:border-[rgba(204,255,0,0.2)] hover:shadow-[0_8px_32px_rgba(204,255,0,0.06)] transition-all duration-300 relative group"
+                          className="flex flex-col rounded-2xl border border-white/[0.04] bg-black/30 overflow-hidden hover:border-[rgba(0,245,212,0.2)] hover:shadow-[0_8px_32px_rgba(0,245,212,0.06)] transition-all duration-300 relative group"
                         >
                           {/* Image Poster with Category Badge */}
                           <div className="h-32 sm:h-40 relative overflow-hidden">
@@ -1115,7 +1130,7 @@ export default function DashboardPage() {
                                 <Calendar className="w-12 h-12 text-zinc-800" />
                               </div>
                             )}
-                            <span className="absolute top-3 left-3 px-2.5 py-1 rounded-full text-[9px] font-bold font-mono tracking-wider border uppercase backdrop-blur-sm" style={{ backgroundColor: "rgba(204,255,0,0.1)", borderColor: "rgba(204,255,0,0.25)", color: "#CCFF00" }}>
+                            <span className="absolute top-3 left-3 px-2.5 py-1 rounded-full text-[9px] font-bold font-mono tracking-wider border uppercase backdrop-blur-sm" style={{ backgroundColor: "rgba(0,245,212,0.1)", borderColor: "rgba(0,245,212,0.25)", color: "#00F5D4" }}>
                               {event.eventType.replace(/_/g, " ")}
                             </span>
                           </div>
@@ -1130,7 +1145,7 @@ export default function DashboardPage() {
                               
                               <div className="mt-3 sm:mt-4 space-y-2 font-mono text-[10px] text-[var(--ck-text-secondary)]">
                                 <div className="flex items-center gap-2">
-                                  <Clock className="w-3.5 h-3.5 shrink-0" style={{ color: "#CCFF00" }} />
+                                  <Clock className="w-3.5 h-3.5 shrink-0" style={{ color: "#00F5D4" }} />
                                   <span>
                                     {new Date(event.startDate).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
                                     {" · "}
@@ -1139,12 +1154,12 @@ export default function DashboardPage() {
                                 </div>
                                 {event.venue && (
                                   <div className="flex items-center gap-2">
-                                    <MapPin className="w-3.5 h-3.5 shrink-0" style={{ color: "#CCFF00" }} />
+                                    <MapPin className="w-3.5 h-3.5 shrink-0" style={{ color: "#00F5D4" }} />
                                     <span className="truncate">{event.venue}</span>
                                   </div>
                                 )}
                                 <div className="flex items-center gap-2">
-                                  <Users className="w-3.5 h-3.5 shrink-0" style={{ color: "#CCFF00" }} />
+                                  <Users className="w-3.5 h-3.5 shrink-0" style={{ color: "#00F5D4" }} />
                                   <span>
                                     {event._count.registrations} {event.maxCapacity ? `/ ${event.maxCapacity}` : ""} Registered
                                   </span>
@@ -1156,7 +1171,7 @@ export default function DashboardPage() {
                                 <div className="mt-3">
                                   <div className="h-1 rounded-full overflow-hidden bg-white/[0.04]">
                                     <div 
-                                      className="h-full bg-gradient-to-r from-[#CCFF00] to-[#FF4D00]" 
+                                      className="h-full bg-gradient-to-r from-[#00F5D4] to-[#FF4D00]" 
                                       style={{ width: `${Math.min(100, Math.round((event._count.registrations / event.maxCapacity) * 100))}%` }}
                                     />
                                   </div>
@@ -1169,7 +1184,7 @@ export default function DashboardPage() {
                                 onClick={() => router.push(`/events/${event.slug}`)}
                                 className="w-full ck-btn-secondary py-2.5 text-xs mt-4 sm:mt-5 flex items-center justify-center gap-1.5 font-bold font-mono tracking-wider uppercase"
                               >
-                                <Eye className="w-3.5 h-3.5 text-[#CCFF00]" /> View Event
+                                <Eye className="w-3.5 h-3.5 text-[#00F5D4]" /> View Event
                               </button>
                             ) : !user ? (
                               <button
@@ -1205,7 +1220,7 @@ export default function DashboardPage() {
               {/* ═══ Point History / Logs ═══ */}
               <motion.div variants={itemVariants} className="ck-glass-card p-5 sm:p-6">
                 <div className="ck-section-header">
-                  <TrendingUp className="w-4.5 h-4.5" style={{ color: "#CCFF00" }} />
+                  <TrendingUp className="w-4.5 h-4.5" style={{ color: "#00F5D4" }} />
                   <h2 className="text-sm sm:text-base font-bold uppercase tracking-tight text-[var(--ck-text)] font-mono">Contribution Log</h2>
                 </div>
 
@@ -1225,7 +1240,7 @@ export default function DashboardPage() {
                         className="flex items-center justify-between p-3.5 rounded-xl border border-white/[0.04] hover:border-white/[0.08] bg-white/[0.02] hover:bg-white/[0.03] transition-all text-xs font-mono gap-3"
                       >
                         <div className="flex items-center gap-3 min-w-0">
-                          <div className="w-1 h-8 rounded-full shrink-0" style={{ background: log.points >= 0 ? "linear-gradient(180deg, #CCFF00, #99BF00)" : "linear-gradient(180deg, #FF003C, #CC002F)" }} />
+                          <div className="w-1 h-8 rounded-full shrink-0" style={{ background: log.points >= 0 ? "linear-gradient(180deg, #00F5D4, #00BFA5)" : "linear-gradient(180deg, #FF003C, #CC002F)" }} />
                           <div className="min-w-0">
                             <p className="font-semibold text-[var(--ck-text)] uppercase">{log.category.replace(/_/g, " ")}</p>
                             {log.reason && <p className="text-[10px] text-[var(--ck-text-secondary)] mt-0.5 truncate">{log.reason}</p>}
@@ -1233,9 +1248,9 @@ export default function DashboardPage() {
                           </div>
                         </div>
                         <span className="text-sm font-bold font-mono px-2.5 py-1 rounded-lg shrink-0 border" style={{
-                          backgroundColor: log.points >= 0 ? "rgba(204,255,0,0.08)" : "rgba(255,0,60,0.08)",
-                          color: log.points >= 0 ? "#CCFF00" : "#FF003C",
-                          borderColor: log.points >= 0 ? "rgba(204,255,0,0.2)" : "rgba(255,0,60,0.2)"
+                          backgroundColor: log.points >= 0 ? "rgba(0,245,212,0.08)" : "rgba(255,0,60,0.08)",
+                          color: log.points >= 0 ? "#00F5D4" : "#FF003C",
+                          borderColor: log.points >= 0 ? "rgba(0,245,212,0.2)" : "rgba(255,0,60,0.2)"
                         }}>
                           {log.points >= 0 ? `+${log.points}` : log.points} PTS
                         </span>
@@ -1251,7 +1266,7 @@ export default function DashboardPage() {
               {/* ═══ Badges showcase ═══ */}
               <motion.div variants={itemVariants} className="ck-glass-card p-5 sm:p-6">
                 <div className="ck-section-header">
-                  <Award className="w-4.5 h-4.5" style={{ color: "#CCFF00" }} />
+                  <Award className="w-4.5 h-4.5" style={{ color: "#00F5D4" }} />
                   <h2 className="text-sm sm:text-base font-bold uppercase tracking-tight text-[var(--ck-text)] font-mono">BADGES VAULT</h2>
                 </div>
 
@@ -1264,6 +1279,7 @@ export default function DashboardPage() {
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     {memberHistory.badges.map((b) => {
                       const theme = getBadgeTheme(b.badge.name);
+                      const BadgeIcon = theme.icon;
                       return (
                         <motion.div
                           key={b.id}
@@ -1286,7 +1302,7 @@ export default function DashboardPage() {
                             className={`relative w-10 h-10 rounded-full mx-auto mb-2 flex items-center justify-center bg-gradient-to-br ${theme.gradient} shadow-lg`}
                             style={{ boxShadow: `0 0 12px ${theme.glow}` }}
                           >
-                            <span className="text-lg leading-none">{theme.emoji}</span>
+                            <BadgeIcon className="w-5 h-5 text-white drop-shadow-md" />
                           </div>
                           <p className="relative text-[9px] font-mono font-bold mt-1 truncate uppercase tracking-wider text-white/80 group-hover:text-[var(--ck-text)] transition-colors">{b.badge.name}</p>
                         </motion.div>
@@ -1312,7 +1328,7 @@ export default function DashboardPage() {
                     <button
                       key={action.href}
                       onClick={() => router.push(action.href)}
-                      className="w-full flex items-center justify-between px-4 py-3 rounded-xl border border-white/[0.04] hover:border-[rgba(204,255,0,0.2)] bg-white/[0.02] hover:bg-white/[0.04] text-[11px] font-mono transition-all group"
+                      className="w-full flex items-center justify-between px-4 py-3 rounded-xl border border-white/[0.04] hover:border-[rgba(0,245,212,0.2)] bg-white/[0.02] hover:bg-white/[0.04] text-[11px] font-mono transition-all group"
                     >
                       <span className="text-[var(--ck-text)] group-hover:text-[var(--ck-primary)] transition-colors">{action.label}</span>
                       <ArrowRight className="w-3.5 h-3.5 text-[var(--ck-text-muted)] group-hover:text-[var(--ck-primary)] group-hover:translate-x-0.5 transition-all" />

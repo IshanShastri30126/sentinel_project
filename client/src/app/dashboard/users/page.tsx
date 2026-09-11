@@ -16,6 +16,7 @@ interface UserEntry {
   email: string; 
   role: string; 
   studentId?: string; 
+  employeeId?: string; 
   department?: string; 
   phone?: string; 
   semester?: string; 
@@ -119,9 +120,9 @@ export default function UsersPage() {
                 <div>
                   <div className="flex items-center gap-2">
                     <p className="text-sm font-semibold text-[var(--ck-text)]">{u.name}</p>
-                    {u.studentId && (
+                    {(u.employeeId || u.studentId) && (
                       <span className="text-[9px] font-mono bg-[#FF4D00]/10 border border-[#FF4D00]/25 px-1.5 py-0.5 rounded text-[var(--ck-accent)]">
-                        {u.role === "FACULTY" ? `EMP ID: ${u.studentId}` : `ST ID: ${u.studentId}`}
+                        {u.role === "FACULTY" ? `EMP ID: ${u.employeeId || u.studentId}` : `ST ID: ${u.studentId}`}
                       </span>
                     )}
                   </div>
@@ -149,7 +150,7 @@ export default function UsersPage() {
       {/* Filters */}
       <div className="flex flex-wrap gap-3 items-center mb-6">
         <div className="relative flex-1 max-w-sm ck-search-container ck-input-icon-wrapper">
-          <Search className="w-4 h-4" style={{ color: "#CCFF00" }} />
+          <Search className="w-4 h-4 text-[#00F5D4]" />
           <input className="ck-input ck-search-input pl-9" placeholder="SEARCH BY IDENTITY..." value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
         <select className="ck-input w-auto text-xs py-2 font-mono" value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)}>
@@ -188,15 +189,17 @@ export default function UsersPage() {
                     {/* Profile & ID */}
                     <td data-label="Profile & ID">
                       <div className="flex items-center gap-2.5">
-                        {u.avatarUrl ? (
-                          <img src={getFileUrl(u.avatarUrl)} alt="Avatar" className="w-9 h-9 rounded-lg object-cover border border-violet-500/20" />
-                        ) : (
-                          <DefaultAvatar className="w-9 h-9" />
-                        )}
+                        <DefaultAvatar
+                          src={u.avatarUrl ? getFileUrl(u.avatarUrl) : null}
+                          alt={u.name}
+                          className="w-9 h-9 border border-[#00F5D4]/25"
+                        />
                         <div>
                           <p className="text-sm font-semibold text-[var(--ck-text)] tracking-wide">{u.name}</p>
                           <p className="text-[10px] font-mono mt-0.5 text-[var(--ck-text-muted)] uppercase">
-                            {u.studentId ? (u.role === "FACULTY" ? `EMPID: ${u.studentId}` : `STID: ${u.studentId}`) : "GUEST / NO ID"}
+                            {u.role === "FACULTY" 
+                              ? (u.employeeId || u.studentId ? `EMPID: ${u.employeeId || u.studentId}` : "FACULTY / NO ID")
+                              : (u.studentId ? `STID: ${u.studentId}` : "GUEST / NO ID")}
                           </p>
                         </div>
                       </div>
@@ -307,7 +310,7 @@ export default function UsersPage() {
                       onClick={() => setCurrentPage(pageNum)}
                       className={`w-7 h-7 rounded-lg border text-[10px] font-bold font-mono transition-all duration-200 ${
                         isCurrent
-                          ? "bg-[#CCFF00] border-[#CCFF00] text-black shadow-[0_0_8px_rgba(204,255,0,0.3)]"
+                          ? "bg-[#00F5D4] border-[#00F5D4] text-black shadow-[0_0_8px_rgba(0,245,212,0.3)]"
                           : "border-[var(--ck-border)] bg-zinc-900/40 hover:border-[var(--ck-border)] text-[var(--ck-text-secondary)] hover:text-[var(--ck-text)]"
                       }`}
                     >

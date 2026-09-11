@@ -66,7 +66,7 @@ const SECTIONS: SettingSection[] = [
     id: "branding",
     title: "CLUB BRANDING & THEME",
     icon: <Globe className="w-4 h-4" />,
-    color: "var(--ck-lime)",
+    color: "#00F5D4",
     fields: []
   }
 ];
@@ -79,7 +79,7 @@ export default function SettingsPage() {
   const [activeSection, setActiveSection] = useState("system");
 
   // Custom branding states
-  const [primaryColor, setPrimaryColor] = useState("#CCFF00");
+  const [primaryColor, setPrimaryColor] = useState("#00F5D4");
   const [secondaryColor, setSecondaryColor] = useState("#FF4D00");
   const [themeMode, setThemeMode] = useState("dark");
   const [fontFamily, setFontFamily] = useState("Outfit");
@@ -133,17 +133,17 @@ export default function SettingsPage() {
       <motion.div initial={{ opacity: 0, y: -15 }} animate={{ opacity: 1, y: 0 }} className="flex items-start justify-between flex-wrap gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <div className="w-2 h-2 rounded-full bg-[var(--ck-lime)] animate-pulse shadow-[0_0_8px_var(--ck-lime)]" />
-            <span className="text-[10px] font-mono uppercase tracking-widest text-[var(--ck-lime)]">SYSTEM CONSOLE</span>
+            <div className="w-2 h-2 rounded-full bg-[var(--ck-primary)] animate-pulse shadow-[0_0_8px_var(--ck-primary)]" />
+            <span className="text-[10px] font-mono uppercase tracking-widest text-[var(--ck-primary)]">SYSTEM CONSOLE</span>
           </div>
           <h1 className="text-3xl font-black font-mono tracking-tighter text-[var(--ck-text)]">
-            SETTINGS <span className="text-[var(--ck-lime)]">PANEL</span>
+            SETTINGS <span className="text-[var(--ck-primary)]">PANEL</span>
           </h1>
           <p className="text-xs text-[var(--ck-text-muted)] mt-1 font-mono">COORDINATOR ACCESS ONLY · NAMESPACE PARAMETERS</p>
         </div>
-        <div className="flex items-center gap-2 px-4 py-2 rounded-xl border border-[var(--ck-lime)]/20 bg-[var(--ck-lime)]/5">
-          <Shield className="w-4 h-4 text-[var(--ck-lime)]" />
-          <span className="text-xs font-mono text-[var(--ck-lime)] font-bold">COORDINATOR SIGNATURE APPROVED</span>
+        <div className="flex items-center gap-2 px-4 py-2 rounded-xl border border-[var(--ck-primary)]/20 bg-[var(--ck-primary)]/5">
+          <Shield className="w-4 h-4 text-[var(--ck-primary)]" />
+          <span className="text-xs font-mono text-[var(--ck-primary)] font-bold">COORDINATOR SIGNATURE APPROVED</span>
         </div>
       </motion.div>
 
@@ -159,12 +159,12 @@ export default function SettingsPage() {
                 : "border border-transparent text-[var(--ck-text-muted)] hover:text-[var(--ck-text)] hover:bg-white/3"
               }`}
               style={activeSection === s.id ? {
-                background: s.id === "branding" ? "rgba(204,255,0,0.08)" : `${s.color}10`,
-                borderColor: s.id === "branding" ? "var(--ck-lime)" : `${s.color}25`,
-                color: s.id === "branding" ? "var(--ck-lime)" : s.color
+                background: s.id === "branding" ? "rgba(0,245,212,0.08)" : `${s.color}10`,
+                borderColor: s.id === "branding" ? "var(--ck-primary)" : `${s.color}25`,
+                color: s.id === "branding" ? "var(--ck-primary)" : s.color
               } : {}}
             >
-              <span style={activeSection === s.id ? { color: s.id === "branding" ? "var(--ck-lime)" : s.color } : { color: "#52525b" }}>{s.icon}</span>
+              <span style={activeSection === s.id ? { color: s.id === "branding" ? "var(--ck-primary)" : s.color } : { color: "#52525b" }}>{s.icon}</span>
               <span className="text-[11px] font-black uppercase tracking-wider">{s.title.split(" ")[0]}</span>
               <ChevronRight className="w-3.5 h-3.5 ml-auto opacity-50" />
             </button>
@@ -180,20 +180,20 @@ export default function SettingsPage() {
             transition={{ duration: 0.2 }}
             className="rounded-2xl border overflow-hidden"
             style={{
-              borderColor: activeSection === "branding" ? "rgba(204,255,0,0.2)" : `${section.color}20`,
-              background: activeSection === "branding" ? "rgba(204,255,0,0.02)" : `${section.color}05`
+              borderColor: activeSection === "branding" ? "rgba(0,245,212,0.2)" : `${section.color}20`,
+              background: activeSection === "branding" ? "rgba(0,245,212,0.02)" : `${section.color}05`
             }}
           >
             {/* Panel header */}
-            <div className="px-6 py-4 border-b flex items-center gap-3" style={{ borderColor: activeSection === "branding" ? "rgba(204,255,0,0.15)" : `${section.color}15` }}>
+            <div className="px-6 py-4 border-b flex items-center gap-3" style={{ borderColor: activeSection === "branding" ? "rgba(0,245,212,0.15)" : `${section.color}15` }}>
               <div className="w-9 h-9 rounded-xl flex items-center justify-center border" style={{
-                background: activeSection === "branding" ? "rgba(204,255,0,0.1)" : `${section.color}15`,
-                borderColor: activeSection === "branding" ? "rgba(204,255,0,0.2)" : `${section.color}30`
+                background: activeSection === "branding" ? "rgba(0,245,212,0.1)" : `${section.color}15`,
+                borderColor: activeSection === "branding" ? "rgba(0,245,212,0.2)" : `${section.color}30`
               }}>
-                <span style={{ color: activeSection === "branding" ? "var(--ck-lime)" : section.color }}>{section.icon}</span>
+                <span style={{ color: activeSection === "branding" ? "var(--ck-primary)" : section.color }}>{section.icon}</span>
               </div>
               <div>
-                <h2 className="text-sm font-black uppercase tracking-widest" style={{ color: activeSection === "branding" ? "var(--ck-lime)" : section.color }}>{section.title}</h2>
+                <h2 className="text-sm font-black uppercase tracking-widest" style={{ color: activeSection === "branding" ? "var(--ck-primary)" : section.color }}>{section.title}</h2>
                 <p className="text-[10px] text-zinc-650 font-mono mt-0.5">PLATFORM CONFIGURATION PARAMETERS</p>
               </div>
             </div>
@@ -202,13 +202,13 @@ export default function SettingsPage() {
             {activeSection === "branding" ? (
               <div className="p-6 space-y-5">
                 <div className="space-y-1.5">
-                  <label className="block text-[10px] font-bold uppercase tracking-widest font-mono text-[var(--ck-lime)]">
+                  <label className="block text-[10px] font-bold uppercase tracking-widest font-mono text-[var(--ck-primary)]">
                     Theme Mode
                   </label>
                   <p className="text-[11px] text-[var(--ck-text-muted)]">Toggle default background colors and text contrasts.</p>
                   <div className="flex gap-2">
                     {[
-                      { id: "dark", label: "DARK DEEP SPACE" },
+                      { id: "dark", label: "DARK CYBER COMMAND" },
                       { id: "light", label: "LIGHT OPERATIVE" }
                     ].map(mode => {
                       const active = themeMode === mode.id;
@@ -219,9 +219,9 @@ export default function SettingsPage() {
                           onClick={() => setThemeMode(mode.id)}
                           className="px-4 py-2 text-xs font-bold font-mono border rounded-lg transition-all cursor-pointer"
                           style={{
-                            background: active ? "rgba(204,255,0,0.08)" : "transparent",
-                            borderColor: active ? "var(--ck-lime)" : "#1A1E26",
-                            color: active ? "var(--ck-lime)" : "#8892A4"
+                            background: active ? "rgba(0,245,212,0.08)" : "transparent",
+                            borderColor: active ? "var(--ck-primary)" : "#1A1E26",
+                            color: active ? "var(--ck-primary)" : "#8892A4"
                           }}
                         >
                           {mode.label}
@@ -233,7 +233,7 @@ export default function SettingsPage() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <label className="block text-[10px] font-bold uppercase tracking-widest font-mono text-[var(--ck-lime)]">
+                    <label className="block text-[10px] font-bold uppercase tracking-widest font-mono text-[var(--ck-primary)]">
                       Primary Brand Color
                     </label>
                     <div className="flex gap-2 items-center">
@@ -253,7 +253,7 @@ export default function SettingsPage() {
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="block text-[10px] font-bold uppercase tracking-widest font-mono text-[var(--ck-lime)]">
+                    <label className="block text-[10px] font-bold uppercase tracking-widest font-mono text-[var(--ck-primary)]">
                       Secondary Brand Color
                     </label>
                     <div className="flex gap-2 items-center">
@@ -274,7 +274,7 @@ export default function SettingsPage() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="block text-[10px] font-bold uppercase tracking-widest font-mono text-[var(--ck-lime)]">
+                  <label className="block text-[10px] font-bold uppercase tracking-widest font-mono text-[var(--ck-primary)]">
                     Font Family
                   </label>
                   <select
@@ -289,7 +289,7 @@ export default function SettingsPage() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="block text-[10px] font-bold uppercase tracking-widest font-mono text-[var(--ck-lime)]">
+                  <label className="block text-[10px] font-bold uppercase tracking-widest font-mono text-[var(--ck-primary)]">
                     Custom Logo URL (Optional)
                   </label>
                   <input
@@ -347,11 +347,11 @@ export default function SettingsPage() {
                 <button onClick={handleSaveBranding} disabled={saving}
                   className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer"
                   style={{
-                    background: saved ? "rgba(16,185,129,0.15)" : "rgba(204,255,0,0.15)",
+                    background: saved ? "rgba(16,185,129,0.15)" : "rgba(0,245,212,0.15)",
                     borderWidth: 1,
                     borderStyle: "solid",
-                    borderColor: saved ? "rgba(16,185,129,0.3)" : "rgba(204,255,0,0.3)",
-                    color: saved ? "#10b981" : "var(--ck-lime)",
+                    borderColor: saved ? "rgba(16,185,129,0.3)" : "rgba(0,245,212,0.3)",
+                    color: saved ? "#10b981" : "var(--ck-primary)",
                   }}
                 >
                   {saving ? (

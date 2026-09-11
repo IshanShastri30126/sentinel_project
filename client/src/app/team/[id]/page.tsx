@@ -1,14 +1,29 @@
 "use client";
+
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { 
-  ArrowLeft, Mail, Phone, User, Calendar, IdCard, 
-  Building, Share2, Link2, ShieldAlert, Check, Users
+  ArrowLeft, 
+  Mail, 
+  Phone, 
+  User, 
+  Calendar, 
+  IdCard, 
+  Building, 
+  Share2, 
+  Link2, 
+  ShieldAlert, 
+  Check 
 } from "lucide-react";
 import { api, getFileUrl } from "@/lib/api";
-import { SentinalLogo } from "@/components/SentinalLogo";
+import { Navbar } from "@/components/navigation/Navbar";
+import { Footer } from "@/components/navigation/Footer";
 import { ProfileCard } from "@/components/ProfileCard";
+import { CyberButton } from "@/components/ui/CyberButton";
+import { CyberBadge } from "@/components/ui/CyberBadge";
+import { SystemLabel } from "@/components/ui/SystemLabel";
+import { CyberCard } from "@/components/ui/CyberCard";
 
 interface TeamMember {
   id: string;
@@ -33,7 +48,6 @@ interface TeamMember {
   cyberSpecialAbility?: string;
 }
 
-// Icon components for brands
 const GithubIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} style={{ width: '1em', height: '1em' }}>
     <path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4" />
@@ -57,6 +71,15 @@ const InstagramIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
   </svg>
 );
 
+/**
+ * MemberProfilePage
+ *
+ * Tactical operative dossier displaying service records, clearance tier,
+ * role-based profile management (Employee ID for Faculty, Student ID for students),
+ * and interactive 3D credential holographic card.
+ *
+ * @returns {JSX.Element} Rendered operative profile dossier.
+ */
 export default function MemberProfilePage() {
   const params = useParams();
   const router = useRouter();
@@ -65,6 +88,7 @@ export default function MemberProfilePage() {
   const [member, setMember] = useState<TeamMember | null>(null);
   const [loading, setLoading] = useState(true);
   const [copiedLink, setCopiedLink] = useState(false);
+  const [headerImgFailed, setHeaderImgFailed] = useState(false);
   const [copiedShare, setCopiedShare] = useState(false);
 
   useEffect(() => {
@@ -76,7 +100,7 @@ export default function MemberProfilePage() {
           if (found) setMember(found);
         }
       } catch (err) {
-        console.error("Failed to load member profiles", err);
+        console.error("Failed to load operative dossier", err);
       } finally {
         setLoading(false);
       }
@@ -100,65 +124,38 @@ export default function MemberProfilePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-zinc-800 border-t-[#CCFF00] rounded-full animate-spin" />
+      <div className="min-h-screen bg-[#02050B] flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-cyan-500/30 border-t-[#00F5D4] rounded-full animate-spin" />
       </div>
     );
   }
 
   if (!member) {
     return (
-      <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center gap-4 font-mono">
-        <ShieldAlert className="w-12 h-12 text-[#FF003C] animate-bounce" />
-        <h2 className="text-lg uppercase tracking-widest text-[#FF003C]">Member Clearance Profile Not Found</h2>
-        <Link href="/team" className="ck-btn-secondary text-xs uppercase flex items-center gap-1.5 mt-2">
-          <ArrowLeft className="w-4 h-4" /> Back to Team
+      <div className="min-h-screen bg-[#02050B] text-slate-100 flex flex-col items-center justify-center gap-4 font-mono">
+        <ShieldAlert className="w-12 h-12 text-[#FF0055] animate-bounce" />
+        <h2 className="text-base uppercase tracking-widest text-[#FF0055]">
+          OPERATIVE DOSSIER NOT FOUND
+        </h2>
+        <Link href="/team">
+          <CyberButton variant="secondary" size="sm" leftIcon={<ArrowLeft className="w-4 h-4" />}>
+            RETURN TO CADRE
+          </CyberButton>
         </Link>
       </div>
     );
   }
 
-  // Split about text by line to create skills list
   const skillLines = member.about ? member.about.split("\n").filter((l: string) => l.trim().length > 0) : [];
+  const isFaculty = member.role === "FACULTY";
 
   return (
-    <div className="min-h-screen bg-black text-white font-sans relative selection:bg-red-500/30">
-      
-      {/* Navbar */}
-      <header className="relative z-50 flex items-center justify-between px-6 py-6 max-w-7xl mx-auto border-b border-white/10">
-        <div className="flex items-center gap-4">
-          <button 
-            onClick={() => {
-              if (typeof window !== "undefined" && window.history.length > 1) {
-                router.back();
-              } else {
-                router.push("/team");
-              }
-            }}
-            className="p-2 rounded-full hover:bg-white/10 text-zinc-400 hover:text-white transition-colors"
-            title="Go Back"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </button>
-          <div className="flex items-center gap-3">
-            <Link href="/" className="flex items-center gap-3">
-              <SentinalLogo animateDrawing={false} />
-            </Link>
-          </div>
-        </div>
+    <div className="min-h-screen bg-[#02050B] text-slate-100 font-sans relative selection:bg-[#00F5D4]/20 overflow-x-hidden">
+      {/* Universal Tactical Navigation */}
+      <Navbar />
 
-        <div className="flex items-center gap-6 font-mono text-xs uppercase tracking-wider">
-          <Link href="/" className="text-zinc-400 hover:text-white transition">Home</Link>
-          <Link href="/team" className="text-[#CCFF00] font-bold">Team</Link>
-          <Link href="/events" className="text-zinc-400 hover:text-white transition">Events</Link>
-          <Link href="/auth" className="text-zinc-400 hover:text-white transition">Register</Link>
-        </div>
-      </header>
-
-      {/* Main Layout Area */}
-      <main className="max-w-4xl mx-auto px-4 py-8 relative z-10 space-y-6">
-        
-        {/* Back Link subheader */}
+      <main className="max-w-5xl mx-auto px-4 sm:px-6 py-8 relative z-10 space-y-6">
+        {/* Back Link */}
         <div className="flex items-center">
           <button
             onClick={() => {
@@ -168,355 +165,258 @@ export default function MemberProfilePage() {
                 router.push("/team");
               }
             }}
-            className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-zinc-900/90 hover:bg-[#00F5D4]/10 border border-zinc-800 hover:border-[#00F5D4]/50 text-zinc-300 hover:text-[#00F5D4] text-xs font-mono uppercase tracking-wider transition-all duration-200 shadow-md group cursor-pointer"
+            className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-md bg-[#070D18] hover:bg-[#00F5D4]/10 border border-white/10 hover:border-[#00F5D4]/50 text-slate-300 hover:text-[#00F5D4] text-xs font-mono uppercase tracking-wider transition-all cursor-pointer"
           >
-            <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1 text-[#00F5D4]" />
-            <span>Back to Previous Page</span>
+            <ArrowLeft className="w-4 h-4 text-[#00F5D4]" />
+            <span>BACK TO CADRE</span>
           </button>
         </div>
 
         {/* Hero Card Container */}
-        <div className="rounded-xl border border-zinc-800 bg-zinc-950/40 backdrop-blur-md overflow-hidden relative shadow-2xl">
-          
+        <div className="rounded-xl border border-white/[0.08] bg-[#070D18]/90 backdrop-blur-md overflow-hidden relative shadow-2xl">
           {/* Cover Poster Banner */}
-          <div className="h-44 w-full bg-zinc-900 overflow-hidden relative border-b border-zinc-800">
+          <div className="h-44 w-full bg-[#050A14] overflow-hidden relative border-b border-white/[0.08]">
             {member.coverPosterUrl ? (
-              /* eslint-disable-next-line @next/next/no-img-element */
-              <img src={member.coverPosterUrl} alt="Cover Banner" className="w-full h-full object-cover" />
+              <img src={getFileUrl(member.coverPosterUrl)} alt="Cover Banner" className="w-full h-full object-cover" />
             ) : (
-              <div className="w-full h-full bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950 opacity-80 relative flex items-center justify-center">
-                {/* Tech digital network matrix effect */}
-                <div className="absolute inset-0 bg-[linear-gradient(rgba(204,255,0,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(204,255,0,0.03)_1px,transparent_1px)] bg-[size:20px_20px]" />
-                <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 to-transparent" />
+              <div className="w-full h-full bg-gradient-to-br from-[#040810] via-[#070D18] to-[#040810] relative flex items-center justify-center">
+                <div className="absolute inset-0 bg-[linear-gradient(rgba(0,245,212,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(0,245,212,0.03)_1px,transparent_1px)] bg-[size:20px_20px]" />
               </div>
             )}
           </div>
 
-          {/* Profile Header Overlay Area */}
+          {/* Profile Header Overlay */}
           <div className="p-6 relative flex flex-col sm:flex-row items-center sm:items-end gap-6 -mt-16 sm:-mt-12 z-10">
-            {/* Avatar circle */}
-            <div className="w-28 h-28 rounded-full border-4 border-zinc-950 bg-zinc-900 overflow-hidden shadow-2xl relative shrink-0">
-              {member.imageUrl ? (
-                /* eslint-disable-next-line @next/next/no-img-element */
-                <img src={member.imageUrl} alt={member.name} className="w-full h-full object-cover" />
+            <div className="w-28 h-28 rounded-full border-4 border-[#070D18] bg-[#050A14] overflow-hidden shadow-2xl relative shrink-0">
+              {(member.imageUrl || member.avatarUrl || member.cyberAvatarUrl) && !headerImgFailed ? (
+                <img
+                  src={getFileUrl(member.imageUrl || member.avatarUrl || member.cyberAvatarUrl)}
+                  alt={member.name}
+                  onError={() => setHeaderImgFailed(true)}
+                  className="w-full h-full object-cover"
+                />
               ) : (
-                <div className="w-full h-full flex items-center justify-center text-zinc-650">
-                  <Users className="w-8 h-8" />
+                <div className="w-full h-full flex items-center justify-center relative overflow-hidden bg-[#050A14]">
+                  <img
+                    src="/images/cyber_avatar.png"
+                    alt="Operative"
+                    className="w-20 h-20 object-contain opacity-85"
+                  />
                 </div>
               )}
             </div>
 
-            {/* Title / details */}
-            <div className="text-center sm:text-left flex-1 min-w-0">
-              <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight leading-none mb-1">{member.name}</h1>
-              <p className="text-sm font-mono text-[#FF003C] tracking-wide font-semibold">{member.designation}</p>
-              {member.department && (
-                <p className="text-xs text-zinc-400 mt-1 uppercase font-mono">{member.department}</p>
-              )}
-
-              {/* Action Buttons: Send Mail & Call */}
-              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2.5 mt-4">
-                {member.email && (
-                  <a 
-                    href={`mailto:${member.email.trim()}`} 
-                    className="px-3.5 py-1.5 rounded-lg bg-red-950/20 hover:bg-red-600 border border-red-900/40 hover:border-red-500 text-xs font-mono uppercase tracking-wider text-red-200 hover:text-white flex items-center gap-1.5 transition duration-300"
-                  >
-                    <Mail className="w-3.5 h-3.5" /> Send Email
-                  </a>
-                )}
-                {member.phone && (
-                  <a 
-                    href={`tel:${member.phone.trim()}`} 
-                    className="px-3.5 py-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-zinc-700 text-xs font-mono uppercase tracking-wider text-zinc-300 hover:text-white flex items-center gap-1.5 transition duration-300"
-                  >
-                    <Phone className="w-3.5 h-3.5" /> Call
-                  </a>
-                )}
+            <div className="flex-1 text-center sm:text-left space-y-1">
+              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
+                <h1 className="text-2xl font-black font-mono tracking-tight text-white">{member.name}</h1>
+                <CyberBadge variant="normal" size="sm">
+                  {isFaculty ? "FACULTY MENTOR" : member.role.replace("_", " ")}
+                </CyberBadge>
               </div>
+              <p className="text-xs font-mono text-[#00F5D4] font-semibold uppercase">{member.designation}</p>
+              {member.department && (
+                <p className="text-[11px] font-mono text-slate-400">{member.department}</p>
+              )}
             </div>
           </div>
         </div>
 
-        {/* Dynamic 2-Column Main Section */}
+        {/* 2-Column Dossier Layout */}
         <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
-          
-          {/* Left Column: About & Skills Card */}
+          {/* Left Column: Mission Briefing & Biography */}
           <div className="md:col-span-3 space-y-6">
-            <div className="rounded-xl border border-zinc-900 bg-zinc-950/40 p-6 shadow-xl relative overflow-hidden">
-              <div className="absolute top-0 left-0 w-2 h-2 border-t-2 border-l-2 border-[#FF003C]/40" />
-              
-              <h3 className="text-sm font-bold font-mono tracking-widest text-[#FF003C] uppercase flex items-center gap-2 mb-6">
-                {"// About"}
-              </h3>
+            <CyberCard variant="panel" className="p-6 bg-[#070D18] border-white/[0.08] space-y-4">
+              <SystemLabel prefix="[// DOSSIER]" showDot={true}>
+                OPERATIVE BRIEFING & SPECIALTIES
+              </SystemLabel>
 
               {skillLines.length === 0 ? (
-                <p className="text-sm text-zinc-400 leading-relaxed font-sans">{member.about || "No additional info available."}</p>
+                <p className="text-sm text-slate-300 leading-relaxed font-sans">
+                  {member.about || "No additional technical dossier recorded for this operative."}
+                </p>
               ) : (
-                <div className="space-y-4">
+                <div className="space-y-3">
                   {skillLines.map((line: string, index: number) => {
-                    // Split the colon to bold the label
                     const colonIdx = line.indexOf(":");
                     if (colonIdx !== -1) {
                       const boldPart = line.substring(0, colonIdx + 1);
                       const normPart = line.substring(colonIdx + 1);
                       return (
-                        <div key={index} className="text-sm font-sans leading-relaxed text-zinc-300 flex items-start gap-2.5">
-                          <span className="text-[#FF003C] font-mono select-none mt-0.5 shrink-0">{"//"}</span>
+                        <div key={index} className="text-xs font-mono leading-relaxed text-slate-300 flex items-start gap-2">
+                          <span className="text-[#00F5D4] font-mono select-none mt-0.5 shrink-0">{"//"}</span>
                           <span>
-                            <strong className="text-white font-mono tracking-tight font-semibold">{boldPart}</strong>
+                            <strong className="text-white font-semibold">{boldPart}</strong>
                             {normPart}
                           </span>
                         </div>
                       );
                     }
                     return (
-                      <div key={index} className="text-sm font-sans leading-relaxed text-zinc-300 flex items-start gap-2.5">
-                        <span className="text-[#FF003C] font-mono select-none mt-0.5 shrink-0">{"//"}</span>
+                      <div key={index} className="text-xs font-mono leading-relaxed text-slate-300 flex items-start gap-2">
+                        <span className="text-[#00F5D4] font-mono select-none mt-0.5 shrink-0">{"//"}</span>
                         <span>{line}</span>
                       </div>
                     );
                   })}
                 </div>
               )}
-            </div>
+            </CyberCard>
           </div>
 
-          {/* Right Column Stack */}
+          {/* Right Column: Holographic ID Card & Telemetry */}
           <div className="md:col-span-2 space-y-6">
-            
-            {/* Interactive Holographic 3D Profile Card */}
+            {/* Holographic 3D Card */}
             <div className="flex justify-center">
               <ProfileCard
                 name={member.name}
                 title={member.designation || member.role}
-                handle={member.studentId || member.id || "member"}
+                handle={member.studentId || member.id || "operative"}
                 status="Active Clearance"
                 contactText="Send Mail"
-                avatarUrl={member.imageUrl || member.avatarUrl || member.coverPosterUrl ? getFileUrl(member.imageUrl || member.avatarUrl || member.coverPosterUrl) : "/images/cyber_avatar.png"}
-                miniAvatarUrl={member.imageUrl || member.avatarUrl || member.coverPosterUrl ? getFileUrl(member.imageUrl || member.avatarUrl || member.coverPosterUrl) : "/images/cyber_avatar.png"}
+                avatarUrl={
+                  member.avatarUrl || member.imageUrl || member.cyberAvatarUrl
+                    ? getFileUrl(member.avatarUrl || member.imageUrl || member.cyberAvatarUrl)
+                    : "/images/cyber_avatar.png"
+                }
+                miniAvatarUrl={
+                  member.avatarUrl || member.imageUrl || member.cyberAvatarUrl
+                    ? getFileUrl(member.avatarUrl || member.imageUrl || member.cyberAvatarUrl)
+                    : "/images/cyber_avatar.png"
+                }
                 showUserInfo={true}
                 enableTilt={true}
                 behindGlowEnabled={true}
-                behindGlowColor="rgba(239, 68, 68, 0.65)"
-                innerGradient="linear-gradient(145deg, rgba(220, 38, 38, 0.3) 0%, rgba(10, 10, 15, 0.95) 100%)"
+                behindGlowColor="rgba(0, 245, 212, 0.45)"
+                innerGradient="linear-gradient(145deg, rgba(0, 245, 212, 0.12) 0%, rgba(4, 9, 18, 0.96) 50%, rgba(2, 5, 12, 0.98) 100%)"
                 onContactClick={() => {
                   if (member.email) window.location.href = `mailto:${member.email}`;
                 }}
               />
             </div>
 
-            {/* 1. Member Info Card */}
-            <div className="rounded-xl border border-zinc-900 bg-zinc-950/40 p-5 shadow-xl relative">
-              <h3 className="text-xs font-bold font-mono tracking-widest text-zinc-500 uppercase flex items-center gap-1.5 mb-4">
-                {"// Member Info"}
+            {/* Member Info Card */}
+            <div className="rounded-xl border border-white/[0.08] bg-[#070D18] p-5 space-y-3 font-mono text-xs">
+              <h3 className="text-[11px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5 mb-3">
+                {"// SERVICE RECORD"}
               </h3>
-              
-              <div className="space-y-3 font-mono text-xs">
-                <div className="flex items-center gap-3 text-zinc-350">
-                  <User className="w-4 h-4 text-[#FF003C]" />
-                  <div>
-                    <p className="text-[9px] uppercase text-zinc-500">Division</p>
-                    <p className="text-white uppercase font-bold">{member.role.replace("_", " ")}</p>
-                  </div>
-                </div>
-                {member.department && (
-                  <div className="flex items-center gap-3 text-zinc-350">
-                    <Building className="w-4 h-4 text-[#FF003C]" />
-                    <div>
-                      <p className="text-[9px] uppercase text-zinc-500">Department</p>
-                      <p className="text-white uppercase">{member.department}</p>
-                    </div>
-                  </div>
-                )}
-                {member.joinedDate && (
-                  <div className="flex items-center gap-3 text-zinc-350">
-                    <Calendar className="w-4 h-4 text-[#FF003C]" />
-                    <div>
-                      <p className="text-[9px] uppercase text-zinc-500">Joined Crew</p>
-                      <p className="text-white">{member.joinedDate}</p>
-                    </div>
-                  </div>
-                )}
-                {member.studentId && (
-                  <div className="flex items-center gap-3 text-zinc-350">
-                    <IdCard className="w-4 h-4 text-[#FF003C]" />
-                    <div>
-                      <p className="text-[9px] uppercase text-zinc-500">
-                        {member.role === "FACULTY" ? "Employee ID" : "Access ID"}
-                      </p>
-                      <p className="text-white">{member.studentId}</p>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
 
-            {/* 2. Contact Card */}
-            <div className="rounded-xl border border-zinc-900 bg-zinc-950/40 p-5 shadow-xl relative">
-              <h3 className="text-xs font-bold font-mono tracking-widest text-zinc-500 uppercase flex items-center gap-1.5 mb-4">
-                {"// Contact"}
-              </h3>
-              
-              <div className="space-y-3 font-mono text-xs">
-                {member.email && (
-                  <div className="flex items-center gap-3 text-zinc-350 truncate">
-                    <Mail className="w-4 h-4 text-[#FF003C]" />
-                    <div>
-                      <p className="text-[9px] uppercase text-zinc-500">Email Address</p>
-                      <a href={`mailto:${member.email.trim()}`} className="text-white hover:text-[#FF003C] transition break-all">{member.email}</a>
-                    </div>
-                  </div>
-                )}
-                {member.phone && (
-                  <div className="flex items-center gap-3 text-zinc-350">
-                    <Phone className="w-4 h-4 text-[#FF003C]" />
-                    <div>
-                      <p className="text-[9px] uppercase text-zinc-500">Secure Line</p>
-                      <a href={`tel:${member.phone.trim()}`} className="text-white hover:text-[#FF003C] transition">{member.phone}</a>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* 3. Social Media Card */}
-            <div className="rounded-xl border border-zinc-900 bg-zinc-950/40 p-5 shadow-xl relative">
-              <h3 className="text-xs font-bold font-mono tracking-widest text-zinc-500 uppercase flex items-center gap-1.5 mb-4">
-                {"// Social Media"}
-              </h3>
-              
-              <div className="flex flex-col gap-2">
-                {member.linkedin && (
-                  <a 
-                    href={`https://linkedin.com/in/${member.linkedin.trim()}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-2.5 p-2 rounded bg-blue-950/20 hover:bg-blue-600 border border-blue-900/40 hover:border-blue-500 text-xs font-mono text-blue-200 hover:text-white transition duration-300"
-                  >
-                    <LinkedinIcon className="w-4 h-4" /> LinkedIn
-                  </a>
-                )}
-                {member.github && (
-                  <a 
-                    href={`https://github.com/${member.github.trim()}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-2.5 p-2 rounded bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-zinc-700 text-xs font-mono text-zinc-300 hover:text-white transition duration-300"
-                  >
-                    <GithubIcon className="w-4 h-4" /> GitHub
-                  </a>
-                )}
-                {member.instagram && (
-                  <a 
-                    href={`https://instagram.com/${member.instagram.trim()}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-2.5 p-2 rounded bg-pink-950/20 hover:bg-pink-600 border border-pink-900/40 hover:border-pink-500 text-xs font-mono text-pink-200 hover:text-white transition duration-300"
-                  >
-                    <InstagramIcon className="w-4 h-4" /> Instagram
-                  </a>
-                )}
-              </div>
-            </div>
-
-            {/* 4. Cyber Persona Card (Premium Purple Box) */}
-            {(member.cyberName || member.cyberBackstory) && (
-              <div className="rounded-xl border border-indigo-900/50 bg-indigo-950/15 p-5 shadow-xl relative overflow-hidden flex flex-col justify-between" style={{ minHeight: "260px" }}>
-                {/* Cyber grid lines */}
-                <div className="absolute inset-0 bg-[linear-gradient(rgba(129,140,248,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(129,140,248,0.03)_1px,transparent_1px)] bg-[size:16px_16px] pointer-events-none" />
-                
+              <div className="flex items-center gap-3">
+                <User className="w-4 h-4 text-[#00F5D4]" />
                 <div>
-                  <h3 className="text-xs font-bold font-mono tracking-widest text-indigo-400 uppercase flex items-center gap-1.5 mb-4 relative z-10">
-                    {"// Cyber Persona"}
-                  </h3>
+                  <p className="text-[9px] uppercase text-slate-500">Classification</p>
+                  <p className="text-white uppercase font-bold">{member.role.replace("_", " ")}</p>
+                </div>
+              </div>
 
-                  {/* Character Avatar + Name */}
-                  <div className="flex items-center gap-3.5 mb-4 relative z-10">
-                    <div className="w-12 h-12 rounded-lg border border-indigo-500/30 bg-indigo-950/60 overflow-hidden shrink-0 flex items-center justify-center">
-                      {member.cyberAvatarUrl ? (
-                        /* eslint-disable-next-line @next/next/no-img-element */
-                        <img src={member.cyberAvatarUrl} alt="Cyber Character" className="w-full h-full object-cover animate-pulse" />
-                      ) : (
-                        <ShieldAlert className="w-5 h-5 text-indigo-400" />
-                      )}
-                    </div>
-                    <div>
-                      <p className="text-[9px] font-mono uppercase text-indigo-500">Character Codename</p>
-                      <p className="text-sm font-black font-mono uppercase tracking-widest text-white">{member.cyberName || "Unknown"}</p>
+              {member.department && (
+                <div className="flex items-center gap-3">
+                  <Building className="w-4 h-4 text-[#00F5D4]" />
+                  <div>
+                    <p className="text-[9px] uppercase text-slate-500">Department</p>
+                    <p className="text-white uppercase">{member.department}</p>
+                  </div>
+                </div>
+              )}
+
+              {member.joinedDate && (
+                <div className="flex items-center gap-3">
+                  <Calendar className="w-4 h-4 text-[#00F5D4]" />
+                  <div>
+                    <p className="text-[9px] uppercase text-slate-500">Commission Date</p>
+                    <p className="text-white">{member.joinedDate}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Role-based identifier constraint: Employee ID for Faculty, Student ID for others */}
+              {member.studentId && (
+                <div className="flex items-center gap-3">
+                  <IdCard className="w-4 h-4 text-[#00F5D4]" />
+                  <div>
+                    <p className="text-[9px] uppercase text-slate-500">
+                      {isFaculty ? "Employee ID" : "Student ID"}
+                    </p>
+                    <p className="text-white font-bold">{member.studentId}</p>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Contact Channels */}
+            {(member.email || member.phone) && (
+              <div className="rounded-xl border border-white/[0.08] bg-[#070D18] p-5 space-y-3 font-mono text-xs">
+                <h3 className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-3">
+                  {"// SECURE CONTACT"}
+                </h3>
+
+                {member.email && (
+                  <div className="flex items-center gap-3 truncate">
+                    <Mail className="w-4 h-4 text-[#00F5D4]" />
+                    <div className="truncate">
+                      <p className="text-[9px] uppercase text-slate-500">Email</p>
+                      <a href={`mailto:${member.email.trim()}`} className="text-white hover:text-[#00F5D4] transition break-all">
+                        {member.email}
+                      </a>
                     </div>
                   </div>
+                )}
 
-                  {/* Backstory */}
-                  {member.cyberBackstory && (
-                    <p className="text-[11px] leading-relaxed text-indigo-250 opacity-90 mb-4 font-sans relative z-10">
-                      {member.cyberBackstory}
-                    </p>
-                  )}
-                </div>
-
-                {/* Special Ability Banner - Highlight block at the bottom */}
-                {member.cyberSpecialAbility && (
-                  <div className="rounded-lg bg-yellow-500/10 border border-yellow-500/25 p-2.5 font-mono text-[9px] text-yellow-400 relative z-10 mt-auto uppercase tracking-wide">
-                    <p className="font-bold text-[8px] text-yellow-500/75">SPECIAL ABILITY // SYSTEM UTILITY</p>
-                    <p className="mt-0.5 leading-snug">{member.cyberSpecialAbility}</p>
+                {member.phone && (
+                  <div className="flex items-center gap-3">
+                    <Phone className="w-4 h-4 text-[#00F5D4]" />
+                    <div>
+                      <p className="text-[9px] uppercase text-slate-500">Secure Line</p>
+                      <a href={`tel:${member.phone.trim()}`} className="text-white hover:text-[#00F5D4] transition">
+                        {member.phone}
+                      </a>
+                    </div>
                   </div>
                 )}
               </div>
             )}
 
-            {/* 5. Quick Actions Card */}
-            <div className="rounded-xl border border-zinc-900 bg-zinc-950/40 p-5 shadow-xl relative">
-              <h3 className="text-xs font-bold font-mono tracking-widest text-zinc-500 uppercase flex items-center gap-1.5 mb-4">
-                {"// Quick Actions"}
-              </h3>
-              
-              <div className="grid grid-cols-1 gap-2.5">
-                <button 
-                  onClick={handleShare}
-                  className="w-full py-2 border border-zinc-800 hover:border-zinc-700 bg-zinc-900/60 hover:bg-zinc-850 text-xs font-mono uppercase tracking-wider text-zinc-350 hover:text-white rounded-lg flex items-center justify-center gap-1.5 transition duration-300"
-                >
-                  {copiedShare ? (
-                    <>
-                      <Check className="w-3.5 h-3.5 text-[#CCFF00]" /> Link Copied
-                    </>
-                  ) : (
-                    <>
-                      <Share2 className="w-3.5 h-3.5" /> Share Profile
-                    </>
-                  )}
-                </button>
-                <button 
-                  onClick={handleSaveLink}
-                  className="w-full py-2 border border-zinc-850 hover:border-zinc-750 bg-black/40 hover:bg-zinc-900 text-xs font-mono uppercase tracking-wider text-zinc-400 hover:text-white rounded-lg flex items-center justify-center gap-1.5 transition duration-300"
-                >
-                  {copiedLink ? (
-                    <>
-                      <Check className="w-3.5 h-3.5 text-[#CCFF00]" /> Saved to Clipboard
-                    </>
-                  ) : (
-                    <>
-                      <Link2 className="w-3.5 h-3.5" /> Save Profile Link
-                    </>
-                  )}
-                </button>
-              </div>
-            </div>
+            {/* Quick Actions */}
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                onClick={handleShare}
+                className="p-2 rounded-md border border-white/[0.08] bg-[#050A14] hover:bg-white/[0.05] text-xs font-mono text-slate-300 hover:text-white flex items-center justify-center gap-1.5 transition cursor-pointer"
+              >
+                {copiedShare ? (
+                  <>
+                    <Check className="w-3.5 h-3.5 text-[#00F5D4]" />
+                    <span>COPIED</span>
+                  </>
+                ) : (
+                  <>
+                    <Share2 className="w-3.5 h-3.5" />
+                    <span>SHARE</span>
+                  </>
+                )}
+              </button>
 
+              <button
+                onClick={handleSaveLink}
+                className="p-2 rounded-md border border-white/[0.08] bg-[#050A14] hover:bg-white/[0.05] text-xs font-mono text-slate-300 hover:text-white flex items-center justify-center gap-1.5 transition cursor-pointer"
+              >
+                {copiedLink ? (
+                  <>
+                    <Check className="w-3.5 h-3.5 text-[#00F5D4]" />
+                    <span>SAVED</span>
+                  </>
+                ) : (
+                  <>
+                    <Link2 className="w-3.5 h-3.5" />
+                    <span>SAVE LINK</span>
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </div>
-
       </main>
 
-      {/* Footer */}
-      <footer className="border-t border-white/10 bg-black py-12 relative z-10">
-        <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-2">
-            <SentinalLogo animateDrawing={false} />
-          </div>
-          <p className="text-slate-500 text-sm">© {new Date().getFullYear()} SENTINAL. All rights reserved.</p>
-        </div>
-      </footer>
-
+      {/* Universal Tactical Footer */}
+      <Footer />
     </div>
   );
 }

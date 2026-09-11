@@ -139,7 +139,12 @@ export function NetworkInspectionGuard() {
         textAlign: "center",
       }}
     >
-      <div style={{ fontSize: "48px", marginBottom: "16px" }}>🛡️</div>
+      <div style={{ marginBottom: "16px" }}>
+        <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#f87171" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ filter: "drop-shadow(0 0 12px rgba(248,113,113,0.5))" }}>
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+          <path d="m9 12 2 2 4-4" />
+        </svg>
+      </div>
       <h2 style={{ fontSize: "20px", fontWeight: "bold", color: "#fca5a5", marginBottom: "8px" }}>
         SECURITY ENFORCEMENT ACTIVE
       </h2>

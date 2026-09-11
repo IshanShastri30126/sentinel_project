@@ -230,8 +230,8 @@ export default function TeamsPage() {
             className="fixed top-4 right-4 z-[100] flex items-center gap-2 px-4 py-3 rounded-lg border shadow-lg font-mono text-xs uppercase tracking-wider"
             style={{
               backgroundColor: "rgba(13,15,20,0.97)",
-              borderColor: toast.type === "success" ? "rgba(204,255,0,0.5)" : "rgba(255,0,60,0.5)",
-              color: toast.type === "success" ? "#CCFF00" : "#FF003C",
+              borderColor: toast.type === "success" ? "rgba(0,245,212,0.5)" : "rgba(255,0,60,0.5)",
+              color: toast.type === "success" ? "#00F5D4" : "#FF003C",
             }}
           >
             {toast.type === "error" ? <AlertTriangle className="w-3.5 h-3.5 shrink-0" /> : <Crown className="w-3.5 h-3.5 shrink-0" />}
@@ -256,7 +256,7 @@ export default function TeamsPage() {
           )}
           {!isManagement && (
             <div className="flex gap-2">
-              <button onClick={() => setShowJoin(true)} className="ck-btn-secondary bg-[#CCFF00]/10 border-[#CCFF00]/30 text-[var(--ck-primary)] hover:bg-[#CCFF00]/20"><QrCode className="w-4 h-4" /> Join Team</button>
+              <button onClick={() => setShowJoin(true)} className="ck-btn-secondary bg-[#00F5D4]/10 border-[#00F5D4]/30 text-[#00F5D4] hover:bg-[#00F5D4]/20"><QrCode className="w-4 h-4" /> Join Team</button>
               <button onClick={() => setShowCreate(true)} className="ck-btn-primary"><Plus className="w-4 h-4" /> Create Team</button>
             </div>
           )}
@@ -276,7 +276,7 @@ export default function TeamsPage() {
         <div className="flex gap-1 p-1 rounded-xl bg-black/40 border border-[#1A1E26] mb-5 w-fit">
           {(["my", "all"] as const).map((tab) => (
             <button key={tab} onClick={() => setActiveTab(tab)}
-              className={`px-4 py-1.5 rounded-lg text-xs font-mono uppercase tracking-wider transition ${activeTab === tab ? "bg-[#CCFF00] text-black font-bold shadow-[0_0_8px_rgba(204,255,0,0.3)]" : "text-[var(--ck-text-secondary)] hover:text-[var(--ck-primary)]"}`}>
+              className={`px-4 py-1.5 rounded-lg text-xs font-mono uppercase tracking-wider transition ${activeTab === tab ? "bg-[#00F5D4] text-black font-bold shadow-[0_0_8px_rgba(0,245,212,0.3)]" : "text-[var(--ck-text-secondary)] hover:text-[var(--ck-primary)]"}`}>
               {tab === "my" ? "My Teams" : "All Teams"}
             </button>
           ))}
@@ -286,7 +286,7 @@ export default function TeamsPage() {
       {/* Filters Toolbar */}
       <div className="flex flex-col sm:flex-row gap-3 mb-6 bg-black/20 p-3 rounded-xl border border-zinc-850">
         <div className="relative flex-1 ck-search-container ck-input-icon-wrapper">
-          <Search className="w-4 h-4" style={{ color: "#CCFF00" }} />
+          <Search className="w-4 h-4" style={{ color: "#00F5D4" }} />
           <input
             className="ck-input ck-search-input pl-9"
             placeholder="Search teams by name or code..."
@@ -323,7 +323,7 @@ export default function TeamsPage() {
           <div className="ck-modal-overlay">
             <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
               className="ck-card p-6 w-full max-w-lg relative overflow-hidden">
-              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#FF4D00] via-[#CCFF00] to-[#FF003C]" />
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#FF0055] via-[#00F5D4] to-[#00E1FF]" />
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-xl font-bold" style={{ color: "var(--ck-text)" }}>Create Team</h2>
                 <button onClick={() => setShowCreate(false)} className="p-2 rounded-lg hover:bg-[var(--ck-border)]"><X className="w-5 h-5" /></button>
@@ -384,9 +384,9 @@ export default function TeamsPage() {
                     initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                     className="absolute inset-0 bg-black/95 backdrop-blur-md flex flex-col items-center justify-center z-50 p-6 text-center font-mono"
                   >
-                    <div className="w-full max-w-sm bg-[var(--ck-bg)] border border-[#CCFF00]/30 p-5 rounded-lg text-left shadow-[0_0_20px_rgba(204,255,0,0.15)]">
+                    <div className="w-full max-w-sm bg-[var(--ck-bg)] border border-[#00F5D4]/30 p-5 rounded-lg text-left shadow-[0_0_20px_rgba(0,245,212,0.15)]">
                       <div className="flex items-center gap-2 border-b border-zinc-850 pb-2.5 mb-3.5">
-                        <div className="w-2.5 h-2.5 rounded-full bg-[#CCFF00] animate-ping" />
+                        <div className="w-2.5 h-2.5 rounded-full bg-[#00F5D4] animate-ping" />
                         <span className="text-[10px] text-[var(--ck-primary)] font-bold uppercase tracking-wider">Security Core Shell v2.0</span>
                       </div>
                       <div className="space-y-2 text-xs text-[var(--ck-primary)]">
@@ -395,11 +395,11 @@ export default function TeamsPage() {
                           <span className="text-[var(--ck-accent)]">&gt;</span><span>COMPILING MEMBER CREDENTIALS... [OK]</span>
                         </motion.p>
                         <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.2 }} className="flex items-center gap-2 font-bold text-[var(--ck-primary)]">
-                          <span className="text-[var(--ck-accent)]">&gt;</span><span className="shadow-[0_0_10px_rgba(204,255,0,0.2)]">IDENTITY CLONED &amp; SIGNED</span>
+                          <span className="text-[var(--ck-accent)]">&gt;</span><span className="shadow-[0_0_10px_rgba(0,245,212,0.2)]">IDENTITY CLONED &amp; SIGNED</span>
                         </motion.p>
                       </div>
                       <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 1.6, type: "spring" }}
-                        className="mt-5 flex items-center justify-center py-2 border border-[#CCFF00] bg-[#CCFF00]/10 rounded text-[var(--ck-primary)] font-bold text-xs uppercase tracking-wider">
+                        className="mt-5 flex items-center justify-center py-2 border border-[#00F5D4] bg-[#00F5D4]/10 rounded text-[#00F5D4] font-bold text-xs uppercase tracking-wider">
                         Verification Lock Secure
                       </motion.div>
                     </div>
@@ -417,7 +417,7 @@ export default function TeamsPage() {
           <div className="ck-modal-overlay">
             <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
               className="ck-card p-6 w-full max-w-md relative overflow-hidden">
-              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#CCFF00] via-[#FF4D00] to-[#CCFF00]" />
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#00F5D4] via-[#00E1FF] to-[#00F5D4]" />
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-xl font-bold" style={{ color: "var(--ck-text)" }}>Join Team</h2>
                 <button onClick={() => { setShowJoin(false); setUseScanner(false); }} className="p-2 rounded-lg hover:bg-[var(--ck-border)]"><X className="w-5 h-5" /></button>
@@ -426,12 +426,12 @@ export default function TeamsPage() {
               <div className="flex bg-black/40 p-1 rounded-lg border border-[var(--ck-border)] mb-4">
                 <button 
                   onClick={() => setUseScanner(false)} 
-                  className={`flex-1 py-2 text-xs font-mono uppercase tracking-wider rounded transition-colors ${!useScanner ? "bg-[#CCFF00] text-black font-bold shadow-[0_0_10px_rgba(204,255,0,0.3)]" : "text-[var(--ck-text-muted)] hover:text-[var(--ck-text)]"}`}>
+                  className={`flex-1 py-2 text-xs font-mono uppercase tracking-wider rounded transition-colors ${!useScanner ? "bg-[#00F5D4] text-black font-bold shadow-[0_0_10px_rgba(0,245,212,0.3)]" : "text-[var(--ck-text-muted)] hover:text-[var(--ck-text)]"}`}>
                   Enter Code
                 </button>
                 <button 
                   onClick={() => setUseScanner(true)} 
-                  className={`flex-1 py-2 text-xs font-mono uppercase tracking-wider rounded transition-colors flex items-center justify-center gap-2 ${useScanner ? "bg-[#CCFF00] text-black font-bold shadow-[0_0_10px_rgba(204,255,0,0.3)]" : "text-[var(--ck-text-muted)] hover:text-[var(--ck-text)]"}`}>
+                  className={`flex-1 py-2 text-xs font-mono uppercase tracking-wider rounded transition-colors flex items-center justify-center gap-2 ${useScanner ? "bg-[#00F5D4] text-black font-bold shadow-[0_0_10px_rgba(0,245,212,0.3)]" : "text-[var(--ck-text-muted)] hover:text-[var(--ck-text)]"}`}>
                   <Camera className="w-3.5 h-3.5" /> Scan QR
                 </button>
               </div>
@@ -453,7 +453,7 @@ export default function TeamsPage() {
                       placeholder="e.g. CK-T-1A2B3C" 
                     />
                   </div>
-                  <button type="submit" disabled={joining || !joinCode} className="ck-btn-primary w-full shadow-[0_0_15px_rgba(204,255,0,0.2)]" style={{ backgroundColor: "#CCFF00", color: "black", borderColor: "#CCFF00" }}>
+                  <button type="submit" disabled={joining || !joinCode} className="ck-btn-primary w-full shadow-[0_0_15px_rgba(0,245,212,0.2)]" style={{ backgroundColor: "#00F5D4", color: "black", borderColor: "#00F5D4" }}>
                     {joining ? "Authenticating..." : "Join via Code"}
                   </button>
                 </form>
@@ -537,10 +537,10 @@ export default function TeamsPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {displayedTeams.map((team, i) => (
             <motion.div key={team.id} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}
-              className={`ck-card backdrop-blur-md border shadow-md hover:shadow-[0_0_20px_rgba(204,255,0,0.1)] transition-all duration-300 relative overflow-hidden group ${
+              className={`ck-card backdrop-blur-md border shadow-md hover:shadow-[0_0_20px_rgba(0,245,212,0.1)] transition-all duration-300 relative overflow-hidden group ${
                 team.isDisqualified
                   ? "bg-red-950/10 border-red-900/30 hover:border-red-500/30"
-                  : "bg-zinc-950/45 border-[var(--ck-border)] hover:border-[#CCFF00]/40"
+                  : "bg-zinc-950/45 border-[var(--ck-border)] hover:border-[#00F5D4]/40"
               }`}>
 
               {/* Disqualified banner */}
@@ -553,17 +553,17 @@ export default function TeamsPage() {
               )}
 
               {/* Grid background */}
-              <div className="absolute inset-0 bg-[linear-gradient(rgba(204,255,0,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(204,255,0,0.02)_1px,transparent_1px)] bg-[size:20px_20px] pointer-events-none opacity-40 group-hover:opacity-60 transition-opacity" />
+              <div className="absolute inset-0 bg-[linear-gradient(rgba(0,245,212,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(0,245,212,0.02)_1px,transparent_1px)] bg-[size:20px_20px] pointer-events-none opacity-40 group-hover:opacity-60 transition-opacity" />
 
               <div className={`p-5 relative z-10 ${team.isDisqualified ? "pt-9" : ""}`}>
                 <div className="flex items-start justify-between mb-3.5">
                   <div>
                     <h3 className="font-semibold text-lg font-mono tracking-wide text-[#F0F4FF]">{team.name}</h3>
-                    <code className="text-[10px] px-2 py-0.5 rounded mt-1.5 inline-block font-mono tracking-wider border border-[#CCFF00]/20 bg-[#CCFF00]/5 text-[var(--ck-primary)]">
+                    <code className="text-[10px] px-2 py-0.5 rounded mt-1.5 inline-block font-mono tracking-wider border border-[#00F5D4]/20 bg-[#00F5D4]/5 text-[#00F5D4]">
                       {team.teamCode}
                     </code>
                   </div>
-                  <span className="ck-badge" style={{ borderColor: "rgba(204,255,0,0.3)", color: "#CCFF00", backgroundColor: "rgba(204,255,0,0.1)", fontSize: "10px" }}>{team._count?.members || 0} members</span>
+                  <span className="ck-badge" style={{ borderColor: "rgba(0,245,212,0.3)", color: "#00F5D4", backgroundColor: "rgba(0,245,212,0.1)", fontSize: "10px" }}>{team._count?.members || 0} members</span>
                 </div>
 
                 {team.leader && (
@@ -580,7 +580,7 @@ export default function TeamsPage() {
 
                 {team.qrCode && (
                   <div className="mt-4 mb-2 flex justify-center">
-                    <div className="p-2 bg-black/60 rounded-xl border border-[var(--ck-border)] group-hover:border-[#CCFF00]/25 transition-colors">
+                    <div className="p-2 bg-black/60 rounded-xl border border-[var(--ck-border)] group-hover:border-[#00F5D4]/25 transition-colors">
                       <img src={team.qrCode} alt="Team QR Code" className="w-28 h-28 rounded-lg" />
                     </div>
                   </div>
@@ -592,14 +592,14 @@ export default function TeamsPage() {
                     <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }}
                       className="mt-4 overflow-hidden">
                       <div className="p-3 rounded-xl space-y-2 border border-[var(--ck-border)] bg-black/60">
-                        <p className="text-[10px] font-bold font-mono tracking-widest uppercase" style={{ color: "#CCFF00" }}>Members Dossier</p>
+                        <p className="text-[10px] font-bold font-mono tracking-widest uppercase text-[#00F5D4]">Members Dossier</p>
                         {team.members.map((m) => (
                           <div key={m.user.id} className="flex items-center justify-between gap-2 text-xs font-mono border-b border-zinc-900/50 pb-1.5 last:border-0 last:pb-0 text-[var(--ck-text)]">
                             <div className="flex items-center gap-2 min-w-0">
                               {team.leader?.id === m.user.id ? (
                                 <Crown className="w-3 h-3 text-amber-400 shrink-0" />
                               ) : (
-                                <span className="w-1.5 h-1.5 rounded-full bg-[#CCFF00]/60 shrink-0" />
+                                <span className="w-1.5 h-1.5 rounded-full bg-[#00F5D4]/60 shrink-0" />
                               )}
                               <span className="font-semibold text-[var(--ck-text)] truncate">{m.user.name}</span>
                               <span className="text-[10px] text-[var(--ck-text-muted)] truncate hidden sm:block">({m.user.email})</span>
@@ -623,7 +623,7 @@ export default function TeamsPage() {
                 {/* Actions */}
                 <div className="flex gap-2 mt-4">
                   <button onClick={() => loadTeamDetails(team.id)} className="ck-btn-secondary text-xs py-1.5 flex-1 font-mono uppercase tracking-wider text-[var(--ck-text-secondary)] hover:text-[var(--ck-text)]">
-                    {expandedTeam === team.id ? <><ChevronUp className="w-3.5 h-3.5" style={{ color: "#CCFF00" }} /> Hide</> : <><ChevronDown className="w-3.5 h-3.5" style={{ color: "#CCFF00" }} /> Dossier</>}
+                    {expandedTeam === team.id ? <><ChevronUp className="w-3.5 h-3.5" style={{ color: "#00F5D4" }} /> Hide</> : <><ChevronDown className="w-3.5 h-3.5" style={{ color: "#00F5D4" }} /> Dossier</>}
                   </button>
                   <button onClick={() => downloadQR(team.id, team.teamCode)} className="ck-btn-secondary text-xs py-1.5 font-mono uppercase tracking-wider text-[var(--ck-text-secondary)] hover:text-[var(--ck-text)]" title="Download QR">
                     <Download className="w-3.5 h-3.5" style={{ color: "#FF4D00" }} />

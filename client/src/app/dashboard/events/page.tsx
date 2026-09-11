@@ -9,8 +9,33 @@ import {
   Calendar, Plus, X, ExternalLink, Users, MapPin, Clock, Eye, EyeOff,
   Search, ChevronRight, ChevronLeft, Image, FileText,
   Link2, BookOpen, UserPlus, Info, CheckCircle2,
-  Terminal, Award, Presentation, AlertTriangle, Check, UploadCloud, Layers, Edit, Mail, Trash2
+  Terminal, Award, Presentation, AlertTriangle, Check, UploadCloud, Layers, Edit, Mail, Trash2,
+  Phone, Camera, Briefcase, MessageSquare, Gamepad2, Video, Code2, Globe
 } from "lucide-react";
+
+const SOCIAL_ICONS: Record<string, React.ReactNode> = {
+  INSTAGRAM: <Camera className="w-3.5 h-3.5 text-pink-400" />,
+  WHATSAPP: <MessageSquare className="w-3.5 h-3.5 text-emerald-400" />,
+  LINKEDIN: <Briefcase className="w-3.5 h-3.5 text-blue-400" />,
+  DISCORD: <Gamepad2 className="w-3.5 h-3.5 text-indigo-400" />,
+  YOUTUBE: <Video className="w-3.5 h-3.5 text-red-400" />,
+  GITHUB: <Code2 className="w-3.5 h-3.5 text-white" />,
+  WEB: <Globe className="w-3.5 h-3.5 text-cyan-400" />,
+  LINK: <Link2 className="w-3.5 h-3.5 text-[var(--ck-primary)]" />,
+};
+
+function renderSocialIcon(logo: string) {
+  if (SOCIAL_ICONS[logo]) return SOCIAL_ICONS[logo];
+  const normalized = (logo || "").toLowerCase();
+  if (normalized.includes("insta") || normalized === "\u{1F4F8}") return <Camera className="w-3.5 h-3.5 text-pink-400" />;
+  if (normalized.includes("whats") || normalized === "\u{1F4AC}") return <MessageSquare className="w-3.5 h-3.5 text-emerald-400" />;
+  if (normalized.includes("link") || normalized === "\u{1F4BC}") return <Briefcase className="w-3.5 h-3.5 text-blue-400" />;
+  if (normalized.includes("disc") || normalized === "\u{1F3AE}") return <Gamepad2 className="w-3.5 h-3.5 text-indigo-400" />;
+  if (normalized.includes("you") || normalized === "\u{1F4FA}") return <Video className="w-3.5 h-3.5 text-red-400" />;
+  if (normalized.includes("git") || normalized === "\u{1F4BB}") return <Code2 className="w-3.5 h-3.5 text-white" />;
+  if (normalized.includes("web") || normalized === "\u{1F310}") return <Globe className="w-3.5 h-3.5 text-cyan-400" />;
+  return <Link2 className="w-3.5 h-3.5 text-[var(--ck-primary)]" />;
+}
 
 // ─── Mini Calendar Component ────────────────────────────────
 function MiniCalendar({ selectedDate, onSelect, rangeStart, rangeEnd, label, onClear }: {
@@ -216,7 +241,7 @@ export default function EventsPage() {
     whatsappUrl: "https://chat.whatsapp.com/chakravyuh-community",
   });
   const [customSocialLinks, setCustomSocialLinks] = useState<Array<{ id: string; name: string; url: string; logo: string }>>([]);
-  const [newCustomLink, setNewCustomLink] = useState({ name: "", url: "", logo: "📸" });
+  const [newCustomLink, setNewCustomLink] = useState({ name: "", url: "", logo: "INSTAGRAM" });
   const [posterFile, setPosterFile] = useState<File | null>(null);
   const [posterPreview, setPosterPreview] = useState<string | null>(null);
   const [documentFiles, setDocumentFiles] = useState<File[]>([]);
@@ -1164,7 +1189,7 @@ export default function EventsPage() {
                             <option value="" className="bg-[#050A18]">Select Student Coordinator to auto-fill details...</option>
                             {availableStudentCoords.map((coord, idx) => (
                               <option key={idx} value={coord.name} className="bg-[#050A18] text-white">
-                                👤 {coord.name} ({coord.role})
+                                {coord.name} ({coord.role})
                               </option>
                             ))}
                           </select>
@@ -1235,9 +1260,9 @@ export default function EventsPage() {
                                   className="absolute top-2.5 right-2.5 p-1 rounded hover:bg-white/5 text-[var(--ck-text-muted)] hover:text-[var(--ck-text)] transition"><X className="w-3 h-3" /></button>
                                 <p className="text-xs font-bold text-[var(--ck-text)] pr-6 font-mono truncate">{org.name}</p>
                                 <p className="text-[9px] font-bold text-[var(--ck-primary)] uppercase font-mono tracking-wider mt-0.5">{org.role}</p>
-                                <div className="mt-2 space-y-0.5 text-[10px] text-zinc-450 font-mono">
-                                  <p className="truncate">📧 {org.email}</p>
-                                  <p>📞 {org.phone}</p>
+                                <div className="mt-2 space-y-1 text-[10px] text-zinc-450 font-mono">
+                                  <p className="truncate flex items-center gap-1.5"><Mail className="w-3 h-3 text-[var(--ck-primary)] shrink-0" />{org.email}</p>
+                                  <p className="flex items-center gap-1.5"><Phone className="w-3 h-3 text-[var(--ck-primary)] shrink-0" />{org.phone}</p>
                                 </div>
                               </div>
                             ))}
@@ -1257,7 +1282,7 @@ export default function EventsPage() {
                           <div>
                             <label className="ck-label text-[10px]">Instagram URL</label>
                             <div className="relative">
-                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm">📸</span>
+                              <Camera className="w-3.5 h-3.5 text-pink-400 absolute left-3 top-1/2 -translate-y-1/2" />
                               <input
                                 className="ck-input pl-8 text-xs py-1.5"
                                 type="url"
@@ -1270,7 +1295,7 @@ export default function EventsPage() {
                           <div>
                             <label className="ck-label text-[10px]">LinkedIn URL</label>
                             <div className="relative">
-                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm">💼</span>
+                              <Briefcase className="w-3.5 h-3.5 text-blue-400 absolute left-3 top-1/2 -translate-y-1/2" />
                               <input
                                 className="ck-input pl-8 text-xs py-1.5"
                                 type="url"
@@ -1283,7 +1308,7 @@ export default function EventsPage() {
                           <div>
                             <label className="ck-label text-[10px]">WhatsApp Invite URL</label>
                             <div className="relative">
-                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm">💬</span>
+                              <MessageSquare className="w-3.5 h-3.5 text-emerald-400 absolute left-3 top-1/2 -translate-y-1/2" />
                               <input
                                 className="ck-input pl-8 text-xs py-1.5"
                                 type="url"
@@ -1304,38 +1329,38 @@ export default function EventsPage() {
                             <span className="text-[10px] font-mono text-[var(--ck-text-muted)] py-1 uppercase">Suggestions:</span>
                             <button
                               type="button"
-                              onClick={() => setNewCustomLink({ name: "WhatsApp Group", url: "https://chat.whatsapp.com/", logo: "💬" })}
-                              className="px-2.5 py-1 rounded bg-emerald-950/40 border border-emerald-800/40 text-[10px] font-mono text-emerald-300 hover:bg-emerald-900/40 transition"
+                              onClick={() => setNewCustomLink({ name: "WhatsApp Group", url: "https://chat.whatsapp.com/", logo: "WHATSAPP" })}
+                              className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-emerald-950/40 border border-emerald-800/40 text-[10px] font-mono text-emerald-300 hover:bg-emerald-900/40 transition"
                             >
-                              💬 WhatsApp Group
+                              <MessageSquare className="w-3 h-3" /> WhatsApp Group
                             </button>
                             <button
                               type="button"
-                              onClick={() => setNewCustomLink({ name: "Instagram Event Page", url: "https://instagram.com/", logo: "📸" })}
-                              className="px-2.5 py-1 rounded bg-pink-950/40 border border-pink-800/40 text-[10px] font-mono text-pink-300 hover:bg-pink-900/40 transition"
+                              onClick={() => setNewCustomLink({ name: "Instagram Event Page", url: "https://instagram.com/", logo: "INSTAGRAM" })}
+                              className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-pink-950/40 border border-pink-800/40 text-[10px] font-mono text-pink-300 hover:bg-pink-900/40 transition"
                             >
-                              📸 Instagram Page
+                              <Camera className="w-3 h-3" /> Instagram Page
                             </button>
                             <button
                               type="button"
-                              onClick={() => setNewCustomLink({ name: "LinkedIn Post", url: "https://linkedin.com/", logo: "💼" })}
-                              className="px-2.5 py-1 rounded bg-blue-950/40 border border-blue-800/40 text-[10px] font-mono text-blue-300 hover:bg-blue-900/40 transition"
+                              onClick={() => setNewCustomLink({ name: "LinkedIn Post", url: "https://linkedin.com/", logo: "LINKEDIN" })}
+                              className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-blue-950/40 border border-blue-800/40 text-[10px] font-mono text-blue-300 hover:bg-blue-900/40 transition"
                             >
-                              💼 LinkedIn Post
+                              <Briefcase className="w-3 h-3" /> LinkedIn Post
                             </button>
                             <button
                               type="button"
-                              onClick={() => setNewCustomLink({ name: "Discord Channel", url: "https://discord.gg/", logo: "🎮" })}
-                              className="px-2.5 py-1 rounded bg-indigo-950/40 border border-indigo-800/40 text-[10px] font-mono text-indigo-300 hover:bg-indigo-900/40 transition"
+                              onClick={() => setNewCustomLink({ name: "Discord Channel", url: "https://discord.gg/", logo: "DISCORD" })}
+                              className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-indigo-950/40 border border-indigo-800/40 text-[10px] font-mono text-indigo-300 hover:bg-indigo-900/40 transition"
                             >
-                              🎮 Discord
+                              <Gamepad2 className="w-3 h-3" /> Discord
                             </button>
                             <button
                               type="button"
-                              onClick={() => setNewCustomLink({ name: "YouTube Stream", url: "https://youtube.com/", logo: "📺" })}
-                              className="px-2.5 py-1 rounded bg-red-950/40 border border-red-800/40 text-[10px] font-mono text-red-300 hover:bg-red-900/40 transition"
+                              onClick={() => setNewCustomLink({ name: "YouTube Stream", url: "https://youtube.com/", logo: "YOUTUBE" })}
+                              className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-red-950/40 border border-red-800/40 text-[10px] font-mono text-red-300 hover:bg-red-900/40 transition"
                             >
-                              📺 YouTube
+                              <Video className="w-3 h-3" /> YouTube
                             </button>
                           </div>
 
@@ -1348,14 +1373,14 @@ export default function EventsPage() {
                                 value={newCustomLink.logo}
                                 onChange={(e) => setNewCustomLink({ ...newCustomLink, logo: e.target.value })}
                               >
-                                <option value="📸">📸 Instagram</option>
-                                <option value="💬">💬 WhatsApp</option>
-                                <option value="💼">💼 LinkedIn</option>
-                                <option value="🎮">🎮 Discord</option>
-                                <option value="📺">📺 YouTube</option>
-                                <option value="💻">💻 GitHub</option>
-                                <option value="🌐">🌐 Web Link</option>
-                                <option value="🔗">🔗 Link</option>
+                                <option value="INSTAGRAM">Instagram</option>
+                                <option value="WHATSAPP">WhatsApp</option>
+                                <option value="LINKEDIN">LinkedIn</option>
+                                <option value="DISCORD">Discord</option>
+                                <option value="YOUTUBE">YouTube</option>
+                                <option value="GITHUB">GitHub</option>
+                                <option value="WEB">Web Link</option>
+                                <option value="LINK">Link</option>
                               </select>
                             </div>
                             <div>
@@ -1385,7 +1410,7 @@ export default function EventsPage() {
                                       return;
                                     }
                                     setCustomSocialLinks([...customSocialLinks, { id: Date.now().toString(), ...newCustomLink }]);
-                                    setNewCustomLink({ name: "", url: "", logo: "📸" });
+                                    setNewCustomLink({ name: "", url: "", logo: "INSTAGRAM" });
                                   }}
                                   className="ck-btn-primary py-1.5 px-3 text-xs font-mono shrink-0 flex items-center gap-1"
                                 >
@@ -1401,7 +1426,7 @@ export default function EventsPage() {
                               {customSocialLinks.map((link, idx) => (
                                 <div key={link.id || idx} className="flex items-center justify-between p-2.5 rounded-lg border border-[var(--ck-border)] bg-zinc-950/80">
                                   <div className="flex items-center gap-2 min-w-0">
-                                    <span className="text-base">{link.logo || "🔗"}</span>
+                                    <span className="shrink-0">{renderSocialIcon(link.logo)}</span>
                                     <div className="min-w-0">
                                       <p className="text-xs font-bold font-mono text-[var(--ck-text)] truncate">{link.name}</p>
                                       <p className="text-[9px] font-mono text-[var(--ck-text-muted)] truncate">{link.url}</p>

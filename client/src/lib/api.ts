@@ -12,13 +12,28 @@ export const API_BASE = process.env.NEXT_PUBLIC_API_URL || `${SERVER_BASE_URL}/a
  * Returns the URL ready for use in <img src> or <a href>.
  */
 export function getFileUrl(url: string | undefined | null): string {
-  if (!url) return "";
-  // Already a full URL (Cloudinary, external CDN, data URI, etc.)
-  if (url.startsWith("http://") || url.startsWith("https://") || url.startsWith("data:")) {
-    return url;
+  if (!url || typeof url !== "string") return "";
+  const trimmed = url.trim();
+  if (!trimmed) return "";
+  
+  // Already a full URL (Cloudinary, external CDN, data URI, blob URI, etc.)
+  if (
+    trimmed.startsWith("http://") ||
+    trimmed.startsWith("https://") ||
+    trimmed.startsWith("data:") ||
+    trimmed.startsWith("blob:")
+  ) {
+    return trimmed;
   }
-  // Relative path — prepend server base URL
-  return `${SERVER_BASE_URL}${url}`;
+
+  // Client-side static assets in public directory (/images, /icons, etc.)
+  if (trimmed.startsWith("/images/") || trimmed.startsWith("/icons/") || trimmed.startsWith("/ck-")) {
+    return trimmed;
+  }
+
+  // Relative path from backend — ensure leading slash
+  const path = trimmed.startsWith("/") ? trimmed : `/${trimmed}`;
+  return `${SERVER_BASE_URL}${path}`;
 }
 
 interface FetchOptions extends RequestInit {

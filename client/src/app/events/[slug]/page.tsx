@@ -5,10 +5,12 @@ import { useParams, useRouter } from "next/navigation";
 import { api, getFileUrl } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Calendar, MapPin, Clock, Users, Tag, Shield, AlertCircle, Zap, Eye, FileText, CheckCircle, ExternalLink, Copy, UserPlus, X, Search, Download, Phone, Mail } from "lucide-react";
+import { ArrowLeft, Calendar, MapPin, Clock, Users, Tag, Shield, AlertCircle, Zap, Eye, FileText, CheckCircle, ExternalLink, Copy, UserPlus, X, Search, Download, Phone, Mail, MessageSquare } from "lucide-react";
 import Link from "next/link";
 import { DefaultAvatar } from "@/components/default-avatar";
 import { INSTITUTES, INSTITUTE_DEPARTMENTS, SEMESTERS } from "@/app/auth/page";
+import { Navbar } from "@/components/navigation/Navbar";
+import { Footer } from "@/components/navigation/Footer";
 
 const LinkedinIcon = ({ className = "w-4 h-4", style }: { className?: string; style?: React.CSSProperties }) => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} style={{ width: '1.2em', height: '1.2em', ...style }}>
@@ -22,7 +24,7 @@ const InstagramIcon = ({ className = "w-4 h-4", style }: { className?: string; s
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} style={{ width: '1.2em', height: '1.2em', ...style }}>
     <rect width="20" height="20" x="2" y="2" rx="5" ry="5" />
     <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
-    <line x1="17.5" x2="17.51" y1="6.5" y2="6.5" />
+    <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
   </svg>
 );
 
@@ -55,21 +57,21 @@ interface Organizer {
 }
 
 const EVENT_THEME_GRADIENTS: Record<string, string> = {
-  hackathon: "from-[#0a0014] via-[#130030] to-[#020020]",
-  workshop: "from-[#001a0a] via-[#002e14] to-[#001208]",
-  competition: "from-[#1a0000] via-[#300005] to-[#110000]",
-  seminar: "from-[#00101a] via-[#001e30] to-[#000b14]",
-  meetup: "from-[#0d0014] via-[#1a0028] to-[#080010]",
-  general: "from-[#0a0a0a] via-[#111111] to-[#050505]",
+  hackathon: "from-[#02050B] via-[#060D18] to-[#02050B]",
+  workshop: "from-[#02050B] via-[#060F1A] to-[#02050B]",
+  competition: "from-[#02050B] via-[#0D070F] to-[#02050B]",
+  seminar: "from-[#02050B] via-[#060D18] to-[#02050B]",
+  meetup: "from-[#02050B] via-[#080E14] to-[#02050B]",
+  general: "from-[#02050B] via-[#050A14] to-[#02050B]",
 };
 
 const EVENT_THEME_ACCENT: Record<string, string> = {
-  hackathon: "#a855f7",
-  workshop: "#22c55e",
-  competition: "#ef4444",
-  seminar: "#3b82f6",
-  meetup: "#f59e0b",
-  general: "#CCFF00",
+  hackathon: "#00F5D4",
+  workshop: "#00E1FF",
+  competition: "#FF0055",
+  seminar: "#00F5D4",
+  meetup: "#FFB800",
+  general: "#00F5D4",
 };
 
 function MatrixTitle({ title, accent }: { title: string; accent: string }) {
@@ -155,6 +157,9 @@ function PublicEventPageContent() {
       if (authMode === "login") {
         await login(authEmail, authPassword);
       } else {
+        if (!/^\d{10}$/.test(authPhone)) {
+          throw new Error("Mobile number must be exactly 10 digits");
+        }
         await register(authName, authEmail, authPassword, {
           studentId: authStudentId,
           phone: authPhone,
@@ -318,6 +323,10 @@ function PublicEventPageContent() {
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!token || !event) return;
+    if (formData.phone && !/^\d{10}$/.test(formData.phone)) {
+      showToast("Mobile number must be exactly 10 digits", "error");
+      return;
+    }
     setRegistering(true);
     try {
       const body: Record<string, unknown> = {
@@ -325,7 +334,7 @@ function PublicEventPageContent() {
         studentId: formData.studentId,
         phone: formData.phone,
         department: formData.department,
-        semester: formData.semester,
+        semester: user?.role === "FACULTY" ? "" : formData.semester,
         institute: formData.institute
       };
       if (event.maxTeamSize && event.maxTeamSize > 1) {
@@ -406,7 +415,7 @@ function PublicEventPageContent() {
   }
 
   const themeGradient = event ? (EVENT_THEME_GRADIENTS[event.eventType] || EVENT_THEME_GRADIENTS.general) : "from-black to-black";
-  const themeAccent = event ? (EVENT_THEME_ACCENT[event.eventType] || EVENT_THEME_ACCENT.general) : "#CCFF00";
+  const themeAccent = event ? (EVENT_THEME_ACCENT[event.eventType] || EVENT_THEME_ACCENT.general) : "#00F5D4";
 
   const regDeadlineTime = event.registrationDeadline ? new Date(event.registrationDeadline).getTime() : 0;
   const eventStartTime = event.startDate ? new Date(event.startDate).getTime() : 0;
@@ -708,7 +717,7 @@ function PublicEventPageContent() {
                     <motion.div initial={{ width: 0 }} animate={{ width: `${capacityPercent}%` }} transition={{ duration: 1, delay: 0.5 }}
                       className={`h-full rounded-full ${capacityPercent >= 90 ? "bg-red-600" : capacityPercent >= 70 ? "bg-amber-600" : "bg-gradient-to-r from-red-900 to-red-500"}`} />
                   </div>
-                  {isFull && <p className="text-xs text-red-500 mt-2 font-medium font-mono">🔴 Event is at full capacity</p>}
+                  {isFull && <p className="text-xs text-red-500 mt-2 font-medium font-mono flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-red-500 animate-pulse shrink-0" /> Event is at full capacity</p>}
                 </div>
               )}
 
@@ -732,11 +741,11 @@ function PublicEventPageContent() {
                     </>
                   ) : deadlinePassed && !eventPassed ? (
                     <div className="text-center space-y-1">
-                      <p className="text-xs text-red-500 font-semibold font-mono">⏰ Registration deadline has passed</p>
+                      <p className="text-xs text-red-500 font-semibold font-mono flex items-center justify-center gap-1.5"><Clock className="w-3.5 h-3.5 text-red-500" /> Registration deadline has passed</p>
                       <p className="text-[10px] text-slate-400 font-mono">Closed: {new Date(regDeadlineTime).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</p>
                     </div>
                   ) : eventPassed ? (
-                    <p className="text-xs text-slate-500 font-semibold text-center font-mono">🏁 Operation Concluded</p>
+                    <p className="text-xs text-slate-500 font-semibold text-center font-mono flex items-center justify-center gap-1.5"><CheckCircle className="w-3.5 h-3.5 text-slate-500" /> Operation Concluded</p>
                   ) : null}
                 </div>
               )}
@@ -852,7 +861,7 @@ function PublicEventPageContent() {
                     </a>
                     <a href={whatsappUrl} target="_blank" rel="noopener noreferrer"
                       className="flex items-center gap-3 p-2.5 rounded-lg border border-zinc-800 bg-[#0D0F14]/30 hover:border-green-500/40 hover:bg-green-950/10 transition-all font-mono text-xs text-slate-350 group">
-                      <span className="text-sm leading-none shrink-0" style={{ color: themeAccent }}>💬</span>
+                      <MessageSquare className="w-4 h-4 shrink-0" style={{ color: themeAccent }} />
                       <span className="group-hover:text-white transition">WhatsApp Community</span>
                     </a>
                     {isFullFromUrl && (
@@ -978,6 +987,7 @@ function PublicEventPageContent() {
                           className="ck-input"
                           type="tel"
                           inputMode="numeric"
+                          pattern="[0-9]*"
                           placeholder="10-digit mobile number"
                           value={formData.phone}
                           onChange={(e) => setFormData({ ...formData, phone: e.target.value.replace(/\D/g, "").slice(0, 10) })}
@@ -1150,7 +1160,7 @@ function PublicEventPageContent() {
       {showJoinTeamModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm">
           <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="ck-card max-w-md w-full p-6 relative">
-            <button onClick={() => setShowJoinTeamModal(false)} className="absolute top-4 right-4 text-slate-400 hover:text-white">✕</button>
+            <button onClick={() => setShowJoinTeamModal(false)} className="absolute top-4 right-4 text-slate-400 hover:text-white p-1 rounded hover:bg-white/5"><X className="w-4 h-4" /></button>
             <h3 className="text-xl font-bold font-mono text-white mb-2 uppercase tracking-tighter">Join Event Team</h3>
             <p className="text-xs text-slate-400 mb-6 font-mono">Enter the invite code generated by your team leader.</p>
             

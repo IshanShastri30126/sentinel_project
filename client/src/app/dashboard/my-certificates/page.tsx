@@ -213,15 +213,15 @@ export default function MyCertificatesPage() {
       <div className="flex items-start justify-between flex-wrap gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <Trophy className="w-3.5 h-3.5" style={{ color: "#CCFF00" }} />
-            <span className="text-[10px] font-mono uppercase tracking-widest font-bold animate-pulse" style={{ color: "#CCFF00" }}>ACHIEVEMENT VAULT</span>
+            <Trophy className="w-3.5 h-3.5" style={{ color: "#00F5D4" }} />
+            <span className="text-[10px] font-mono uppercase tracking-widest font-bold animate-pulse" style={{ color: "#00F5D4" }}>ACHIEVEMENT VAULT</span>
           </div>
           <h1 className="text-3xl font-black font-mono tracking-tighter text-[var(--ck-text)]">MY <span className="ck-gradient-text">CERTIFICATES</span></h1>
           <p className="mt-1 text-xs text-[var(--ck-text-muted)] font-mono">
-            {certificates.length > 0 ? <span style={{ color: "#CCFF00" }}>{certificates.length} ACHIEVEMENT{certificates.length > 1 ? "S" : ""} UNLOCKED</span> : "NO ACHIEVEMENTS YET"}
+            {certificates.length > 0 ? <span style={{ color: "#00F5D4" }}>{certificates.length} ACHIEVEMENT{certificates.length > 1 ? "S" : ""} UNLOCKED</span> : "NO ACHIEVEMENTS YET"}
           </p>
         </div>
-        <div className="flex items-center gap-2 px-4 py-2 rounded-xl border border-[#CCFF00]/15 bg-[#CCFF00]/5 text-[var(--ck-primary)]">
+        <div className="flex items-center gap-2 px-4 py-2 rounded-xl border border-[#00F5D4]/20 bg-[#00F5D4]/5 text-[var(--ck-primary)]">
           <Sparkles className="w-4 h-4 text-[var(--ck-primary)] animate-pulse" />
           <span className="text-xs font-mono font-bold uppercase">VERIFIED SECURE CERTS</span>
         </div>
@@ -230,9 +230,9 @@ export default function MyCertificatesPage() {
       {certificates.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-24 gap-5">
           <div className="relative">
-            <div className="absolute inset-0 bg-[#CCFF00]/10 rounded-full blur-3xl animate-pulse" />
+            <div className="absolute inset-0 bg-[#00F5D4]/10 rounded-full blur-3xl animate-pulse" />
             <div className="relative w-24 h-24 rounded-3xl border border-[var(--ck-border)] bg-gradient-to-br from-zinc-950/30 to-black flex items-center justify-center">
-              <Trophy className="w-10 h-10" style={{ color: "#CCFF00" }} />
+              <Trophy className="w-10 h-10" style={{ color: "#00F5D4" }} />
             </div>
           </div>
           <div className="text-center">
@@ -240,7 +240,7 @@ export default function MyCertificatesPage() {
             <p className="text-xs text-zinc-650 mt-1 max-w-xs font-mono">No achievements yet. Participate in events to earn verified certificates.</p>
           </div>
           <Link href="/dashboard/events"
-            className="flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-[#FF4D00] to-[#CCFF00] text-black text-xs font-black uppercase tracking-wider hover:scale-[1.02] active:scale-[0.98] transition-all shadow-[0_0_15px_rgba(204,255,0,0.2)]"
+            className="flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-[#00F5D4] to-[#00D2FF] text-black text-xs font-black uppercase tracking-wider hover:scale-[1.02] active:scale-[0.98] transition-all shadow-[0_0_15px_rgba(0,245,212,0.3)]"
           >
             EXPLORE EVENTS
           </Link>
@@ -264,7 +264,7 @@ export default function MyCertificatesPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
           <div className="relative w-full max-w-5xl h-[80vh] flex flex-col bg-[#0f172a] border border-[var(--ck-border)] rounded-2xl shadow-2xl overflow-hidden">
             <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-800/50 bg-black/20">
-              <h2 className="text-sm font-bold text-[var(--ck-text)] font-mono flex items-center gap-2"><Award className="w-4 h-4 text-[var(--ck-lime)]" /> CERTIFICATE VIEWER</h2>
+              <h2 className="text-sm font-bold text-[var(--ck-text)] font-mono flex items-center gap-2"><Award className="w-4 h-4 text-[var(--ck-primary)]" /> CERTIFICATE VIEWER</h2>
               <button onClick={() => setViewingCert(null)} className="p-2 text-[var(--ck-text-secondary)] hover:text-[var(--ck-text)] transition-colors bg-[var(--ck-bg-card)] rounded-lg hover:bg-[var(--ck-bg-elevated)]">
                 <X className="w-4 h-4" />
               </button>

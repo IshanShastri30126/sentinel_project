@@ -127,7 +127,7 @@ export default function LandingManagementPage() {
       const res = await apiUpload<{ fileUrl: string }>("/settings/upload", fd, token || undefined);
       setActiveMember({
         ...activeMember,
-        [fieldName]: getFileUrl(res.fileUrl)
+        [fieldName]: res.fileUrl
       });
     } catch (err) {
       alert(err instanceof Error ? err.message : "Upload failed");
@@ -139,7 +139,7 @@ export default function LandingManagementPage() {
   if (loading) {
     return (
       <div className="flex justify-center py-20">
-        <div className="w-8 h-8 border-2 border-[var(--ck-border)] border-t-[#CCFF00] rounded-full animate-spin" />
+        <div className="w-8 h-8 border-2 border-[var(--ck-border)] border-t-[#00F5D4] rounded-full animate-spin" />
       </div>
     );
   }
@@ -181,18 +181,18 @@ export default function LandingManagementPage() {
           {team.map((member) => (
             <div 
               key={member.id} 
-              className="group relative rounded-xl border border-[var(--ck-border)] hover:border-[#CCFF00]/40 bg-zinc-950/40 p-5 transition-all duration-300 hover:shadow-[0_0_20px_rgba(204,255,0,0.06)] flex flex-col justify-between overflow-hidden"
+              className="group relative rounded-xl border border-[var(--ck-border)] hover:border-[#00F5D4]/40 bg-zinc-950/40 p-5 transition-all duration-300 hover:shadow-[0_0_20px_rgba(0,245,212,0.08)] flex flex-col justify-between overflow-hidden"
             >
               {/* Corner brackets */}
-              <div className="absolute top-0 left-0 w-1.5 h-1.5 border-t border-l border-[var(--ck-border)] group-hover:border-[#CCFF00] transition-colors" />
-              <div className="absolute top-0 right-0 w-1.5 h-1.5 border-t border-r border-[var(--ck-border)] group-hover:border-[#CCFF00] transition-colors" />
-              <div className="absolute bottom-0 left-0 w-1.5 h-1.5 border-b border-l border-[var(--ck-border)] group-hover:border-[#CCFF00] transition-colors" />
-              <div className="absolute bottom-0 right-0 w-1.5 h-1.5 border-b border-r border-[var(--ck-border)] group-hover:border-[#CCFF00] transition-colors" />
+              <div className="absolute top-0 left-0 w-1.5 h-1.5 border-t border-l border-[var(--ck-border)] group-hover:border-[#00F5D4] transition-colors" />
+              <div className="absolute top-0 right-0 w-1.5 h-1.5 border-t border-r border-[var(--ck-border)] group-hover:border-[#00F5D4] transition-colors" />
+              <div className="absolute bottom-0 left-0 w-1.5 h-1.5 border-b border-l border-[var(--ck-border)] group-hover:border-[#00F5D4] transition-colors" />
+              <div className="absolute bottom-0 right-0 w-1.5 h-1.5 border-b border-r border-[var(--ck-border)] group-hover:border-[#00F5D4] transition-colors" />
 
               {/* Cover Banner Mockup (Top) */}
               <div className="h-16 w-full -mx-5 -mt-5 mb-4 bg-[var(--ck-bg-card)] border-b border-[var(--ck-border)] overflow-hidden relative">
                 {member.coverPosterUrl ? (
-                  <img src={member.coverPosterUrl} alt="Cover Banner" className="w-full h-full object-cover opacity-60" />
+                  <img src={getFileUrl(member.coverPosterUrl)} alt="Cover Banner" className="w-full h-full object-cover opacity-60" />
                 ) : (
                   <div className="w-full h-full bg-gradient-to-r from-zinc-950 to-zinc-900 opacity-60" />
                 )}
@@ -204,9 +204,9 @@ export default function LandingManagementPage() {
               {/* Member Card Body */}
               <div className="relative">
                 {/* Floating Circular Avatar */}
-                <div className="w-14 h-14 rounded-full border-2 border-[var(--ck-border)] bg-[var(--ck-bg-card)] overflow-hidden shadow-lg -mt-10 mb-3 group-hover:border-[#CCFF00] transition-colors relative z-10 mx-auto sm:mx-0">
+                <div className="w-14 h-14 rounded-full border-2 border-[var(--ck-border)] bg-[var(--ck-bg-card)] overflow-hidden shadow-lg -mt-10 mb-3 group-hover:border-[#00F5D4] transition-colors relative z-10 mx-auto sm:mx-0">
                   {member.imageUrl ? (
-                    <img src={member.imageUrl} alt={member.name} className="w-full h-full object-cover" />
+                    <img src={getFileUrl(member.imageUrl)} alt={member.name} className="w-full h-full object-cover" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-zinc-650">
                       <Users className="w-5 h-5" />
@@ -216,7 +216,7 @@ export default function LandingManagementPage() {
 
                 <div className="text-center sm:text-left">
                   <h3 className="text-base font-bold text-[var(--ck-text)] tracking-tight truncate group-hover:text-[var(--ck-primary)] transition-colors">{member.name}</h3>
-                  <span className="text-[9px] font-mono text-[var(--ck-primary)] bg-[#CCFF00]/10 border border-[#CCFF00]/25 rounded px-2 py-0.5 mt-1 inline-block uppercase tracking-wider">
+                  <span className="text-[9px] font-mono text-[var(--ck-primary)] bg-[#00F5D4]/10 border border-[#00F5D4]/25 rounded px-2 py-0.5 mt-1 inline-block uppercase tracking-wider">
                     {member.role.replace("_", " ")}
                   </span>
                   <p className="text-xs text-[var(--ck-text-secondary)] mt-2 truncate">{member.designation}</p>
@@ -241,7 +241,7 @@ export default function LandingManagementPage() {
                 <div className="flex gap-2">
                   <button 
                     onClick={() => handleEditMember(member)}
-                    className="p-2 rounded bg-[#CCFF00]/5 hover:bg-[#CCFF00] text-[var(--ck-primary)] hover:text-black border border-[#CCFF00]/20 transition-colors flex items-center gap-1 text-xs font-mono uppercase"
+                    className="p-2 rounded bg-[#00F5D4]/5 hover:bg-[#00F5D4] text-[var(--ck-primary)] hover:text-black border border-[#00F5D4]/20 transition-colors flex items-center gap-1 text-xs font-mono uppercase"
                     title="Edit Member Info"
                   >
                     <Edit className="w-3.5 h-3.5" /> Edit
@@ -273,12 +273,12 @@ export default function LandingManagementPage() {
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ type: "spring", stiffness: 120 }}
-              className="w-20 h-20 rounded-2xl bg-gradient-to-br from-[#CCFF00] to-[#FF4D00] flex items-center justify-center shadow-[0_0_30px_rgba(204,255,0,0.3)] mb-4 border border-white/10"
+              className="w-20 h-20 rounded-2xl bg-gradient-to-br from-[#00F5D4] to-[#00D2FF] flex items-center justify-center shadow-[0_0_30px_rgba(0,245,212,0.3)] mb-4 border border-white/10"
             >
               <CheckCircle className="w-10 h-10 text-black animate-pulse" />
             </motion.div>
             
-            <h3 className="text-xl font-bold font-mono uppercase tracking-widest mb-1.5" style={{ color: "#CCFF00" }}>
+            <h3 className="text-xl font-bold font-mono uppercase tracking-widest mb-1.5" style={{ color: "#00F5D4" }}>
               CMS DATABASE SYNCHRONIZED
             </h3>
             <p className="text-[10px] text-[var(--ck-text-secondary)] font-mono uppercase tracking-wider text-center max-w-sm">
@@ -299,7 +299,7 @@ export default function LandingManagementPage() {
               className="ck-card w-full max-w-4xl flex flex-col relative bg-[var(--ck-bg)] border border-[var(--ck-border)] shadow-2xl rounded-2xl overflow-hidden"
               style={{ maxHeight: "90vh" }}
             >
-              <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-[#CCFF00] via-[#FF4D00] to-[#FF003C] z-10" />
+              <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-[#00F5D4] via-[#00D2FF] to-[#A855F7] z-10" />
 
               {/* Modal Header */}
               <div className="flex justify-between items-center px-6 pt-5 pb-3 border-b border-[var(--ck-border)] shrink-0">
@@ -335,7 +335,7 @@ export default function LandingManagementPage() {
                       onClick={() => setActiveTab(tab.id as any)}
                       className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-mono uppercase tracking-wider transition-all duration-300 ${
                         active 
-                          ? "bg-[#CCFF00]/10 text-[var(--ck-primary)] border-[#CCFF00]/30 shadow-[0_0_12px_rgba(204,255,0,0.08)]" 
+                          ? "bg-[#00F5D4]/10 text-[var(--ck-primary)] border-[#00F5D4]/30 shadow-[0_0_12px_rgba(0,245,212,0.1)]" 
                           : "bg-transparent text-[var(--ck-text-muted)] border-transparent hover:text-zinc-350 hover:bg-[var(--ck-bg-card)]/30"
                       }`}
                     >
@@ -432,6 +432,8 @@ export default function LandingManagementPage() {
                       <label className="text-[10px] uppercase font-mono text-[var(--ck-text-muted)] font-bold">Mobile Number (10 Digits)</label>
                       <input 
                         type="text"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
                         className="ck-input w-full mt-1"
                         maxLength={10}
                         value={activeMember.phone || ""} 
@@ -485,7 +487,7 @@ export default function LandingManagementPage() {
                       <div className="flex items-center gap-4 mt-2">
                         <div className="w-14 h-14 rounded-full border border-[var(--ck-border)] bg-[var(--ck-bg-card)] overflow-hidden shrink-0 flex items-center justify-center">
                           {activeMember.imageUrl ? (
-                            <img src={activeMember.imageUrl} alt="Profile Photo" className="w-full h-full object-cover" />
+                            <img src={getFileUrl(activeMember.imageUrl)} alt="Profile Photo" className="w-full h-full object-cover" />
                           ) : (
                             <Users className="w-5 h-5 text-zinc-650" />
                           )}
@@ -528,7 +530,7 @@ export default function LandingManagementPage() {
                       <div className="mt-2 space-y-3">
                         {activeMember.coverPosterUrl && (
                           <div className="h-24 w-full rounded-lg border border-[var(--ck-border)] bg-[var(--ck-bg-card)] overflow-hidden">
-                            <img src={activeMember.coverPosterUrl} alt="Cover Preview" className="w-full h-full object-cover" />
+                            <img src={getFileUrl(activeMember.coverPosterUrl)} alt="Cover Preview" className="w-full h-full object-cover" />
                           </div>
                         )}
                         <div className="flex items-center gap-3">
@@ -573,7 +575,7 @@ export default function LandingManagementPage() {
                       <div className="flex items-center gap-4 mt-2">
                         <div className="w-14 h-14 rounded-lg border border-[var(--ck-border)] bg-[var(--ck-bg-card)] overflow-hidden shrink-0 flex items-center justify-center">
                           {activeMember.cyberAvatarUrl ? (
-                            <img src={activeMember.cyberAvatarUrl} alt="Cyber Avatar" className="w-full h-full object-cover animate-pulse" />
+                            <img src={getFileUrl(activeMember.cyberAvatarUrl)} alt="Cyber Avatar" className="w-full h-full object-cover animate-pulse" />
                           ) : (
                             <Shield className="w-5 h-5 text-zinc-650" />
                           )}

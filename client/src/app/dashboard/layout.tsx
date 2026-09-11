@@ -138,11 +138,11 @@ function SidebarNav({
           href="/dashboard/profile"
           className={`flex items-center p-3 rounded-xl border border-[#121F3D] bg-[#04070A] hover:border-[#00F5D4]/40 transition-all duration-200 ${collapsed ? 'justify-center' : 'gap-3'}`}
         >
-          {user.avatarUrl ? (
-            <img src={getFileUrl(user.avatarUrl)} alt="Avatar" className="w-9 h-9 shrink-0 rounded-lg object-cover border border-[#00F5D4]/30" />
-          ) : (
-            <DefaultAvatar className="w-9 h-9 shrink-0 border border-[#00F5D4]/30" />
-          )}
+          <DefaultAvatar
+            src={user.avatarUrl ? getFileUrl(user.avatarUrl) : null}
+            alt={user.name}
+            className="w-9 h-9 shrink-0 border border-[#00F5D4]/30"
+          />
           {!collapsed && (
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold truncate" style={{ color: "#F0F8FF", fontFamily: "'Space Grotesk', sans-serif" }}>{user.name}</p>
@@ -445,11 +445,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               {/* User Profile Card & Sign Out at bottom of dropdown */}
               <div className="pt-4 border-t border-[#121F3D] flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div className="flex items-center gap-3 bg-[#080E24] border border-[#121F3D]/80 rounded-xl p-3.5 w-full sm:w-auto min-w-[280px]">
-                  {user.avatarUrl ? (
-                    <img src={getFileUrl(user.avatarUrl)} alt="Avatar" className="w-10 h-10 rounded-xl object-cover border border-[#00F5D4]/30 shrink-0" />
-                  ) : (
-                    <DefaultAvatar className="w-10 h-10 border border-[#00F5D4]/30 shrink-0" />
-                  )}
+                  <DefaultAvatar
+                    src={user.avatarUrl ? getFileUrl(user.avatarUrl) : null}
+                    alt={user.name}
+                    className="w-10 h-10 border border-[#00F5D4]/30 shrink-0"
+                  />
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
                       <p className="text-xs font-bold text-white truncate">{user.name}</p>
@@ -567,14 +567,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
                     {/* Action bar if there are unread notifications */}
                     {unreadNotifications.length > 0 && (
-                      <div className="px-4 py-2 border-b border-[#1A1E26] flex justify-between items-center" style={{ background: "rgba(204,255,0,0.03)" }}>
+                      <div className="px-4 py-2 border-b border-[#1A1E26] flex justify-between items-center" style={{ background: "rgba(0,245,212,0.03)" }}>
                         <span className="text-[9px] text-[#4B5563] uppercase tracking-wider font-mono">
                           {unreadNotifications.length} UNREAD
                         </span>
                         <button
                           onClick={markAllNotificationsRead}
                           className="flex items-center gap-1.5 text-[9px] uppercase tracking-wider font-bold font-mono hover:underline transition-all cursor-pointer"
-                          style={{ color: "#CCFF00" }}
+                          style={{ color: "#00F5D4" }}
                         >
                           <CheckCheck className="w-3 h-3" /> MARK ALL READ
                         </button>
@@ -594,8 +594,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                               exit={{ opacity: 0, x: 50, transition: { duration: 0.15 } }}
                               className="overflow-hidden"
                             >
-                              <div className="p-3 rounded-xl border border-[#1A1E26] hover:border-[rgba(204,255,0,0.15)] transition-all flex gap-3 relative group overflow-hidden bg-[var(--ck-bg-card)]">
-                                <div className="absolute top-0 bottom-0 left-0 w-[2px]" style={{ background: "#CCFF00", boxShadow: "0 0 6px rgba(204,255,0,0.6)" }} />
+                              <div className="p-3 rounded-xl border border-[#1A1E26] hover:border-[rgba(0,245,212,0.15)] transition-all flex gap-3 relative group overflow-hidden bg-[var(--ck-bg-card)]">
+                                <div className="absolute top-0 bottom-0 left-0 w-[2px]" style={{ background: "#00F5D4", boxShadow: "0 0 6px rgba(0,245,212,0.6)" }} />
 
                                 <div className="flex-1 min-w-0 pl-1">
                                   <div className="flex items-start justify-between gap-2 mb-1">
@@ -614,8 +614,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                                 <div className="flex flex-col justify-center shrink-0">
                                   <button
                                     onClick={() => markNotificationRead(notif.id)}
-                                    className="p-1.5 rounded-lg border border-[#1A1E26] hover:border-[rgba(204,255,0,0.3)] transition-all cursor-pointer"
-                                    style={{ color: "#CCFF00" }}
+                                    className="p-1.5 rounded-lg border border-[#1A1E26] hover:border-[rgba(0,245,212,0.3)] transition-all cursor-pointer"
+                                    style={{ color: "#00F5D4" }}
                                     title="Mark as read"
                                   >
                                     <Check className="w-3 h-3" />
@@ -711,11 +711,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   <div className="pt-3 border-t border-[#121F3D] flex flex-col gap-2">
                     <div className="flex items-center justify-between p-2.5 rounded-xl bg-[#080E24] border border-[#121F3D]">
                       <div className="flex items-center gap-2.5 min-w-0">
-                        {user.avatarUrl ? (
-                          <img src={getFileUrl(user.avatarUrl)} alt="Avatar" className="w-8 h-8 rounded-lg object-cover border border-[#00F5D4]/30 shrink-0" />
-                        ) : (
-                          <DefaultAvatar className="w-8 h-8 border border-[#00F5D4]/30 shrink-0" />
-                        )}
+                        <DefaultAvatar
+                          src={user.avatarUrl ? getFileUrl(user.avatarUrl) : null}
+                          alt={user.name}
+                          className="w-8 h-8 border border-[#00F5D4]/30 shrink-0"
+                        />
                         <div className="min-w-0">
                           <p className="text-xs font-bold text-white truncate">{user.name}</p>
                           <p className="text-[9px] font-mono text-[#00F5D4] truncate">{ROLE_LABELS[user.role as Role]}</p>
@@ -745,16 +745,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               exit={{ opacity: 0, y: 20, x: 20 }}
               transition={{ duration: 0.3, type: "spring", stiffness: 160, damping: 20 }}
               className="fixed bottom-5 right-5 z-[60] w-72 sm:w-80 rounded-2xl overflow-hidden border shadow-2xl"
-              style={{ background: "rgba(8,10,15,0.97)", borderColor: "rgba(204,255,0,0.25)", borderLeft: "3px solid #CCFF00" }}
+              style={{ background: "rgba(8,10,15,0.97)", borderColor: "rgba(0,245,212,0.25)", borderLeft: "3px solid #00F5D4" }}
             >
               {/* Top glow bar */}
-              <div className="h-0.5 w-full" style={{ background: "linear-gradient(90deg, #CCFF00, transparent)" }} />
+              <div className="h-0.5 w-full" style={{ background: "linear-gradient(90deg, #00F5D4, transparent)" }} />
 
               <div className="p-4 flex flex-col gap-3">
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex items-center gap-2">
-                    <Bell className="w-3.5 h-3.5" style={{ color: "#CCFF00" }} />
-                    <span className="text-[9px] uppercase tracking-widest font-bold font-mono" style={{ color: "#CCFF00" }}>NEW NOTIFICATION</span>
+                    <Bell className="w-3.5 h-3.5" style={{ color: "#00F5D4" }} />
+                    <span className="text-[9px] uppercase tracking-widest font-bold font-mono" style={{ color: "#00F5D4" }}>NEW NOTIFICATION</span>
                   </div>
                   <button onClick={() => setActiveToast(null)} className="w-5 h-5 flex items-center justify-center text-[#4B5563] hover:text-[var(--ck-text)] transition">
                     <X className="w-3.5 h-3.5" />
@@ -773,8 +773,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 <div className="flex items-center justify-between border-t border-[#1A1E26] pt-3">
                   <button
                     onClick={() => handleMarkToastRead(activeToast.id)}
-                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-[#1A1E26] text-[9px] font-bold font-mono uppercase tracking-wider transition-all hover:border-[rgba(204,255,0,0.3)] cursor-pointer"
-                    style={{ color: "#CCFF00" }}
+                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-[#1A1E26] text-[9px] font-bold font-mono uppercase tracking-wider transition-all hover:border-[rgba(0,245,212,0.3)] cursor-pointer"
+                    style={{ color: "#00F5D4" }}
                   >
                     <Check className="w-3 h-3" /> MARK READ
                   </button>
@@ -785,7 +785,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                       checked={disablePopups}
                       onChange={(e) => handleTogglePopups(e.target.checked)}
                       className="rounded border-[#1A1E26] bg-[var(--ck-bg)] w-3 h-3 cursor-pointer"
-                      style={{ accentColor: "#CCFF00" }}
+                      style={{ accentColor: "#00F5D4" }}
                     />
                     DISABLE
                   </label>

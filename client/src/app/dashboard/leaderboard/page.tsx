@@ -36,7 +36,7 @@ export default function LeaderboardPage() {
   // Point Forms
   const [pointForm, setPointForm] = useState({ receiverId: "", points: "", category: "", reason: "" });
   const [deductForm, setDeductForm] = useState({ receiverId: "", points: "", reason: "" });
-  const [badgeForm, setBadgeForm] = useState({ name: "", description: "", icon: "🏅", pointThreshold: "" });
+  const [badgeForm, setBadgeForm] = useState({ name: "", description: "", icon: "AWARD", pointThreshold: "" });
   
   const [memberSearch, setMemberSearch] = useState("");
   const [memberResults, setMemberResults] = useState<any[]>([]);
@@ -110,7 +110,7 @@ export default function LeaderboardPage() {
         method: "POST", token: token || undefined,
         body: JSON.stringify({ ...badgeForm, pointThreshold: parseInt(badgeForm.pointThreshold) })
       });
-      setBadgeForm({ name: "", description: "", icon: "🏅", pointThreshold: "" });
+      setBadgeForm({ name: "", description: "", icon: "AWARD", pointThreshold: "" });
       loadData();
     } catch (err) { alert(err instanceof Error ? err.message : "Failed"); }
   };
@@ -127,7 +127,7 @@ export default function LeaderboardPage() {
             <span className="text-[10px] font-mono uppercase tracking-widest text-[var(--ck-primary)]">OPERATIVE RANKINGS</span>
           </div>
           <h1 className="text-3xl font-black font-mono tracking-tighter uppercase text-[var(--ck-text)]">
-            RANKING <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#CCFF00] via-[#FF4D00] to-[#FF003C]">MATRIX</span>
+            RANKING <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#00F5D4] via-[#FF4D00] to-[#FF003C]">MATRIX</span>
           </h1>
           <p className="mt-1 text-sm text-[var(--ck-text-muted)] font-mono">OPERATIVE CREDITS // MISSION ACK</p>
         </div>
@@ -194,7 +194,7 @@ export default function LeaderboardPage() {
                         const delay = pi * 0.15;
                         const left = Math.random() * 100;
                         const size = Math.random() * 12 + 8;
-                        const color = pi % 2 === 0 ? "#CCFF00" : "#FF4D00";
+                        const color = pi % 2 === 0 ? "#00F5D4" : "#FF4D00";
                         return (
                           <motion.div
                             key={pi}
@@ -211,10 +211,12 @@ export default function LeaderboardPage() {
                               repeat: Infinity,
                               ease: "easeOut"
                             }}
-                            className="absolute font-bold"
-                            style={{ left: `${left}%`, fontSize: `${size}px`, color, filter: `drop-shadow(0 0 6px ${color})` }}
+                            className="absolute font-bold pointer-events-none"
+                            style={{ left: `${left}%`, color, filter: `drop-shadow(0 0 6px ${color})` }}
                           >
-                            ★
+                            <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
+                              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                            </svg>
                           </motion.div>
                         );
                       })}
@@ -224,12 +226,12 @@ export default function LeaderboardPage() {
                       initial={{ scale: 0.6, opacity: 0 }}
                       animate={{ scale: 1, opacity: 1 }}
                       transition={{ type: "spring", stiffness: 100 }}
-                      className="w-20 h-20 rounded-full bg-gradient-to-br from-[#CCFF00] to-[#FF4D00] flex items-center justify-center shadow-[0_0_40px_rgba(204,255,0,0.4)] z-10 mb-4"
+                      className="w-20 h-20 rounded-full bg-gradient-to-br from-[#00F5D4] to-[#FF4D00] flex items-center justify-center shadow-[0_0_40px_rgba(0,245,212,0.4)] z-10 mb-4"
                     >
                       <Star className="w-10 h-10 text-black fill-black" />
                     </motion.div>
                     
-                    <h3 className="text-xl font-bold font-mono uppercase tracking-widest mb-1.5 z-10" style={{ color: "#CCFF00" }}>
+                    <h3 className="text-xl font-bold font-mono uppercase tracking-widest mb-1.5 z-10" style={{ color: "#00F5D4" }}>
                       Credits Dispatched
                     </h3>
                     <p className="text-[10px] text-[var(--ck-text-secondary)] font-mono uppercase tracking-wider z-10">
@@ -293,7 +295,7 @@ export default function LeaderboardPage() {
                 <form onSubmit={handleCreateBadge} className="space-y-3 p-4 border border-white/[0.06] rounded-xl bg-white/[0.02] backdrop-blur-sm">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div><label className="ck-label">Badge Name</label><input required className="ck-input" value={badgeForm.name} onChange={(e) => setBadgeForm({...badgeForm, name: e.target.value})} /></div>
-                    <div><label className="ck-label">Emoji Icon</label><input required className="ck-input" value={badgeForm.icon} onChange={(e) => setBadgeForm({...badgeForm, icon: e.target.value})} /></div>
+                    <div><label className="ck-label">Badge Symbol / Acronym</label><input required className="ck-input" value={badgeForm.icon} onChange={(e) => setBadgeForm({...badgeForm, icon: e.target.value})} /></div>
                   </div>
                   <div><label className="ck-label">Required Points Threshold</label><input type="number" min="1" required className="ck-input" value={badgeForm.pointThreshold} onChange={(e) => setBadgeForm({...badgeForm, pointThreshold: e.target.value})} /></div>
                   <div><label className="ck-label">Description</label><input className="ck-input" value={badgeForm.description} onChange={(e) => setBadgeForm({...badgeForm, description: e.target.value})} /></div>
@@ -323,13 +325,13 @@ export default function LeaderboardPage() {
         <div className="flex gap-1 p-1 rounded-xl bg-black/40 border border-white/[0.04] backdrop-blur-sm">
           {[{ value: "", label: "ALL TIME" }, { value: "month", label: "CURRENT CYCLE" }, { value: "semester", label: "SEMESTER WINDOW" }].map((p) => (
             <button key={p.value} onClick={() => setPeriod(p.value)} 
-              className={`px-4 py-2 rounded-lg text-xs font-mono uppercase tracking-wider transition-all ${period === p.value ? "bg-[#CCFF00] text-black font-bold shadow-[0_0_12px_rgba(204,255,0,0.3)]" : "text-[var(--ck-text-secondary)] hover:text-[var(--ck-primary)] hover:bg-white/[0.03]"}`}>
+              className={`px-4 py-2 rounded-lg text-xs font-mono uppercase tracking-wider transition-all ${period === p.value ? "bg-[#00F5D4] text-black font-bold shadow-[0_0_12px_rgba(0,245,212,0.3)]" : "text-[var(--ck-text-secondary)] hover:text-[var(--ck-primary)] hover:bg-white/[0.03]"}`}>
               {p.label}
             </button>
           ))}
         </div>
         <div className="relative ck-search-container ck-input-icon-wrapper w-full sm:w-52">
-          <Search className="w-4 h-4" style={{ color: "#CCFF00" }} />
+          <Search className="w-4 h-4" style={{ color: "#00F5D4" }} />
           <input className="ck-input ck-search-input pl-9 w-full" placeholder="SEARCH OPERATIVE..." value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
       </motion.div>
@@ -371,7 +373,7 @@ export default function LeaderboardPage() {
                   >
                     {/* Light beam behind first place */}
                     {isFirst && (
-                      <div className="absolute -top-12 left-1/2 -translate-x-1/2 w-32 h-32 bg-[#CCFF00]/[0.04] rounded-full blur-3xl pointer-events-none" />
+                      <div className="absolute -top-12 left-1/2 -translate-x-1/2 w-32 h-32 bg-[#00F5D4]/[0.04] rounded-full blur-3xl pointer-events-none" />
                     )}
 
                     <motion.div 
@@ -380,25 +382,21 @@ export default function LeaderboardPage() {
                       animate={{ y: isFirst ? [0, -8, 0] : idx === 1 ? [0, -4, 0] : [0, -3, 0] }}
                       transition={{ duration: 3.5 + idx, repeat: Infinity, ease: "easeInOut" }}
                     >
-                      {entry.user?.avatarUrl ? (
-                        <img
-                          src={getFileUrl(entry.user.avatarUrl)}
-                          alt={entry.user.name}
-                          className="w-full h-full rounded-xl object-cover border border-white/10"
-                        />
-                      ) : (
-                        <DefaultAvatar className="w-full h-full rounded-xl" />
-                      )}
+                      <DefaultAvatar
+                        src={entry.user?.avatarUrl ? getFileUrl(entry.user.avatarUrl) : null}
+                        alt={entry.user?.name}
+                        className="w-full h-full rounded-xl"
+                      />
 
                       {/* Rank Crown/Badge Badge Overlay */}
                       <div 
                         className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black border border-black/40 shadow-lg"
                         style={{ background: style.color, color: idx === 0 ? "#000" : "#fff", boxShadow: `0 0 10px ${style.shadowColor}` }}
                       >
-                        {idx === 0 ? "👑" : idx === 1 ? "2" : "3"}
+                        {idx === 0 ? <Crown className="w-3.5 h-3.5 text-black fill-black" /> : idx === 1 ? "2" : "3"}
                       </div>
 
-                      {isFirst && <Sparkles className="w-4 h-4 text-[#CCFF00] absolute -top-2 -right-2 animate-bounce" style={{ filter: "drop-shadow(0 0 6px #CCFF00)" }} />}
+                      {isFirst && <Sparkles className="w-4 h-4 text-[#00F5D4] absolute -top-2 -right-2 animate-bounce" style={{ filter: "drop-shadow(0 0 6px #00F5D4)" }} />}
                     </motion.div>
                     <p className="text-xs sm:text-sm font-bold mb-0.5 tracking-tight text-[var(--ck-text)] uppercase truncate max-w-[90px] sm:max-w-none">{entry.user?.name}</p>
                     <p className="text-[10px] sm:text-xs mb-3 font-bold" style={{ color: style.color }}>{entry.totalPoints} PTS</p>
@@ -442,7 +440,7 @@ export default function LeaderboardPage() {
                       >
                         <td className="font-mono" data-label="Rank">
                           <span className="font-bold font-mono text-sm" style={{
-                            color: entry.rank === 1 ? "#CCFF00" :
+                            color: entry.rank === 1 ? "#00F5D4" :
                                    entry.rank === 2 ? "#FF4D00" :
                                    entry.rank === 3 ? "#FF003C" :
                                    "var(--ck-text-muted)"
@@ -453,11 +451,11 @@ export default function LeaderboardPage() {
                         <td data-label="Member">
                           <div className="flex items-center gap-3">
                             <div className="relative">
-                              {entry.user?.avatarUrl ? (
-                                <img src={getFileUrl(entry.user.avatarUrl)} alt="Avatar" className="w-9 h-9 rounded-xl object-cover border border-white/[0.06] shrink-0" />
-                              ) : (
-                                <DefaultAvatar className="w-9 h-9" />
-                              )}
+                              <DefaultAvatar
+                                src={entry.user?.avatarUrl ? getFileUrl(entry.user.avatarUrl) : null}
+                                alt={entry.user?.name}
+                                className="w-9 h-9 shrink-0"
+                              />
                               {isTop3 && rankStyle && (
                                 <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full flex items-center justify-center text-[8px] font-black" style={{ background: rankStyle.color, color: entry.rank === 1 ? "#000" : "#fff", boxShadow: `0 0 6px ${rankStyle.shadowColor}` }}>
                                   {entry.rank}
@@ -472,7 +470,7 @@ export default function LeaderboardPage() {
                         </td>
                         <td data-label="Points">
                           <span className="font-semibold flex items-center gap-1.5 font-mono text-[var(--ck-text)]">
-                            <Star className="w-4 h-4 text-[var(--ck-primary)] fill-[#CCFF00]/20 drop-shadow-[0_0_6px_rgba(204,255,0,0.5)]" />
+                            <Star className="w-4 h-4 text-[var(--ck-primary)] fill-[#00F5D4]/20 drop-shadow-[0_0_6px_rgba(0,245,212,0.5)]" />
                             {String(entry.totalPoints).padStart(2, '0')}
                           </span>
                         </td>

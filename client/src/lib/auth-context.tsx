@@ -14,6 +14,7 @@ export interface User {
   role: Role;
   avatarUrl?: string;
   studentId?: string;
+  employeeId?: string;
   phone?: string;
   department?: string;
   institute?: string;
@@ -28,7 +29,7 @@ interface AuthContextType {
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
   loginWithGoogle: (credential: string) => Promise<void>;
-  register: (name: string, email: string, password: string, extra?: { studentId?: string; phone?: string; department?: string; institute?: string; semester?: string; clubId?: string; newClubName?: string; newClubSlug?: string }) => Promise<void>;
+  register: (name: string, email: string, password: string, extra?: { studentId?: string; employeeId?: string; phone?: string; department?: string; institute?: string; semester?: string; clubId?: string; newClubName?: string; newClubSlug?: string }) => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -117,7 +118,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setToken(data.accessToken);
   };
 
-  const register = async (name: string, email: string, password: string, extra?: { studentId?: string; phone?: string; department?: string; institute?: string; semester?: string; clubId?: string; newClubName?: string; newClubSlug?: string }) => {
+  const register = async (name: string, email: string, password: string, extra?: { studentId?: string; employeeId?: string; phone?: string; department?: string; institute?: string; semester?: string; clubId?: string; newClubName?: string; newClubSlug?: string }) => {
     const deviceFingerprint = getDeviceFingerprint();
     const data = await api<{ user: User; accessToken: string }>("/auth/register", {
       method: "POST",
