@@ -122,6 +122,15 @@ router.post("/", authenticate, requireMinRole("STUDENT_COORDINATOR"), validate(c
 router.post("/:id/poster", authenticate, requireMinRole("STUDENT_COORDINATOR"), upload.single("poster"), async (req: Request, res: Response) => {
   try {
     if (!req.file) { res.status(400).json({ error: "No file uploaded" }); return; }
+    const existing = await prisma.event.findUnique({ where: { id: req.params.id } });
+    if (!existing) { res.status(404).json({ error: "Event not found" }); return; }
+
+    const isElevated = ["FACULTY", "TECH"].includes(req.user!.role);
+    if (!isElevated && existing.creatorId !== req.user!.userId) {
+      res.status(403).json({ error: "Unauthorized: You can only modify events you created" });
+      return;
+    }
+
     const event = await prisma.event.update({ where: { id: req.params.id }, data: { posterUrl: getUploadedFileUrl(req.file) } });
     await clearEventsCache();
     res.json({ event });
@@ -132,6 +141,15 @@ router.post("/:id/poster", authenticate, requireMinRole("STUDENT_COORDINATOR"), 
 router.post("/:id/document", authenticate, requireMinRole("STUDENT_COORDINATOR"), upload.single("document"), async (req: Request, res: Response) => {
   try {
     if (!req.file) { res.status(400).json({ error: "No file uploaded" }); return; }
+    const existing = await prisma.event.findUnique({ where: { id: req.params.id } });
+    if (!existing) { res.status(404).json({ error: "Event not found" }); return; }
+
+    const isElevated = ["FACULTY", "TECH"].includes(req.user!.role);
+    if (!isElevated && existing.creatorId !== req.user!.userId) {
+      res.status(403).json({ error: "Unauthorized: You can only modify events you created" });
+      return;
+    }
+
     const event = await prisma.event.update({ where: { id: req.params.id }, data: { documentUrl: getUploadedFileUrl(req.file) } });
     await clearEventsCache();
     res.json({ event });
@@ -487,16 +505,30 @@ router.post("/:id/register", authenticate, auditLog("EVENT_REGISTRATION"), async
       return;
     }
 
-    const { teamName, teamMembers, name, studentId, phone, department, semester, institute } = req.body;
+    const { teamName, teamMembers, name, studentId, employeeId, phone, department, semester, institute } = req.body;
 
     // Update user details if provided
     const userUpdateData: any = {};
     if (name) userUpdateData.name = name;
-    if (studentId !== undefined) userUpdateData.studentId = studentId || null;
-    if (phone !== undefined) userUpdateData.phone = phone || null;
+    
+    const targetStudentId = studentId !== undefined ? studentId : employeeId;
+    if (targetStudentId !== undefined) userUpdateData.studentId = targetStudentId || null;
+
+    if (phone !== undefined) {
+      const sanitizedPhone = phone ? String(phone).replace(/\D/g, "") : "";
+      if (sanitizedPhone && !/^\d{10}$/.test(sanitizedPhone)) {
+        res.status(400).json({ error: "Mobile number must contain exactly 10 numeric digits." });
+        return;
+      }
+      userUpdateData.phone = sanitizedPhone || null;
+    }
+
     if (department !== undefined) userUpdateData.department = department || null;
-    if (semester !== undefined) userUpdateData.semester = semester || null;
     if (institute !== undefined) userUpdateData.institute = institute || null;
+
+    if (semester !== undefined) {
+      userUpdateData.semester = semester || null;
+    }
 
     if (Object.keys(userUpdateData).length > 0) {
       await prisma.user.update({

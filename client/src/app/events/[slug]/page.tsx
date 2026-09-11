@@ -890,7 +890,7 @@ function PublicEventPageContent() {
               onClick={() => setShowRegisterModal(false)} 
               className="absolute top-4 right-4 text-slate-400 hover:text-white z-20 w-8 h-8 rounded-full bg-black/40 border border-zinc-800 flex items-center justify-center font-mono text-sm transition"
             >
-              ✕
+              ×
             </button>
             
             {registered ? (
@@ -1121,7 +1121,7 @@ function PublicEventPageContent() {
                                     onClick={() => setSelectedMembers(selectedMembers.filter((s) => s.id !== m.id))} 
                                     className="hover:text-red-400 p-0.5"
                                   >
-                                    ✕
+                                    ×
                                   </button>
                                 </span>
                               ))}

@@ -145,7 +145,12 @@ app.use("/api/auth", authLimiter);
 
 // 6. Body parsing — 1mb limit for non-upload routes (tightened from 10mb)
 //    Upload routes use multer and bypass this limit via multipart/form-data
-app.use(express.json({ limit: "1mb" }));
+app.use(express.json({
+  limit: "1mb",
+  verify: (req, _res, buf) => {
+    (req as any).rawBody = buf.toString();
+  }
+}));
 app.use(express.urlencoded({ extended: false, limit: "1mb" }));
 app.use(cookieParser());
 
@@ -239,7 +244,7 @@ httpServer.on("connection", (socket) => {
 });
 
 httpServer.listen(config.port, () => {
-  process.stdout.write(`\n🛡️  Chakravyuh Club API Server running on http://localhost:${config.port}\n`);
+  process.stdout.write(`\n[Server] Chakravyuh Club API Server running on http://localhost:${config.port}\n`);
   process.stdout.write(`   Health: http://localhost:${config.port}/api/health\n`);
   process.stdout.write(`   Socket.io: ws://localhost:${config.port}\n`);
   process.stdout.write(`   Security: WAF + RequestID + ResponseSanitization + TCP Hardening ACTIVE\n\n`);

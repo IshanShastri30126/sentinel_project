@@ -104,6 +104,8 @@ export async function suspiciousPayload(req: Request, res: Response, next: NextF
   if (!violation.malicious) violation = checkValueMalicious(req.query);
   if (!violation.malicious && req.body) violation = checkValueMalicious(req.body);
 
+  if (!violation.malicious && (req as any).rawBody) violation = checkValueMalicious((req as any).rawBody);
+
   if (!violation.malicious) {
     const checkHeaders = ["user-agent", "x-forwarded-for", "referer", "x-club-slug"];
     for (const h of checkHeaders) {
@@ -134,6 +136,11 @@ export async function suspiciousPayload(req: Request, res: Response, next: NextF
       },
       req,
     }).catch(() => {});
+
+    if (violation.category === "BAD_BOT") {
+      res.status(403).json({ error: "Security enforcement: unauthorized scanner agent rejected" });
+      return;
+    }
 
     res.status(400).json({ error: "Bad Request" });
     return;

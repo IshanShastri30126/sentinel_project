@@ -58,7 +58,7 @@ router.post("/", authenticate, requireRole("FACULTY", "STUDENT_COORDINATOR"), va
     await sendNotification({
       userId: receiverId,
       type: "POINTS_RECEIVED",
-      title: `+${points} Points! 🎉`,
+      title: `+${points} Points Received`,
       message: `You received ${points} points for "${category}".${reason ? ` Reason: ${reason}` : ""}`,
       metadata: { points, category },
     });
@@ -199,7 +199,7 @@ async function checkAndAwardBadges(userId: string) {
         await sendNotification({
           userId,
           type: "BADGE_EARNED",
-          title: `Badge Unlocked: ${badge.name}! 🏅`,
+          title: `Badge Unlocked: ${badge.name}`,
           message: badge.description || `You've earned the ${badge.name} badge!`,
           metadata: { badgeId: badge.id },
         });

@@ -25,10 +25,12 @@ const registerSchema = z.object({
   email: z.string().email(),
   password: z.string().min(6).max(128),
   studentId: z.string().optional(),
+  employeeId: z.string().optional(),
   phone: z.string().regex(/^\d{10}$/, "Mobile number must be exactly 10 digits"),
   department: z.string().optional(),
   institute: z.string().optional(),
   semester: z.string().optional(),
+  role: z.string().optional(),
 });
 
 const loginSchema = z.object({
@@ -38,6 +40,26 @@ const loginSchema = z.object({
 });
 
 // ─── Helpers ───────────────────────────────────────────────
+
+function formatUserPayload(user: any) {
+  const isFaculty = user.role === "FACULTY";
+  return {
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+    isApproved: user.isApproved,
+    avatarUrl: user.avatarUrl,
+    studentId: user.studentId,
+    employeeId: isFaculty ? user.studentId : undefined,
+    phone: user.phone,
+    department: user.department,
+    institute: user.institute,
+    semester: isFaculty ? null : user.semester,
+    createdAt: user.createdAt,
+    isActive: user.isActive,
+  };
+}
 
 function generateTokens(payload: AuthPayload) {
   const accessToken = jwt.sign(payload, config.jwt.secret, {
@@ -77,8 +99,10 @@ function setTokenCookies(res: Response, accessToken: string, refreshToken: strin
 
 router.post("/register", validate(registerSchema), async (req: Request, res: Response) => {
   try {
-    const { name, email, password, studentId, phone, department, institute, semester, deviceFingerprint } = req.body;
+    const { name, email, password, studentId, employeeId, phone, department, institute, semester, deviceFingerprint, role } = req.body;
     const clientFingerprint = deviceFingerprint || (req.headers["x-device-fingerprint"] as string);
+    const targetStudentId = studentId || employeeId;
+    const isFaculty = role === "FACULTY";
 
     const existing = await prisma.user.findUnique({ where: { email } });
     if (existing) {
@@ -92,16 +116,16 @@ router.post("/register", validate(registerSchema), async (req: Request, res: Res
       return;
     }
 
-    if (studentId) {
-      const existingStudent = await prisma.user.findUnique({ where: { studentId } });
+    if (targetStudentId) {
+      const existingStudent = await prisma.user.findUnique({ where: { studentId: targetStudentId } });
       if (existingStudent) {
         await logAuditEvent({
           action: "USER_REGISTER_FAILED",
           outcome: "FAILED",
-          context: { studentId, reason: "Student ID already registered" },
+          context: { studentId: targetStudentId, reason: isFaculty ? "Employee ID already registered" : "Student ID already registered" },
           req,
         });
-        res.status(409).json({ error: "Student ID already registered" });
+        res.status(409).json({ error: isFaculty ? "Employee ID already registered" : "Student ID already registered" });
         return;
       }
     }
@@ -112,12 +136,12 @@ router.post("/register", validate(registerSchema), async (req: Request, res: Res
         name,
         email,
         passwordHash,
-        studentId: studentId || null,
+        studentId: targetStudentId || null,
         phone: phone || null,
         department: department || null,
         institute: institute || null,
-        semester: semester || null,
-        role: "GUEST",
+        semester: isFaculty ? null : (semester || null),
+        role: isFaculty ? "FACULTY" : "GUEST",
         isApproved: false,
         deviceFingerprint: clientFingerprint || null,
         lastActiveAt: new Date(),
@@ -163,19 +187,7 @@ router.post("/register", validate(registerSchema), async (req: Request, res: Res
     );
 
     res.status(201).json({
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        isApproved: user.isApproved,
-        avatarUrl: user.avatarUrl,
-        studentId: user.studentId,
-        phone: user.phone,
-        department: user.department,
-        institute: user.institute,
-        semester: user.semester,
-      },
+      user: formatUserPayload(user),
       accessToken,
     });
   } catch (err) {
@@ -323,19 +335,7 @@ router.post("/login", validate(loginSchema), async (req: Request, res: Response)
     }
 
     res.json({
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        isApproved: user.isApproved,
-        avatarUrl: user.avatarUrl,
-        studentId: user.studentId,
-        phone: user.phone,
-        department: user.department,
-        institute: user.institute,
-        semester: user.semester,
-      },
+      user: formatUserPayload(user),
       accessToken,
     });
   } catch (err) {
@@ -534,19 +534,7 @@ router.post("/google", async (req: Request, res: Response) => {
     });
 
     res.json({
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        isApproved: user.isApproved,
-        avatarUrl: user.avatarUrl,
-        studentId: user.studentId,
-        phone: user.phone,
-        department: user.department,
-        institute: user.institute,
-        semester: user.semester,
-      },
+      user: formatUserPayload(user),
       accessToken,
     });
   } catch (err: any) {
@@ -641,7 +629,7 @@ router.get("/me", authenticate, async (req: Request, res: Response) => {
       res.status(404).json({ error: "User not found" });
       return;
     }
-    res.json({ user });
+    res.json({ user: formatUserPayload(user) });
   } catch (err) {
     console.error("[Auth] Me error:", err);
     res.status(500).json({ error: "Internal server error" });

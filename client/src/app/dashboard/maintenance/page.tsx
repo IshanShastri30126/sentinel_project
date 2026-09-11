@@ -798,7 +798,7 @@ export default function MaintenancePage() {
                     }}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-white text-xs font-mono"
                   >
-                    ✕
+                    ×
                   </button>
                 )}
               </div>
@@ -955,7 +955,7 @@ export default function MaintenancePage() {
                   onClick={resetAllFilters}
                   className="px-2.5 py-1 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-xs font-mono hover:bg-red-500/20 transition-all ml-auto"
                 >
-                  Clear Filters ✕
+                  Clear Filters ×
                 </button>
               )}
             </div>
@@ -1692,7 +1692,7 @@ export default function MaintenancePage() {
                     onClick={() => setShowAddRuleModal(false)}
                     className="text-zinc-500 hover:text-white"
                   >
-                    ✕
+                    ×
                   </button>
                 </div>
                 <form onSubmit={handleCreateRule} className="space-y-3 font-mono text-xs">
@@ -2035,7 +2035,7 @@ export default function MaintenancePage() {
                 onClick={() => setSelectedRawLog(null)}
                 className="text-zinc-500 hover:text-white"
               >
-                ✕
+                ×
               </button>
             </div>
 

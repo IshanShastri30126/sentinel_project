@@ -544,7 +544,7 @@ export default function AttendancePage() {
       );
       setQrInput("");
       if (res.attendance?.id) setLastRecordId(res.attendance.id);
-      showToast(`${checkinType === "CHECK_IN" ? "✓ CHECK-IN" : "✓ CHECK-OUT"} RECORDED`, "success");
+      showToast(`${checkinType === "CHECK_IN" ? "CHECK-IN" : "CHECK-OUT"} RECORDED`, "success");
       if (!override) loadAttendance(selectedEvent);
     } catch (err) {
       showToast(err instanceof Error ? err.message : "SCAN FAILED", "error");

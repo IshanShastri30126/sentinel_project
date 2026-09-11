@@ -110,7 +110,7 @@ router.post("/", authenticate, validate(createTeamSchema), auditLog("TEAM_CREATE
     await sendNotification({
       userId: leaderId,
       type: "TEAM_UPDATE",
-      title: "Team Created! 🎉",
+      title: "Team Created Successfully",
       message: `Team "${name}" (${teamCode}) created for event "${event.title}".`,
       metadata: { teamId: team.id, teamCode },
     });
@@ -324,6 +324,15 @@ router.post("/join", authenticate, async (req: Request, res: Response) => {
     const { teamCode } = req.body;
     const userId = req.user!.userId;
     if (!teamCode) { res.status(400).json({ error: "Team code is required" }); return; }
+
+    const joiningUser = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { isApproved: true, isActive: true },
+    });
+    if (!joiningUser?.isApproved || !joiningUser?.isActive) {
+      res.status(403).json({ error: "Your account is pending authorization or is inactive." });
+      return;
+    }
 
     const team = await prisma.team.findUnique({
       where: { teamCode },

@@ -19,13 +19,13 @@ if (config.smtp.user && config.smtp.pass) {
   transporter.verify()
     .then(() => {
       transporterReady = true;
-      console.log("[Email] ✅ SMTP transporter ready");
+      console.log("[Email] SMTP transporter ready");
     })
     .catch((err) => {
-      console.warn("[Email] ⚠️  SMTP verification failed:", err.message);
+      console.warn("[Email] SMTP verification failed:", err.message);
     });
 } else {
-  console.warn("[Email] ⚠️  SMTP credentials not configured — emails disabled");
+  console.warn("[Email] SMTP credentials not configured — emails disabled");
 }
 
 // ─── Base Template ────────────────────────────────────────────
@@ -49,7 +49,7 @@ function baseTemplate(content: string): string {
             <td style="text-align: center; padding-bottom: 30px;">
               <div style="display: inline-flex; align-items: center; gap: 12px;">
                 <div style="width: 44px; height: 44px; border-radius: 12px; background: linear-gradient(135deg, #7f1d1d, #dc2626); display: inline-block; text-align: center; line-height: 44px; box-shadow: 0 0 20px rgba(220, 38, 38, 0.6); border: 1px solid #ef4444;">
-                  <span style="color: white; font-size: 22px;">🛡️</span>
+                  <span style="color: white; font-size: 16px; font-weight: bold; font-family: monospace;">CK</span>
                 </div>
               </div>
               <h1 style="color: #ffffff; font-size: 28px; font-weight: 800; letter-spacing: 6px; margin: 12px 0 0; font-family: 'Courier New', monospace;">CHAKRAVYUH</h1>
@@ -113,18 +113,18 @@ async function sendMail(to: string, subject: string, html: string): Promise<bool
       await transporter.sendMail({
         from: config.smtp.from,
         to,
-        subject: `🛡️ Chakravyuh — ${subject}`,
+        subject: `Chakravyuh — ${subject}`,
         html,
       });
-      console.log(`[Email] ✅ Sent: "${subject}" -> ${to}`);
+      console.log(`[Email] Sent: "${subject}" -> ${to}`);
       return true;
     } catch (err: any) {
       if (attempt < MAX_RETRIES) {
         const delay = RETRY_DELAY_MS * Math.pow(2, attempt - 1);
-        console.warn(`[Email] ⚠️ Attempt ${attempt}/${MAX_RETRIES} failed for "${subject}" -> ${to}: ${err.message} — retrying in ${delay}ms`);
+        console.warn(`[Email] Attempt ${attempt}/${MAX_RETRIES} failed for "${subject}" -> ${to}: ${err.message} — retrying in ${delay}ms`);
         await sleep(delay);
       } else {
-        console.error(`[Email] ❌ All ${MAX_RETRIES} attempts failed for "${subject}" -> ${to}:`, err.message);
+        console.error(`[Email] All ${MAX_RETRIES} attempts failed for "${subject}" -> ${to}:`, err.message);
       }
     }
   }
@@ -186,7 +186,7 @@ export async function sendEventRegistrationEmail(
 
   const content = `
     <h2 style="color: #ffffff; font-size: 22px; font-weight: 700; margin: 0 0 8px;">
-      Registration Confirmed! 🛡️
+      Registration Confirmed
     </h2>
     <p style="color: #94a3b8; font-size: 14px; line-height: 1.6; margin: 0 0 24px;">
       Hello <strong style="color: #f1f5f9;">${user.name}</strong>, you have successfully registered for <strong style="color: #f87171;">${event.title}</strong>.
@@ -231,7 +231,7 @@ export async function sendLoginNotificationEmail(
   const now = new Date();
   const content = `
     <h2 style="color: #ffffff; font-size: 22px; font-weight: 700; margin: 0 0 8px;">
-      Login Detected 🔐
+      Login Detected
     </h2>
     <p style="color: #94a3b8; font-size: 14px; line-height: 1.6; margin: 0 0 24px;">
       A new login session was initiated for your account.
@@ -321,7 +321,7 @@ export async function sendEventPublishedEmail(
         <td style="padding-top: 24px; text-align: center;">
           <a href="${event.googleFormUrl}" target="_blank" rel="noopener noreferrer"
             style="display: inline-block; background: linear-gradient(135deg, #7f1d1d, #dc2626); color: #ffffff; text-decoration: none; padding: 14px 40px; border-radius: 8px; font-size: 14px; font-weight: 700; letter-spacing: 3px; font-family: 'Courier New', monospace; border: 1px solid #ef4444; box-shadow: 0 0 20px rgba(220, 38, 38, 0.4);">
-            📋 REGISTER NOW
+            REGISTER NOW
           </a>
           <p style="color: #475569; font-size: 11px; margin-top: 10px;">Click above to fill the registration form</p>
         </td>
@@ -334,7 +334,7 @@ export async function sendEventPublishedEmail(
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background: rgba(0, 0, 0, 0.5); border: 1px solid #262626; border-radius: 10px;">
             <tr>
               <td style="padding: 16px 20px;">
-                <p style="color: #475569; font-size: 11px; font-family: 'Courier New', monospace; letter-spacing: 2px; margin: 0 0 8px;">📄 ATTACHED_DOCUMENT</p>
+                <p style="color: #475569; font-size: 11px; font-family: 'Courier New', monospace; letter-spacing: 2px; margin: 0 0 8px;">ATTACHED_DOCUMENT</p>
                 <a href="${config.clientUrl.replace(':3000', ':4000')}${event.documentUrl}" target="_blank" rel="noopener noreferrer"
                   style="color: #f87171; font-size: 13px; text-decoration: underline;">
                   Download Event Document
@@ -375,21 +375,21 @@ export async function sendEventPublishedEmail(
         <td style="padding: 20px 24px;">
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
             <tr>
-              <td style="color: #475569; font-size: 11px; font-family: 'Courier New', monospace; letter-spacing: 2px; padding-bottom: 10px;">📅 START</td>
+              <td style="color: #475569; font-size: 11px; font-family: 'Courier New', monospace; letter-spacing: 2px; padding-bottom: 10px;">START</td>
               <td style="color: #f1f5f9; font-size: 13px; text-align: right; padding-bottom: 10px;">${startStr} at ${startTime}</td>
             </tr>
             <tr>
-              <td style="color: #475569; font-size: 11px; font-family: 'Courier New', monospace; letter-spacing: 2px; padding-bottom: 10px;">📅 END</td>
+              <td style="color: #475569; font-size: 11px; font-family: 'Courier New', monospace; letter-spacing: 2px; padding-bottom: 10px;">END</td>
               <td style="color: #f1f5f9; font-size: 13px; text-align: right; padding-bottom: 10px;">${endStr}</td>
             </tr>
             ${event.venue ? `
             <tr>
-              <td style="color: #475569; font-size: 11px; font-family: 'Courier New', monospace; letter-spacing: 2px; padding-bottom: 10px;">📍 VENUE</td>
+              <td style="color: #475569; font-size: 11px; font-family: 'Courier New', monospace; letter-spacing: 2px; padding-bottom: 10px;">VENUE</td>
               <td style="color: #f1f5f9; font-size: 13px; text-align: right; padding-bottom: 10px;">${event.venue}</td>
             </tr>` : ""}
             ${event.maxCapacity ? `
             <tr>
-              <td style="color: #475569; font-size: 11px; font-family: 'Courier New', monospace; letter-spacing: 2px;">👥 CAPACITY</td>
+              <td style="color: #475569; font-size: 11px; font-family: 'Courier New', monospace; letter-spacing: 2px;">CAPACITY</td>
               <td style="color: #f87171; font-size: 13px; text-align: right; font-weight: 700;">${event.maxCapacity} spots</td>
             </tr>` : ""}
           </table>
@@ -401,7 +401,7 @@ export async function sendEventPublishedEmail(
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background: rgba(0, 0, 0, 0.5); border: 1px solid #262626; border-radius: 10px; margin-top: 12px;">
       <tr>
         <td style="padding: 20px 24px;">
-          <p style="color: #475569; font-size: 11px; font-family: 'Courier New', monospace; letter-spacing: 2px; margin: 0 0 10px;">📜 RULES & GUIDELINES</p>
+          <p style="color: #475569; font-size: 11px; font-family: 'Courier New', monospace; letter-spacing: 2px; margin: 0 0 10px;">RULES &amp; GUIDELINES</p>
           <p style="color: #94a3b8; font-size: 13px; line-height: 1.6; margin: 0; white-space: pre-wrap;">${event.rules}</p>
         </td>
       </tr>
@@ -494,16 +494,16 @@ export async function sendApprovalDecisionEmail(
   }
 ) {
   const statusConfig: Record<string, { color: string; label: string; icon: string }> = {
-    APPROVED: { color: "#10b981", label: "APPROVED", icon: "✅" },
-    REJECTED: { color: "#ef4444", label: "REJECTED", icon: "❌" },
-    UNDER_REVIEW: { color: "#f59e0b", label: "UNDER REVIEW", icon: "🔍" },
+    APPROVED: { color: "#10b981", label: "APPROVED", icon: "[APPROVED]" },
+    REJECTED: { color: "#ef4444", label: "REJECTED", icon: "[REJECTED]" },
+    UNDER_REVIEW: { color: "#f59e0b", label: "UNDER REVIEW", icon: "[REVIEW]" },
   };
 
   const sc = statusConfig[decision.status] || statusConfig.UNDER_REVIEW;
 
   const content = `
     <h2 style="color: #ffffff; font-size: 22px; font-weight: 700; margin: 0 0 8px;">
-      Approval Update ${sc.icon}
+      Approval Update: ${sc.label}
     </h2>
     <p style="color: #94a3b8; font-size: 14px; line-height: 1.6; margin: 0 0 24px;">
       Your request <strong style="color: #f1f5f9;">"${decision.title}"</strong> has been updated.
@@ -611,7 +611,7 @@ export async function sendPasswordResetEmail(user: { email: string }, token: str
 
   const content = `
     <h2 style="color: #ffffff; font-size: 22px; font-weight: 700; margin: 0 0 8px;">
-      Password Reset Request 🔐
+      Password Reset Request
     </h2>
     <p style="color: #94a3b8; font-size: 14px; line-height: 1.6; margin: 0 0 24px;">
       A password reset was requested for your account. If you did not request this, you can safely ignore this email.

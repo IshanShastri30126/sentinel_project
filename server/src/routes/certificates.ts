@@ -112,9 +112,8 @@ router.put("/templates/:id", authenticate, requireMinRole("STUDENT_COORDINATOR")
     };
 
     if (req.file) {
-      if (template.fileUrl && template.fileUrl.startsWith("/uploads/")) {
-        const oldPath = path.resolve(template.fileUrl.startsWith("/") ? template.fileUrl.slice(1) : template.fileUrl);
-        if (fs.existsSync(oldPath)) { fs.unlinkSync(oldPath); }
+      if (template.fileUrl) {
+        safeUnlinkUpload(template.fileUrl);
       }
       updateData.fileUrl = getUploadedFileUrl(req.file);
       updateData.fileType = req.file.mimetype.includes("pdf") ? "pdf" : "png";

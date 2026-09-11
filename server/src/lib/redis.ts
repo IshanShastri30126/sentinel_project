@@ -12,13 +12,13 @@ if (config.upstash.url && config.upstash.token) {
       token: config.upstash.token,
     });
     redisAvailable = true;
-    console.log("[Redis] ✅ Upstash Redis configured (HTTP mode)");
+    console.log("[Redis] Upstash Redis configured (HTTP mode)");
   } catch (err) {
-    console.warn("[Redis] ⚠️  Failed to initialize Upstash Redis:", err);
+    console.warn("[Redis] Failed to initialize Upstash Redis:", err);
     redisAvailable = false;
   }
 } else {
-  console.warn("[Redis] ⚠️  Upstash credentials not set — running without caching");
+  console.warn("[Redis] Upstash credentials not set — running without caching");
 }
 
 // ─── Safe Wrappers (same API as before) ────────────────────

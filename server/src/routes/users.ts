@@ -76,8 +76,14 @@ router.get("/", authenticate, requireMinRole("TECH"), async (req: Request, res: 
       } : {}),
     });
     
+    const mappedUsers = users.map((u) => ({
+      ...u,
+      employeeId: u.role === "FACULTY" ? u.studentId : undefined,
+      semester: u.role === "FACULTY" ? null : u.semester,
+    }));
+
     const responsePayload = {
-      users,
+      users: mappedUsers,
       total,
       pages: limitVal ? Math.ceil(total / limitVal) : 1,
       page: pageVal || 1,
@@ -137,7 +143,7 @@ router.patch("/:id/approve", authenticate, requireMinRole("STUDENT_COORDINATOR")
     await sendNotification({
       userId: user.id,
       type: "ACCOUNT_APPROVED",
-      title: "Account Approved! 🎉",
+      title: "Account Approved",
       message: "Your Chakravyuh Club account has been approved. You can now access all member features.",
     });
 
@@ -316,7 +322,7 @@ router.patch("/:id/activate", authenticate, requireRole("FACULTY", "STUDENT_COOR
 // PATCH /api/users/profile — Update current user's profile
 router.patch("/profile", authenticate, upload.single("avatar"), async (req: Request, res: Response) => {
   try {
-    const { name, password, studentId, phone, department, institute, semester } = req.body;
+    const { name, password, studentId, employeeId, phone, department, institute, semester } = req.body;
     const userId = req.user!.userId;
     const updateData: any = {};
 
@@ -327,32 +333,37 @@ router.patch("/profile", authenticate, upload.single("avatar"), async (req: Requ
     if (req.file) {
       updateData.avatarUrl = getUploadedFileUrl(req.file);
     }
-    if (studentId !== undefined) {
-      if (studentId) {
+
+    const currentUser = await prisma.user.findUnique({ where: { id: userId }, select: { role: true } });
+    const isFaculty = currentUser?.role === "FACULTY";
+
+    const targetId = studentId !== undefined ? studentId : employeeId;
+    if (targetId !== undefined) {
+      if (targetId) {
         const existingStudent = await prisma.user.findFirst({
-          where: { studentId, NOT: { id: userId } }
+          where: { studentId: targetId, NOT: { id: userId } }
         });
         if (existingStudent) {
-          res.status(409).json({ error: "Student ID is already in use" });
+          res.status(409).json({ error: isFaculty ? "Employee ID is already in use" : "Student ID is already in use" });
           return;
         }
-        updateData.studentId = studentId;
+        updateData.studentId = targetId;
       } else {
         updateData.studentId = null;
       }
     }
     if (phone !== undefined) {
-      if (phone && !/^\d{10}$/.test(phone)) {
-        res.status(400).json({ error: "Mobile number must be exactly 10 digits" });
+      const sanitizedPhone = phone ? String(phone).replace(/\D/g, "") : "";
+      if (sanitizedPhone && !/^\d{10}$/.test(sanitizedPhone)) {
+        res.status(400).json({ error: "Mobile number must be exactly 10 numeric digits" });
         return;
       }
-      updateData.phone = phone || null;
+      updateData.phone = sanitizedPhone || null;
     }
     if (department !== undefined) updateData.department = department || null;
     if (institute !== undefined) updateData.institute = institute || null;
 
-    const currentUser = await prisma.user.findUnique({ where: { id: userId }, select: { role: true } });
-    if (currentUser?.role === "FACULTY") {
+    if (isFaculty) {
       updateData.semester = null;
     } else if (semester !== undefined) {
       updateData.semester = semester || null;
@@ -386,7 +397,13 @@ router.patch("/profile", authenticate, upload.single("avatar"), async (req: Requ
 
     await clearUsersCache();
 
-    res.json({ user: updated });
+    res.json({
+      user: {
+        ...updated,
+        employeeId: updated.role === "FACULTY" ? updated.studentId : undefined,
+        semester: updated.role === "FACULTY" ? null : updated.semester,
+      }
+    });
   } catch (err) {
     console.error("[Users] Profile update error:", err);
     res.status(500).json({ error: "Internal server error" });

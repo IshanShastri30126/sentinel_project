@@ -101,11 +101,11 @@ router.get("/authorize", authenticate, async (req: Request, res: Response) => {
 // authorization code here to exchange it for a signed JWT.
 //
 // This is the CRITICAL security boundary:
-//   ✅ Code must exist in DB
-//   ✅ Code must not be expired (60s TTL)
-//   ✅ Code must not have been used before
-//   ✅ Code is deleted immediately after use (single-use)
-//   ✅ Returns a short-lived JWT (5 minutes) signed with shared secret
+//   - Code must exist in DB
+//   - Code must not be expired (60s TTL)
+//   - Code must not have been used before
+//   - Code is deleted immediately after use (single-use)
+//   - Returns a short-lived JWT (5 minutes) signed with shared secret
 // ────────────────────────────────────────────────────────────
 
 router.post("/token", async (req: Request, res: Response) => {
