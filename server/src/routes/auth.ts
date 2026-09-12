@@ -42,7 +42,7 @@ const loginSchema = z.object({
 // ─── Helpers ───────────────────────────────────────────────
 
 function formatUserPayload(user: any) {
-  const isFaculty = user.role === "FACULTY";
+  const isFaculty = user.role === "FACULTY_COORDINATOR" || user.role === "FACULTY";
   return {
     id: user.id,
     name: user.name,
@@ -102,7 +102,7 @@ router.post("/register", validate(registerSchema), async (req: Request, res: Res
     const { name, email, password, studentId, employeeId, phone, department, institute, semester, deviceFingerprint, role } = req.body;
     const clientFingerprint = deviceFingerprint || (req.headers["x-device-fingerprint"] as string);
     const targetStudentId = studentId || employeeId;
-    const isFaculty = role === "FACULTY";
+    const isFaculty = role === "FACULTY_COORDINATOR" || role === "FACULTY";
 
     const existing = await prisma.user.findUnique({ where: { email } });
     if (existing) {
@@ -141,7 +141,7 @@ router.post("/register", validate(registerSchema), async (req: Request, res: Res
         department: department || null,
         institute: institute || null,
         semester: isFaculty ? null : (semester || null),
-        role: isFaculty ? "FACULTY" : "GUEST",
+        role: isFaculty ? "FACULTY_COORDINATOR" : "GUEST",
         isApproved: false,
         deviceFingerprint: clientFingerprint || null,
         lastActiveAt: new Date(),
@@ -169,7 +169,7 @@ router.post("/register", validate(registerSchema), async (req: Request, res: Res
 
     // Notify coordinators about new registration
     const coordinators = await prisma.user.findMany({
-      where: { role: { in: ["STUDENT_COORDINATOR", "FACULTY"] }, isActive: true },
+      where: { role: { in: ["STUDENT_COORDINATOR", "FACULTY_COORDINATOR", "DEVELOPMENT_TEAM"] }, isActive: true },
       select: { id: true },
     });
     for (const coord of coordinators) {
@@ -579,22 +579,59 @@ router.post("/refresh", async (req: Request, res: Response) => {
 });
 
 // ─── POST /api/auth/logout ─────────────────────────────────
+// Eradicates all session cookies, Redis state, and access tokens.
+// Operates without mandatory authenticate middleware to ensure expired/unauthorized
+// clients are still fully cleansed.
 
-router.post("/logout", authenticate, async (req: Request, res: Response) => {
+router.post("/logout", async (req: Request, res: Response) => {
   try {
-    if (req.user) {
-      await redisDel(`session:${req.user.userId}`);
+    const token =
+      req.cookies?.accessToken ||
+      req.headers.authorization?.replace(/^Bearer\s+/i, "");
+
+    let userId = req.user?.userId;
+    let email = req.user?.email;
+
+    if (!userId && token) {
+      try {
+        const decoded = jwt.decode(token) as any;
+        if (decoded && decoded.userId) {
+          userId = decoded.userId;
+          email = decoded.email;
+        }
+      } catch {
+        // Safe fallback if JWT decode fails
+      }
+    }
+
+    if (userId) {
+      await redisDel(`session:${userId}`);
       await logAuditEvent({
         action: "USER_LOGOUT",
-        userId: req.user.userId,
+        userId,
         outcome: "SUCCESS",
-        context: { email: req.user.email },
+        context: { email: email || "unknown" },
         req,
       });
     }
+
+    const isProduction = process.env.NODE_ENV === "production";
+    const cookieOptions = {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: (isProduction ? "none" : "lax") as "none" | "lax",
+      path: "/",
+    };
+
+    res.clearCookie("accessToken", cookieOptions);
+    res.clearCookie("refreshToken", cookieOptions);
+    res.clearCookie("deviceFingerprint", cookieOptions);
+
+    // Also clear default path
     res.clearCookie("accessToken");
     res.clearCookie("refreshToken");
     res.clearCookie("deviceFingerprint");
+
     res.json({ message: "Logged out successfully" });
   } catch (err) {
     console.error("[Auth] Logout error:", err);

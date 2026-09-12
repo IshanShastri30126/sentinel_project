@@ -15,6 +15,15 @@ function generateTeamCode(): string {
   return `CK-T-${seg}`;
 }
 
+function generateJoinCode(): string {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  let code = "CTF-";
+  for (let i = 0; i < 6; i++) {
+    code += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return code;
+}
+
 const createTeamSchema = z.object({
   name: z.string().min(2).max(100),
   eventId: z.string().uuid(),
@@ -76,17 +85,26 @@ router.post("/", authenticate, validate(createTeamSchema), auditLog("TEAM_CREATE
     }
 
     const teamCode = generateTeamCode();
+    const joinCode = generateJoinCode();
     const qrData = JSON.stringify({ teamCode, eventId, type: "team_checkin" });
     const qrCode = await QRCode.toDataURL(qrData, { width: 400, margin: 2 });
 
+    const allMemberIds = [leaderId, ...(memberIds || [])];
+
     const team = await prisma.team.create({
       data: {
-        name, teamCode, qrCode, leaderId, eventId,
+        name,
+        teamCode,
+        joinCode,
+        qrCode,
+        leaderId,
+        eventId,
         members: {
-          create: [
-            { userId: leaderId },
-            ...(memberIds || []).map((userId: string) => ({ userId })),
-          ],
+          create: allMemberIds.map((uId: string, idx: number) => ({
+            userId: uId,
+            memberCode: `${teamCode}_${idx + 1}`,
+            hasJoinedTerminal: false,
+          })),
         },
       },
       include: {
@@ -96,7 +114,6 @@ router.post("/", authenticate, validate(createTeamSchema), auditLog("TEAM_CREATE
     });
 
     // Auto-register all members for the event (batched)
-    const allMemberIds = [leaderId, ...(memberIds || [])];
     await prisma.$transaction(
       allMemberIds.map((mId: string) =>
         prisma.eventRegistration.upsert({
@@ -111,8 +128,8 @@ router.post("/", authenticate, validate(createTeamSchema), auditLog("TEAM_CREATE
       userId: leaderId,
       type: "TEAM_UPDATE",
       title: "Team Created Successfully",
-      message: `Team "${name}" (${teamCode}) created for event "${event.title}".`,
-      metadata: { teamId: team.id, teamCode },
+      message: `Team "${name}" (${teamCode}) created for event "${event.title}". Unique Join Code: ${joinCode}.`,
+      metadata: { teamId: team.id, teamCode, joinCode },
     });
 
     res.status(201).json({ team });
@@ -141,7 +158,7 @@ router.get("/my", authenticate, async (req: Request, res: Response) => {
 });
 
 // GET /api/teams/event/:eventId — All teams for a specific event
-router.get("/event/:eventId", authenticate, requireMinRole("TECH"), async (req: Request, res: Response) => {
+router.get("/event/:eventId", authenticate, requireMinRole("TECH_TEAM"), async (req: Request, res: Response) => {
   try {
     const teams = await prisma.team.findMany({
       where: { eventId: req.params.eventId },
@@ -220,7 +237,7 @@ router.post("/:id/reuse", authenticate, auditLog("TEAM_REUSED"), async (req: Req
 
     // Check requester is the leader or a coordinator
     const { role, userId } = req.user!;
-    const isCoord = ["FACULTY", "STUDENT_COORDINATOR", "TECH"].includes(role);
+    const isCoord = ["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_TEAM"].includes(role);
     if (original.leaderId !== userId && !isCoord) {
       res.status(403).json({ error: "Only the team leader or a coordinator can reuse this team" }); return;
     }
@@ -263,7 +280,7 @@ router.patch("/:id", authenticate, auditLog("TEAM_UPDATED"), async (req: Request
     if (!team) { res.status(404).json({ error: "Team not found" }); return; }
 
     const { role, userId } = req.user!;
-    const isCoord = ["FACULTY", "STUDENT_COORDINATOR", "TECH"].includes(role);
+    const isCoord = ["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_TEAM"].includes(role);
     if (team.leaderId !== userId && !isCoord) {
       res.status(403).json({ error: "Only the team leader or a coordinator can edit this team" }); return;
     }
@@ -361,9 +378,23 @@ router.post("/join", authenticate, async (req: Request, res: Response) => {
     // Check if user is already in this team
     const isAlreadyMember = team.members.some(m => m.userId === userId);
     if (!isAlreadyMember) {
-      // Add to team members
+      const nextMemberIndex = (team._count.members || 0) + 1;
+      const memberCode = `${team.teamCode}_${nextMemberIndex}`;
       await prisma.teamMember.create({
-        data: { teamId: team.id, userId }
+        data: {
+          teamId: team.id,
+          userId,
+          memberCode,
+          hasJoinedTerminal: false,
+        }
+      });
+    }
+
+    if (!team.joinCode) {
+      const joinCode = generateJoinCode();
+      await prisma.team.update({
+        where: { id: team.id },
+        data: { joinCode },
       });
     }
 
@@ -396,7 +427,7 @@ router.post("/join", authenticate, async (req: Request, res: Response) => {
 });
 
 // GET /api/teams — All teams (Management only)
-router.get("/", authenticate, requireMinRole("TECH"), async (_req: Request, res: Response) => {
+router.get("/", authenticate, requireMinRole("TECH_TEAM"), async (_req: Request, res: Response) => {
   try {
     const teams = await prisma.team.findMany({
       include: {
@@ -421,7 +452,7 @@ router.delete("/:id", authenticate, auditLog("TEAM_DELETED"), async (req: Reques
     if (!team) { res.status(404).json({ error: "Team not found" }); return; }
 
     const { role, userId } = req.user!;
-    const isCoord = ["FACULTY", "STUDENT_COORDINATOR", "TECH"].includes(role);
+    const isCoord = ["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_TEAM"].includes(role);
     if (team.leaderId !== userId && !isCoord) {
       res.status(403).json({ error: "Only the team leader or an administrator can delete this team" });
       return;
@@ -440,7 +471,7 @@ router.delete("/:id", authenticate, auditLog("TEAM_DELETED"), async (req: Reques
 });
 
 // PATCH /api/teams/:id/disqualify — Disqualify a team (Management only)
-router.patch("/:id/disqualify", authenticate, requireMinRole("TECH"), auditLog("TEAM_DISQUALIFIED"), async (req: Request, res: Response) => {
+router.patch("/:id/disqualify", authenticate, requireMinRole("TECH_TEAM"), auditLog("TEAM_DISQUALIFIED"), async (req: Request, res: Response) => {
   try {
     const team = await prisma.team.findUnique({ where: { id: req.params.id } });
     if (!team) { res.status(404).json({ error: "Team not found" }); return; }
@@ -457,6 +488,170 @@ router.patch("/:id/disqualify", authenticate, requireMinRole("TECH"), auditLog("
     res.json({ message: "Team marked as disqualified", teamId: team.id });
   } catch (err) {
     console.error("[Teams] Disqualify error:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// GET /api/teams/:id/readiness — Get team member terminal readiness status
+router.get("/:id/readiness", authenticate, async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    let team = await prisma.team.findUnique({
+      where: { id },
+      include: {
+        members: {
+          include: {
+            user: { select: { id: true, name: true, email: true, avatarUrl: true } }
+          },
+          orderBy: { joinedAt: "asc" }
+        },
+        event: { select: { id: true, title: true, eventType: true, startDate: true, isLeaderboardVisible: true } },
+      }
+    });
+
+    if (!team) {
+      // Fallback: check if id is eventId and user is in a team for this event
+      const reg = await prisma.eventRegistration.findFirst({
+        where: { eventId: id, userId: req.user!.userId, teamId: { not: null } },
+        select: { teamId: true }
+      });
+      if (reg?.teamId) {
+        team = await prisma.team.findUnique({
+          where: { id: reg.teamId },
+          include: {
+            members: {
+              include: {
+                user: { select: { id: true, name: true, email: true, avatarUrl: true } }
+              },
+              orderBy: { joinedAt: "asc" }
+            },
+            event: { select: { id: true, title: true, eventType: true, startDate: true, isLeaderboardVisible: true } },
+          }
+        });
+      }
+    }
+
+    if (!team) {
+      res.status(404).json({ error: "Team not found" });
+      return;
+    }
+
+    // Ensure joinCode is generated if missing
+    if (!team.joinCode) {
+      const newJoinCode = generateJoinCode();
+      await prisma.team.update({
+        where: { id: team.id },
+        data: { joinCode: newJoinCode },
+      });
+      team.joinCode = newJoinCode;
+    }
+
+    // Ensure all members have memberCode
+    for (let idx = 0; idx < team.members.length; idx++) {
+      const m = team.members[idx];
+      if (!m.memberCode) {
+        const assignedCode = `${team.teamCode}_${idx + 1}`;
+        await prisma.teamMember.update({
+          where: { id: m.id },
+          data: { memberCode: assignedCode },
+        });
+        m.memberCode = assignedCode;
+      }
+    }
+
+    const totalMembers = team.members.length;
+    const readyCount = team.members.filter(m => m.hasJoinedTerminal).length;
+    const allReady = totalMembers > 0 && readyCount === totalMembers;
+
+    res.json({
+      teamId: team.id,
+      teamName: team.name,
+      teamCode: team.teamCode,
+      joinCode: team.joinCode,
+      totalMembers,
+      readyCount,
+      allReady,
+      members: team.members.map(m => ({
+        id: m.id,
+        userId: m.userId,
+        name: m.user.name,
+        email: m.user.email,
+        avatarUrl: m.user.avatarUrl,
+        memberCode: m.memberCode,
+        hasJoinedTerminal: m.hasJoinedTerminal,
+        joinedTerminalAt: m.joinedTerminalAt,
+      })),
+      event: team.event,
+    });
+  } catch (err) {
+    console.error("[Teams] Readiness error:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// POST /api/teams/:id/ready — Mark authenticated member as ready / join code copied
+router.post("/:id/ready", authenticate, async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user!.userId;
+
+    let teamMember = await prisma.teamMember.findFirst({
+      where: {
+        teamId: id,
+        userId,
+      },
+      include: { team: true }
+    });
+
+    if (!teamMember) {
+      // Check if id was eventId
+      const reg = await prisma.eventRegistration.findFirst({
+        where: { eventId: id, userId, teamId: { not: null } },
+        select: { teamId: true }
+      });
+      if (reg?.teamId) {
+        teamMember = await prisma.teamMember.findFirst({
+          where: { teamId: reg.teamId, userId },
+          include: { team: true }
+        });
+      }
+    }
+
+    if (!teamMember) {
+      res.status(404).json({ error: "You are not a member of this team" });
+      return;
+    }
+
+    const updatedMember = await prisma.teamMember.update({
+      where: { id: teamMember.id },
+      data: {
+        hasJoinedTerminal: true,
+        joinedTerminalAt: new Date(),
+      }
+    });
+
+    // Check if team now has all members ready
+    const allMembers = await prisma.teamMember.findMany({
+      where: { teamId: teamMember.teamId },
+      include: { user: { select: { id: true, name: true, email: true } } }
+    });
+
+    const totalMembers = allMembers.length;
+    const readyCount = allMembers.filter(m => m.hasJoinedTerminal).length;
+    const allReady = totalMembers > 0 && readyCount === totalMembers;
+
+    res.json({
+      success: true,
+      member: updatedMember,
+      teamId: teamMember.teamId,
+      joinCode: teamMember.team.joinCode,
+      totalMembers,
+      readyCount,
+      allReady,
+      message: allReady ? "All team members are ready! CTF Terminal is unlocked." : `Ready confirmed (${readyCount}/${totalMembers} members ready).`,
+    });
+  } catch (err) {
+    console.error("[Teams] Set ready error:", err);
     res.status(500).json({ error: "Internal server error" });
   }
 });

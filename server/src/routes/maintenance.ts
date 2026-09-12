@@ -1,6 +1,6 @@
 import { Router, Request, Response } from "express";
 import prisma from "../lib/prisma";
-import { authenticate, requireMinRole } from "../middlewares/auth";
+import { authenticate, requireRole } from "../middlewares/auth";
 import { auditLog } from "../middlewares/auditLog";
 import { parseUserAgentDetails } from "../lib/auditLogger";
 import { FirewallPolicyManager } from "../lib/firewallRules";
@@ -9,8 +9,8 @@ import os from "os";
 
 const router = Router();
 
-// All routes require authentication and TECH role or higher
-router.use(authenticate, requireMinRole("TECH"));
+// Maintenance and diagnostics restricted strictly to DEVELOPMENT_TEAM
+router.use(authenticate, requireRole("DEVELOPMENT_TEAM"));
 
 // ─── 1. Maintenance Overview & Level 2 Real-time Metrics ───────────────────
 router.get("/overview", async (req: Request, res: Response) => {

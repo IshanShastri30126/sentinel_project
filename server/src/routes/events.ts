@@ -1,7 +1,9 @@
 import { Router, Request, Response } from "express";
 import { z } from "zod";
+import jwt from "jsonwebtoken";
 import prisma from "../lib/prisma";
-import { authenticate, requireMinRole } from "../middlewares/auth";
+import { config } from "../config";
+import { authenticate, requireRole, requireMinRole, AuthPayload } from "../middlewares/auth";
 import { validate } from "../middlewares/validate";
 import { auditLog } from "../middlewares/auditLog";
 import { upload, getUploadedFileUrl } from "../middlewares/upload";
@@ -61,7 +63,7 @@ const createEventSchema = z.object({
 router.post("/", authenticate, requireMinRole("STUDENT_COORDINATOR"), validate(createEventSchema), auditLog("EVENT_CREATED"), async (req: Request, res: Response) => {
   try {
     const data = req.body;
-    const isApproved = req.user!.role === "FACULTY";
+    const isApproved = req.user!.role === "FACULTY_COORDINATOR" || req.user!.role === "DEVELOPMENT_TEAM";
     const event = await prisma.event.create({
       data: {
         title: data.title, description: data.description, venue: data.venue,
@@ -92,14 +94,14 @@ router.post("/", authenticate, requireMinRole("STUDENT_COORDINATOR"), validate(c
           metadata: { eventId: event.id },
           steps: {
             create: [
-              { level: 1, role: "FACULTY", status: "PENDING" }
+              { level: 1, role: "FACULTY_COORDINATOR", status: "PENDING" }
             ]
           }
         }
       });
 
       const faculties = await prisma.user.findMany({
-        where: { role: "FACULTY", isActive: true },
+        where: { role: "FACULTY_COORDINATOR", isActive: true },
         select: { id: true },
       });
       for (const fac of faculties) {
@@ -125,7 +127,7 @@ router.post("/:id/poster", authenticate, requireMinRole("STUDENT_COORDINATOR"), 
     const existing = await prisma.event.findUnique({ where: { id: req.params.id } });
     if (!existing) { res.status(404).json({ error: "Event not found" }); return; }
 
-    const isElevated = ["FACULTY", "TECH"].includes(req.user!.role);
+    const isElevated = ["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "TECH_TEAM"].includes(req.user!.role);
     if (!isElevated && existing.creatorId !== req.user!.userId) {
       res.status(403).json({ error: "Unauthorized: You can only modify events you created" });
       return;
@@ -144,7 +146,7 @@ router.post("/:id/document", authenticate, requireMinRole("STUDENT_COORDINATOR")
     const existing = await prisma.event.findUnique({ where: { id: req.params.id } });
     if (!existing) { res.status(404).json({ error: "Event not found" }); return; }
 
-    const isElevated = ["FACULTY", "TECH"].includes(req.user!.role);
+    const isElevated = ["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "TECH_TEAM"].includes(req.user!.role);
     if (!isElevated && existing.creatorId !== req.user!.userId) {
       res.status(403).json({ error: "Unauthorized: You can only modify events you created" });
       return;
@@ -211,7 +213,7 @@ router.get("/", async (req: Request, res: Response) => {
 });
 
 // GET /api/events/all — All events for coordinators with search/filter
-router.get("/all", authenticate, requireMinRole("TECH"), async (req: Request, res: Response) => {
+router.get("/all", authenticate, requireMinRole("TECH_TEAM"), async (req: Request, res: Response) => {
   try {
     const { search, status, tag } = req.query;
     
@@ -292,9 +294,25 @@ router.get("/:id/is-registered", authenticate, async (req: Request, res: Respons
       where: { userId_eventId: { userId, eventId } },
       include: { team: true }
     });
+
+    let team = registration?.team || null;
+    let teamId = registration?.teamId || null;
+    if (!team) {
+      const membership = await prisma.teamMember.findFirst({
+        where: { userId, team: { eventId } },
+        include: { team: true }
+      });
+      if (membership) {
+        team = membership.team;
+        teamId = membership.teamId;
+      }
+    }
+
     res.json({
-      registered: !!registration,
-      teamCode: registration?.team?.teamCode || null
+      registered: !!registration || !!team,
+      teamId: teamId || null,
+      teamCode: team?.teamCode || null,
+      joinCode: team?.joinCode || null
     });
   } catch (err) {
     console.error("[Events] Is-registered check error:", err);
@@ -318,7 +336,7 @@ router.get("/:id", async (req: Request, res: Response) => {
 });
 
 // GET /api/events/:id/analytics — Registration timeline, team stats, attendance
-router.get("/:id/analytics", authenticate, requireMinRole("TECH"), async (req: Request, res: Response) => {
+router.get("/:id/analytics", authenticate, requireMinRole("TECH_TEAM"), async (req: Request, res: Response) => {
   try {
     const eventId = req.params.id;
     const event = await prisma.event.findUnique({ where: { id: eventId } });
@@ -365,7 +383,7 @@ router.patch("/:id", authenticate, requireMinRole("STUDENT_COORDINATOR"), auditL
     }
 
     // Access Control: Non-faculty coordinators can only edit their own created events
-    const isElevated = ["FACULTY", "TECH"].includes(req.user!.role);
+    const isElevated = ["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "TECH_TEAM"].includes(req.user!.role);
     if (!isElevated && existingEvent.creatorId !== req.user!.userId) {
       res.status(403).json({ error: "Unauthorized: You can only edit events you created" });
       return;
@@ -409,14 +427,14 @@ router.patch("/:id", authenticate, requireMinRole("STUDENT_COORDINATOR"), auditL
           metadata: { eventId: event.id },
           steps: {
             create: [
-              { level: 1, role: "FACULTY", status: "PENDING" }
+              { level: 1, role: "FACULTY_COORDINATOR", status: "PENDING" }
             ]
           }
         }
       });
 
       const faculties = await prisma.user.findMany({
-        where: { role: "FACULTY", isActive: true },
+        where: { role: "FACULTY_COORDINATOR", isActive: true },
         select: { id: true },
       });
       for (const fac of faculties) {
@@ -443,7 +461,7 @@ router.patch("/:id/publish", authenticate, requireMinRole("STUDENT_COORDINATOR")
     });
     if (!event) { res.status(404).json({ error: "Event not found" }); return; }
 
-    const isElevated = ["FACULTY", "TECH"].includes(req.user!.role);
+    const isElevated = ["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "TECH_TEAM"].includes(req.user!.role);
     if (!isElevated && event.creatorId !== req.user!.userId) {
       res.status(403).json({ error: "Unauthorized: You can only publish events you created" });
       return;
@@ -472,7 +490,7 @@ router.delete("/:id", authenticate, requireMinRole("STUDENT_COORDINATOR"), audit
     const event = await prisma.event.findUnique({ where: { id: req.params.id } });
     if (!event) { res.status(404).json({ error: "Event not found" }); return; }
 
-    const isElevated = ["FACULTY", "TECH"].includes(req.user!.role);
+    const isElevated = ["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "TECH_TEAM"].includes(req.user!.role);
     if (!isElevated && event.creatorId !== req.user!.userId) {
       res.status(403).json({ error: "Unauthorized: You can only delete events you created" });
       return;
@@ -498,9 +516,8 @@ router.delete("/:id", authenticate, requireMinRole("STUDENT_COORDINATOR"), audit
 router.post("/:id/register", authenticate, auditLog("EVENT_REGISTRATION"), async (req: Request, res: Response) => {
   try {
     const eventId = req.params.id; const userId = req.user!.userId;
-    const userRole = req.user!.role;
-
-    if (userRole === "FACULTY" || userRole === "STUDENT_COORDINATOR") {
+    const userRole = req.user?.role;
+    if (userRole === "FACULTY_COORDINATOR" || userRole === "STUDENT_COORDINATOR" || userRole === "DEVELOPMENT_TEAM") {
       res.status(400).json({ error: "Faculty and Student Coordinators default to full event access and do not register as participants." });
       return;
     }
@@ -547,14 +564,20 @@ router.post("/:id/register", authenticate, auditLog("EVENT_REGISTRATION"), async
     let generatedTeamCode = null;
     if (teamName && event.maxTeamSize && event.maxTeamSize > 1) {
       // Create team
-      const teamCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+      const seg = Math.random().toString(36).substring(2, 8).toUpperCase();
+      const teamCode = `CK-T-${seg}`;
+      const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+      let joinCode = "CTF-";
+      for (let i = 0; i < 6; i++) {
+        joinCode += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
       const newTeam = await prisma.team.create({
-        data: { name: teamName, teamCode, eventId, leaderId: userId }
+        data: { name: teamName, teamCode, joinCode, eventId, leaderId: userId }
       });
       teamId = newTeam.id;
       generatedTeamCode = teamCode;
-      // Add creator as member
-      await prisma.teamMember.create({ data: { teamId, userId } });
+      // Add creator as member 1
+      await prisma.teamMember.create({ data: { teamId, userId, memberCode: `${teamCode}_1` } });
       
       // If team members are provided by email, validate ALL exist as registered+approved+active users
       if (teamMembers && Array.isArray(teamMembers) && teamMembers.length > 0) {
@@ -601,7 +624,9 @@ router.post("/:id/register", authenticate, auditLog("EVENT_REGISTRATION"), async
           if (!memberUser) continue;
           const existingReg = await prisma.eventRegistration.findUnique({ where: { userId_eventId: { userId: memberUser.id, eventId } } });
           if (!existingReg) {
-            await prisma.teamMember.create({ data: { teamId, userId: memberUser.id } });
+            const currentCount = await prisma.teamMember.count({ where: { teamId } });
+            const memberCode = `${teamCode}_${currentCount + 1}`;
+            await prisma.teamMember.create({ data: { teamId, userId: memberUser.id, memberCode } });
             await prisma.eventRegistration.create({ data: { userId: memberUser.id, eventId, teamId } });
             sendEventRegistrationEmail({ name: memberUser.name, email: memberUser.email }, {
               title: event.title,
@@ -633,7 +658,7 @@ router.post("/:id/register", authenticate, auditLog("EVENT_REGISTRATION"), async
 });
 
 // GET /api/events/:id/registrations — List registrations with search (paginated)
-router.get("/:id/registrations", authenticate, requireMinRole("TECH"), async (req: Request, res: Response) => {
+router.get("/:id/registrations", authenticate, requireMinRole("TECH_TEAM"), async (req: Request, res: Response) => {
   try {
     const { search } = req.query;
     const page = parseInt(req.query.page as string) || 1;
@@ -676,7 +701,7 @@ router.get("/:id/registrations", authenticate, requireMinRole("TECH"), async (re
 });
 
 // GET /api/events/:id/registrations/export — CSV export
-router.get("/:id/registrations/export", authenticate, requireMinRole("TECH"), async (req: Request, res: Response) => {
+router.get("/:id/registrations/export", authenticate, requireMinRole("TECH_TEAM"), async (req: Request, res: Response) => {
   try {
     const regs = await prisma.eventRegistration.findMany({
       where: { eventId: req.params.id },
@@ -750,6 +775,181 @@ router.post("/:id/send-email", authenticate, requireMinRole("STUDENT_COORDINATOR
     res.json({ success: true, message: `Email broadcast sent to ${sentCount} recipients.` });
   } catch (err) {
     console.error("[Events] Manual email error:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// PATCH /api/events/:id/leaderboard-visibility — Toggle live event leaderboard (Dev Team & Tech Team only)
+router.patch("/:id/leaderboard-visibility", authenticate, requireRole("DEVELOPMENT_TEAM", "TECH_TEAM"), auditLog("EVENT_LEADERBOARD_VISIBILITY_TOGGLED"), async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { isVisible } = req.body;
+
+    if (typeof isVisible !== "boolean") {
+      res.status(400).json({ error: "Field 'isVisible' (boolean) is required." });
+      return;
+    }
+
+    const event = await prisma.event.findUnique({ where: { id } });
+    if (!event) {
+      res.status(404).json({ error: "Event not found" });
+      return;
+    }
+
+    const updated = await prisma.event.update({
+      where: { id },
+      data: { isLeaderboardVisible: isVisible },
+    });
+
+    // Also synchronize CTF competition leaderboard visibility if linked
+    if (event.ctfCompetitionId) {
+      await prisma.ctfCompetition.update({
+        where: { id: event.ctfCompetitionId },
+        data: { isLeaderboardVisible: isVisible },
+      }).catch((e) => console.warn("[Events] CTF competition sync notice:", e));
+    }
+
+    await clearEventsCache();
+
+    res.json({
+      success: true,
+      eventId: id,
+      isLeaderboardVisible: updated.isLeaderboardVisible,
+      message: updated.isLeaderboardVisible
+        ? "Leaderboard is now live and visible to all participants."
+        : "Leaderboard visibility is now paused for active participants. Real-time scoring continues in the background.",
+    });
+  } catch (err) {
+    console.error("[Events] Leaderboard toggle error:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// GET /api/events/:id/leaderboard — Retrieve event leaderboard with participant masking
+router.get("/:id/leaderboard", async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const event = await prisma.event.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        title: true,
+        eventType: true,
+        isLeaderboardVisible: true,
+        ctfCompetitionId: true,
+      }
+    });
+
+    if (!event) {
+      res.status(404).json({ error: "Event not found" });
+      return;
+    }
+
+    // Try extracting user from optional authorization header/cookies
+    let currentUser: AuthPayload | null = null;
+    const token = req.cookies?.accessToken || req.headers.authorization?.replace(/^Bearer\s+/i, "");
+    if (token) {
+      try {
+        currentUser = jwt.verify(token, config.jwt.secret) as AuthPayload;
+      } catch {
+        // anonymous
+      }
+    }
+
+    // If leaderboard is hidden
+    if (!event.isLeaderboardVisible) {
+      // Check if current user is an event participant
+      let isParticipant = false;
+      if (currentUser) {
+        const reg = await prisma.eventRegistration.findFirst({
+          where: {
+            eventId: id,
+            OR: [
+              { userId: currentUser.userId },
+              { user: { email: currentUser.email } }
+            ]
+          }
+        });
+        if (reg) isParticipant = true;
+
+        if (!isParticipant) {
+          const teamMember = await prisma.teamMember.findFirst({
+            where: {
+              userId: currentUser.userId,
+              team: { eventId: id }
+            }
+          });
+          if (teamMember) isParticipant = true;
+        }
+      }
+
+      // If registered participant (even if DEV_TEAM or TECH_TEAM) -> BLOCKED
+      if (isParticipant) {
+        res.status(403).json({
+          isHidden: true,
+          isParticipant: true,
+          message: "Live leaderboard telemetry is paused by the Technical Team. Real-time scoring continues in the background."
+        });
+        return;
+      }
+
+      // If user is staff (and NOT a registered participant for this event) -> ALLOW STAFF VIEW
+      const isStaff = currentUser && ["DEVELOPMENT_TEAM", "TECH_TEAM", "FACULTY_COORDINATOR", "STUDENT_COORDINATOR"].includes(currentUser.role);
+      if (!isStaff) {
+        res.status(403).json({
+          isHidden: true,
+          isParticipant: false,
+          message: "Event leaderboard is currently suspended by administrators."
+        });
+        return;
+      }
+    }
+
+    // Leaderboard entries generation
+    const teams = await prisma.team.findMany({
+      where: { eventId: id },
+      include: {
+        members: {
+          include: {
+            user: { select: { id: true, name: true, email: true, avatarUrl: true, studentId: true } }
+          }
+        }
+      }
+    });
+
+    const points = await prisma.appreciationPoint.groupBy({
+      by: ["receiverId"],
+      where: { eventId: id },
+      _sum: { points: true },
+      orderBy: { _sum: { points: "desc" } }
+    });
+
+    const pointMap = new Map(points.map(p => [p.receiverId, p._sum.points || 0]));
+
+    const teamEntries = teams.map(team => {
+      const teamPoints = team.members.reduce((sum, m) => sum + (pointMap.get(m.userId) || 0), 0);
+      return {
+        id: team.id,
+        teamCode: team.teamCode,
+        name: team.name,
+        score: teamPoints,
+        membersCount: team.members.length,
+        members: team.members.map(m => ({
+          name: m.user.name,
+          memberCode: m.memberCode,
+        }))
+      };
+    }).sort((a, b) => b.score - a.score);
+
+    res.json({
+      eventId: event.id,
+      title: event.title,
+      isLeaderboardVisible: event.isLeaderboardVisible,
+      isStaffView: !event.isLeaderboardVisible,
+      leaderboard: teamEntries.map((t, idx) => ({ ...t, rank: idx + 1 }))
+    });
+  } catch (err) {
+    console.error("[Events] Get leaderboard error:", err);
     res.status(500).json({ error: "Internal server error" });
   }
 });

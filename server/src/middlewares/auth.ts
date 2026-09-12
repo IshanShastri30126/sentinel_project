@@ -70,13 +70,12 @@ export async function authenticate(req: Request, res: Response, next: NextFuncti
  * Role hierarchy levels — lower number = higher authority.
  */
 export const ROLE_HIERARCHY: Record<Role, number> = {
-  FACULTY: 1,
-  STUDENT_COORDINATOR: 1,
-  TECH: 1,
-  CONTENT: 3,
-  SOCIAL_MEDIA: 3,
-  MEMBER: 4,
-  GUEST: 5,
+  DEVELOPMENT_TEAM: 1,
+  FACULTY_COORDINATOR: 2,
+  STUDENT_COORDINATOR: 2,
+  TECH_TEAM: 4,
+  MEMBER: 5,
+  GUEST: 6,
 };
 
 /**

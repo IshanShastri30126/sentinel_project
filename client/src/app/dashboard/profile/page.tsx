@@ -69,6 +69,8 @@ export default function ProfilePage() {
     load();
   }, [token, user]);
 
+  const isFaculty = user?.role === "FACULTY_COORDINATOR" || user?.role === "FACULTY";
+
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-20 space-y-4">
@@ -82,7 +84,8 @@ export default function ProfilePage() {
     e.preventDefault();
     setSubmitting(true);
     try {
-      if (editPhone && !/^\d{10}$/.test(editPhone)) {
+      const sanitizedPhone = editPhone ? editPhone.replace(/\D/g, "").slice(0, 10) : "";
+      if (sanitizedPhone && !/^\d{10}$/.test(sanitizedPhone)) {
         alert("Mobile number must be exactly 10 numeric digits");
         setSubmitting(false);
         return;
@@ -92,13 +95,16 @@ export default function ProfilePage() {
       if (editName) formData.append("name", editName);
       if (editPassword) formData.append("password", editPassword);
       if (editAvatar) formData.append("avatar", editAvatar);
-      formData.append("studentId", editStudentId);
-      formData.append("phone", editPhone);
-      formData.append("department", editDepartment);
-      formData.append("institute", editInstitute);
-      if (user?.role !== "FACULTY") {
+      if (isFaculty) {
+        formData.append("employeeId", editStudentId);
+        formData.append("studentId", editStudentId);
+      } else {
+        formData.append("studentId", editStudentId);
         formData.append("semester", editSemester);
       }
+      formData.append("phone", sanitizedPhone);
+      formData.append("department", editDepartment);
+      formData.append("institute", editInstitute);
 
       const res = await fetch(`${API_BASE}/users/profile`, {
         method: "PATCH",
@@ -180,7 +186,7 @@ export default function ProfilePage() {
             <div className="flex flex-wrap justify-center sm:justify-start items-center gap-2 mt-3 text-xs font-mono">
               {user?.studentId && !user.studentId.includes("@") && (
                 <span className="px-2 py-0.5 rounded bg-[var(--ck-bg)] border border-[var(--ck-border)] text-[var(--ck-text-muted)]">
-                  {user?.role === "FACULTY" ? `EMPLOYEE ID: ${user.studentId}` : `CLEARANCE: ${user.studentId}`}
+                  {isFaculty ? `EMPLOYEE ID: ${user.studentId}` : `CLEARANCE: ${user.studentId}`}
                 </span>
               )}
               {user?.department && (
@@ -300,7 +306,7 @@ export default function ProfilePage() {
             </div>
             <div className="min-w-0">
               <p className="text-[10px] uppercase tracking-wider text-[var(--ck-text-muted)] font-semibold">
-                {user?.role === "FACULTY" ? "Employee ID" : "Student ID"}
+                {isFaculty ? "Employee ID" : "Student ID"}
               </p>
               <p className="font-bold mt-0.5 text-[var(--ck-text)] truncate">{((user as any)?.employeeId || user?.studentId || "N/A")}</p>
             </div>
@@ -328,8 +334,8 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          {/* Semester (Removed for Faculty) */}
-          {user?.role !== "FACULTY" && (
+          {/* Semester (Completely Removed for Faculty) */}
+          {!isFaculty && (
             <div className="p-3.5 rounded-xl border border-zinc-900/60 bg-zinc-950/30 flex items-center gap-4 hover:border-[var(--ck-border)] transition duration-300">
               <div className="w-9 h-9 rounded-lg bg-[var(--ck-bg-card)] flex items-center justify-center text-[var(--ck-text-secondary)] border border-zinc-850">
                 <GraduationCap className="w-4 h-4" />
@@ -419,7 +425,7 @@ export default function ProfilePage() {
                 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="ck-label">{user?.role === "FACULTY" ? "Employee ID" : "Student ID"}</label>
+                    <label className="ck-label">{isFaculty ? "Employee ID" : "Student ID"}</label>
                     <input className="ck-input" value={editStudentId} onChange={(e) => setEditStudentId(e.target.value)} required />
                   </div>
                   <div>
@@ -478,7 +484,7 @@ export default function ProfilePage() {
                   </div>
                 </div>
 
-                {user?.role !== "FACULTY" && (
+                {!isFaculty && (
                   <div>
                     <label className="ck-label">Semester (1-8)</label>
                     <select 

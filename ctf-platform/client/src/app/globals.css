@@ -1,0 +1,215 @@
+/* Created: 2026-08-11 | Modified: Font loading moved to layout.tsx <link> tags */
+
+@import "tailwindcss";
+@import "tw-animate-css";
+
+/* ── Custom Variants ─────────────────────────────────────── */
+@custom-variant dark (&:is(.dark *));
+
+/* ── CTF Wars Dark Theme (Always Active) ─────────────────── */
+:root {
+    /* Shadcn-compatible semantic tokens */
+    --radius: 0.625rem;
+    --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+    --font-heading: "Space Grotesk", "Inter", ui-sans-serif, system-ui, sans-serif;
+    --font-mono: "JetBrains Mono", ui-monospace, monospace;
+
+    /* ── Core Palette (Green/Black) ──────────────────────── */
+    --background: oklch(0.08 0 0);
+    /* #0A0A0A Deep Space */
+    --foreground: oklch(0.97 0 0);
+    /* #FAFAFA off-white */
+
+    --card: oklch(0.11 0 0);
+    /* #111111 card panels */
+    --card-foreground: oklch(0.97 0 0);
+
+    --popover: oklch(0.11 0 0);
+    --popover-foreground: oklch(0.97 0 0);
+
+    --primary: oklch(0.82 0.19 160);
+    /* #00FF88 Neon Lime */
+    --primary-foreground: oklch(0.08 0 0);
+    /* dark text on green */
+
+    --secondary: oklch(0.15 0 0);
+    --secondary-foreground: oklch(0.97 0 0);
+
+    --muted: oklch(0.15 0.005 0);
+    --muted-foreground: oklch(0.55 0 0);
+
+    --accent: oklch(0.15 0.01 160);
+    --accent-foreground: oklch(0.82 0.19 160);
+
+    --destructive: oklch(0.65 0.18 45);
+    /* #F97316 Orange (NO RED!) */
+    --destructive-foreground: oklch(0.08 0 0);
+
+    --border: oklch(0.2 0 0);
+    /* #262626 border */
+    --input: oklch(0.2 0 0);
+    --ring: oklch(0.82 0.19 160);
+    /* green focus ring */
+
+    /* ── Chart Colors ─────────────────────────────────────── */
+    --chart-1: oklch(0.82 0.19 160);
+    /* Neon green */
+    --chart-2: oklch(0.7 0.15 220);
+    /* Blue */
+    --chart-3: oklch(0.75 0.15 80);
+    /* Amber */
+    --chart-4: oklch(0.7 0.17 310);
+    /* Purple */
+    --chart-5: oklch(0.65 0.18 45);
+    /* Orange */
+
+    /* ── Sidebar ──────────────────────────────────────────── */
+    --sidebar: oklch(0.09 0 0);
+    --sidebar-foreground: oklch(0.55 0 0);
+    --sidebar-primary: oklch(0.82 0.19 160);
+    --sidebar-primary-foreground: oklch(0.08 0 0);
+    --sidebar-accent: oklch(0.14 0.01 160);
+    --sidebar-accent-foreground: oklch(0.82 0.19 160);
+    --sidebar-border: oklch(0.18 0 0);
+    --sidebar-ring: oklch(0.82 0.19 160);
+
+    /* ── CTF-Specific Tokens ──────────────────────────────── */
+    --ctf-green: #00FF88;
+    --ctf-green-glow: rgba(0, 255, 136, 0.15);
+    --ctf-green-subtle: rgba(0, 255, 136, 0.08);
+    --ctf-orange: #F97316;
+    --ctf-amber: #FBBF24;
+    --ctf-bg: #0A0A0A;
+    --ctf-card: #111111;
+    --ctf-border: #262626;
+
+    /* Tier Colors */
+    --tier-apprentice: #A1A1AA;
+    --tier-journeyman: #38BDF8;
+    --tier-master: #FBBF24;
+    --tier-grandmaster: #A855F7;
+
+    /* Activity Matrix Colors */
+    --activity-opened: #38BDF8;
+    --activity-attempted: #FBBF24;
+    --activity-solved: #00FF88;
+}
+
+/* ── Force dark class on everything ──────────────────────── */
+.dark {
+    color-scheme: dark;
+}
+
+/* ── Global Body Styles ──────────────────────────────────── */
+body {
+    font-family: var(--font-sans);
+    background-color: var(--ctf-bg);
+    color: var(--foreground);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Scrollbar Styling ───────────────────────────────────── */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--ctf-border);
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #333333;
+}
+
+/* ── Headings use Space Grotesk ──────────────────────────── */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-family: var(--font-heading);
+}
+
+/* ── Monospace for scores/flags ──────────────────────────── */
+.font-mono,
+code,
+pre,
+.score-text {
+    font-family: var(--font-mono);
+}
+
+/* ── Tier Badge Utilities ────────────────────────────────── */
+.tier-apprentice {
+    color: var(--tier-apprentice);
+}
+
+.tier-journeyman {
+    color: var(--tier-journeyman);
+}
+
+.tier-master {
+    color: var(--tier-master);
+}
+
+.tier-grandmaster {
+    color: var(--tier-grandmaster);
+}
+
+/* ── Neon Glow Effect ────────────────────────────────────── */
+.glow-green {
+    box-shadow: 0 0 20px var(--ctf-green-glow), 0 0 60px rgba(0, 255, 136, 0.05);
+}
+
+.glow-green-text {
+    text-shadow: 0 0 20px var(--ctf-green-glow);
+}
+
+/* ── Subtle card hover ───────────────────────────────────── */
+.card-hover {
+    transition: all 0.2s ease;
+}
+
+.card-hover:hover {
+    border-color: var(--ctf-green);
+    box-shadow: 0 0 30px rgba(0, 255, 136, 0.08);
+    transform: translateY(-2px);
+}
+
+/* ── Grid background pattern (cyberpunk) ─────────────────── */
+.bg-grid {
+    background-image:
+        linear-gradient(rgba(0, 255, 136, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 255, 136, 0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+}
+
+/* ── Pulse animation for live indicators ─────────────────── */
+@keyframes pulse-green {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.5;
+    }
+}
+
+.pulse-live {
+    animation: pulse-green 2s ease-in-out infinite;
+}
+
+/* ── Selection Color ─────────────────────────────────────── */
+::selection {
+    background-color: rgba(0, 255, 136, 0.2);
+    color: #FAFAFA;
+}

@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { api, getFileUrl } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Calendar, MapPin, Clock, Users, Tag, Shield, AlertCircle, Zap, Eye, FileText, CheckCircle, ExternalLink, Copy, UserPlus, X, Search, Download, Phone, Mail, MessageSquare } from "lucide-react";
+import { ArrowLeft, Calendar, MapPin, Clock, Users, Tag, Shield, AlertCircle, Zap, Eye, FileText, CheckCircle, ExternalLink, Copy, UserPlus, X, Search, Download, Phone, Mail, MessageSquare, Lock, Unlock, Terminal, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import { DefaultAvatar } from "@/components/default-avatar";
 import { INSTITUTES, INSTITUTE_DEPARTMENTS, SEMESTERS } from "@/app/auth/page";
@@ -203,7 +203,7 @@ function PublicEventPageContent() {
 
   useEffect(() => {
     setNowTimestamp(Date.now());
-    const interval = setInterval(() => setNowTimestamp(Date.now()), 10000);
+    const interval = setInterval(() => setNowTimestamp(Date.now()), 1000);
     return () => clearInterval(interval);
   }, []);
   const [registered, setRegistered] = useState(false);
@@ -213,6 +213,37 @@ function PublicEventPageContent() {
   const [joinTeamCode, setJoinTeamCode] = useState("");
   const [inviteCode, setInviteCode] = useState<string | null>(null);
   const [showPosterLightbox, setShowPosterLightbox] = useState(false);
+
+  // CTF / Hackathon Gateway States
+  const [teamInfo, setTeamInfo] = useState<{
+    teamId: string | null;
+    teamCode: string | null;
+    joinCode: string | null;
+  }>({ teamId: null, teamCode: null, joinCode: null });
+  const [showGatewayModal, setShowGatewayModal] = useState(false);
+  const [readinessData, setReadinessData] = useState<{
+    team: {
+      id: string;
+      name: string;
+      teamCode: string;
+      joinCode?: string;
+      leaderId: string;
+      members: Array<{
+        id: string;
+        userId: string;
+        name: string;
+        email: string;
+        memberCode?: string;
+        hasJoinedTerminal: boolean;
+        joinedTerminalAt?: string;
+      }>;
+    };
+    totalMembers: number;
+    readyMembers: number;
+    allReady: boolean;
+    percentage: number;
+  } | null>(null);
+  const [confirmingReady, setConfirmingReady] = useState(false);
   
   const [inviteFromUrl] = useState<string | null>(() => {
     if (typeof window !== "undefined") {
@@ -250,6 +281,46 @@ function PublicEventPageContent() {
   const showToast = useCallback((message: string, type: "success" | "error" | "info" = "info") => {
     setToast({ message, type });
   }, []);
+
+  const fetchReadiness = useCallback(async (teamIdToFetch?: string) => {
+    const tid = teamIdToFetch || teamInfo.teamId;
+    if (!tid || !token) return;
+    try {
+      const data = await api<{
+        team: any;
+        totalMembers: number;
+        readyMembers: number;
+        allReady: boolean;
+        percentage: number;
+      }>(`/teams/${tid}/readiness`, { token });
+      setReadinessData(data);
+    } catch (err) {
+      console.warn("Readiness check notice:", err);
+    }
+  }, [teamInfo.teamId, token]);
+
+  useEffect(() => {
+    if (!showGatewayModal || !teamInfo.teamId) return;
+    fetchReadiness();
+    const interval = setInterval(() => {
+      fetchReadiness();
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [showGatewayModal, teamInfo.teamId, fetchReadiness]);
+
+  const handleConfirmReady = async () => {
+    if (!teamInfo.teamId || !token) return;
+    setConfirmingReady(true);
+    try {
+      await api(`/teams/${teamInfo.teamId}/ready`, { method: "POST", token });
+      await fetchReadiness();
+      showToast("Operational readiness confirmed", "success");
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : "Failed to confirm readiness", "error");
+    } finally {
+      setConfirmingReady(false);
+    }
+  };
 
   const searchMembers = async (q: string) => {
     setMemberSearch(q);
@@ -382,8 +453,29 @@ function PublicEventPageContent() {
         const data = await api<{ event: EventDetail }>(`/events/public/${slug}`);
         setEvent(data.event);
         if (token && data.event) {
-          const regData = await api<{ registered: boolean }>(`/events/${data.event.id}/is-registered`, { token });
+          const regData = await api<{
+            registered: boolean;
+            teamId?: string | null;
+            teamCode?: string | null;
+            joinCode?: string | null;
+          }>(`/events/${data.event.id}/is-registered`, { token });
           setRegistered(regData.registered);
+          setTeamInfo({
+            teamId: regData.teamId || null,
+            teamCode: regData.teamCode || null,
+            joinCode: regData.joinCode || null,
+          });
+          if (regData.teamCode) setInviteCode(regData.teamCode);
+
+          // Check if URL has ?launch=true and event has started
+          if (typeof window !== "undefined") {
+            const sp = new URLSearchParams(window.location.search);
+            const isLaunch = sp.get("launch") === "true";
+            const sTime = data.event.startDate ? new Date(data.event.startDate).getTime() : 0;
+            if (isLaunch && sTime > 0 && Date.now() >= sTime) {
+              setShowGatewayModal(true);
+            }
+          }
         }
       } catch (err) { 
         setError(err instanceof Error ? err.message : "Event not found"); 
@@ -419,13 +511,31 @@ function PublicEventPageContent() {
 
   const regDeadlineTime = event.registrationDeadline ? new Date(event.registrationDeadline).getTime() : 0;
   const eventStartTime = event.startDate ? new Date(event.startDate).getTime() : 0;
+  const eventEndTime = event.endDate ? new Date(event.endDate).getTime() : 0;
 
   const deadlinePassed = regDeadlineTime > 0 && nowTimestamp > 0 ? nowTimestamp > regDeadlineTime : false;
-  const eventPassed = eventStartTime > 0 && nowTimestamp > 0 ? nowTimestamp > eventStartTime : false;
+  const eventStarted = eventStartTime > 0 && nowTimestamp > 0 ? nowTimestamp >= eventStartTime : false;
+  const eventPassed = eventEndTime > 0 && nowTimestamp > 0 ? nowTimestamp > eventEndTime : (eventStartTime > 0 && nowTimestamp > 0 ? nowTimestamp > eventStartTime + 86400000 : false);
   const isFull = event.maxCapacity
     ? event._count.registrations >= event.maxCapacity : false;
   const capacityPercent = event.maxCapacity
     ? Math.min(100, Math.round((event._count.registrations / event.maxCapacity) * 100)) : 0;
+
+  const isCompetition = ["hackathon", "competition", "ctf"].includes(event.eventType?.toLowerCase() || "");
+
+  const formatCountdown = (msRemaining: number) => {
+    if (msRemaining <= 0) return "00:00:00";
+    const totalSecs = Math.floor(msRemaining / 1000);
+    const days = Math.floor(totalSecs / 86400);
+    const hours = Math.floor((totalSecs % 86400) / 3600);
+    const minutes = Math.floor((totalSecs % 3600) / 60);
+    const seconds = totalSecs % 60;
+    const pad = (n: number) => String(n).padStart(2, "0");
+    if (days > 0) {
+      return `${days}d ${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+    }
+    return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+  };
 
   const getTimeLeft = () => {
     if (nowTimestamp === 0) return null;
@@ -527,6 +637,7 @@ function PublicEventPageContent() {
           <div className="lg:col-span-2 space-y-6">
             {/* Event Details Card */}
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
+              id="event-details-section"
               className="ck-card p-8">
               <h2 className="text-xl font-bold font-mono tracking-tighter uppercase mb-6 text-white border-b border-red-950 pb-2">Event Details</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
@@ -750,14 +861,72 @@ function PublicEventPageContent() {
                 </div>
               )}
 
-              {/* Register Button */}
-              {user?.role === "FACULTY" || user?.role === "STUDENT_COORDINATOR" ? (
+              {/* Dual Controls & Registration */}
+              {isCompetition && (
+                <div className="space-y-3 mb-6 p-4 rounded-xl border border-white/[0.08] bg-black/40">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] uppercase font-bold font-mono text-slate-400 tracking-widest">Operation Gateway</span>
+                    <span className="text-[9px] font-mono px-2 py-0.5 rounded font-bold uppercase tracking-wider bg-red-950/40 text-red-400 border border-red-900/30">Dual Control</span>
+                  </div>
+
+                  {/* Dual Control 1: Details & Rules */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      document.getElementById("event-details-section")?.scrollIntoView({ behavior: "smooth" });
+                    }}
+                    className="w-full py-2.5 px-3 rounded-lg border border-zinc-800 bg-[#0D0F14]/40 hover:border-zinc-700 hover:bg-[#0D0F14]/70 text-slate-300 hover:text-white font-mono text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 transition cursor-pointer"
+                  >
+                    <FileText className="w-4 h-4 text-cyan-400" />
+                    <span>MISSION BRIEFING & RULES</span>
+                  </button>
+
+                  {/* Dual Control 2: Locked / Unlocked Gateway */}
+                  {eventPassed ? (
+                    <div className="p-3 rounded-xl border border-zinc-800 bg-zinc-950/50 text-slate-400 text-center font-mono text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-slate-500" />
+                      <span>OPERATION CONCLUDED</span>
+                    </div>
+                  ) : !eventStarted ? (
+                    <div>
+                      <button
+                        type="button"
+                        onClick={() => showToast(`Tactical gateway locked until launch: ${new Date(eventStartTime).toLocaleString("en-IN")}`, "info")}
+                        className="w-full py-3.5 px-4 rounded-xl border border-red-500/40 bg-red-950/25 hover:bg-red-950/40 text-red-400 font-mono text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-2 transition shadow-[0_0_15px_rgba(239,68,68,0.2)] cursor-pointer"
+                      >
+                        <Lock className="w-4 h-4 text-red-500 shrink-0" />
+                        <span>LOCKED — STARTS IN {formatCountdown(eventStartTime - nowTimestamp)}</span>
+                      </button>
+                      <p className="text-[9px] font-mono text-slate-500 text-center mt-1.5 uppercase tracking-wider">
+                        Terminal unlocks automatically upon scheduled start
+                      </p>
+                    </div>
+                  ) : (
+                    <div>
+                      <button
+                        type="button"
+                        onClick={() => setShowGatewayModal(true)}
+                        className="w-full py-3.5 px-4 rounded-xl font-mono text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 bg-gradient-to-r from-[#00F5D4] via-[#00E1FF] to-[#00F5D4] text-black shadow-[0_0_25px_rgba(0,245,212,0.6)] hover:shadow-[0_0_35px_rgba(0,245,212,0.9)] animate-pulse transition cursor-pointer"
+                      >
+                        <Unlock className="w-4 h-4 text-black shrink-0" />
+                        <span>UNLOCKED — LAUNCH GATEWAY</span>
+                      </button>
+                      <p className="text-[9px] font-mono text-emerald-400 text-center mt-1.5 font-bold uppercase tracking-wider">
+                        Live CTF Wars Gateway Active
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Coordinator View Banner */}
+              {user?.role === "FACULTY" || user?.role === "STUDENT_COORDINATOR" || user?.role === "FACULTY_COORDINATOR" ? (
                 <div className="flex flex-col gap-2 p-4 rounded-xl border border-sky-500/30 bg-sky-500/10 text-sky-400 text-center font-mono">
                   <div className="flex items-center justify-center gap-2">
                     <Eye className="w-5 h-5 text-sky-400 shrink-0" />
                     <p className="text-sm font-semibold uppercase tracking-widest">Coordinator Access — Event View Only</p>
                   </div>
-                  <p className="text-[11px] text-zinc-400">Faculty and Student Coordinators default to full event access and do not register as participants.</p>
+                  <p className="text-[11px] text-zinc-400">Coordinators maintain administrative oversight and do not register as competing participants.</p>
                 </div>
               ) : event.googleFormUrl ? (
                 registered ? (
@@ -783,7 +952,7 @@ function PublicEventPageContent() {
                   </div>
                   {inviteCode && (
                     <div className="p-4 rounded-xl border border-red-950/40 bg-red-950/10 text-center font-mono">
-                      <p className="text-[10px] text-zinc-500 uppercase tracking-widest mb-1.5">Your Invite Code</p>
+                      <p className="text-[10px] text-zinc-500 uppercase tracking-widest mb-1.5">Your Team Code</p>
                       <p className="text-lg font-bold text-red-400 tracking-wider select-all">{inviteCode}</p>
                       <button 
                         onClick={() => {
@@ -1180,6 +1349,273 @@ function PublicEventPageContent() {
                 {registering ? "Joining Team..." : "Join Team & Register"}
               </button>
             </form>
+          </motion.div>
+        </div>
+      )}
+
+      {/* Hackathon / CTF Launch Gateway Modal */}
+      {showGatewayModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-md animate-fade-in">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="ck-card max-w-2xl w-full p-6 relative max-h-[92vh] flex flex-col overflow-hidden shadow-2xl border border-[#00F5D4]/40 bg-[#040814]"
+          >
+            {/* Header */}
+            <div className="flex items-start justify-between pb-4 mb-4 border-b border-white/[0.08]">
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <Terminal className="w-4 h-4 text-[#00F5D4]" />
+                  <span className="text-[10px] font-mono uppercase tracking-widest text-[#00F5D4] font-bold">
+                    TACTICAL OPERATION GATEWAY // CTF WARS
+                  </span>
+                </div>
+                <h3 className="text-xl font-bold font-mono text-white uppercase tracking-tight">
+                  {event.title}
+                </h3>
+                <p className="text-xs text-slate-400 font-mono mt-0.5">
+                  Host Platform: CTF Wars (Port 3001) · Automated Team Terminal Initialization
+                </p>
+              </div>
+              <button
+                onClick={() => setShowGatewayModal(false)}
+                className="text-slate-400 hover:text-white p-1 rounded-lg bg-black/40 border border-zinc-800 transition text-sm font-mono"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Scrollable Content */}
+            <div className="flex-1 overflow-y-auto space-y-6 pr-2 custom-scrollbar font-mono">
+              {/* Section 1: Rules & Authorized Tooling */}
+              <div className="p-4 rounded-xl border border-white/[0.08] bg-black/40 space-y-3">
+                <div className="flex items-center gap-2 text-xs font-bold text-[#00F5D4] uppercase tracking-wider">
+                  <Shield className="w-4 h-4" />
+                  <span>Competition Directives & Permitted Tools</span>
+                </div>
+                <ul className="text-xs text-slate-300 space-y-1.5 list-none">
+                  <li className="flex items-start gap-2">
+                    <span className="text-[#00F5D4] font-bold">→</span>
+                    <span><strong>Flag Format:</strong> All flags must be submitted conforming to <code className="text-amber-300 bg-amber-950/40 px-1 py-0.5 rounded border border-amber-800/30">flag&#123;...&#125;</code> syntax.</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-[#00F5D4] font-bold">→</span>
+                    <span><strong>Permitted Toolset:</strong> Kali Linux, Burp Suite Community, Wireshark, Python 3, Nmap, Ghidra, CyberChef, Gobuster, sqlmap.</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-red-400 font-bold">×</span>
+                    <span><strong>Prohibitions:</strong> Denial of service attacks against scoring servers, automated credential brute forcing on club auth, and cross-team collusion will result in permanent disqualification.</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-[#00F5D4] font-bold">→</span>
+                    <span><strong>Readiness Protocol:</strong> 100% of team members must confirm operational status before terminal access is granted to ensure fair start.</span>
+                  </li>
+                </ul>
+              </div>
+
+              {/* Section 2: Team Credentials & Hierarchical Member Codes */}
+              {teamInfo.teamId && readinessData?.team ? (
+                <div className="space-y-4">
+                  <div className="p-4 rounded-xl border border-cyan-500/30 bg-cyan-950/15 space-y-3">
+                    <div className="flex items-center justify-between flex-wrap gap-2">
+                      <div>
+                        <span className="text-[10px] text-slate-400 uppercase tracking-widest block">Team Designation</span>
+                        <span className="text-base font-bold text-white">{readinessData.team.name}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div>
+                          <span className="text-[10px] text-slate-400 uppercase tracking-widest block">Team Join Code</span>
+                          <span className="text-sm font-bold text-cyan-300 tracking-wider">
+                            {readinessData.team.joinCode || readinessData.team.teamCode}
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const code = readinessData.team.joinCode || readinessData.team.teamCode;
+                            navigator.clipboard.writeText(code);
+                            showToast("Join Code copied to clipboard!", "success");
+                          }}
+                          className="px-2.5 py-1.5 rounded bg-black/60 border border-cyan-500/40 hover:bg-cyan-900/40 text-cyan-300 text-xs font-bold transition flex items-center gap-1 cursor-pointer"
+                        >
+                          <Copy className="w-3.5 h-3.5" />
+                          <span>COPY</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Member Credentials Matrix */}
+                    <div className="pt-3 border-t border-white/[0.06]">
+                      <span className="text-[10px] text-slate-400 uppercase tracking-widest block mb-2">
+                        Hierarchical Member Identifiers & Roles
+                      </span>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        {readinessData.team.members.map((m, idx) => (
+                          <div
+                            key={m.id}
+                            className="p-2.5 rounded-lg border border-zinc-800 bg-black/50 flex items-center justify-between gap-2"
+                          >
+                            <div className="min-w-0">
+                              <span className="text-[10px] text-cyan-400 font-bold block truncate">
+                                {m.memberCode || `${readinessData.team.teamCode}_${idx + 1}`}
+                              </span>
+                              <span className="text-xs text-slate-200 font-semibold truncate block">
+                                {m.name}
+                              </span>
+                            </div>
+                            <span
+                              className={`text-[9px] px-2 py-0.5 rounded font-bold uppercase shrink-0 ${
+                                m.hasJoinedTerminal
+                                  ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
+                                  : "bg-amber-500/20 text-amber-300 border border-amber-500/30"
+                              }`}
+                            >
+                              {m.hasJoinedTerminal ? "READY" : "AWAITING"}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Section 3: Live Readiness Confirmation */}
+                  <div className="p-4 rounded-xl border border-white/[0.08] bg-black/40 space-y-3">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-slate-400 uppercase tracking-wider font-bold">
+                        Operative Confirmation Progress
+                      </span>
+                      <span className="text-[#00F5D4] font-bold">
+                        {readinessData.readyMembers} / {readinessData.totalMembers} Confirmed ({readinessData.percentage}%)
+                      </span>
+                    </div>
+
+                    {/* Progress Bar */}
+                    <div className="h-2 rounded-full overflow-hidden bg-zinc-900 border border-zinc-800">
+                      <motion.div
+                        initial={{ width: 0 }}
+                        animate={{ width: `${readinessData.percentage}%` }}
+                        transition={{ duration: 0.5 }}
+                        className={`h-full rounded-full ${
+                          readinessData.allReady
+                            ? "bg-gradient-to-r from-emerald-500 to-[#00F5D4]"
+                            : "bg-gradient-to-r from-amber-500 to-cyan-500"
+                        }`}
+                      />
+                    </div>
+
+                    {/* Self Readiness Action */}
+                    {(() => {
+                      const currentMember = readinessData.team.members.find((m) => m.userId === user?.id);
+                      if (!currentMember) return null;
+                      if (!currentMember.hasJoinedTerminal) {
+                        return (
+                          <button
+                            type="button"
+                            onClick={handleConfirmReady}
+                            disabled={confirmingReady}
+                            className="w-full py-3 rounded-lg bg-cyan-950/60 border border-cyan-500/50 hover:bg-cyan-900/60 text-cyan-300 font-mono text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 transition shadow-lg cursor-pointer"
+                          >
+                            <ShieldCheck className="w-4 h-4 text-[#00F5D4]" />
+                            <span>{confirmingReady ? "Confirming..." : "CONFIRM OPERATIVE READINESS"}</span>
+                          </button>
+                        );
+                      }
+                      return (
+                        <div className="p-2.5 rounded-lg border border-emerald-500/40 bg-emerald-950/20 text-emerald-300 font-mono text-xs font-bold uppercase flex items-center justify-center gap-2">
+                          <CheckCircle className="w-4 h-4 text-emerald-400" />
+                          <span>YOUR READINESS CONFIRMED</span>
+                        </div>
+                      );
+                    })()}
+                  </div>
+
+                  {/* Section 4: CTF Terminal Launch Execution */}
+                  <div className="space-y-2 pt-2">
+                    {readinessData.allReady ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const joinCode = readinessData.team.joinCode || readinessData.team.teamCode;
+                          window.location.href = `http://localhost:3001/lobby?code=${encodeURIComponent(joinCode)}`;
+                        }}
+                        className="w-full py-4 rounded-xl font-mono text-sm font-black uppercase tracking-widest bg-gradient-to-r from-[#00F5D4] via-[#00E1FF] to-[#00F5D4] text-black shadow-[0_0_30px_rgba(0,245,212,0.6)] hover:shadow-[0_0_40px_rgba(0,245,212,0.9)] transition cursor-pointer flex items-center justify-center gap-2 animate-pulse"
+                      >
+                        <Terminal className="w-5 h-5 text-black" />
+                        <span>ENTER CTF TERMINAL →</span>
+                      </button>
+                    ) : (
+                      <div>
+                        <button
+                          type="button"
+                          disabled
+                          className="w-full py-3.5 rounded-xl font-mono text-xs font-bold uppercase tracking-widest bg-zinc-900/80 border border-zinc-800 text-zinc-500 cursor-not-allowed flex items-center justify-center gap-2"
+                        >
+                          <Lock className="w-4 h-4 text-zinc-600" />
+                          <span>ENTER CTF TERMINAL (LOCKED)</span>
+                        </button>
+                        <p className="text-[11px] font-mono text-amber-400 text-center flex items-center justify-center gap-1.5 mt-2">
+                          <AlertCircle className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                          <span>All team members must confirm operative readiness before terminal initialization.</span>
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <div className="p-6 rounded-xl border border-zinc-800 bg-black/40 text-center space-y-4">
+                  <div className="w-12 h-12 rounded-full bg-amber-500/10 border border-amber-500/30 flex items-center justify-center mx-auto text-amber-400">
+                    <AlertCircle className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-white uppercase tracking-wider">No Team Assignment Detected</h4>
+                    <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
+                      You must be enrolled in an active operational team to access the CTF Wars Terminal.
+                    </p>
+                  </div>
+                  <div className="flex gap-2 justify-center flex-wrap">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowGatewayModal(false);
+                        setShowRegisterModal(true);
+                      }}
+                      className="ck-btn-primary py-2 px-4 text-xs"
+                    >
+                      Register Team
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowGatewayModal(false);
+                        setShowJoinTeamModal(true);
+                      }}
+                      className="ck-btn-secondary py-2 px-4 text-xs"
+                    >
+                      Join via Invite Code
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Staff / Coordinator Direct Spectator Link */}
+              {user && ["DEVELOPMENT_TEAM", "TECH_TEAM", "FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "ADMIN", "FACULTY"].includes(user.role) && (
+                <div className="pt-4 border-t border-white/[0.08] flex items-center justify-between flex-wrap gap-2 text-xs">
+                  <span className="text-sky-400 uppercase tracking-wider font-bold">
+                    Staff Supervisor Mode
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      window.location.href = "http://localhost:3001/lobby";
+                    }}
+                    className="px-3 py-1.5 rounded-lg border border-sky-500/40 bg-sky-950/30 hover:bg-sky-900/40 text-sky-300 font-mono text-xs font-bold uppercase tracking-wider transition flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <Terminal className="w-3.5 h-3.5 text-sky-400" />
+                    <span>SPECTATOR DIRECT LAUNCH →</span>
+                  </button>
+                </div>
+              )}
+            </div>
           </motion.div>
         </div>
       )}

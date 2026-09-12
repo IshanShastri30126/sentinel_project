@@ -31,10 +31,10 @@ async function invalidateApprovalsCache() {
 
 const router = Router();
 
-// Approval Chain: Club Member → Domain Coord → SC → Faculty
+// Approval Chain: Club Member → SC → Faculty Coordinator
 const APPROVAL_CHAIN: { level: number; role: Role }[] = [
   { level: 1, role: "STUDENT_COORDINATOR" },
-  { level: 2, role: "FACULTY" },
+  { level: 2, role: "FACULTY_COORDINATOR" },
 ];
 
 const createApprovalSchema = z.object({
@@ -61,7 +61,7 @@ const decisionSchema = z.object({
 router.post(
   "/",
   authenticate,
-  requireMinRole("SOCIAL_MEDIA"),
+  requireMinRole("MEMBER"),
   validate(createApprovalSchema),
   auditLog("APPROVAL_REQUEST_CREATED"),
   async (req: Request, res: Response) => {
@@ -156,7 +156,7 @@ router.get("/", authenticate, async (req: Request, res: Response) => {
     if (type) where.type = type;
 
     let requests;
-    if (role === "FACULTY") {
+    if (role === "FACULTY_COORDINATOR" || role === "DEVELOPMENT_TEAM" || (role as string) === "FACULTY") {
       requests = await prisma.approvalRequest.findMany({ where, include: includeOpts, orderBy: { createdAt: "desc" } });
     } else if (role === "STUDENT_COORDINATOR") {
       requests = await prisma.approvalRequest.findMany({
@@ -224,12 +224,13 @@ router.get("/:id", authenticate, async (req: Request, res: Response) => {
       return;
     }
 
-    // Visibility: only requester, SC, and Faculty can view
+    // Visibility: only requester, SC, Faculty Coordinator, and Development Team can view
     const { role, userId } = req.user!;
     if (
       request.requesterId !== userId &&
-      role !== "FACULTY" &&
-      role !== "STUDENT_COORDINATOR"
+      role !== "FACULTY_COORDINATOR" &&
+      role !== "STUDENT_COORDINATOR" &&
+      role !== "DEVELOPMENT_TEAM"
     ) {
       res.status(403).json({ error: "You do not have access to this request" });
       return;
@@ -246,7 +247,7 @@ router.get("/:id", authenticate, async (req: Request, res: Response) => {
 router.post(
   "/:id/decide",
   authenticate,
-  requireRole("FACULTY", "STUDENT_COORDINATOR"),
+  requireRole("DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "STUDENT_COORDINATOR"),
   validate(decisionSchema),
   async (req: Request, res: Response) => {
     try {
@@ -281,7 +282,7 @@ router.post(
           .json({ error: "No pending step at the current level" });
         return;
       }
-      if (currentStep.role !== role) {
+      if (currentStep.role !== role && role !== "DEVELOPMENT_TEAM") {
         res.status(403).json({
           error: `This step requires approval from ${currentStep.role}, not ${role}`,
         });

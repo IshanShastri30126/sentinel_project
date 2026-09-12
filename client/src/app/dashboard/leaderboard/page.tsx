@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { api, getFileUrl } from "@/lib/api";
 import { motion, AnimatePresence } from "framer-motion";
-import { Award, Trophy, Medal, Star, Search, Plus, Minus, Settings, X, Search as SearchIcon, Crown, Sparkles } from "lucide-react";
+import { Award, Trophy, Medal, Star, Search, Plus, Minus, Settings, X, Search as SearchIcon, Crown, Sparkles, Lock, Unlock, Eye, EyeOff, Shield, RefreshCw, Terminal, Users, CheckCircle } from "lucide-react";
 import { DefaultAvatar } from "@/components/default-avatar";
 
 interface LeaderboardEntry { rank: number; user: { id: string; name: string; role: string; avatarUrl?: string }; totalPoints: number; badges: { name: string; icon: string }[]; }
@@ -21,8 +21,30 @@ export default function LeaderboardPage() {
   const [period, setPeriod] = useState("");
   const [search, setSearch] = useState("");
 
-  const isCoord = user && ["FACULTY", "STUDENT_COORDINATOR"].includes(user.role);
-  const isFaculty = user && ["FACULTY", "STUDENT_COORDINATOR"].includes(user.role);
+  // Tab State
+  const [activeTab, setActiveTab] = useState<"appreciation" | "competition">("appreciation");
+
+  // Competition Leaderboard State
+  const [compEvents, setCompEvents] = useState<Array<{ id: string; title: string; eventType: string; isLeaderboardVisible: boolean }>>([]);
+  const [selectedCompEventId, setSelectedCompEventId] = useState<string>("");
+  const [compLeaderboard, setCompLeaderboard] = useState<{
+    event: { id: string; title: string; isLeaderboardVisible: boolean };
+    isBlockedForParticipant: boolean;
+    isStaffView?: boolean;
+    leaderboard: Array<{
+      rank: number;
+      team: { id: string; name: string; teamCode: string };
+      totalPoints: number;
+      solvedChallenges: number;
+      lastSubmissionTime?: string;
+    }>;
+  } | null>(null);
+  const [compLoading, setCompLoading] = useState(false);
+  const [togglingVisibility, setTogglingVisibility] = useState(false);
+
+  const isCoord = user && ["FACULTY", "STUDENT_COORDINATOR", "FACULTY_COORDINATOR"].includes(user.role);
+  const isFaculty = user && ["FACULTY", "STUDENT_COORDINATOR", "FACULTY_COORDINATOR"].includes(user.role);
+  const isTechOrDev = user && ["DEVELOPMENT_TEAM", "TECH_TEAM", "ADMIN"].includes(user.role);
 
   // Modals
   const [showGivePoints, setShowGivePoints] = useState(false);
@@ -60,6 +82,77 @@ export default function LeaderboardPage() {
   };
 
   useEffect(() => { loadData(); }, [period, isCoord, isFaculty]);
+
+  const loadCompEvents = async () => {
+    try {
+      const data = await api<{ events: Array<{ id: string; title: string; eventType: string; isLeaderboardVisible: boolean }> }>("/events");
+      const filtered = (data.events || []).filter(e => ["hackathon", "competition", "ctf"].includes(e.eventType?.toLowerCase()));
+      setCompEvents(filtered);
+      if (filtered.length > 0 && !selectedCompEventId) {
+        setSelectedCompEventId(filtered[0].id);
+      }
+    } catch (err) {
+      console.warn("Comp events load notice:", err);
+    }
+  };
+
+  const loadCompLeaderboard = async (eventId: string) => {
+    if (!eventId) return;
+    setCompLoading(true);
+    try {
+      const data = await api<any>(`/events/${eventId}/leaderboard`, { token: token || undefined });
+      setCompLeaderboard(data);
+    } catch (err: any) {
+      if (err?.isBlockedForParticipant || err?.status === 403) {
+        const ev = compEvents.find(e => e.id === eventId);
+        setCompLeaderboard({
+          event: { id: eventId, title: ev?.title || "Competition", isLeaderboardVisible: false },
+          isBlockedForParticipant: true,
+          leaderboard: []
+        });
+      } else {
+        console.warn("Comp leaderboard load notice:", err);
+      }
+    } finally {
+      setCompLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === "competition") {
+      loadCompEvents();
+    }
+  }, [activeTab]);
+
+  useEffect(() => {
+    if (activeTab === "competition" && selectedCompEventId) {
+      loadCompLeaderboard(selectedCompEventId);
+    }
+  }, [activeTab, selectedCompEventId]);
+
+  const handleToggleLeaderboardVisibility = async () => {
+    if (!selectedCompEventId || !token) return;
+    setTogglingVisibility(true);
+    try {
+      const currentEvent = compEvents.find(e => e.id === selectedCompEventId);
+      const newVisibility = !(currentEvent?.isLeaderboardVisible ?? true);
+      await api<{ message: string; event: { id: string; isLeaderboardVisible: boolean } }>(
+        `/events/${selectedCompEventId}/leaderboard-visibility`,
+        {
+          method: "PATCH",
+          token,
+          body: JSON.stringify({ isLeaderboardVisible: newVisibility })
+        }
+      );
+      setCompEvents(prev => prev.map(e => e.id === selectedCompEventId ? { ...e, isLeaderboardVisible: newVisibility } : e));
+      await loadCompLeaderboard(selectedCompEventId);
+      alert(`Leaderboard ${newVisibility ? "unfrozen (visible to all)" : "paused (hidden from participants)"}`);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Failed to toggle visibility");
+    } finally {
+      setTogglingVisibility(false);
+    }
+  };
 
   const searchMembers = async (q: string) => {
     setMemberSearch(q);
@@ -137,6 +230,33 @@ export default function LeaderboardPage() {
           {isFaculty && <button onClick={() => setShowManageBadges(true)} className="ck-btn-secondary"><Settings className="w-4 h-4" /> Badges</button>}
         </div>
       </motion.div>
+
+      {/* ═══ Top-Level Mode Tab Switcher ═══ */}
+      <div className="flex gap-2 p-1 rounded-xl bg-black/50 border border-white/[0.08] w-fit font-mono">
+        <button
+          type="button"
+          onClick={() => setActiveTab("appreciation")}
+          className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition ${
+            activeTab === "appreciation"
+              ? "bg-[#00F5D4]/20 border border-[#00F5D4]/50 text-[#00F5D4] shadow-[0_0_12px_rgba(0,245,212,0.25)]"
+              : "text-slate-400 hover:text-white"
+          }`}
+        >
+          Club Appreciation Rankings
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab("competition")}
+          className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition flex items-center gap-2 ${
+            activeTab === "competition"
+              ? "bg-gradient-to-r from-red-500/20 to-cyan-500/20 border border-cyan-500/50 text-white shadow-[0_0_12px_rgba(0,245,212,0.3)]"
+              : "text-slate-400 hover:text-white"
+          }`}
+        >
+          <Terminal className="w-3.5 h-3.5 text-[#00F5D4]" />
+          <span>CTF & Competition Standings</span>
+        </button>
+      </div>
 
       {/* Give Points Modal */}
       <AnimatePresence>
@@ -320,7 +440,232 @@ export default function LeaderboardPage() {
         )}
       </AnimatePresence>
 
-      {/* ═══ Period Filter ═══ */}
+      {activeTab === "competition" ? (
+        <div className="space-y-6 font-mono">
+          {/* Controls Bar: Event Selector + Staff Toggle */}
+          <div className="flex flex-wrap items-center justify-between gap-4 p-4 rounded-xl border border-white/[0.08] bg-black/40">
+            {/* Event Selector */}
+            <div className="flex items-center gap-3 flex-wrap">
+              <label className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                Select Operation:
+              </label>
+              <select
+                className="ck-input text-xs py-2 px-3 bg-[#050A18] border-zinc-800 text-white rounded-lg focus:border-[#00F5D4]"
+                value={selectedCompEventId}
+                onChange={(e) => setSelectedCompEventId(e.target.value)}
+              >
+                {compEvents.length === 0 ? (
+                  <option value="">No Active Competition Events</option>
+                ) : (
+                  compEvents.map((ev) => (
+                    <option key={ev.id} value={ev.id} className="bg-[#050A18] text-white">
+                      {ev.title} ({ev.eventType.toUpperCase()})
+                    </option>
+                  ))
+                )}
+              </select>
+              <button
+                type="button"
+                onClick={() => selectedCompEventId && loadCompLeaderboard(selectedCompEventId)}
+                className="p-2 rounded-lg bg-zinc-900 border border-zinc-800 hover:border-zinc-700 text-slate-300 transition cursor-pointer"
+                title="Refresh scores"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${compLoading ? "animate-spin" : ""}`} />
+              </button>
+            </div>
+
+            {/* Staff Controller Toggle: DEVELOPMENT_TEAM & TECH_TEAM */}
+            {isTechOrDev && selectedCompEventId && (
+              <div className="flex items-center gap-3 p-2 rounded-lg border border-cyan-500/30 bg-cyan-950/20">
+                <div className="flex items-center gap-2">
+                  {compEvents.find(e => e.id === selectedCompEventId)?.isLeaderboardVisible ?? true ? (
+                    <Eye className="w-4 h-4 text-emerald-400" />
+                  ) : (
+                    <EyeOff className="w-4 h-4 text-red-400" />
+                  )}
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-200">
+                    Leaderboard:{" "}
+                    <span className={compEvents.find(e => e.id === selectedCompEventId)?.isLeaderboardVisible ?? true ? "text-emerald-400" : "text-red-400"}>
+                      {compEvents.find(e => e.id === selectedCompEventId)?.isLeaderboardVisible ?? true ? "PUBLIC" : "FROZEN"}
+                    </span>
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  disabled={togglingVisibility}
+                  onClick={handleToggleLeaderboardVisibility}
+                  className={`px-3 py-1.5 rounded text-xs font-bold uppercase tracking-wider transition cursor-pointer ${
+                    compEvents.find(e => e.id === selectedCompEventId)?.isLeaderboardVisible ?? true
+                      ? "bg-red-950/50 border border-red-500/40 text-red-300 hover:bg-red-900/50"
+                      : "bg-emerald-950/50 border border-emerald-500/40 text-emerald-300 hover:bg-emerald-900/50"
+                  }`}
+                >
+                  {togglingVisibility ? "Updating..." : (
+                    compEvents.find(e => e.id === selectedCompEventId)?.isLeaderboardVisible ?? true
+                      ? "Freeze Leaderboard"
+                      : "Unfreeze Leaderboard"
+                  )}
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Loading State */}
+          {compLoading ? (
+            <div className="flex flex-col items-center justify-center py-24 gap-3">
+              <div className="w-10 h-10 border-2 border-red-500/30 border-t-cyan-400 rounded-full animate-spin" />
+              <p className="text-[10px] font-mono uppercase tracking-widest text-[var(--ck-text-muted)]">FETCHING TELEMETRY SCORES...</p>
+            </div>
+          ) : compLeaderboard?.isBlockedForParticipant ? (
+            /* Blocked Lock Notice for Participants when Leaderboard is Frozen */
+            <div className="p-12 rounded-2xl border border-red-500/30 bg-red-950/15 text-center space-y-4 max-w-xl mx-auto shadow-2xl">
+              <div className="w-16 h-16 rounded-full bg-red-950/40 border border-red-500/40 flex items-center justify-center mx-auto text-red-400 shadow-[0_0_25px_rgba(239,68,68,0.25)]">
+                <Lock className="w-8 h-8 text-red-500" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold font-mono text-white uppercase tracking-tight">
+                  SCORING ARTIFACT LOCKED
+                </h3>
+                <p className="text-xs text-slate-300 font-mono mt-2 leading-relaxed max-w-md mx-auto">
+                  The real-time leaderboard for this operation has been temporarily frozen by command staff. Live scores and submissions are actively tracked in background nodes and will be unveiled upon operation conclusion.
+                </p>
+              </div>
+              <div className="inline-block p-3 rounded-lg border border-red-900/30 bg-black/60 font-mono text-[10px] text-red-400 uppercase tracking-widest">
+                STATUS: PAUSED BY COMMAND // BG EVALUATION ACTIVE
+              </div>
+            </div>
+          ) : !compLeaderboard?.leaderboard || compLeaderboard.leaderboard.length === 0 ? (
+            <div className="text-center py-24 border border-white/[0.06] rounded-2xl bg-black/20">
+              <Trophy className="w-16 h-16 mx-auto mb-4 text-zinc-700" />
+              <p className="text-lg text-[var(--ck-text-muted)] font-mono">No submissions logged for this operation yet</p>
+              <p className="text-xs text-slate-500 mt-1">Teams will appear as challenge flags are submitted.</p>
+            </div>
+          ) : (
+            <>
+              {/* Top 3 Podium for Competition */}
+              {compLeaderboard.leaderboard.length >= 3 && (
+                <div className="flex items-end justify-center gap-2 min-[380px]:gap-4 sm:gap-6 mb-8 pt-8">
+                  {[1, 0, 2].map((idx) => {
+                    const entry = compLeaderboard.leaderboard[idx];
+                    if (!entry) return null;
+                    const style = RANK_STYLES[idx];
+                    const heights = ["h-36", "h-24", "h-16"];
+                    return (
+                      <div key={idx} className="text-center relative font-mono">
+                        <div
+                          className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-black/80 border border-white/20 flex flex-col items-center justify-center mx-auto mb-3 relative"
+                          style={{ boxShadow: `0 0 20px ${style.shadowColor}` }}
+                        >
+                          <span className="text-sm font-bold text-white uppercase">{entry.team.teamCode}</span>
+                          <span className="text-[10px] font-bold" style={{ color: style.color }}>
+                            {entry.totalPoints} PTS
+                          </span>
+                          <div
+                            className="absolute -bottom-1.5 -right-1.5 w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black border border-black/50"
+                            style={{ background: style.color, color: idx === 0 ? "#000" : "#fff" }}
+                          >
+                            {idx === 0 ? <Crown className="w-3.5 h-3.5 text-black fill-black" /> : idx === 1 ? "2" : "3"}
+                          </div>
+                        </div>
+                        <p className="text-xs sm:text-sm font-bold text-white uppercase truncate max-w-[100px]">
+                          {entry.team.name}
+                        </p>
+                        <p className="text-[10px] text-slate-400 mb-2">
+                          {entry.solvedChallenges} Solved
+                        </p>
+                        <div
+                          className={`${heights[idx]} w-24 sm:w-28 rounded-t-xl relative overflow-hidden border-x border-t border-white/[0.06]`}
+                          style={{ background: `linear-gradient(180deg, ${style.color}20, transparent)` }}
+                        >
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <span className="text-3xl sm:text-4xl font-black opacity-[0.1] text-white">#{idx + 1}</span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Full Standings Table */}
+              <div className="ck-glass-card overflow-hidden">
+                <div className="overflow-x-auto w-full">
+                  <table className="ck-table ck-table-responsive whitespace-nowrap">
+                    <thead>
+                      <tr>
+                        <th>Rank</th>
+                        <th>Team Designation</th>
+                        <th>Team Code</th>
+                        <th>Solved Challenges</th>
+                        <th>Total Points</th>
+                        <th>Last Activity</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {compLeaderboard.leaderboard.map((entry) => {
+                        const isTop3 = entry.rank <= 3;
+                        const rankStyle = RANK_STYLES[entry.rank - 1];
+                        return (
+                          <tr
+                            key={entry.team.id}
+                            className={isTop3 ? "hover:bg-white/[0.03]" : ""}
+                            style={isTop3 && rankStyle ? { borderLeft: `3px solid ${rankStyle.color}` } : undefined}
+                          >
+                            <td className="font-mono">
+                              <span
+                                className="font-bold font-mono text-sm"
+                                style={{
+                                  color: entry.rank === 1 ? "#00F5D4" :
+                                         entry.rank === 2 ? "#FF4D00" :
+                                         entry.rank === 3 ? "#FF003C" :
+                                         "var(--ck-text-muted)"
+                                }}
+                              >
+                                #{entry.rank}
+                              </span>
+                            </td>
+                            <td>
+                              <div className="flex items-center gap-2">
+                                <Users className="w-4 h-4 text-slate-400" />
+                                <span className="font-bold text-white text-sm">{entry.team.name}</span>
+                              </div>
+                            </td>
+                            <td>
+                              <span className="px-2 py-0.5 rounded bg-black/60 border border-zinc-800 text-cyan-300 font-mono text-xs font-bold">
+                                {entry.team.teamCode}
+                              </span>
+                            </td>
+                            <td>
+                              <span className="text-xs font-bold text-slate-300 font-mono">
+                                {entry.solvedChallenges} Solved
+                              </span>
+                            </td>
+                            <td>
+                              <span className="font-bold flex items-center gap-1.5 font-mono text-sm text-[#00F5D4]">
+                                <Star className="w-4 h-4 text-[#00F5D4] fill-[#00F5D4]/20" />
+                                {entry.totalPoints} PTS
+                              </span>
+                            </td>
+                            <td>
+                              <span className="text-xs text-slate-400 font-mono">
+                                {entry.lastSubmissionTime
+                                  ? new Date(entry.lastSubmissionTime).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", second: "2-digit" })
+                                  : "—"}
+                              </span>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+      ) : (
+        <>
+          {/* ═══ Period Filter ═══ */}
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex gap-1 p-1 rounded-xl bg-black/40 border border-white/[0.04] backdrop-blur-sm">
           {[{ value: "", label: "ALL TIME" }, { value: "month", label: "CURRENT CYCLE" }, { value: "semester", label: "SEMESTER WINDOW" }].map((p) => (
@@ -489,6 +834,8 @@ export default function LeaderboardPage() {
             </div>
           </motion.div>
         </>
+      )}
+      </>
       )}
     </div>
   );

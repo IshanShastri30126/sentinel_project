@@ -30,7 +30,7 @@ async function clearUsersCache() {
 const router = Router();
 
 // GET /api/users — List all users (SC+/Tech)
-router.get("/", authenticate, requireMinRole("TECH"), async (req: Request, res: Response) => {
+router.get("/", authenticate, requireMinRole("TECH_TEAM"), async (req: Request, res: Response) => {
   try {
     const { search, role, approved, page, limit } = req.query;
     
@@ -78,8 +78,8 @@ router.get("/", authenticate, requireMinRole("TECH"), async (req: Request, res: 
     
     const mappedUsers = users.map((u) => ({
       ...u,
-      employeeId: u.role === "FACULTY" ? u.studentId : undefined,
-      semester: u.role === "FACULTY" ? null : u.semester,
+      employeeId: (u.role === "FACULTY_COORDINATOR" || (u.role as string) === "FACULTY") ? u.studentId : undefined,
+      semester: (u.role === "FACULTY_COORDINATOR" || (u.role as string) === "FACULTY") ? null : u.semester,
     }));
 
     const responsePayload = {
@@ -237,12 +237,12 @@ router.delete("/:id", authenticate, requireMinRole("STUDENT_COORDINATOR"), audit
 });
 
 // PATCH /api/users/:id/role — Update user role (Faculty only)
-router.patch("/:id/role", authenticate, requireRole("FACULTY", "STUDENT_COORDINATOR"), auditLog("USER_ROLE_UPDATED"), async (req: Request, res: Response) => {
+router.patch("/:id/role", authenticate, requireRole("DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "STUDENT_COORDINATOR"), auditLog("USER_ROLE_UPDATED"), async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const { role } = req.body;
 
-    const validRoles: Role[] = ["FACULTY", "STUDENT_COORDINATOR", "TECH", "CONTENT", "SOCIAL_MEDIA", "MEMBER", "GUEST"];
+    const validRoles: Role[] = ["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_TEAM", "MEMBER", "GUEST"];
     if (!validRoles.includes(role)) {
       res.status(400).json({ error: "Invalid role" });
       return;
@@ -276,8 +276,8 @@ router.patch("/:id/role", authenticate, requireRole("FACULTY", "STUDENT_COORDINA
   }
 });
 
-// PATCH /api/users/:id/deactivate — Deactivate user (Faculty only)
-router.patch("/:id/deactivate", authenticate, requireRole("FACULTY", "STUDENT_COORDINATOR"), auditLog("USER_DEACTIVATED"), async (req: Request, res: Response) => {
+// PATCH /api/users/:id/deactivate — Deactivate user (Staff only)
+router.patch("/:id/deactivate", authenticate, requireRole("DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "STUDENT_COORDINATOR"), auditLog("USER_DEACTIVATED"), async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     if (id === req.user!.userId) {
@@ -300,8 +300,8 @@ router.patch("/:id/deactivate", authenticate, requireRole("FACULTY", "STUDENT_CO
   }
 });
 
-// PATCH /api/users/:id/activate — Re-activate user (Faculty only)
-router.patch("/:id/activate", authenticate, requireRole("FACULTY", "STUDENT_COORDINATOR"), auditLog("USER_ACTIVATED"), async (req: Request, res: Response) => {
+// PATCH /api/users/:id/activate — Re-activate user (Staff only)
+router.patch("/:id/activate", authenticate, requireRole("DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "STUDENT_COORDINATOR"), auditLog("USER_ACTIVATED"), async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const updated = await prisma.user.update({
@@ -335,7 +335,7 @@ router.patch("/profile", authenticate, upload.single("avatar"), async (req: Requ
     }
 
     const currentUser = await prisma.user.findUnique({ where: { id: userId }, select: { role: true } });
-    const isFaculty = currentUser?.role === "FACULTY";
+    const isFaculty = currentUser?.role === "FACULTY_COORDINATOR" || (currentUser?.role as string) === "FACULTY";
 
     const targetId = studentId !== undefined ? studentId : employeeId;
     if (targetId !== undefined) {
@@ -400,8 +400,8 @@ router.patch("/profile", authenticate, upload.single("avatar"), async (req: Requ
     res.json({
       user: {
         ...updated,
-        employeeId: updated.role === "FACULTY" ? updated.studentId : undefined,
-        semester: updated.role === "FACULTY" ? null : updated.semester,
+        employeeId: (updated.role === "FACULTY_COORDINATOR" || (updated.role as string) === "FACULTY") ? updated.studentId : undefined,
+        semester: (updated.role === "FACULTY_COORDINATOR" || (updated.role as string) === "FACULTY") ? null : updated.semester,
       }
     });
   } catch (err) {
@@ -410,8 +410,8 @@ router.patch("/profile", authenticate, upload.single("avatar"), async (req: Requ
   }
 });
 
-// GET /api/users/audit-logs — List system audit logs (SC+/Tech)
-router.get("/audit-logs", authenticate, requireMinRole("TECH"), async (req: Request, res: Response) => {
+// GET /api/users/audit-logs — List system audit logs (Development Team only)
+router.get("/audit-logs", authenticate, requireRole("DEVELOPMENT_TEAM"), async (req: Request, res: Response) => {
   try {
     const { action, outcome, page, limit } = req.query;
     const pageNum = page ? parseInt(page as string) : 1;

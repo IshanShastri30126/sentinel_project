@@ -42,8 +42,8 @@ router.get("/landing-team", async (req: Request, res: Response) => {
   }
 });
 
-// POST /api/settings/landing-team — Update public landing page team members (Faculty/Student Coord only)
-router.post("/landing-team", authenticate, requireMinRole("STUDENT_COORDINATOR"), auditLog("LANDING_PAGE_TEAM_UPDATED"), async (req: Request, res: Response) => {
+// POST /api/settings/landing-team — Update public landing page team members (DEVELOPMENT_TEAM only)
+router.post("/landing-team", authenticate, requireRole("DEVELOPMENT_TEAM"), auditLog("LANDING_PAGE_TEAM_UPDATED"), async (req: Request, res: Response) => {
   try {
     const { team } = req.body;
     
@@ -68,8 +68,8 @@ router.post("/landing-team", authenticate, requireMinRole("STUDENT_COORDINATOR")
   }
 });
 
-// POST /api/settings/upload — Upload media asset for landing page settings (SC+ only)
-router.post("/upload", authenticate, requireMinRole("STUDENT_COORDINATOR"), upload.single("file"), async (req: Request, res: Response) => {
+// POST /api/settings/upload — Upload media asset for landing page settings (DEVELOPMENT_TEAM only)
+router.post("/upload", authenticate, requireRole("DEVELOPMENT_TEAM"), upload.single("file"), async (req: Request, res: Response) => {
   try {
     if (!req.file) {
       res.status(400).json({ error: "No file uploaded" });
