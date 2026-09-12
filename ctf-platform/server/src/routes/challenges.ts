@@ -125,7 +125,7 @@ router.get(
         },
       });
     } catch (error) {
-      console.error("❌ [Challenges] Error fetching:", error);
+      console.error("[ERROR] [Challenges] Error fetching:", error);
       res.status(500).json({
         success: false,
         message: "Failed to fetch challenges.",
@@ -226,7 +226,7 @@ router.get(
         data: challenge,
       });
     } catch (error) {
-      console.error("❌ [Challenges] Error fetching single:", error);
+      console.error("[ERROR] [Challenges] Error fetching single:", error);
       res.status(500).json({
         success: false,
         message: "Failed to fetch challenge.",

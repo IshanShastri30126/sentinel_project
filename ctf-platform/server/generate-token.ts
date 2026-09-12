@@ -23,7 +23,7 @@ async function generateTestToken() {
       });
     }
 
-    console.log(`\n✅ Using User: ${user.email} (Role: ${user.role})`);
+    console.log(`\n[OK] Using User: ${user.email} (Role: ${user.role})`);
 
     // 2. Generate the JWT Payload
     const payload = {
@@ -36,11 +36,11 @@ async function generateTestToken() {
     // 3. Sign the token
     const token = jwt.sign(payload, JWT_SECRET, { expiresIn: "24h" });
 
-    console.log("\n🔑 YOUR TEST TOKEN IS:");
+    console.log("\n YOUR TEST TOKEN IS:");
     console.log("--------------------------------------------------");
     console.log(token);
     console.log("--------------------------------------------------");
-    console.log("\n📋 HOW TO USE IN POSTMAN:");
+    console.log("\n HOW TO USE IN POSTMAN:");
     console.log("1. Open Postman");
     console.log("2. Click the 'Cookies' link under the Send button");
     console.log("3. Type 'localhost' and add a domain");

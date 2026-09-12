@@ -164,7 +164,7 @@ app.use("/api/auth", authRoutes);
 // Catches unhandled errors so they don't leak stack traces.
 // Returns a generic message to the client per test case 7.1.
 app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
-  console.error("❌ [Server] Unhandled error:", err.message);
+  console.error("[ERROR] [Server] Unhandled error:", err.message);
   res.status(500).json({
     success: false,
     message: "An internal server error occurred. Please try again later.",
@@ -183,8 +183,8 @@ app.use((_req: Request, res: Response) => {
 server.listen(PORT, () => {
   console.log(`\n CTF Wars Server running on http://localhost:${PORT}`);
   console.log(` WebSocket namespace: /ctf`);
-  console.log(` Security: Rate limiting ✅ | Audit logging ✅ | Input sanitization ✅`);
-  console.log(` Security: Compression ✅ | Cache-Control ✅ | CSP ✅ | Method restriction ✅`);
+  console.log(` Security: Rate limiting [OK] | Audit logging [OK] | Input sanitization [OK]`);
+  console.log(` Security: Compression [OK] | Cache-Control [OK] | CSP [OK] | Method restriction [OK]`);
   console.log(` Health check: http://localhost:${PORT}/api/health\n`);
 });
 

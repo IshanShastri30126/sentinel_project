@@ -19,7 +19,7 @@ const redis = new Redis(REDIS_URL, {
   maxRetriesPerRequest: 3,
   retryStrategy(times: number) {
     if (times > 5) {
-      console.warn("⚠️ [Redis] Max retries reached. Running without Redis — real-time features disabled.");
+      console.warn("[WARN] [Redis] Max retries reached. Running without Redis — real-time features disabled.");
       return null; // Stop retrying — don't crash the server
     }
     return Math.min(times * 200, 2000);
@@ -30,13 +30,13 @@ const redis = new Redis(REDIS_URL, {
 
 // Try to connect, but don't crash if it fails
 redis.connect().catch((err) => {
-  console.warn("⚠️ [Redis] Could not connect:", err.message);
-  console.warn("⚠️ [Redis] Server will run without Redis. Real-time features disabled.");
+  console.warn("[WARN] [Redis] Could not connect:", err.message);
+  console.warn("[WARN] [Redis] Server will run without Redis. Real-time features disabled.");
 });
 
 redis.on("ready", () => {
   redisReady = true;
-  console.log("✅ [Redis] Connected to TCP Redis at", REDIS_URL);
+  console.log("[OK] [Redis] Connected to TCP Redis at", REDIS_URL);
 });
 
 redis.on("error", () => {
@@ -58,7 +58,7 @@ export async function blacklistToken(jti: string, ttlSeconds: number): Promise<v
   try {
     await redis.set(`blacklist:${jti}`, "revoked", "EX", ttlSeconds);
   } catch {
-    console.warn("⚠️ [Redis] blacklistToken failed — token not blacklisted");
+    console.warn("[WARN] [Redis] blacklistToken failed — token not blacklisted");
   }
 }
 

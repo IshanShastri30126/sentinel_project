@@ -203,16 +203,14 @@ export function auditLogger(
         data: {
           userId,
           action,
-          method,
-          path: req.path,
           ipAddress,
           userAgent,
-          metadata: metadata as Prisma.InputJsonValue,
+          metadata: { ...metadata, method, path: req.path } as Prisma.InputJsonValue,
         },
       })
       .catch((err: Error) => {
         // Log failures go to console as a fallback — never crash the server
-        console.error("⚠️ [Audit Logger] Failed to write log:", err.message);
+        console.error("[Audit Logger] Failed to write log:", err.message);
       });
   });
 

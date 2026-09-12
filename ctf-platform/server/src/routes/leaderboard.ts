@@ -65,7 +65,7 @@ router.get(
 
       res.status(200).json({ success: true, data: leaderboard });
     } catch (error) {
-      console.error("❌ [Leaderboard] Error fetching leaderboard:", error);
+      console.error("[ERROR] [Leaderboard] Error fetching leaderboard:", error);
       res.status(500).json({ success: false, message: "Internal server error" });
     }
   }

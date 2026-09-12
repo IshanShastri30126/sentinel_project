@@ -296,13 +296,13 @@ router.post(
       // the "all-or-nothing" guarantee of database transactions.
       //
       // Without a transaction, we could have:
-      //   ✅ Submission created
-      //   ✅ solveCount incremented
-      //   ❌ totalScore update fails (crash!)
+      //   [OK] Submission created
+      //   [OK] solveCount incremented
+      //   [ERROR] totalScore update fails (crash!)
       //   Result: Player gets no points but challenge shows as solved
       //
       // With a transaction:
-      //   ❌ If anything fails → EVERYTHING rolls back
+      //   [ERROR] If anything fails → EVERYTHING rolls back
       //   Result: Clean state, player can retry
 
       const [submission] = await db.$transaction([

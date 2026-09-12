@@ -61,7 +61,7 @@ interface JwtPayload {
 const JWT_SECRET: string = process.env.JWT_SECRET ?? "";
 
 if (!JWT_SECRET) {
-  throw new Error("❌ FATAL: JWT_SECRET is not defined in .env");
+  throw new Error("[ERROR] FATAL: JWT_SECRET is not defined in .env");
 }
 
 export async function authMiddleware(
@@ -112,7 +112,7 @@ export async function authMiddleware(
     // LATEST user record from the database. Why?
     // If an admin demotes a user from ADMIN to STUDENT, the old
     // JWT still says ADMIN. By checking the DB, we catch this.
-    const user = await db.users.findUnique({
+    const user = await db.user.findUnique({
       where: { id: decoded.userId },
       select: { id: true, email: true, name: true, role: true },
     });
@@ -140,7 +140,7 @@ export async function authMiddleware(
 
       if (!isValidDevice) {
         console.warn(
-          `⚠️ [Auth] Device fingerprint mismatch for user ${decoded.email}. Possible session hijacking.`
+          `[WARN] [Auth] Device fingerprint mismatch for user ${decoded.email}. Possible session hijacking.`
         );
         res.status(401).json({
           success: false,
@@ -204,7 +204,7 @@ export async function authMiddleware(
     }
 
     // Unexpected error (DB down, Redis down, etc.)
-    console.error("❌ [Auth Middleware] Unexpected error:", error);
+    console.error("[ERROR] [Auth Middleware] Unexpected error:", error);
     res.status(500).json({
       success: false,
       message: "Internal server error during authentication.",

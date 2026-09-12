@@ -8,7 +8,7 @@ import redis from "../lib/ctfRedis";
  */
 export function setupScoreboardSockets(ctfNamespace: Namespace) {
   ctfNamespace.on("connection", (socket: Socket) => {
-    console.log(`📡 [Socket.io] Client connected: ${socket.id}`);
+    console.log(`[WS] [Socket.io] Client connected: ${socket.id}`);
 
     // ── Join a Competition Room ──────────────────────────────────
     // Clients join this to receive leaderboard updates and admin freezes.
@@ -65,7 +65,7 @@ export function setupScoreboardSockets(ctfNamespace: Namespace) {
 
     // ── Handle Disconnects ───────────────────────────────────────
     socket.on("disconnect", async () => {
-      console.log(`📡 [Socket.io] Client disconnected: ${socket.id}`);
+      console.log(`[WS] [Socket.io] Client disconnected: ${socket.id}`);
       // Note: Socket.io automatically removes the socket from all rooms.
       // Cleaning up Redis presence for every challenge they might be viewing
       // would require tracking their viewed challenges in memory or Redis.

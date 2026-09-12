@@ -31,6 +31,7 @@ export const globalLimiter = rateLimit({
   max: 100,                      // 100 requests per window
   standardHeaders: true,         // Return rate limit info in `RateLimit-*` headers
   legacyHeaders: false,          // Disable `X-RateLimit-*` headers (deprecated)
+  validate: { ip: false, xForwardedForHeader: false },
   message: {
     success: false,
     message: "Too many requests from this IP. Please try again in 15 minutes.",
@@ -60,6 +61,7 @@ export const submissionLimiter = rateLimit({
   max: 10,                       // 10 submissions per minute
   standardHeaders: true,
   legacyHeaders: false,
+  validate: { keyGeneratorIpFallback: false },
   message: {
     success: false,
     message: "Too many flag submissions. Wait 1 minute before trying again.",

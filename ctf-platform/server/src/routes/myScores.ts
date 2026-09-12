@@ -70,7 +70,7 @@ router.get(
         },
       });
     } catch (error) {
-      console.error("❌ [MyScores] Error fetching stats:", error);
+      console.error("[ERROR] [MyScores] Error fetching stats:", error);
       res.status(500).json({ success: false, message: "Internal server error" });
     }
   }
