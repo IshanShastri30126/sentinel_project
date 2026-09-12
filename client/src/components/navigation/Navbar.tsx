@@ -169,6 +169,28 @@ export function Navbar() {
                 );
               })}
             </nav>
+
+            <div className="pt-2 border-t border-white/[0.06]">
+              {user ? (
+                <Link
+                  href="/dashboard"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-md bg-[#00F5D4] text-slate-950 font-mono text-xs font-bold uppercase tracking-wider transition hover:bg-[#52FFE3]"
+                >
+                  <LayoutDashboard className="w-4 h-4" />
+                  <span>DASHBOARD PORTAL</span>
+                </Link>
+              ) : (
+                <Link
+                  href="/auth"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-md bg-[#00F5D4] text-slate-950 font-mono text-xs font-bold uppercase tracking-wider transition hover:bg-[#52FFE3]"
+                >
+                  <LogIn className="w-4 h-4" />
+                  <span>SIGN IN TO DEFENSE GATEWAY</span>
+                </Link>
+              )}
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

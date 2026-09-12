@@ -96,12 +96,12 @@ export function ChallengeCard({ challenge, viewers, onClick, index }: ChallengeC
                     >
                         {challenge.currentPoints}
                     </span>
-                    <span className="text-xs" style={{ color: "#555" }}>
+                    <span className="text-xs text-slate-400 font-mono">
                         pts
                     </span>
                 </div>
 
-                <div className="flex items-center gap-3 text-xs" style={{ color: "#666" }}>
+                <div className="flex items-center gap-3 text-xs text-slate-400 font-mono">
                     {/* Solve count */}
                     <span>
                         {challenge.solveCount} solve{challenge.solveCount !== 1 ? "s" : ""}

@@ -7,30 +7,30 @@
   --font-mono: 'JetBrains Mono', monospace;
 }
 
-/* ─── Chakravyuh Club — Mythological Landing & Hacker Portal Theme ─── */
+/* ─── SENTINAL Cybersecurity Command Center Theme ─── */
 :root {
-  /* Brand Colors — Energetic Greenish Blue Palette */
-  --ck-green:       #00F5D4;   /* Greenish Teal Cyan */
+  /* Brand Colors — Command Center Palette */
+  --ck-green:       #00F5D4;   /* Greenish Teal Cyan / Operational */
   --ck-green-dim:   #00C2A8;
-  --ck-green-glow:  rgba(0, 245, 212, 0.3);
+  --ck-green-glow:  rgba(0, 245, 212, 0.25);
   
-  --ck-blue:        #00E1FF;   /* Electric Cyan Blue */
+  --ck-blue:        #00E1FF;   /* Electric Cyan Blue / Telemetry */
   --ck-blue-dim:    #00B5CC;
-  --ck-blue-glow:   rgba(0, 225, 255, 0.3);
+  --ck-blue-glow:   rgba(0, 225, 255, 0.25);
 
-  --ck-gold:        #00F5D4;   /* Greenish Blue primary */
+  --ck-gold:        #00F5D4;   /* Primary accent */
   --ck-gold-dim:    #00C2A8;
-  --ck-gold-glow:   rgba(0, 245, 212, 0.3);
+  --ck-gold-glow:   rgba(0, 245, 212, 0.25);
   
-  --ck-cyan:        #00F5D4;   /* Teal Cyan */
-  --ck-cyan-dim:    #00C2A8;
-  --ck-cyan-glow:   rgba(0, 245, 212, 0.3);
+  --ck-cyan:        #00E1FF;   /* High-tech Cyan */
+  --ck-cyan-dim:    #00B5CC;
+  --ck-cyan-glow:   rgba(0, 225, 255, 0.25);
 
-  --ck-hacker-green:#00F5D4;   /* Greenish Cyan */
-  --ck-hacker-blue: #00E1FF;   /* Electric Blue */
+  --ck-hacker-green:#00F5D4;   /* Operational Green */
+  --ck-hacker-blue: #00E1FF;   /* Technical Blue */
 
-  --ck-navy-deep:   #000000;   /* Pitch Black Base */
-  --ck-navy-card:   #0A0A0A;   /* Carbon Card Overlay */
+  --ck-navy-deep:   #02050B;   /* Command Center Dark Base */
+  --ck-navy-card:   #070E1A;   /* Deep Graphite Card Overlay */
 
   /* Legacy semantic mappings for backwards compatibility */
   --ck-lime:        #00F5D4;
@@ -39,37 +39,37 @@
   --ck-orange:      #00E1FF;
   --ck-orange-dim:  #00B5CC;
   --ck-orange-glow: rgba(0, 225, 255, 0.2);
-  --ck-red:         #FF0055;
-  --ck-red-dim:     #CC0044;
-  --ck-red-glow:    rgba(255,0,85,0.15);
+  --ck-red:         #EF4444;
+  --ck-red-dim:     #DC2626;
+  --ck-red-glow:    rgba(239, 68, 68, 0.2);
 
   /* Semantic aliases */
   --ck-primary:       #00F5D4;
-  --ck-primary-light: #00F5D4;
+  --ck-primary-light: #52FFE3;
   --ck-primary-dark:  #00C2A8;
   --ck-accent:        #00E1FF;
-  --ck-accent-light:  #00E1FF;
+  --ck-accent-light:  #66ECFF;
   --ck-success:       #00F5D4;
-  --ck-warning:       #00E1FF;
-  --ck-danger:        var(--ck-red);
+  --ck-warning:       #F59E0B;
+  --ck-danger:        #EF4444;
 
-  /* Backgrounds — Pitch Black & Carbon Dark */
-  --ck-bg:          #000000;
-  --ck-bg-secondary:#050505;
-  --ck-bg-card:     #0A0A0A;
-  --ck-bg-elevated: #101010;
+  /* Backgrounds — Pitch Black & Command Center Surfaces */
+  --ck-bg:          #02050B;
+  --ck-bg-secondary:#070E1A;
+  --ck-bg-card:     #0A1324;
+  --ck-bg-elevated: #11203A;
 
-  /* Text */
-  --ck-text:           #F2F5F8;
-  --ck-text-secondary: #9CA3AF;
-  --ck-text-muted:     #6B7280;
+  /* Text — High Contrast WCAG AA Compliant */
+  --ck-text:           #F8FAFC;
+  --ck-text-secondary: #94A3B8;
+  --ck-text-muted:     #64748B;
 
-  /* Borders */
-  --ck-border:        #1A1A1A;
-  --ck-border-bright: #333333;
+  /* Borders — Subtle & Refined */
+  --ck-border:        rgba(255, 255, 255, 0.08);
+  --ck-border-bright: rgba(0, 245, 212, 0.35);
 
   /* Glass */
-  --ck-glass-bg:     rgba(0, 0, 0, 0.93);
+  --ck-glass-bg:     rgba(2, 5, 11, 0.88);
   --ck-glass-border: rgba(255, 255, 255, 0.08);
 
   /* Shadows */

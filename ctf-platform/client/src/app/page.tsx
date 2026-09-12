@@ -61,7 +61,7 @@ function HomeContent() {
                 >
                     CTF WARS
                 </h1>
-                <p className="text-sm" style={{ color: "#666" }}>
+                <p className="text-xs text-slate-400 font-mono">
                     {loading ? "Connecting to server..." : "Redirecting..."}
                 </p>
                 {/* Loading pulse */}

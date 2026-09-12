@@ -305,7 +305,7 @@ function LoginPageContent() {
               OPERATIVE REGISTRATION COMPLETE
             </h2>
             <p className="text-slate-300 text-xs mb-6 font-mono leading-relaxed">
-              Your credentials have been recorded. Account access is currently pending administrative clearance by the Chakravyuh security council.
+              Your credentials have been recorded. Account access is currently pending administrative clearance by the SENTINAL security council.
             </p>
             <CyberButton
               variant="primary"

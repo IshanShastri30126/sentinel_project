@@ -100,12 +100,12 @@ function ChallengesContent() {
             <div className="flex items-center justify-between">
                 <div>
                     <h1
-                        className="text-2xl font-bold tracking-tight"
+                        className="text-2xl font-bold tracking-tight text-white"
                         style={{ fontFamily: "var(--font-heading)" }}
                     >
                         Challenge Board
                     </h1>
-                    <p className="text-sm mt-1" style={{ color: "#666" }}>
+                    <p className="text-xs mt-1 text-slate-400 font-mono">
                         {challenges.length} challenge{challenges.length !== 1 ? "s" : ""} available
                     </p>
                 </div>

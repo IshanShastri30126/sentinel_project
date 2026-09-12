@@ -21,10 +21,10 @@ export function Footer() {
         <div className="md:col-span-2 space-y-4">
           <SentinalLogo animateDrawing={false} />
           <p className="font-sans text-xs text-slate-400 max-w-sm leading-relaxed">
-            Chakravyuh Club is the premier cybersecurity defense society and operations hub.
+            SENTINAL is the centralized digital operations hub and cyber defense platform.
             Pioneering advanced vulnerability research, defense strategy summits, and competitive excellence.
           </p>
-          <div className="flex items-center gap-2 font-mono text-[10px] text-cyan-400/90 tracking-wider uppercase">
+          <div className="flex items-center gap-2 font-mono text-[10px] text-cyan-400 tracking-wider uppercase">
             <ShieldCheck className="w-3.5 h-3.5 text-[#00F5D4]" />
             <span>OPERATIONAL SECURITY HUB • ZERO TOLERANCE DEFENSE</span>
           </div>

@@ -45,10 +45,10 @@ interface EventItem {
 }
 
 const TERMINAL_PHRASES = [
-  "Defensive Warfare Matrix.",
-  "Strategic Shield Protocol.",
+  "Cyber Defense Operations.",
+  "Offensive Security Drills.",
   "Zero-Trust Architecture.",
-  "Unbreakable Formation."
+  "Competitive CTF Wargames."
 ];
 
 /**
@@ -230,13 +230,13 @@ export default function LandingPage() {
           <SectionReveal direction="down" distance={15}>
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[rgba(0,245,212,0.08)] border border-[rgba(0,245,212,0.3)] text-[#00F5D4] font-mono text-xs uppercase tracking-widest mb-8 shadow-[0_0_20px_rgba(0,245,212,0.15)]">
               <span className="w-2 h-2 rounded-full bg-[#00F5D4] animate-ping" />
-              <span>STRATEGIC 7-TIER CYBER DEFENSE ECOSYSTEM</span>
+              <span>SENTINAL • CYBER DEFENSE OPERATIONS COMMAND</span>
             </div>
           </SectionReveal>
 
           <SectionReveal delay={0.1}>
             <h1 className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-black tracking-tight mb-6 select-none drop-shadow-[0_5px_30px_rgba(0,0,0,0.9)]">
-              <span className="block text-white">THE INVINCIBLE</span>
+              <span className="block text-white">SENTINAL</span>
               <span className="bg-gradient-to-r from-[#00F5D4] via-[#00E1FF] to-[#00F5D4] bg-clip-text text-transparent drop-shadow-[0_0_25px_rgba(0,245,212,0.35)]">
                 <TerminalText words={TERMINAL_PHRASES} />
               </span>
@@ -245,9 +245,8 @@ export default function LandingPage() {
 
           <SectionReveal delay={0.2}>
             <p className="text-sm sm:text-base md:text-lg text-slate-300 max-w-2xl mx-auto mb-10 leading-relaxed font-sans px-4">
-              Welcome to <span className="text-[#00F5D4] font-semibold">Chakravyuh Club</span>.
-              Synthesizing ancient tactical defense doctrines with elite cybersecurity operations,
-              threat mitigation, and competitive events to safeguard the digital frontier.
+              The centralized command platform for advanced cybersecurity training, zero-day vulnerability analysis,
+              institutional defense operations, and elite CTF wargames to protect the digital perimeter.
             </p>
           </SectionReveal>
 
@@ -357,7 +356,7 @@ export default function LandingPage() {
                 TACTICAL DEFENSE ARSENAL
               </SystemLabel>
               <h2 className="text-2xl sm:text-3xl font-black uppercase font-mono tracking-tight text-white">
-                DEFENSE PILLARS OF <span className="text-[#00F5D4]">CHAKRAVYUH</span>
+                CORE DEFENSE ARCHITECTURE OF <span className="text-[#00F5D4]">SENTINAL</span>
               </h2>
               <p className="font-mono text-xs text-slate-400">
                 Engineered from the ground up for maximum resilience, hands-on vulnerability analysis, and zero compromise.
@@ -439,7 +438,7 @@ export default function LandingPage() {
                   ENLISTMENT DIRECTIVE
                 </SystemLabel>
                 <h3 className="text-2xl sm:text-4xl font-black uppercase font-mono tracking-tight text-white">
-                  JOIN THE CHAKRAVYUH DEFENSE FORCE
+                  INITIALIZE SENTINAL OPERATIVE CLEARANCE
                 </h3>
                 <p className="font-mono text-xs sm:text-sm text-slate-300 leading-relaxed">
                   Access live tactical workshops, register for premier hackathons, track leaderboard rankings,
