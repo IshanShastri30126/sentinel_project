@@ -220,7 +220,13 @@ function PublicEventPageContent() {
     teamCode: string | null;
     joinCode: string | null;
   }>({ teamId: null, teamCode: null, joinCode: null });
-  const [showGatewayModal, setShowGatewayModal] = useState(false);
+  const [showGatewayModal, setShowGatewayModal] = useState<boolean>(() => {
+    if (typeof window !== "undefined") {
+      const sp = new URLSearchParams(window.location.search);
+      return sp.get("gateway") === "true" || sp.get("openGateway") === "true";
+    }
+    return false;
+  });
   const [readinessData, setReadinessData] = useState<{
     team: {
       id: string;
@@ -957,7 +963,7 @@ function PublicEventPageContent() {
                       <button 
                         onClick={() => {
                           navigator.clipboard.writeText(inviteCode);
-                          alert("Invite Code copied to clipboard!");
+                          showToast("Invite Code copied to clipboard!", "success");
                         }}
                         className="text-[10px] text-red-500 hover:text-white underline mt-1 flex items-center gap-1 mx-auto"
                       >
@@ -1102,7 +1108,7 @@ function PublicEventPageContent() {
                     <button 
                       onClick={() => {
                         navigator.clipboard.writeText(inviteCode);
-                        alert("Invite Code copied to clipboard!");
+                        showToast("Invite Code copied to clipboard!", "success");
                       }}
                       className="text-xs text-red-400 hover:text-white underline mt-2.5 flex items-center gap-1.5 mx-auto font-mono"
                     >
@@ -1561,15 +1567,52 @@ function PublicEventPageContent() {
                     )}
                   </div>
                 </div>
+              ) : registered ? (
+                <div className="space-y-4">
+                  <div className="p-4 rounded-xl border border-cyan-500/30 bg-cyan-950/15 space-y-3">
+                    <div className="flex items-center justify-between flex-wrap gap-2">
+                      <div>
+                        <span className="text-[10px] text-slate-400 uppercase tracking-widest block font-mono">Operative Status</span>
+                        <span className="text-base font-bold text-white font-mono">Solo Operative // {user?.name || "Operative"}</span>
+                      </div>
+                      <span className="text-xs px-2.5 py-1 rounded-full font-bold uppercase font-mono bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                        CLEARANCE VERIFIED
+                      </span>
+                    </div>
+                    <div className="pt-2 border-t border-white/[0.06] text-xs text-slate-300 flex items-center justify-between font-mono">
+                      <span className="text-slate-400">Operative Call-Sign / ID:</span>
+                      <span className="text-cyan-300 font-bold">{user?.studentId || user?.email}</span>
+                    </div>
+                  </div>
+
+                  {/* Direct CTF Terminal Launch Execution */}
+                  <div className="space-y-2 pt-2 font-mono">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        window.location.href = "http://localhost:3001/lobby?code=HIKARI-2026";
+                      }}
+                      className="w-full py-4 rounded-xl font-mono text-sm font-black uppercase tracking-widest bg-gradient-to-r from-[#00F5D4] via-[#00E1FF] to-[#00F5D4] text-black shadow-[0_0_30px_rgba(0,245,212,0.6)] hover:shadow-[0_0_40px_rgba(0,245,212,0.9)] transition cursor-pointer flex items-center justify-center gap-2 animate-pulse"
+                    >
+                      <Terminal className="w-5 h-5 text-black" />
+                      <span>ENTER CTF TERMINAL →</span>
+                    </button>
+                    <p className="text-[11px] text-slate-400 text-center flex items-center justify-center gap-1.5 mt-2">
+                      <Shield className="w-3.5 h-3.5 text-[#00F5D4] shrink-0" />
+                      <span>Individual operative clearance granted. Terminal connection authorized.</span>
+                    </p>
+                  </div>
+                </div>
               ) : (
                 <div className="p-6 rounded-xl border border-zinc-800 bg-black/40 text-center space-y-4">
                   <div className="w-12 h-12 rounded-full bg-amber-500/10 border border-amber-500/30 flex items-center justify-center mx-auto text-amber-400">
                     <AlertCircle className="w-6 h-6" />
                   </div>
                   <div>
-                    <h4 className="text-sm font-bold text-white uppercase tracking-wider">No Team Assignment Detected</h4>
-                    <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
-                      You must be enrolled in an active operational team to access the CTF Wars Terminal.
+                    <h4 className="text-sm font-bold text-white uppercase tracking-wider font-mono">Registration Required</h4>
+                    <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto font-mono">
+                      You must register for this event to access the CTF Wars Terminal.
                     </p>
                   </div>
                   <div className="flex gap-2 justify-center flex-wrap">
@@ -1579,19 +1622,9 @@ function PublicEventPageContent() {
                         setShowGatewayModal(false);
                         setShowRegisterModal(true);
                       }}
-                      className="ck-btn-primary py-2 px-4 text-xs"
+                      className="ck-btn-primary py-2 px-4 text-xs font-mono"
                     >
-                      Register Team
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setShowGatewayModal(false);
-                        setShowJoinTeamModal(true);
-                      }}
-                      className="ck-btn-secondary py-2 px-4 text-xs"
-                    >
-                      Join via Invite Code
+                      Register Now
                     </button>
                   </div>
                 </div>

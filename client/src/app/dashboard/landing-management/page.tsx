@@ -9,9 +9,11 @@ import {
   Mail, Phone, BookOpen, UserCheck, ShieldAlert 
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useCyberDialog } from "@/components/ui/CyberDialogContext";
 
 export default function LandingManagementPage() {
   const { token, user } = useAuth();
+  const { confirmModal, showToast } = useCyberDialog();
   const [team, setTeam] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -54,7 +56,7 @@ export default function LandingManagementPage() {
         setShowCMSAnimation(false);
       }, 2500);
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Failed to update team");
+      showToast(err instanceof Error ? err.message : "Failed to update team", "error");
     } finally {
       setSaving(false);
     }
@@ -102,10 +104,17 @@ export default function LandingManagementPage() {
     setActiveTab("basic");
   };
 
-  const handleDeleteMember = (id: string, e: React.MouseEvent) => {
+  const handleDeleteMember = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (confirm("Are you sure you want to delete this crew member?")) {
+    const confirmed = await confirmModal({
+      title: "Remove Crew Member",
+      message: "Are you sure you want to delete this crew member from the landing cadre?",
+      variant: "danger",
+      confirmText: "DELETE MEMBER"
+    });
+    if (confirmed) {
       setTeam(team.filter(m => m.id !== id));
+      showToast("Crew member removed from list", "info");
     }
   };
 
@@ -148,7 +157,7 @@ export default function LandingManagementPage() {
         [fieldName]: res.fileUrl
       });
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Upload failed");
+      showToast(err instanceof Error ? err.message : "Upload failed", "error");
     } finally {
       setUploadingField(null);
     }

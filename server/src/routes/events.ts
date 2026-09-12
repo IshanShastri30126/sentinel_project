@@ -259,7 +259,7 @@ router.get("/", async (req: Request, res: Response) => {
 });
 
 // GET /api/events/all — All events for coordinators with search/filter
-router.get("/all", authenticate, requireMinRole("TECH_TEAM"), async (req: Request, res: Response) => {
+router.get("/all", authenticate, requireMinRole("STUDENT_COORDINATOR"), async (req: Request, res: Response) => {
   try {
     const { search, status, tag } = req.query;
     

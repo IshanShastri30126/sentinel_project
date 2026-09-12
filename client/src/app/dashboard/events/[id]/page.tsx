@@ -9,6 +9,7 @@ import {
   ArrowLeft, Calendar, Users, MapPin, Clock, Download, ExternalLink,
   Eye, EyeOff, Trash2, Search, TrendingUp, UsersRound, BarChart3
 } from "lucide-react";
+import { useCyberDialog } from "@/components/ui/CyberDialogContext";
 
 interface EventDetail {
   id: string; title: string; description?: string; venue?: string;
@@ -59,6 +60,7 @@ export default function EventDetailPage() {
   const params = useParams();
   const router = useRouter();
   const { token, user, isLoading } = useAuth();
+  const { showToast, confirmModal } = useCyberDialog();
   const eventId = params.id as string;
 
   const [event, setEvent] = useState<EventDetail | null>(null);
@@ -127,15 +129,23 @@ export default function EventDetailPage() {
       await api(`/events/${eventId}/publish`, { method: "PATCH", token: token || undefined });
       const e = await api<{ event: EventDetail }>(`/events/${eventId}`, { token: token || undefined });
       setEvent(e.event);
-    } catch (err) { alert(err instanceof Error ? err.message : "Failed"); }
+      showToast("Event visibility updated successfully", "success");
+    } catch (err) { showToast(err instanceof Error ? err.message : "Failed", "error"); }
   };
 
   const handleDelete = async () => {
-    if (!confirm("Archive this event? It will be hidden from public view.")) return;
+    const confirmed = await confirmModal({
+      title: "Archive Event",
+      message: "Archive this event? It will be hidden from public view.",
+      variant: "warning",
+      confirmText: "ARCHIVE EVENT",
+    });
+    if (!confirmed) return;
     try {
       await api(`/events/${eventId}`, { method: "DELETE", token: token || undefined });
+      showToast("Event archived successfully", "success");
       router.push("/dashboard/events");
-    } catch (err) { alert(err instanceof Error ? err.message : "Failed"); }
+    } catch (err) { showToast(err instanceof Error ? err.message : "Failed", "error"); }
   };
 
   const handleExportCSV = () => {
@@ -197,7 +207,7 @@ export default function EventDetailPage() {
               <button 
                 onClick={() => {
                   navigator.clipboard.writeText(`${window.location.origin}/events/${event.slug}`);
-                  alert("Link copied to clipboard!");
+                  showToast("Event link copied to clipboard!", "success");
                 }} 
                 className="ck-btn-secondary text-xs"
               >

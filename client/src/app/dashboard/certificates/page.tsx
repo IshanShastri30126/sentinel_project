@@ -10,6 +10,7 @@ import {
   AlertCircle, CheckCircle, Archive, Trash2, Eye, Palette,
   Terminal, Cpu, Layers, Calendar, RefreshCw, FileText, Award, Loader2
 } from "lucide-react";
+import { useCyberDialog } from "@/components/ui/CyberDialogContext";
 
 interface Template { id: string; name: string; fileUrl: string; fileType: string; createdBy?: { name: string }; createdAt: string; }
 interface Certificate { id: string; uniqueCode: string; recipientName: string; recipientEmail?: string; status: string; generatedAt?: string; createdAt?: string; fileUrl?: string; }
@@ -17,6 +18,7 @@ interface ImportedRecipient { row?: number; name: string; email?: string; valid:
 
 export default function CertificatesPage() {
   const { token } = useAuth();
+  const { confirmModal } = useCyberDialog();
   const router = useRouter();
   const [templates, setTemplates] = useState<Template[]>([]);
   const [events, setEvents] = useState<{ id: string; title: string }[]>([]);
@@ -278,7 +280,13 @@ export default function CertificatesPage() {
   
   const handleDeleteTemplate = async (templateId: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!confirm("Are you sure you want to delete this template?")) return;
+    const confirmed = await confirmModal({
+      title: "Delete Certificate Template",
+      message: "Are you sure you want to delete this template?",
+      variant: "danger",
+      confirmText: "DELETE TEMPLATE"
+    });
+    if (!confirmed) return;
     try {
       await api(`/certificates/templates/${templateId}`, { method: "DELETE", token: token || undefined });
       showToast("Template deleted successfully!", "success");
@@ -290,7 +298,13 @@ export default function CertificatesPage() {
   };
 
   const handleDeleteCert = async (certId: string) => {
-    if (!confirm("Are you sure you want to delete this certificate? This will remove it permanently.")) return;
+    const confirmed = await confirmModal({
+      title: "Delete Certificate",
+      message: "Are you sure you want to delete this certificate? This will remove it permanently.",
+      variant: "danger",
+      confirmText: "DELETE CERTIFICATE"
+    });
+    if (!confirmed) return;
     try {
       await api(`/certificates/${certId}`, { method: "DELETE", token: token || undefined });
       showToast("Certificate deleted successfully!", "success");

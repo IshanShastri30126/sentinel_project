@@ -12,6 +12,7 @@ import {
   Terminal, Award, Presentation, AlertTriangle, Check, UploadCloud, Layers, Edit, Mail, Trash2,
   Phone, Camera, Briefcase, MessageSquare, Gamepad2, Video, Code2, Globe
 } from "lucide-react";
+import { useCyberDialog } from "@/components/ui/CyberDialogContext";
 
 const SOCIAL_ICONS: Record<string, React.ReactNode> = {
   INSTAGRAM: <Camera className="w-3.5 h-3.5 text-pink-400" />,
@@ -286,6 +287,39 @@ function MiniCalendar({
                   </div>
                 </div>
 
+                {/* Contextual Relative Presets (for Registration Deadline relative to Event Start) */}
+                {rangeStart && label.toLowerCase().includes("deadline") && (
+                  <div className="space-y-1 pt-1.5 border-t border-zinc-800/80">
+                    <span className="text-[9px] text-[var(--ck-primary)] uppercase font-mono tracking-wider font-bold">Relative to Start Time:</span>
+                    <div className="grid grid-cols-2 gap-1">
+                      {[
+                        { label: "Same Day (15m before)", offsetMs: -15 * 60 * 1000 },
+                        { label: "Same Day (30m before)", offsetMs: -30 * 60 * 1000 },
+                        { label: "Same Day (1h before)", offsetMs: -60 * 60 * 1000 },
+                        { label: "Same Day (At Start)", offsetMs: 0 },
+                      ].map((rel) => {
+                        const targetD = new Date(new Date(rangeStart).getTime() + rel.offsetMs);
+                        const isoStr = `${targetD.getFullYear()}-${String(targetD.getMonth() + 1).padStart(2, "0")}-${String(targetD.getDate()).padStart(2, "0")}T${String(targetD.getHours()).padStart(2, "0")}:${String(targetD.getMinutes()).padStart(2, "0")}`;
+                        const isSelectedRel = selectedDate && Math.abs(new Date(selectedDate).getTime() - targetD.getTime()) < 60000;
+                        return (
+                          <button
+                            key={rel.label}
+                            type="button"
+                            onClick={() => onSelect(isoStr)}
+                            className={`text-[9px] font-mono py-1 px-1 rounded border transition-all truncate text-center cursor-pointer ${
+                              isSelectedRel
+                                ? "border-[var(--ck-primary)] bg-[var(--ck-primary)]/20 text-[var(--ck-primary)] font-bold"
+                                : "border-cyan-900/60 bg-cyan-950/30 text-cyan-300 hover:border-cyan-500 hover:text-white"
+                            }`}
+                          >
+                            {rel.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
                 {/* Quick Preset Buttons */}
                 <div className="space-y-1">
                   <span className="text-[9px] text-[var(--ck-text-muted)] uppercase font-mono tracking-wider">Quick Presets:</span>
@@ -359,6 +393,7 @@ export default function EventsPage() {
 
   const { user, token } = useAuth();
   const router = useRouter();
+  const { showToast, confirmModal } = useCyberDialog();
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
@@ -615,7 +650,7 @@ export default function EventsPage() {
         setOrganizersList([]);
         load();
       }, 2500);
-    } catch (err) { alert(err instanceof Error ? err.message : "Failed"); }
+    } catch (err) { showToast(err instanceof Error ? err.message : "Failed", "error"); }
     finally { setCreating(false); }
   };
 
@@ -692,50 +727,62 @@ export default function EventsPage() {
     try {
       await api(`/events/${id}/publish`, { method: "PATCH", token: token || undefined });
       load();
-    } catch (err) { alert(err instanceof Error ? err.message : "Failed"); }
+    } catch (err) { showToast(err instanceof Error ? err.message : "Failed to toggle event visibility", "error"); }
   };
 
-  const handleApproveDirectly = async (eventId: string, e: React.MouseEvent) => {
+  const handleQuickApprove = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     try {
-      const data = await api<{ requests: Array<{ id: string; status: string; metadata?: { eventId?: string } }> }>("/approvals?type=EVENT_PERMISSION", { token: token || undefined });
-      const pendingRequest = data.requests?.find(r => r.status === "PENDING" && r.metadata?.eventId === eventId);
-      if (pendingRequest) {
-        await api(`/approvals/${pendingRequest.id}/decide`, {
+      const approvalsRes = await api<{ approvals: { id: string; eventId?: string }[] }>("/approvals/pending", { token: token || undefined });
+      const pendingApproval = approvalsRes.approvals?.find(a => a.eventId === id);
+      if (pendingApproval) {
+        await api(`/approvals/${pendingApproval.id}/review`, {
           method: "POST",
           token: token || undefined,
           body: JSON.stringify({ status: "APPROVED", comment: "Approved directly from event card." })
         });
-        alert("Event approved successfully!");
+        showToast("Event approved successfully!", "success");
         load();
       } else {
-        alert("No pending approval request found for this event.");
+        showToast("No pending approval request found for this event.", "info");
       }
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Approval failed");
+      showToast(err instanceof Error ? err.message : "Approval failed", "error");
     }
   };
 
   const handleSendEmail = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!confirm("Are you sure you want to broadcast this event via email to all club members?")) return;
+    const confirmed = await confirmModal({
+      title: "Broadcast Event Email",
+      message: "Are you sure you want to broadcast this event via email to all club members?",
+      variant: "primary",
+      confirmText: "SEND BROADCAST",
+    });
+    if (!confirmed) return;
     try {
       await api(`/events/${id}/send-email`, { method: "POST", token: token || undefined });
-      alert("Email notifications sent successfully!");
+      showToast("Email notifications broadcast successfully!", "success");
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Failed to send emails");
+      showToast(err instanceof Error ? err.message : "Failed to send emails", "error");
     }
   };
 
   const handleDeleteEvent = async (id: string, title: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!confirm(`Are you sure you want to PERMANENTLY DELETE event "${title}"? This action cannot be undone.`)) return;
+    const confirmed = await confirmModal({
+      title: "Delete Event",
+      message: `Are you sure you want to PERMANENTLY DELETE event "${title}"? This action cannot be undone.`,
+      variant: "danger",
+      confirmText: "DELETE EVENT",
+    });
+    if (!confirmed) return;
     try {
       await api(`/events/${id}`, { method: "DELETE", token: token || undefined });
-      alert("Event deleted successfully!");
+      showToast("Event deleted successfully!", "success");
       load();
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Failed to delete event");
+      showToast(err instanceof Error ? err.message : "Failed to delete event", "error");
     }
   };
 
@@ -743,8 +790,8 @@ export default function EventsPage() {
     e.stopPropagation();
     try {
       await api(`/events/${id}/register`, { method: "POST", token: token || undefined });
-      alert("Registered successfully!"); load();
-    } catch (err) { alert(err instanceof Error ? err.message : "Failed"); }
+      showToast("Registered successfully!", "success"); load();
+    } catch (err) { showToast(err instanceof Error ? err.message : "Registration failed", "error"); }
   };
 
   // Client-side time filter
@@ -1215,7 +1262,7 @@ export default function EventsPage() {
                           selectedDate={form.registrationDeadline}
                           onSelect={(v) => setForm({ ...form, registrationDeadline: v })}
                           minDate={new Date()}
-                          maxDate={form.startDate ? new Date(new Date(form.startDate).getTime() - 1000) : null}
+                          maxDate={form.startDate ? new Date(form.startDate) : null}
                           rangeStart={form.startDate} 
                           rangeEnd={form.endDate}
                           onClear={() => setForm({ ...form, registrationDeadline: "" })}
@@ -1524,11 +1571,11 @@ export default function EventsPage() {
                           <button type="button" 
                             onClick={() => {
                               if (!newOrganizer.name || !newOrganizer.role || !newOrganizer.email || !newOrganizer.phone) {
-                                alert("Please fill all organizer fields.");
+                                showToast("Please fill all organizer fields.", "warning");
                                 return;
                               }
                               if (!/^\d{10}$/.test(newOrganizer.phone)) {
-                                alert("Mobile number must contain exactly 10 numeric digits.");
+                                showToast("Mobile number must contain exactly 10 numeric digits.", "warning");
                                 return;
                               }
                               setOrganizersList([...organizersList, newOrganizer]);
@@ -1695,7 +1742,7 @@ export default function EventsPage() {
                                   type="button"
                                   onClick={() => {
                                     if (!newCustomLink.name || !newCustomLink.url) {
-                                      alert("Please enter both link name and URL.");
+                                      showToast("Please enter both link name and URL.", "warning");
                                       return;
                                     }
                                     setCustomSocialLinks([...customSocialLinks, { id: Date.now().toString(), ...newCustomLink }]);
@@ -1994,8 +2041,8 @@ export default function EventsPage() {
                   )}
                   {user && ["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "TECH_TEAM", "FACULTY", "TECH"].includes(user.role) && !event.isApproved && (
                     <button 
-                      onClick={(e) => handleApproveDirectly(event.id, e)} 
-                      className="ck-btn-primary text-xs py-2 shadow-[0_0_10px_rgba(0,245,212,0.3)] border-none" style={{ backgroundColor: "var(--ck-primary)", color: "#000" }}
+                      onClick={(e) => handleQuickApprove(event.id, e)} 
+                      className="ck-btn-primary text-xs py-2 shadow-[0_0_10px_rgba(0,245,212,0.3)] border-none" style={{ backgroundColor: "var(--ck-primary)", color: "#00F5D4" }}
                     >
                       Approve
                     </button>

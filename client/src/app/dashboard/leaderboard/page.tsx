@@ -5,6 +5,7 @@ import { api, getFileUrl } from "@/lib/api";
 import { motion, AnimatePresence } from "framer-motion";
 import { Award, Trophy, Medal, Star, Search, Plus, Minus, Settings, X, Search as SearchIcon, Crown, Sparkles, Lock, Unlock, Eye, EyeOff, Shield, RefreshCw, Terminal, Users, CheckCircle } from "lucide-react";
 import { DefaultAvatar } from "@/components/default-avatar";
+import { useCyberDialog } from "@/components/ui/CyberDialogContext";
 
 interface LeaderboardEntry { rank: number; user: { id: string; name: string; role: string; avatarUrl?: string }; totalPoints: number; badges: { name: string; icon: string }[]; }
 
@@ -16,6 +17,7 @@ const RANK_STYLES = [
 
 export default function LeaderboardPage() {
   const { user, token } = useAuth();
+  const { showToast } = useCyberDialog();
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [period, setPeriod] = useState("");
@@ -146,9 +148,9 @@ export default function LeaderboardPage() {
       );
       setCompEvents(prev => prev.map(e => e.id === selectedCompEventId ? { ...e, isLeaderboardVisible: newVisibility } : e));
       await loadCompLeaderboard(selectedCompEventId);
-      alert(`Leaderboard ${newVisibility ? "unfrozen (visible to all)" : "paused (hidden from participants)"}`);
+      showToast(`Leaderboard ${newVisibility ? "unfrozen (visible to all)" : "paused (hidden from participants)"}`, "info");
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Failed to toggle visibility");
+      showToast(err instanceof Error ? err.message : "Failed to toggle visibility", "error");
     } finally {
       setTogglingVisibility(false);
     }
@@ -165,7 +167,7 @@ export default function LeaderboardPage() {
 
   const handleGivePoints = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedMember) return alert("Select a member");
+    if (!selectedMember) { showToast("Select a member first", "warning"); return; }
     try {
       await api("/appreciation", {
         method: "POST", token: token || undefined,
@@ -180,20 +182,21 @@ export default function LeaderboardPage() {
         setMemberSearch("");
         loadData();
       }, 2500);
-    } catch (err) { alert(err instanceof Error ? err.message : "Failed"); }
+    } catch (err) { showToast(err instanceof Error ? err.message : "Failed to award points", "error"); }
   };
 
   const handleDeductPoints = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedMember) return alert("Select a member");
+    if (!selectedMember) { showToast("Select a member first", "warning"); return; }
     try {
       await api("/appreciation/deduct", {
         method: "POST", token: token || undefined,
         body: JSON.stringify({ ...deductForm, points: parseInt(deductForm.points), receiverId: selectedMember.id })
       });
       setShowDeductPoints(false); setDeductForm({ receiverId: "", points: "", reason: "" }); setSelectedMember(null); setMemberSearch("");
-      loadData(); alert("Points deducted!");
-    } catch (err) { alert(err instanceof Error ? err.message : "Failed"); }
+      loadData();
+      showToast("Points deducted successfully", "success");
+    } catch (err) { showToast(err instanceof Error ? err.message : "Failed to deduct points", "error"); }
   };
 
   const handleCreateBadge = async (e: React.FormEvent) => {
@@ -204,8 +207,9 @@ export default function LeaderboardPage() {
         body: JSON.stringify({ ...badgeForm, pointThreshold: parseInt(badgeForm.pointThreshold) })
       });
       setBadgeForm({ name: "", description: "", icon: "AWARD", pointThreshold: "" });
+      showToast("Badge created successfully", "success");
       loadData();
-    } catch (err) { alert(err instanceof Error ? err.message : "Failed"); }
+    } catch (err) { showToast(err instanceof Error ? err.message : "Failed to create badge", "error"); }
   };
 
   const filtered = search ? entries.filter((e) => e.user?.name.toLowerCase().includes(search.toLowerCase())) : entries;

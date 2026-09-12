@@ -13,6 +13,7 @@ import {
   Copy, ChevronLeft, ChevronRight,
   BarChart2, Shield, List, TerminalSquare
 } from "lucide-react";
+import { useCyberDialog } from "@/components/ui/CyberDialogContext";
 
 interface SystemMetrics {
   uptimeSeconds: number;
@@ -150,6 +151,7 @@ type LogViewMode = "table" | "terminal" | "timeline" | "analytics";
 
 export default function MaintenancePage() {
   const { token } = useAuth();
+  const { confirmModal } = useCyberDialog();
   const [activeTab, setActiveTab] = useState<TabType>("logs");
 
   // Overview State
@@ -404,7 +406,13 @@ export default function MaintenancePage() {
 
   // Handle Delete Firewall Rule
   const handleDeleteRule = async (ruleId: string) => {
-    if (!confirm("Are you sure you want to remove this security rule?")) return;
+    const confirmed = await confirmModal({
+      title: "Remove Firewall Rule",
+      message: "Are you sure you want to remove this security rule?",
+      variant: "danger",
+      confirmText: "REMOVE RULE"
+    });
+    if (!confirmed) return;
     try {
       await api(`/maintenance/firewall/rules/${ruleId}`, {
         method: "DELETE",

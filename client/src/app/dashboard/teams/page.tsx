@@ -5,6 +5,7 @@ import { api, API_BASE } from "@/lib/api";
 import { motion, AnimatePresence } from "framer-motion";
 import { UsersRound, Plus, X, QrCode, Search, Calendar, Download, RefreshCw, Crown, ChevronDown, ChevronUp, ShieldAlert, Trash2, AlertTriangle, Edit2, Camera } from "lucide-react";
 import { QrScanner } from "@/components/QrScanner";
+import { useCyberDialog } from "@/components/ui/CyberDialogContext";
 
 interface TeamMember { id: string; name: string; email: string; studentId?: string; }
 interface Team {
@@ -29,6 +30,7 @@ const MANAGEMENT_ROLES = [
 
 export default function TeamsPage() {
   const { user, token } = useAuth();
+  const { confirmModal } = useCyberDialog();
   const [teams, setTeams] = useState<Team[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
@@ -153,7 +155,13 @@ export default function TeamsPage() {
   };
 
   const handleRemoveTeam = async (teamId: string, teamName: string) => {
-    if (!confirm(`Remove team "${teamName}"? This action is irreversible.`)) return;
+    const confirmed = await confirmModal({
+      title: "Remove Team",
+      message: `Remove team "${teamName}"? This action is irreversible.`,
+      variant: "danger",
+      confirmText: "REMOVE TEAM"
+    });
+    if (!confirmed) return;
     try {
       await api(`/teams/${teamId}`, { method: "DELETE", token: token || undefined });
       showToast(`Team "${teamName}" removed`);
@@ -162,7 +170,13 @@ export default function TeamsPage() {
   };
 
   const handleRemoveMember = async (teamId: string, memberId: string, memberName: string) => {
-    if (!confirm(`Remove ${memberName} from this team?`)) return;
+    const confirmed = await confirmModal({
+      title: "Remove Member",
+      message: `Remove ${memberName} from this team?`,
+      variant: "warning",
+      confirmText: "REMOVE MEMBER"
+    });
+    if (!confirmed) return;
     try {
       await api(`/teams/${teamId}`, {
         method: "PATCH", token: token || undefined,

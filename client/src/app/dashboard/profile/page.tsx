@@ -26,10 +26,12 @@ import {
 } from "lucide-react";
 import { DefaultAvatar } from "@/components/default-avatar";
 import { INSTITUTES, INSTITUTE_DEPARTMENTS, SEMESTERS } from "@/app/auth/page";
+import { useCyberDialog } from "@/components/ui/CyberDialogContext";
 
 export default function ProfilePage() {
   const router = useRouter();
   const { user, token } = useAuth();
+  const { showToast } = useCyberDialog();
   const [history, setHistory] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [imgError, setImgError] = useState(false);
@@ -86,7 +88,7 @@ export default function ProfilePage() {
     try {
       const sanitizedPhone = editPhone ? editPhone.replace(/\D/g, "").slice(0, 10) : "";
       if (sanitizedPhone && !/^\d{10}$/.test(sanitizedPhone)) {
-        alert("Mobile number must be exactly 10 numeric digits");
+        showToast("Mobile number must be exactly 10 numeric digits", "error");
         setSubmitting(false);
         return;
       }
@@ -124,7 +126,7 @@ export default function ProfilePage() {
       }, 2800);
     } catch (err: any) {
       console.warn("Profile update notice:", err);
-      alert(err instanceof Error ? err.message : "Error updating profile");
+      showToast(err instanceof Error ? err.message : "Error updating profile", "error");
     } finally {
       setSubmitting(false);
     }

@@ -9,6 +9,7 @@ import {
   ChevronLeft, ChevronRight, GraduationCap, Mail, Phone 
 } from "lucide-react";
 import { DefaultAvatar } from "@/components/default-avatar";
+import { useCyberDialog } from "@/components/ui/CyberDialogContext";
 
 interface UserEntry { 
   id: string; 
@@ -53,6 +54,7 @@ const isFaculty = (role?: string): boolean => role === "FACULTY" || role === "FA
 
 export default function UsersPage() {
   const { user, token } = useAuth();
+  const { showToast, confirmModal } = useCyberDialog();
   const [approvedUsers, setApprovedUsers] = useState<UserEntry[]>([]);
   const [pendingUsers, setPendingUsers] = useState<UserEntry[]>([]);
   const [loading, setLoading] = useState(true);
@@ -110,24 +112,50 @@ export default function UsersPage() {
   }, [search, roleFilter]);
 
   const handleApprove = async (id: string) => {
-    try { await api(`/users/${id}/approve`, { method: "PATCH", token: token || undefined }); load(); }
-    catch (err) { alert(err instanceof Error ? err.message : "Failed"); }
+    try {
+      await api(`/users/${id}/approve`, { method: "PATCH", token: token || undefined });
+      showToast("Candidate access approved successfully", "success");
+      load();
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : "Approval failed", "error");
+    }
   };
 
   const handleReject = async (id: string) => {
-    if (!confirm("Are you sure you want to reject access and permanently remove this candidate and all their data from the portal?")) return;
-    try { await api(`/users/${id}/reject`, { method: "PATCH", token: token || undefined }); load(); }
-    catch (err) { alert(err instanceof Error ? err.message : "Failed"); }
+    const confirmed = await confirmModal({
+      title: "Reject Candidate Access",
+      message: "Are you sure you want to reject access and permanently remove this candidate and all their data from the portal?",
+      variant: "danger",
+      confirmText: "REJECT CANDIDATE"
+    });
+    if (!confirmed) return;
+    try {
+      await api(`/users/${id}/reject`, { method: "PATCH", token: token || undefined });
+      showToast("Candidate rejected and removed", "success");
+      load();
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : "Rejection failed", "error");
+    }
   };
 
   const handleRoleChange = async (id: string, role: string) => {
-    try { await api(`/users/${id}/role`, { method: "PATCH", token: token || undefined, body: JSON.stringify({ role }) }); load(); }
-    catch (err) { alert(err instanceof Error ? err.message : "Failed"); }
+    try {
+      await api(`/users/${id}/role`, { method: "PATCH", token: token || undefined, body: JSON.stringify({ role }) });
+      showToast(`User role updated to ${role.replace(/_/g, " ")}`, "success");
+      load();
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : "Role update failed", "error");
+    }
   };
 
   const handleToggleActive = async (id: string, isActive: boolean) => {
-    try { await api(`/users/${id}/${isActive ? "deactivate" : "activate"}`, { method: "PATCH", token: token || undefined }); load(); }
-    catch (err) { alert(err instanceof Error ? err.message : "Failed"); }
+    try {
+      await api(`/users/${id}/${isActive ? "deactivate" : "activate"}`, { method: "PATCH", token: token || undefined });
+      showToast(`User ${isActive ? "deactivated" : "activated"} successfully`, "success");
+      load();
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : "Status update failed", "error");
+    }
   };
 
   const paginatedUsers = approvedUsers;

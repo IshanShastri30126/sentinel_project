@@ -319,11 +319,11 @@ const DEFAULT_OPS_DATA: OpsData = {
           ]);
           if (historyRes) setMemberHistory(historyRes);
           if (eventsRes && eventsRes.events) {
-            // Only keep upcoming/active events
-            const upcoming = eventsRes.events.filter(
-              (e) => new Date(e.startDate) >= new Date()
+            // Keep all active, live, and upcoming events (events that haven't concluded)
+            const activeAndUpcoming = eventsRes.events.filter(
+              (e) => new Date(e.endDate || e.startDate) >= new Date()
             );
-            setMemberEvents(upcoming);
+            setMemberEvents(activeAndUpcoming);
           }
           if (regRes && regRes.events) {
             setRegisteredEvents(regRes.events);
@@ -989,6 +989,7 @@ const DEFAULT_OPS_DATA: OpsData = {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
                     {registeredEvents.map((event) => {
                       const status = getRegEventStatus(event);
+                      const isCoordinator = Boolean(user?.role && ["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "TECH_TEAM", "STUDENT_COORDINATOR", "FACULTY", "TECH"].includes(user.role));
                       return (
                         <motion.div
                           key={event.id}
@@ -1092,16 +1093,32 @@ const DEFAULT_OPS_DATA: OpsData = {
                             <div className="flex gap-2 mt-4 sm:mt-5">
                               <button
                                 onClick={() => router.push(`/events/${event.slug}`)}
-                                className="flex-1 ck-btn-secondary py-2 text-xs font-bold font-mono tracking-wider uppercase text-center"
+                                className="flex-1 ck-btn-secondary py-2 text-xs font-bold font-mono tracking-wider uppercase text-center cursor-pointer"
                               >
                                 Details
                               </button>
-                              <button
-                                onClick={() => router.push(`/dashboard/attendance?eventId=${event.id}`)}
-                                className="flex-1 ck-btn-primary py-2 text-xs font-bold font-mono tracking-wider uppercase text-center"
-                              >
-                                {status.label === "ENDED" ? "Attendance" : "Locked"}
-                              </button>
+                              {status.label === "LIVE" ? (
+                                <button
+                                  onClick={() => router.push(`/events/${event.slug}?openGateway=true`)}
+                                  className="flex-1 py-2 text-xs font-black font-mono tracking-wider uppercase text-center rounded-lg bg-gradient-to-r from-[#00F5D4] via-[#00E1FF] to-[#00F5D4] text-black shadow-[0_0_20px_rgba(0,245,212,0.5)] hover:shadow-[0_0_30px_rgba(0,245,212,0.8)] animate-pulse transition cursor-pointer"
+                                >
+                                  ENTER TERMINAL →
+                                </button>
+                              ) : status.label === "ENDED" ? (
+                                <button
+                                  onClick={() => router.push(isCoordinator ? `/dashboard/attendance?eventId=${event.id}` : `/events/${event.slug}`)}
+                                  className="flex-1 ck-btn-secondary py-2 text-xs font-bold font-mono tracking-wider uppercase text-center cursor-pointer"
+                                >
+                                  {isCoordinator ? "Attendance" : "Concluded"}
+                                </button>
+                              ) : (
+                                <button
+                                  onClick={() => router.push(`/events/${event.slug}`)}
+                                  className="flex-1 py-2 text-xs font-bold font-mono tracking-wider uppercase text-center rounded-lg border border-red-500/30 bg-red-950/20 text-red-400 hover:bg-red-950/40 transition cursor-pointer"
+                                >
+                                  LOCKED
+                                </button>
+                              )}
                             </div>
                           </div>
                         </motion.div>
@@ -1114,7 +1131,7 @@ const DEFAULT_OPS_DATA: OpsData = {
               <motion.div variants={itemVariants} className="ck-glass-card p-5 sm:p-6">
                 <div className="ck-section-header">
                   <Calendar className="w-4.5 h-4.5 animate-pulse" style={{ color: "#00F5D4" }} />
-                  <h2 className="text-sm sm:text-base font-bold uppercase tracking-tight text-[var(--ck-text)] font-mono">Upcoming Cyber Events</h2>
+                  <h2 className="text-sm sm:text-base font-bold uppercase tracking-tight text-[var(--ck-text)] font-mono">Upcoming & Active Cyber Events</h2>
                   <span className="ml-auto text-[10px] font-mono text-[var(--ck-text-muted)]">Register to participate</span>
                 </div>
 
@@ -1154,6 +1171,21 @@ const DEFAULT_OPS_DATA: OpsData = {
                             <span className="absolute top-3 left-3 px-2.5 py-1 rounded-full text-[9px] font-bold font-mono tracking-wider border uppercase backdrop-blur-sm" style={{ backgroundColor: "rgba(0,245,212,0.1)", borderColor: "rgba(0,245,212,0.25)", color: "#00F5D4" }}>
                               {event.eventType.replace(/_/g, " ")}
                             </span>
+                            {(() => {
+                              const evNow = new Date();
+                              const evStart = new Date(event.startDate);
+                              const evEnd = new Date(event.endDate || event.startDate);
+                              const isLive = evNow >= evStart && evNow <= evEnd;
+                              if (isLive) {
+                                return (
+                                  <span className="absolute top-3 right-3 px-2.5 py-1 rounded-full text-[9px] font-bold font-mono tracking-wider border uppercase backdrop-blur-sm bg-emerald-500/20 border-emerald-500/40 text-emerald-300 flex items-center gap-1.5 animate-pulse">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                                    LIVE NOW
+                                  </span>
+                                );
+                              }
+                              return null;
+                            })()}
                           </div>
 
                           {/* Details */}
