@@ -10,6 +10,7 @@ import { upload, getUploadedFileUrl } from "../middlewares/upload";
 import { sendEventPublishedEmail, sendEventRegistrationEmail } from "../lib/emailService";
 import { sendBulkNotification, sendNotification } from "../lib/notificationService";
 import redis, { redisGet, redisSet, redisDel } from "../lib/redis";
+import { eventRegistrationLimiter, mailLimiter } from "../middlewares/rateLimiter";
 
 async function clearEventsCache() {
   try {
@@ -579,7 +580,7 @@ router.delete("/:id", authenticate, requireMinRole("STUDENT_COORDINATOR"), audit
 });
 
 // POST /api/events/:id/register — Individual or Team registration
-router.post("/:id/register", authenticate, auditLog("EVENT_REGISTRATION"), async (req: Request, res: Response) => {
+router.post("/:id/register", eventRegistrationLimiter, authenticate, auditLog("EVENT_REGISTRATION"), async (req: Request, res: Response) => {
   try {
     const eventId = req.params.id; const userId = req.user!.userId;
     const userRole = req.user?.role;
@@ -793,7 +794,7 @@ router.get("/:id/registrations/export", authenticate, requireMinRole("TECH_TEAM"
 });
 
 // POST /api/events/:id/send-email — Manually trigger email/notification broadcast to all members
-router.post("/:id/send-email", authenticate, requireMinRole("STUDENT_COORDINATOR"), auditLog("EVENT_NOTIFICATIONS_SENT"), async (req: Request, res: Response) => {
+router.post("/:id/send-email", mailLimiter, authenticate, requireMinRole("STUDENT_COORDINATOR"), auditLog("EVENT_NOTIFICATIONS_SENT"), async (req: Request, res: Response) => {
   try {
     const event = await prisma.event.findUnique({
       where: { id: req.params.id },

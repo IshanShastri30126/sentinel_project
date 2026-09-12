@@ -7,6 +7,7 @@ import { authenticate, requireMinRole } from "../middlewares/auth";
 import { validate } from "../middlewares/validate";
 import { auditLog } from "../middlewares/auditLog";
 import { sendNotification } from "../lib/notificationService";
+import { teamCreationLimiter } from "../middlewares/rateLimiter";
 
 const router = Router();
 
@@ -31,7 +32,7 @@ const createTeamSchema = z.object({
 });
 
 // POST /api/teams — Create team
-router.post("/", authenticate, validate(createTeamSchema), auditLog("TEAM_CREATED"), async (req: Request, res: Response) => {
+router.post("/", teamCreationLimiter, authenticate, validate(createTeamSchema), auditLog("TEAM_CREATED"), async (req: Request, res: Response) => {
   try {
     const { name, eventId, memberIds } = req.body;
     const leaderId = req.user!.userId;

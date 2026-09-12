@@ -14,6 +14,7 @@ import { OAuth2Client } from "google-auth-library";
 import crypto from "crypto";
 import { Role } from "@prisma/client";
 import { LoginRateLimiter } from "../lib/loginRateLimiter";
+import { loginLimiter, signupLimiter, mailLimiter } from "../middlewares/rateLimiter";
 
 const router = Router();
 const googleClient = new OAuth2Client(config.google.clientId);
@@ -97,7 +98,7 @@ function setTokenCookies(res: Response, accessToken: string, refreshToken: strin
 
 // ─── POST /api/auth/register ───────────────────────────────
 
-router.post("/register", validate(registerSchema), async (req: Request, res: Response) => {
+router.post("/register", signupLimiter, validate(registerSchema), async (req: Request, res: Response) => {
   try {
     const { name, email, password, studentId, employeeId, phone, department, institute, semester, deviceFingerprint, role } = req.body;
     const clientFingerprint = deviceFingerprint || (req.headers["x-device-fingerprint"] as string);
@@ -213,7 +214,7 @@ router.get("/login-status", async (req: Request, res: Response) => {
 
 // ─── POST /api/auth/login ──────────────────────────────────
 
-router.post("/login", validate(loginSchema), async (req: Request, res: Response) => {
+router.post("/login", loginLimiter, validate(loginSchema), async (req: Request, res: Response) => {
   try {
     const { email, password, deviceFingerprint } = req.body;
     const clientIp = (req.headers["x-forwarded-for"] as string || req.ip || req.socket.remoteAddress || "127.0.0.1").split(",")[0].trim();
@@ -346,7 +347,7 @@ router.post("/login", validate(loginSchema), async (req: Request, res: Response)
 
 // ─── POST /api/auth/forgot-password ────────────────────────
 
-router.post("/forgot-password", async (req: Request, res: Response) => {
+router.post("/forgot-password", mailLimiter, async (req: Request, res: Response) => {
   try {
     const { email } = req.body;
     if (!email) {
@@ -386,7 +387,7 @@ router.post("/forgot-password", async (req: Request, res: Response) => {
 
 // ─── POST /api/auth/reset-password ─────────────────────────
 
-router.post("/reset-password", async (req: Request, res: Response) => {
+router.post("/reset-password", mailLimiter, async (req: Request, res: Response) => {
   try {
     const { token, newPassword } = req.body;
     if (!token || !newPassword || newPassword.length < 6) {
@@ -429,7 +430,7 @@ router.post("/reset-password", async (req: Request, res: Response) => {
 
 // ─── POST /api/auth/google ─────────────────────────────────
 
-router.post("/google", async (req: Request, res: Response) => {
+router.post("/google", loginLimiter, async (req: Request, res: Response) => {
   try {
     const { credential, deviceFingerprint } = req.body;
     const clientFingerprint = deviceFingerprint || (req.headers["x-device-fingerprint"] as string);

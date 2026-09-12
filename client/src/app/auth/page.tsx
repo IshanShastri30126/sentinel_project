@@ -110,17 +110,23 @@ function LoginPageContent() {
     }
   };
 
+  // Check IP block status on initial load or when switching to Sign In tab
   useEffect(() => {
-    if (!isLogin) return;
-
-    if (!email || !email.includes("@") || email.length < 5) {
+    if (isLogin) {
       checkBlockStatus();
-      return;
     }
+  }, [isLogin]);
+
+  // Debounced check only when user enters a valid email address
+  useEffect(() => {
+    if (!isLogin || !email) return;
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email.trim())) return;
 
     const debounceTimer = setTimeout(() => {
-      checkBlockStatus(email);
-    }, 600);
+      checkBlockStatus(email.trim());
+    }, 800);
 
     return () => clearTimeout(debounceTimer);
   }, [email, isLogin]);
