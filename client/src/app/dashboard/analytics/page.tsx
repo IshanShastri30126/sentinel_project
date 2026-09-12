@@ -217,7 +217,7 @@ export default function AnalyticsPage() {
   const [eventSortOrder, setEventSortOrder] = useState<"asc" | "desc">("desc");
 
   useEffect(() => {
-    if (!token) return;
+    if (!user) return;
     const load = async () => {
       try {
         const isCoordinator = Boolean(

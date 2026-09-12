@@ -644,6 +644,10 @@ router.post("/logout", async (req: Request, res: Response) => {
 
 router.get("/me", authenticate, async (req: Request, res: Response) => {
   try {
+    const token =
+      req.cookies?.accessToken ||
+      req.headers.authorization?.replace(/^Bearer\s+/i, "");
+
     const user = await prisma.user.findUnique({
       where: { id: req.user!.userId },
       select: {
@@ -667,7 +671,7 @@ router.get("/me", authenticate, async (req: Request, res: Response) => {
       res.status(404).json({ error: "User not found" });
       return;
     }
-    res.json({ user: formatUserPayload(user) });
+    res.json({ user: formatUserPayload(user), accessToken: token });
   } catch (err) {
     console.error("[Auth] Me error:", err);
     res.status(500).json({ error: "Internal server error" });

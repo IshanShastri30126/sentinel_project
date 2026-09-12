@@ -96,31 +96,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, [user, resetInactivityTimer]);
 
-  const fetchMe = useCallback(async (accessToken: string) => {
+  const fetchMe = useCallback(async (initialToken?: string) => {
     try {
-      const data = await api<{ user: User }>("/auth/me", { token: accessToken });
+      const data = await api<{ user: User; accessToken?: string }>("/auth/me", {
+        token: initialToken || undefined,
+      });
       setUser(data.user);
-      setToken(Cookies.get("accessToken") || accessToken);
+      setToken(data.accessToken || initialToken || "session_active");
     } catch {
       setUser(null);
       setToken(null);
-      Cookies.remove("accessToken");
     }
   }, []);
 
   useEffect(() => {
     try {
       if (typeof window !== "undefined" && sessionStorage.getItem("sentinal_session_terminated") === "true") {
-        Cookies.remove("accessToken", { path: "/" });
-        Cookies.remove("refreshToken", { path: "/" });
         setUser(null);
         setToken(null);
         setIsLoading(false);
         return;
       }
     } catch { /* ignore */ }
-    const savedToken = Cookies.get("accessToken");
-    fetchMe(savedToken || "").finally(() => setIsLoading(false));
+    fetchMe().finally(() => setIsLoading(false));
   }, [fetchMe]);
 
   const login = async (email: string, password: string) => {
@@ -132,7 +130,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       method: "POST",
       body: JSON.stringify({ email, password, deviceFingerprint }),
     });
-    Cookies.set("accessToken", data.accessToken, { expires: 1, path: "/" });
     setUser(data.user);
     setToken(data.accessToken);
   };
@@ -146,7 +143,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       method: "POST",
       body: JSON.stringify({ credential, deviceFingerprint }),
     });
-    Cookies.set("accessToken", data.accessToken, { expires: 1, path: "/" });
     setUser(data.user);
     setToken(data.accessToken);
   };
@@ -160,7 +156,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       method: "POST",
       body: JSON.stringify({ name, email, password, deviceFingerprint, ...extra }),
     });
-    Cookies.set("accessToken", data.accessToken, { expires: 1, path: "/" });
     setUser(data.user);
     setToken(data.accessToken);
   };

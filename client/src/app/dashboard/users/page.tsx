@@ -104,7 +104,7 @@ export default function UsersPage() {
     }
   };
 
-  useEffect(() => { if (token) load(); }, [token, search, roleFilter, currentPage]);
+  useEffect(() => { if (user) load(); }, [user, search, roleFilter, currentPage]);
 
   // Reset pagination when search queries or filters change
   useEffect(() => {

@@ -268,7 +268,7 @@ const DEFAULT_OPS_DATA: OpsData = {
 };
 
   useEffect(() => {
-    if (!token || !user) return;
+    if (!user) return;
     const load = async () => {
       try {
         if (["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "TECH_TEAM", "STUDENT_COORDINATOR", "FACULTY", "TECH"].includes(user.role)) {

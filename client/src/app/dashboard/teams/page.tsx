@@ -96,7 +96,7 @@ export default function TeamsPage() {
     finally { setLoading(false); }
   };
 
-  useEffect(() => { if (token) loadData(); }, [token, activeTab, filterEventId]);
+  useEffect(() => { if (user) loadData(); }, [user, activeTab, filterEventId]);
 
   const searchMembers = async (q: string) => {
     setMemberSearch(q);

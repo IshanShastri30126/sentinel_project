@@ -77,7 +77,7 @@ export default function CertificatesPage() {
   }, [toast]);
 
   useEffect(() => {
-    if (!token) return;
+    if (!user) return;
     const load = async () => {
       try {
         const [t, e] = await Promise.all([

@@ -509,7 +509,7 @@ export default function EventsPage() {
     finally { setLoading(false); }
   }, [isCore, searchQuery, isCoord, statusFilter, token]);
 
-  useEffect(() => { if (token) load(); }, [token, load]);
+  useEffect(() => { if (user) load(); }, [user, load]);
 
   const handlePosterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] || null;

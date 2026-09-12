@@ -161,7 +161,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   // Fetch unread notifications list & poll for real-time updates
   useEffect(() => {
-    if (!token) return;
+    if (!user) return;
     
     const fetchNotifications = async () => {
       try {

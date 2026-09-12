@@ -50,7 +50,7 @@ export default function ProfilePage() {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    if (!token || !user) return;
+    if (!user) return;
     setEditName(user.name || "");
     setEditStudentId(user.studentId || "");
     setEditPhone(user.phone || "");
