@@ -71,11 +71,25 @@ export default function TeamsPage() {
       const endpoint = (isManagement && activeTab === "all")
         ? (filterEventId ? `/teams/event/${filterEventId}` : "/teams")
         : "/teams/my";
-      const [t, e] = await Promise.all([
+      const [teamsRes, eventsRes] = await Promise.allSettled([
         api<{ teams: Team[] }>(endpoint, { token: token || undefined }),
         api<{ events: any[] }>("/events", { token: token || undefined }),
       ]);
-      setTeams(t.teams || []); setEvents(e.events || []);
+      if (teamsRes.status === "fulfilled") {
+        setTeams(teamsRes.value.teams || []);
+      }
+      let loadedEvents: any[] = [];
+      if (eventsRes.status === "fulfilled" && eventsRes.value.events && eventsRes.value.events.length > 0) {
+        loadedEvents = eventsRes.value.events;
+      } else if (isManagement) {
+        try {
+          const allEv = await api<{ events: any[] }>("/events/all", { token: token || undefined });
+          loadedEvents = allEv.events || [];
+        } catch {
+          // resilient fallback
+        }
+      }
+      setEvents(loadedEvents);
     } catch (err) { console.warn("[TeamsPage] Load data error:", err); }
     finally { setLoading(false); }
   };

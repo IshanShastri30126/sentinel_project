@@ -29,6 +29,18 @@ async function clearEventsCache() {
     await redisDel("analytics:top3");
     await redisDel("analytics:events-analysis");
     await redisDel("analytics:coordinator-activity");
+
+    // Proactively warm the public cache so Render and clients have instantaneous sync
+    try {
+      const activeEvents = await prisma.event.findMany({
+        where: { isPublished: true, isApproved: true, endDate: { gte: new Date() } },
+        include: { creator: { select: { id: true, name: true } }, _count: { select: { registrations: true } } },
+        orderBy: { startDate: "desc" }
+      });
+      await redisSet("PUBLIC_EVENTS_LIMIT_all", JSON.stringify(activeEvents), 600);
+    } catch (warmErr) {
+      console.warn("[Events] Cache warm error:", warmErr);
+    }
   } catch (err) {
     console.error("[Events] Cache clear error:", err);
   }
@@ -63,11 +75,34 @@ const createEventSchema = z.object({
 router.post("/", authenticate, requireMinRole("STUDENT_COORDINATOR"), validate(createEventSchema), auditLog("EVENT_CREATED"), async (req: Request, res: Response) => {
   try {
     const data = req.body;
-    const isApproved = ["FACULTY_COORDINATOR", "DEVELOPMENT_TEAM", "TECH_TEAM"].includes(req.user!.role);
+    const startDateObj = new Date(data.startDate);
+    const endDateObj = new Date(data.endDate);
+
+    if (isNaN(startDateObj.getTime()) || isNaN(endDateObj.getTime())) {
+      res.status(400).json({ error: "Invalid start or end date format." });
+      return;
+    }
+    if (endDateObj <= startDateObj) {
+      res.status(400).json({ error: "Event end date must be strictly after start date." });
+      return;
+    }
+    if (data.registrationDeadline) {
+      const deadlineObj = new Date(data.registrationDeadline);
+      if (isNaN(deadlineObj.getTime())) {
+        res.status(400).json({ error: "Invalid registration deadline format." });
+        return;
+      }
+      if (deadlineObj > startDateObj) {
+        res.status(400).json({ error: "Registration deadline cannot be after event start date." });
+        return;
+      }
+    }
+
+    const isApproved = ["FACULTY_COORDINATOR", "DEVELOPMENT_TEAM", "TECH_TEAM", "ADMIN", "FACULTY", "TECH"].includes(req.user!.role);
     const event = await prisma.event.create({
       data: {
         title: data.title, description: data.description, venue: data.venue,
-        startDate: new Date(data.startDate), endDate: new Date(data.endDate),
+        startDate: startDateObj, endDate: endDateObj,
         registrationDeadline: data.registrationDeadline ? new Date(data.registrationDeadline) : null,
         rules: data.rules, tags: data.tags || [],
         minTeamSize: data.minTeamSize, maxTeamSize: data.maxTeamSize,
@@ -196,12 +231,22 @@ router.get("/", async (req: Request, res: Response) => {
 
     const takeCount = limit ? parseInt(limit as string) : undefined;
 
-    const events = await prisma.event.findMany({
-      where,
-      include: { creator: { select: { id: true, name: true, role: true } }, _count: { select: { registrations: true } } },
-      orderBy: { startDate: "desc" },
-      take: takeCount,
-    });
+    let events;
+    try {
+      events = await prisma.event.findMany({
+        where,
+        include: { creator: { select: { id: true, name: true } }, _count: { select: { registrations: true } } },
+        orderBy: { startDate: "desc" },
+        take: takeCount,
+      });
+    } catch (queryErr) {
+      console.warn("[Events] Primary query with creator failed, using basic fallback query:", queryErr);
+      events = await prisma.event.findMany({
+        where,
+        orderBy: { startDate: "desc" },
+        take: takeCount,
+      });
+    }
 
     if (isCacheable) {
       // Cache standard queries for 5 minutes (300s)
@@ -390,12 +435,33 @@ router.patch("/:id", authenticate, requireMinRole("STUDENT_COORDINATOR"), auditL
     }
 
     const d = req.body; const u: any = {};
+    const finalStart = d.startDate ? new Date(d.startDate) : existingEvent.startDate;
+    const finalEnd = d.endDate ? new Date(d.endDate) : existingEvent.endDate;
+
+    if (isNaN(finalStart.getTime()) || isNaN(finalEnd.getTime())) {
+      res.status(400).json({ error: "Invalid start or end date format." });
+      return;
+    }
+    if (finalEnd <= finalStart) {
+      res.status(400).json({ error: "Event end date must be strictly after start date." });
+      return;
+    }
+
+    const finalDeadline = d.registrationDeadline !== undefined
+      ? (d.registrationDeadline ? new Date(d.registrationDeadline) : null)
+      : existingEvent.registrationDeadline;
+
+    if (finalDeadline && !isNaN(finalDeadline.getTime()) && finalDeadline > finalStart) {
+      res.status(400).json({ error: "Registration deadline cannot be after event start date." });
+      return;
+    }
+
     if (d.title) u.title = d.title;
     if (d.description !== undefined) u.description = d.description;
     if (d.venue !== undefined) u.venue = d.venue;
-    if (d.startDate) u.startDate = new Date(d.startDate);
-    if (d.endDate) u.endDate = new Date(d.endDate);
-    if (d.registrationDeadline !== undefined) u.registrationDeadline = d.registrationDeadline ? new Date(d.registrationDeadline) : null;
+    if (d.startDate) u.startDate = finalStart;
+    if (d.endDate) u.endDate = finalEnd;
+    if (d.registrationDeadline !== undefined) u.registrationDeadline = finalDeadline;
     if (d.rules !== undefined) u.rules = d.rules;
     if (d.tags) u.tags = d.tags;
     if (d.minTeamSize !== undefined) u.minTeamSize = d.minTeamSize;

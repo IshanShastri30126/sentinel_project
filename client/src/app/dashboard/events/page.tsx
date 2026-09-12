@@ -37,19 +37,35 @@ function renderSocialIcon(logo: string) {
   return <Link2 className="w-3.5 h-3.5 text-[var(--ck-primary)]" />;
 }
 
-// ─── Mini Calendar Component ────────────────────────────────
-function MiniCalendar({ selectedDate, onSelect, rangeStart, rangeEnd, label, onClear }: {
-  selectedDate: string; onSelect: (iso: string) => void;
-  rangeStart?: string; rangeEnd?: string; label: string;
+// ─── Mini Calendar & Custom Cyber Time Picker ─────────────────
+function MiniCalendar({
+  selectedDate,
+  onSelect,
+  rangeStart,
+  rangeEnd,
+  label,
+  onClear,
+  minDate,
+  maxDate,
+  disabledNotice
+}: {
+  selectedDate: string;
+  onSelect: (iso: string) => void;
+  rangeStart?: string;
+  rangeEnd?: string;
+  label: string;
   onClear?: () => void;
+  minDate?: Date | null;
+  maxDate?: Date | null;
+  disabledNotice?: string;
 }) {
   const sel = selectedDate ? new Date(selectedDate) : null;
-  const [viewDate, setViewDate] = useState(() => sel ? new Date(sel.getFullYear(), sel.getMonth(), 1) : new Date(new Date().getFullYear(), new Date().getMonth(), 1));
+  const [viewDate, setViewDate] = useState(() => sel && !isNaN(sel.getTime()) ? new Date(sel.getFullYear(), sel.getMonth(), 1) : new Date(new Date().getFullYear(), new Date().getMonth(), 1));
   const [prevSelectedDate, setPrevSelectedDate] = useState(selectedDate);
 
   if (selectedDate !== prevSelectedDate) {
     setPrevSelectedDate(selectedDate);
-    if (sel) {
+    if (sel && !isNaN(sel.getTime())) {
       setViewDate(new Date(sel.getFullYear(), sel.getMonth(), 1));
     }
   }
@@ -58,7 +74,9 @@ function MiniCalendar({ selectedDate, onSelect, rangeStart, rangeEnd, label, onC
   const month = viewDate.getMonth();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const firstDay = new Date(year, month, 1).getDay();
-  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
   const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
   const DAYS = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
 
@@ -70,30 +88,80 @@ function MiniCalendar({ selectedDate, onSelect, rangeStart, rangeEnd, label, onC
   };
 
   const isSelected = (d: Date) => {
-    if (!sel) return false;
+    if (!sel || isNaN(sel.getTime())) return false;
     return d.getFullYear() === sel.getFullYear() && d.getMonth() === sel.getMonth() && d.getDate() === sel.getDate();
   };
 
+  const isDayDisabled = (d: Date) => {
+    if (disabledNotice) return true;
+    if (minDate) {
+      const minStart = new Date(minDate);
+      minStart.setHours(0, 0, 0, 0);
+      if (d < minStart) return true;
+    }
+    if (maxDate) {
+      const maxEnd = new Date(maxDate);
+      maxEnd.setHours(23, 59, 59, 999);
+      if (d > maxEnd) return true;
+    }
+    return false;
+  };
+
   const handleDayClick = (day: number) => {
-    const time = sel ? `${String(sel.getHours()).padStart(2, "0")}:${String(sel.getMinutes()).padStart(2, "0")}` : "09:00";
+    const d = new Date(year, month, day);
+    if (isDayDisabled(d)) return;
+    const time = sel && !isNaN(sel.getTime())
+      ? `${String(sel.getHours()).padStart(2, "0")}:${String(sel.getMinutes()).padStart(2, "0")}`
+      : "09:00";
     const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}T${time}`;
     onSelect(dateStr);
   };
 
-  const handleTimeChange = (time: string) => {
-    if (!sel) return;
-    const dateStr = `${sel.getFullYear()}-${String(sel.getMonth() + 1).padStart(2, "0")}-${String(sel.getDate()).padStart(2, "0")}T${time}`;
+  const updateHoursAndMinutes = (newH: number, newM: number) => {
+    const baseDate = sel && !isNaN(sel.getTime()) ? sel : new Date();
+    const clampedH = Math.max(0, Math.min(23, newH));
+    const clampedM = Math.max(0, Math.min(59, newM));
+    const dateStr = `${baseDate.getFullYear()}-${String(baseDate.getMonth() + 1).padStart(2, "0")}-${String(baseDate.getDate()).padStart(2, "0")}T${String(clampedH).padStart(2, "0")}:${String(clampedM).padStart(2, "0")}`;
     onSelect(dateStr);
   };
 
-  const currentTime = sel ? `${String(sel.getHours()).padStart(2, "0")}:${String(sel.getMinutes()).padStart(2, "0")}` : "";
+  const rawHours = sel && !isNaN(sel.getTime()) ? sel.getHours() : 9;
+  const rawMinutes = sel && !isNaN(sel.getTime()) ? sel.getMinutes() : 0;
+  const isPM = rawHours >= 12;
+  const displayHour = rawHours % 12 === 0 ? 12 : rawHours % 12;
+
+  const handleHourChange = (val: number) => {
+    let normalizedH = val;
+    if (normalizedH === 12) {
+      normalizedH = isPM ? 12 : 0;
+    } else {
+      normalizedH = isPM ? normalizedH + 12 : normalizedH;
+    }
+    updateHoursAndMinutes(normalizedH, rawMinutes);
+  };
+
+  const handleMinuteChange = (val: number) => {
+    updateHoursAndMinutes(rawHours, val);
+  };
+
+  const togglePeriod = (targetPeriod: "AM" | "PM") => {
+    if (targetPeriod === "AM" && isPM) {
+      updateHoursAndMinutes(rawHours - 12, rawMinutes);
+    } else if (targetPeriod === "PM" && !isPM) {
+      updateHoursAndMinutes(rawHours + 12, rawMinutes);
+    }
+  };
+
+  const applyPreset = (h24: number, m: number) => {
+    updateHoursAndMinutes(h24, m);
+  };
 
   return (
-    <div className="rounded-xl border border-[var(--ck-border)] bg-zinc-950/60 backdrop-blur-md overflow-hidden transition-all duration-300 hover:border-[var(--ck-border)] shadow-md">
+    <div className="rounded-xl border border-[var(--ck-border)] bg-zinc-950/60 backdrop-blur-md overflow-hidden transition-all duration-300 hover:border-[var(--ck-border)] shadow-md flex flex-col">
       <div className="px-3.5 py-2.5 border-b border-[var(--ck-border)] bg-zinc-900/40 flex items-center justify-between">
         <span className="text-[10px] uppercase font-bold tracking-wider text-[var(--ck-text-muted)] font-mono">{label}</span>
         <div className="flex items-center gap-1">
-          {sel && (
+          {sel && !isNaN(sel.getTime()) && (
             <span className="text-[10px] font-bold font-mono border px-2 py-0.5 rounded" style={{ color: "var(--ck-primary)", backgroundColor: "rgba(0,245,212,0.1)", borderColor: "rgba(0,245,212,0.25)" }}>
               {sel.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
             </span>
@@ -105,64 +173,149 @@ function MiniCalendar({ selectedDate, onSelect, rangeStart, rangeEnd, label, onC
           )}
         </div>
       </div>
-      <div className="p-3">
-        <div className="flex items-center justify-between mb-2">
-          <button type="button" onClick={() => setViewDate(new Date(year, month - 1, 1))} className="p-1 rounded-lg hover:bg-[var(--ck-bg-elevated)] text-[var(--ck-text-secondary)] hover:text-[var(--ck-text)] transition"><ChevronLeft className="w-4 h-4" /></button>
-          <span className="text-xs font-semibold font-mono tracking-wide uppercase text-[var(--ck-text)]">{MONTHS[month]} {year}</span>
-          <button type="button" onClick={() => setViewDate(new Date(year, month + 1, 1))} className="p-1 rounded-lg hover:bg-[var(--ck-bg-elevated)] text-[var(--ck-text-secondary)] hover:text-[var(--ck-text)] transition"><ChevronRight className="w-4 h-4" /></button>
-        </div>
-        <div className="grid grid-cols-7 gap-0.5 mb-1">
-          {DAYS.map(d => <div key={d} className="text-center text-[9px] text-[var(--ck-text-muted)] font-bold uppercase font-mono py-1">{d}</div>)}
-        </div>
-        <div className="grid grid-cols-7 gap-1">
-          {Array.from({ length: firstDay }).map((_, i) => <div key={`e${i}`} />)}
-          {Array.from({ length: daysInMonth }).map((_, i) => {
-            const day = i + 1;
-            const d = new Date(year, month, day); d.setHours(0, 0, 0, 0);
-            const selected = isSelected(d);
-            const inRange = isInRange(d);
-            const isPast = d < today;
-            return (
-              <button key={day} type="button" disabled={isPast}
-                onClick={() => handleDayClick(day)}
-                className={`w-full aspect-square rounded-lg text-xs font-bold font-mono transition-all duration-150 ${
-                  selected ? "bg-[var(--ck-primary)] text-black shadow-[0_0_10px_rgba(0,245,212,0.4)] border border-[var(--ck-primary)]" :
-                  inRange ? "bg-[var(--ck-primary)]/15 text-[var(--ck-primary)] border border-[var(--ck-primary)]/30" :
-                  isPast ? "text-zinc-800 cursor-not-allowed" :
-                  "text-[var(--ck-text-secondary)] hover:bg-[var(--ck-bg-elevated)] hover:text-[var(--ck-text)]"
-                }`}>{day}</button>
-            );
-          })}
-        </div>
-        {sel && (
-          <div className="mt-3 pt-3 border-t border-zinc-800/80 flex flex-col gap-2">
-            <div className="flex items-center justify-between gap-2">
-              <div className="flex items-center gap-1.5 text-[10px] text-[var(--ck-text-muted)] uppercase font-bold tracking-wider font-mono">
-                <Clock className="w-3.5 h-3.5" style={{ color: "var(--ck-primary)" }} /> Time:
-              </div>
-              <select
-                onChange={(e) => { if (e.target.value) handleTimeChange(e.target.value); }}
-                className="ck-input py-1 px-2 text-[10px] bg-zinc-900 border border-[var(--ck-border)] focus:border-[var(--ck-primary)] font-mono text-[var(--ck-text)] rounded"
-              >
-                <option value="">-- Presets --</option>
-                <option value="08:00">08:00 AM</option>
-                <option value="09:00">09:00 AM</option>
-                <option value="10:00">10:00 AM</option>
-                <option value="11:00">11:00 AM</option>
-                <option value="12:00">12:00 PM</option>
-                <option value="13:00">01:00 PM</option>
-                <option value="14:00">02:00 PM</option>
-                <option value="15:00">03:00 PM</option>
-                <option value="16:00">04:00 PM</option>
-                <option value="17:00">05:00 PM</option>
-                <option value="18:00">06:00 PM</option>
-                <option value="19:00">07:00 PM</option>
-                <option value="20:00">08:00 PM</option>
-              </select>
-            </div>
-            <input type="time" value={currentTime} onChange={(e) => handleTimeChange(e.target.value)}
-              className="ck-input py-1 px-2 text-xs w-full border border-[var(--ck-border)] focus:border-[var(--ck-primary)]/50" />
+
+      <div className="p-3 flex-1 flex flex-col justify-between">
+        {disabledNotice ? (
+          <div className="p-4 rounded-lg bg-zinc-900/50 border border-dashed border-zinc-800 text-center my-auto">
+            <p className="text-xs font-mono text-[var(--ck-text-muted)]">{disabledNotice}</p>
           </div>
+        ) : (
+          <>
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <button type="button" onClick={() => setViewDate(new Date(year, month - 1, 1))} className="p-1 rounded-lg hover:bg-[var(--ck-bg-elevated)] text-[var(--ck-text-secondary)] hover:text-[var(--ck-text)] transition"><ChevronLeft className="w-4 h-4" /></button>
+                <span className="text-xs font-semibold font-mono tracking-wide uppercase text-[var(--ck-text)]">{MONTHS[month]} {year}</span>
+                <button type="button" onClick={() => setViewDate(new Date(year, month + 1, 1))} className="p-1 rounded-lg hover:bg-[var(--ck-bg-elevated)] text-[var(--ck-text-secondary)] hover:text-[var(--ck-text)] transition"><ChevronRight className="w-4 h-4" /></button>
+              </div>
+              <div className="grid grid-cols-7 gap-0.5 mb-1">
+                {DAYS.map(d => <div key={d} className="text-center text-[9px] text-[var(--ck-text-muted)] font-bold uppercase font-mono py-1">{d}</div>)}
+              </div>
+              <div className="grid grid-cols-7 gap-1">
+                {Array.from({ length: firstDay }).map((_, i) => <div key={`e${i}`} />)}
+                {Array.from({ length: daysInMonth }).map((_, i) => {
+                  const day = i + 1;
+                  const d = new Date(year, month, day);
+                  const selected = isSelected(d);
+                  const inRange = isInRange(d);
+                  const disabled = isDayDisabled(d);
+                  return (
+                    <button
+                      key={day}
+                      type="button"
+                      disabled={disabled}
+                      onClick={() => handleDayClick(day)}
+                      className={`w-full aspect-square rounded-lg text-xs font-bold font-mono transition-all duration-150 ${
+                        selected ? "bg-[var(--ck-primary)] text-black shadow-[0_0_10px_rgba(0,245,212,0.4)] border border-[var(--ck-primary)] font-black" :
+                        inRange ? "bg-[var(--ck-primary)]/15 text-[var(--ck-primary)] border border-[var(--ck-primary)]/30" :
+                        disabled ? "text-zinc-700 cursor-not-allowed line-through opacity-35 hover:bg-transparent" :
+                        "text-[var(--ck-text-secondary)] hover:bg-[var(--ck-bg-elevated)] hover:text-[var(--ck-text)]"
+                      }`}
+                    >
+                      {day}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Custom Cyber Time Picker */}
+            {sel && !isNaN(sel.getTime()) && (
+              <div className="mt-3 pt-3 border-t border-zinc-800/80 space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5 text-[10px] text-[var(--ck-text-muted)] uppercase font-bold tracking-wider font-mono">
+                    <Clock className="w-3.5 h-3.5" style={{ color: "var(--ck-primary)" }} /> Custom Time
+                  </div>
+                  <span className="text-[10px] font-mono text-[var(--ck-primary)] font-bold">
+                    {String(displayHour).padStart(2, "0")}:{String(rawMinutes).padStart(2, "0")} {isPM ? "PM" : "AM"}
+                  </span>
+                </div>
+
+                {/* Direct Hour & Minute Inputs with AM/PM Pills */}
+                <div className="grid grid-cols-12 gap-1.5 items-center">
+                  <div className="col-span-4 flex items-center bg-zinc-900 border border-[var(--ck-border)] rounded-lg px-2 py-1 focus-within:border-[var(--ck-primary)]">
+                    <input
+                      type="number"
+                      min="1"
+                      max="12"
+                      value={displayHour}
+                      onChange={(e) => {
+                        const v = parseInt(e.target.value, 10);
+                        if (!isNaN(v) && v >= 1 && v <= 12) handleHourChange(v);
+                      }}
+                      className="w-full bg-transparent text-center text-xs font-mono font-bold text-[var(--ck-text)] outline-none"
+                    />
+                    <span className="text-[9px] text-[var(--ck-text-muted)] font-mono ml-1">H</span>
+                  </div>
+
+                  <span className="col-span-1 text-center text-sm font-bold text-[var(--ck-primary)] font-mono">:</span>
+
+                  <div className="col-span-4 flex items-center bg-zinc-900 border border-[var(--ck-border)] rounded-lg px-2 py-1 focus-within:border-[var(--ck-primary)]">
+                    <input
+                      type="number"
+                      min="0"
+                      max="59"
+                      value={rawMinutes}
+                      onChange={(e) => {
+                        const v = parseInt(e.target.value, 10);
+                        if (!isNaN(v) && v >= 0 && v <= 59) handleMinuteChange(v);
+                      }}
+                      className="w-full bg-transparent text-center text-xs font-mono font-bold text-[var(--ck-text)] outline-none"
+                    />
+                    <span className="text-[9px] text-[var(--ck-text-muted)] font-mono ml-1">M</span>
+                  </div>
+
+                  <div className="col-span-3 flex rounded-lg border border-[var(--ck-border)] overflow-hidden">
+                    <button
+                      type="button"
+                      onClick={() => togglePeriod("AM")}
+                      className={`flex-1 py-1 text-[10px] font-mono font-bold transition-all ${
+                        !isPM ? "bg-[var(--ck-primary)] text-black font-black" : "bg-zinc-900 text-zinc-400 hover:text-white"
+                      }`}
+                    >
+                      AM
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => togglePeriod("PM")}
+                      className={`flex-1 py-1 text-[10px] font-mono font-bold transition-all ${
+                        isPM ? "bg-[var(--ck-primary)] text-black font-black" : "bg-zinc-900 text-zinc-400 hover:text-white"
+                      }`}
+                    >
+                      PM
+                    </button>
+                  </div>
+                </div>
+
+                {/* Quick Preset Buttons */}
+                <div className="space-y-1">
+                  <span className="text-[9px] text-[var(--ck-text-muted)] uppercase font-mono tracking-wider">Quick Presets:</span>
+                  <div className="grid grid-cols-3 gap-1">
+                    {[
+                      { label: "09:00 AM", h: 9, m: 0 },
+                      { label: "12:00 PM", h: 12, m: 0 },
+                      { label: "02:00 PM", h: 14, m: 0 },
+                      { label: "06:00 PM", h: 18, m: 0 },
+                      { label: "08:00 PM", h: 20, m: 0 },
+                      { label: "11:59 PM", h: 23, m: 59 },
+                    ].map((preset) => (
+                      <button
+                        key={preset.label}
+                        type="button"
+                        onClick={() => applyPreset(preset.h, preset.m)}
+                        className={`text-[9px] font-mono py-1 px-1 rounded border transition-all truncate ${
+                          rawHours === preset.h && rawMinutes === preset.m
+                            ? "border-[var(--ck-primary)] bg-[var(--ck-primary)]/20 text-[var(--ck-primary)] font-bold"
+                            : "border-zinc-800 bg-zinc-900/60 text-zinc-400 hover:border-zinc-700 hover:text-white"
+                        }`}
+                      >
+                        {preset.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>
@@ -374,7 +527,18 @@ export default function EventsPage() {
   };
 
   const handleCreate = async (e: React.FormEvent) => {
-    e.preventDefault(); setCreating(true);
+    e.preventDefault();
+    // Strict safeguard: Event creation/editing can ONLY be submitted on Step 4 (Details & Media)
+    if (step !== 4) {
+      return;
+    }
+    for (let s = 1; s <= 4; s++) {
+      if (!isStepValid(s)) {
+        navigateToStep(s);
+        return;
+      }
+    }
+    setCreating(true);
     try {
       const body: Record<string, unknown> = {
         title: form.title, description: form.description || undefined,
@@ -800,7 +964,20 @@ export default function EventsPage() {
               </div>
 
               {/* Scrollable form area */}
-              <form onSubmit={handleCreate} onKeyDown={handleFormKeyDown} className="flex-1 overflow-y-auto px-6 pb-6 pt-2 min-h-0">
+              <form 
+                onSubmit={(e) => { 
+                  e.preventDefault(); 
+                  if (step === 4) {
+                    handleCreate(e); 
+                  }
+                }} 
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && (e.target as HTMLElement).tagName !== "TEXTAREA") {
+                    e.preventDefault();
+                  }
+                }} 
+                className="flex-1 overflow-y-auto px-6 pb-6 pt-2 min-h-0"
+              >
                 <AnimatePresence mode="wait" initial={false}>
                   {/* Step 1: Basic Info */}
                   {step === 1 && (
@@ -944,16 +1121,46 @@ export default function EventsPage() {
                       className="space-y-4"
                     >
                       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                        <MiniCalendar label="Start Date & Time *" selectedDate={form.startDate}
-                          onSelect={(v) => setForm({ ...form, startDate: v })}
-                          rangeStart={form.startDate} rangeEnd={form.endDate} />
-                        <MiniCalendar label="End Date & Time *" selectedDate={form.endDate}
+                        <MiniCalendar 
+                          label="Start Date & Time *" 
+                          selectedDate={form.startDate}
+                          onSelect={(v) => {
+                            setForm(prev => {
+                              const updated = { ...prev, startDate: v };
+                              if (prev.endDate && new Date(prev.endDate) <= new Date(v)) {
+                                const nextDay = new Date(new Date(v).getTime() + 24 * 60 * 60 * 1000);
+                                updated.endDate = nextDay.toISOString().slice(0, 16);
+                              }
+                              if (prev.registrationDeadline && new Date(prev.registrationDeadline) >= new Date(v)) {
+                                updated.registrationDeadline = "";
+                              }
+                              return updated;
+                            });
+                          }}
+                          minDate={new Date()}
+                          rangeStart={form.startDate} 
+                          rangeEnd={form.endDate} 
+                        />
+                        <MiniCalendar 
+                          label="End Date & Time *" 
+                          selectedDate={form.endDate}
                           onSelect={(v) => setForm({ ...form, endDate: v })}
-                          rangeStart={form.startDate} rangeEnd={form.endDate} />
-                        <MiniCalendar label="Registration Deadline" selectedDate={form.registrationDeadline}
+                          minDate={form.startDate ? new Date(form.startDate) : new Date()}
+                          rangeStart={form.startDate} 
+                          rangeEnd={form.endDate}
+                          disabledNotice={!form.startDate ? "Please set Start Date first" : undefined}
+                        />
+                        <MiniCalendar 
+                          label="Registration Deadline" 
+                          selectedDate={form.registrationDeadline}
                           onSelect={(v) => setForm({ ...form, registrationDeadline: v })}
-                          rangeStart={form.startDate} rangeEnd={form.endDate}
-                          onClear={() => setForm({ ...form, registrationDeadline: "" })} />
+                          minDate={new Date()}
+                          maxDate={form.startDate ? new Date(new Date(form.startDate).getTime() - 1000) : null}
+                          rangeStart={form.startDate} 
+                          rangeEnd={form.endDate}
+                          onClear={() => setForm({ ...form, registrationDeadline: "" })}
+                          disabledNotice={!form.startDate ? "Select Start Date first to enable deadline" : undefined}
+                        />
                       </div>
                       
                       {/* Date Validation Warnings */}
