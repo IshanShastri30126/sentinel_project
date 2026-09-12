@@ -82,6 +82,7 @@ export function Sidebar({ isConnected }: SidebarProps) {
                         <Link
                             key={item.href}
                             href={item.href}
+                            aria-label={item.label}
                             className={cn(
                                 "group relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-all duration-200",
                                 isActive
@@ -133,6 +134,7 @@ export function Sidebar({ isConnected }: SidebarProps) {
                         <Link
                             key={item.href}
                             href={item.href}
+                            aria-label={item.label}
                             className={cn(
                                 "group relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-all duration-200",
                                 isActive
@@ -202,6 +204,7 @@ export function Sidebar({ isConnected }: SidebarProps) {
             {/* Toggle Button */}
             <button
                 onClick={() => setExpanded(!expanded)}
+                aria-label={expanded ? "Collapse sidebar" : "Expand sidebar"}
                 className="mx-2 flex items-center justify-center rounded-lg p-2 text-[var(--muted-foreground)] hover:bg-[var(--ctf-green-subtle)] hover:text-[var(--ctf-green)] transition-colors"
             >
                 {expanded ? (

@@ -4,8 +4,8 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Flag, Eye, ChevronDown, AlertCircle, CheckCircle2, Loader2 } from "lucide-react";
-import { Challenge, getChallenge, submitFlag } from "@/lib/api";
+import { Flag, Eye, ChevronDown, AlertCircle, CheckCircle2, Loader2, Key } from "lucide-react";
+import { Challenge, getChallenge, submitFlag, unlockHint } from "@/lib/api";
 import {
     Dialog,
     DialogContent,
@@ -45,6 +45,7 @@ export function ChallengeDetailDialog({
     const [resultMessage, setResultMessage] = useState("");
     const [pointsAwarded, setPointsAwarded] = useState(0);
     const [expandedHints, setExpandedHints] = useState<Set<string>>(new Set());
+    const [unlockingHintId, setUnlockingHintId] = useState<string | null>(null);
 
     // Fetch challenge details when opened
     useEffect(() => {
@@ -104,6 +105,30 @@ export function ChallengeDetailDialog({
             else next.add(hintId);
             return next;
         });
+    };
+
+    const handleUnlockHint = async (hintId: string) => {
+        if (!challengeId) return;
+        setUnlockingHintId(hintId);
+        try {
+            const res = await unlockHint(challengeId, hintId);
+            if (res.success && res.data) {
+                setChallenge((prev) => {
+                    if (!prev || !prev.hints) return prev;
+                    return {
+                        ...prev,
+                        hints: prev.hints.map((h) =>
+                            h.id === hintId
+                                ? { ...h, content: res.data!.content, isUnlocked: true }
+                                : h
+                        ),
+                    };
+                });
+                setExpandedHints((prev) => new Set(prev).add(hintId));
+            }
+        } finally {
+            setUnlockingHintId(null);
+        }
     };
 
     const isSolved = challenge?.userStatus === "SOLVED" || result === "CORRECT";
@@ -218,9 +243,31 @@ export function ChallengeDetailDialog({
                                                     exit={{ height: 0, opacity: 0 }}
                                                     className="overflow-hidden"
                                                 >
-                                                    <p className="px-3 pb-3 text-sm" style={{ color: "#ccc" }}>
-                                                        {hint.content}
-                                                    </p>
+                                                    {hint.content ? (
+                                                        <p className="px-3 pb-3 text-sm" style={{ color: "#ccc" }}>
+                                                            {hint.content}
+                                                        </p>
+                                                    ) : (
+                                                        <div className="px-3 pb-3 flex items-center justify-between gap-2 border-t border-white/5 pt-2">
+                                                            <span className="text-xs text-[#888]">
+                                                                Hint locked ({hint.pointCost} points)
+                                                            </span>
+                                                            <Button
+                                                                size="sm"
+                                                                variant="secondary"
+                                                                onClick={() => handleUnlockHint(hint.id)}
+                                                                disabled={unlockingHintId === hint.id}
+                                                                className="text-xs h-7 px-3 bg-[var(--ctf-amber)]/20 text-[var(--ctf-amber)] hover:bg-[var(--ctf-amber)]/30 border border-[var(--ctf-amber)]/30"
+                                                            >
+                                                                {unlockingHintId === hint.id ? (
+                                                                    <Loader2 className="size-3 animate-spin mr-1" />
+                                                                ) : (
+                                                                    <Key className="size-3 mr-1" />
+                                                                )}
+                                                                Unlock (-{hint.pointCost} pts)
+                                                            </Button>
+                                                        </div>
+                                                    )}
                                                 </motion.div>
                                             )}
                                         </AnimatePresence>

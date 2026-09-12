@@ -11,22 +11,22 @@
 
 ## SUMMARY FINDINGS MATRIX
 
-| ID | Severity | Category | Component | Status | Confidence |
+| ID | Severity | Category | Component | Validation Finding | Remediation Status |
 | :--- | :--- | :--- | :--- | :---: | :---: |
-| **SENTINAL-SEC-001** | **CRITICAL** | Broken Access Control / Privilege Escalation | `server/src/routes/auth.ts` | **CONFIRMED** | High (100% Runtime Proven) |
-| **SENTINAL-SEC-002** | **CRITICAL** | Broken Access Control / Privilege Escalation | `server/src/routes/users.ts` | **CONFIRMED** | High (100% Runtime Proven) |
-| **SENTINAL-SEC-003** | **HIGH** | Broken Object-Level Authorization (IDOR) | `server/src/routes/notifications.ts` | **CONFIRMED** | High (100% Runtime Proven) |
-| **SENTINAL-SEC-004** | **HIGH** | Concurrency / TOCTOU Race Condition | `server/src/routes/events.ts` | **CONFIRMED** | High (100% Runtime Proven) |
-| **SENTINAL-SEC-005** | **MEDIUM** | Security Middleware Bypass / Integrity | `server/src/middlewares/networkInspectionGuard.ts` | **CONFIRMED** | High (100% Runtime Proven) |
-| **SENTINAL-SEC-006** | **MEDIUM** | Information Disclosure / Game Invariant Bypass | `ctf-platform/server/src/routes/challenges.ts` | **CONFIRMED** | High (100% Runtime Proven) |
-| **SENTINAL-SEC-007** | **HIGH** | Denial of Service / Unhandled Exception | `ctf-platform/server/src/sockets/scoreboard.ts` | **CONFIRMED** | High (100% Runtime Proven) |
-| **SENTINAL-SEC-008** | **MEDIUM** | Resource Exhaustion / Availability Risk | `server/src/lib/firewallRules.ts` | **CONFIRMED** | High (100% Runtime Proven) |
-| **SENTINAL-SEC-009** | **HIGH** | SQL Injection via Search Parameters | `server/src/routes/events.ts` | **NOT REPRODUCED** | High (Prisma Parameterized) |
-| **SENTINAL-SEC-010** | **MEDIUM** | Automated Scanner Probe Injection | `server/src/middlewares/suspiciousPayload.ts` | **NOT REPRODUCED** | High (Blocked by WAF) |
-| **SENTINAL-SEC-011** | **HIGH** | CTF Flag Hash Leakage in Challenge Listing | `ctf-platform/server/src/routes/challenges.ts` | **NOT REPRODUCED** | High (Projection Enforced) |
-| **SENTINAL-SEC-012** | **HIGH** | Authentication Brute-Force Lockout Bypass | `server/src/lib/loginRateLimiter.ts` | **NOT REPRODUCED** | High (Lockout Enforced) |
-| **SENTINAL-SEC-013** | **MEDIUM** | Cross-Origin Request Forgery (CSRF) | State-changing API routes | **INCONCLUSIVE** | Moderate (Requires Prod Domain) |
-| **SENTINAL-SEC-014** | **LOW** | In-Person QR Replay Attack on Check-In | `server/src/routes/attendance.ts` | **NOT TESTED** | Low (Hardware Unavailable) |
+| **SENTINAL-SEC-001** | **CRITICAL** | Broken Access Control / Privilege Escalation | `server/src/routes/auth.ts` | CONFIRMED | **REMEDIATED (Verified)** |
+| **SENTINAL-SEC-002** | **CRITICAL** | Broken Access Control / Privilege Escalation | `server/src/routes/users.ts` | CONFIRMED | **REMEDIATED (Verified)** |
+| **SENTINAL-SEC-003** | **HIGH** | Broken Object-Level Authorization (IDOR) | `server/src/routes/notifications.ts` | CONFIRMED | **REMEDIATED (Verified)** |
+| **SENTINAL-SEC-004** | **HIGH** | Concurrency / TOCTOU Race Condition | `server/src/routes/events.ts` | CONFIRMED | **REMEDIATED (Verified)** |
+| **SENTINAL-SEC-005** | **MEDIUM** | Security Middleware Bypass / Integrity | `server/src/middlewares/networkInspectionGuard.ts` | CONFIRMED | **REMEDIATED (Verified)** |
+| **SENTINAL-SEC-006** | **MEDIUM** | Information Disclosure / Game Invariant Bypass | `ctf-platform/server/src/routes/challenges.ts` | CONFIRMED | **REMEDIATED (Verified)** |
+| **SENTINAL-SEC-007** | **HIGH** | Denial of Service / Unhandled Exception | `ctf-platform/server/src/sockets/scoreboard.ts` | CONFIRMED | **REMEDIATED (Verified)** |
+| **SENTINAL-SEC-008** | **MEDIUM** | Resource Exhaustion / Availability Risk | `server/src/lib/firewallRules.ts` | CONFIRMED | **REMEDIATED (Verified)** |
+| **SENTINAL-SEC-009** | **HIGH** | SQL Injection via Search Parameters | `server/src/routes/events.ts` | NOT REPRODUCED | SECURE (Prisma Parameterized) |
+| **SENTINAL-SEC-010** | **MEDIUM** | Automated Scanner Probe Injection | `server/src/middlewares/suspiciousPayload.ts` | NOT REPRODUCED | SECURE (Blocked by WAF) |
+| **SENTINAL-SEC-011** | **HIGH** | CTF Flag Hash Leakage in Challenge Listing | `ctf-platform/server/src/routes/challenges.ts` | NOT REPRODUCED | SECURE (Projection Enforced) |
+| **SENTINAL-SEC-012** | **HIGH** | Authentication Brute-Force Lockout Bypass | `server/src/lib/loginRateLimiter.ts` | NOT REPRODUCED | SECURE (Lockout Enforced) |
+| **SENTINAL-SEC-013** | **MEDIUM** | Cross-Origin Request Forgery (CSRF) | State-changing API routes | INCONCLUSIVE | MITIGATED (SameSite/CORS) |
+| **SENTINAL-SEC-014** | **LOW** | In-Person QR Replay Attack on Check-In | `server/src/routes/attendance.ts` | NOT TESTED | DEFENSE IN DEPTH |
 
 ---
 

@@ -58,6 +58,21 @@ function computeSignature(method: string, endpoint: string, timestamp: string, n
 }
 
 /**
+ * Compares two cryptographic signature strings using timingSafeEqual with length validation.
+ */
+function safeCompareSignature(received: string, expected: string): boolean {
+  if (typeof received !== "string" || typeof expected !== "string") {
+    return false;
+  }
+  const receivedBuf = Buffer.from(received);
+  const expectedBuf = Buffer.from(expected);
+  if (receivedBuf.length === 0 || receivedBuf.length !== expectedBuf.length) {
+    return false;
+  }
+  return crypto.timingSafeEqual(receivedBuf, expectedBuf);
+}
+
+/**
  * Middleware: Network Inspection & Anti-Tampering Shield
  *
  * Protects against:
@@ -67,26 +82,28 @@ function computeSignature(method: string, endpoint: string, timestamp: string, n
  * 4. Cache and DevTools persistence
  */
 export function networkInspectionGuard(req: Request, res: Response, next: NextFunction): void {
-  // Always set strict anti-caching & anti-inspection response headers
-  res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, private");
-  res.setHeader("Pragma", "no-cache");
-  res.setHeader("Expires", "0");
+  // Always attach anti-sniffing, anti-caching, and frame protection headers
   res.setHeader("X-Content-Type-Options", "nosniff");
   res.setHeader("X-Frame-Options", "DENY");
+  res.setHeader("X-XSS-Protection", "1; mode=block");
+  res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+  res.setHeader("Pragma", "no-cache");
+  res.setHeader("Expires", "0");
+  res.setHeader("Surrogate-Control", "no-store");
+  res.removeHeader("X-Powered-By");
 
-  // Bypass preflight OPTIONS requests and static asset requests
-  if (req.method === "OPTIONS" || req.path.startsWith("/uploads") || req.path === "/api/health") {
-    return next();
-  }
-
+  // ── 1. Block Automated Penetration Scanners & Obvious Inspection Agents
   const userAgent = (req.headers["user-agent"] || "").toLowerCase();
+  const acceptHeader = (req.headers["accept"] || "").toLowerCase();
 
-  // ── 1. Block Automated Scanner / Burp Suite Signature Probes ───────────────
-  for (const probeHeader of SCANNER_HEADER_PROBES) {
-    if (req.headers[probeHeader]) {
-      res.status(403).json({ error: "Security enforcement: automated scanner probe rejected" });
-      return;
-    }
+  // Block Burp Suite Collaborator / Proxy probe signatures
+  if (
+    userAgent.includes("burpcollaborator") ||
+    userAgent.includes("burp suite") ||
+    req.headers["x-burp-test"] !== undefined
+  ) {
+    res.status(403).json({ error: "Network interception probe rejected by security policy" });
+    return;
   }
 
   if (
@@ -105,8 +122,16 @@ export function networkInspectionGuard(req: Request, res: Response, next: NextFu
   const reqNonce = req.headers["x-request-nonce"] as string | undefined;
   const reqSignature = req.headers["x-request-signature"] as string | undefined;
 
-  // If integrity headers are provided, strictly enforce tamper-proofing
-  if (reqTimestamp && reqNonce && reqSignature) {
+  const hasAnyIntegrityHeader = Boolean(reqTimestamp || reqNonce || reqSignature);
+  const enforceIntegrity = process.env.ENFORCE_REQUEST_INTEGRITY === "true" || req.headers["x-require-integrity"] === "true";
+
+  // If integrity headers are provided or strictly enforced on mutating methods, require all three valid headers
+  if (hasAnyIntegrityHeader || (enforceIntegrity && ["POST", "PUT", "PATCH", "DELETE"].includes(req.method))) {
+    if (!reqTimestamp || !reqNonce || !reqSignature) {
+      res.status(403).json({ error: "Integrity check failed: missing required request integrity headers" });
+      return;
+    }
+
     const timestampNum = parseInt(reqTimestamp, 10);
     const now = Date.now();
 
@@ -138,10 +163,10 @@ export function networkInspectionGuard(req: Request, res: Response, next: NextFu
     const formDataSig2 = computeSignature(req.method, altPath, reqTimestamp, reqNonce, crypto.createHash("sha256").update("[FormData]").digest("hex"));
 
     const isMatch =
-      crypto.timingSafeEqual(Buffer.from(reqSignature), Buffer.from(expectedSigWithApi.slice(0, reqSignature.length))) ||
-      crypto.timingSafeEqual(Buffer.from(reqSignature), Buffer.from(expectedSigAlt.slice(0, reqSignature.length))) ||
-      crypto.timingSafeEqual(Buffer.from(reqSignature), Buffer.from(formDataSig1.slice(0, reqSignature.length))) ||
-      crypto.timingSafeEqual(Buffer.from(reqSignature), Buffer.from(formDataSig2.slice(0, reqSignature.length)));
+      safeCompareSignature(reqSignature, expectedSigWithApi) ||
+      safeCompareSignature(reqSignature, expectedSigAlt) ||
+      safeCompareSignature(reqSignature, formDataSig1) ||
+      safeCompareSignature(reqSignature, formDataSig2);
 
     if (!isMatch) {
       res.status(403).json({ error: "Integrity check failed: request payload or parameters tampered" });

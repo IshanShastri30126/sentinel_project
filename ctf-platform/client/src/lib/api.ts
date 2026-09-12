@@ -30,9 +30,10 @@ export interface Challenge {
 
 export interface Hint {
     id: string;
-    content: string;
+    content?: string;
     pointCost: number;
     orderIndex: number;
+    isUnlocked?: boolean;
 }
 
 export interface LeaderboardEntry {
@@ -110,6 +111,17 @@ export async function getChallenges(competitionId: string) {
 
 export async function getChallenge(challengeId: string) {
     return fetchAPI<Challenge>(`/challenges/${challengeId}`);
+}
+
+export async function unlockHint(challengeId: string, hintId: string) {
+    return fetchAPI<{
+        hintId: string;
+        content: string;
+        pointCost: number;
+        isUnlocked: boolean;
+    }>(`/challenges/${challengeId}/hints/${hintId}/unlock`, {
+        method: "POST",
+    });
 }
 
 export async function submitFlag(challengeId: string, flag: string) {

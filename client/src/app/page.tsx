@@ -410,9 +410,9 @@ export default function LandingPage() {
                           <Icon className="w-4 h-4" />
                         </div>
                       </div>
-                      <h4 className="font-mono text-sm font-bold tracking-wider text-slate-100 uppercase">
+                      <h3 className="font-mono text-sm font-bold tracking-wider text-slate-100 uppercase">
                         {pillar.title}
-                      </h4>
+                      </h3>
                       <p className="font-mono text-xs text-slate-400 leading-relaxed">
                         {pillar.description}
                       </p>

@@ -28,13 +28,13 @@ const SOCIAL_ICONS: Record<string, React.ReactNode> = {
 function renderSocialIcon(logo: string) {
   if (SOCIAL_ICONS[logo]) return SOCIAL_ICONS[logo];
   const normalized = (logo || "").toLowerCase();
-  if (normalized.includes("insta") || normalized === "\u{1F4F8}") return <Camera className="w-3.5 h-3.5 text-pink-400" />;
-  if (normalized.includes("whats") || normalized === "\u{1F4AC}") return <MessageSquare className="w-3.5 h-3.5 text-emerald-400" />;
-  if (normalized.includes("link") || normalized === "\u{1F4BC}") return <Briefcase className="w-3.5 h-3.5 text-blue-400" />;
-  if (normalized.includes("disc") || normalized === "\u{1F3AE}") return <Gamepad2 className="w-3.5 h-3.5 text-indigo-400" />;
-  if (normalized.includes("you") || normalized === "\u{1F4FA}") return <Video className="w-3.5 h-3.5 text-red-400" />;
-  if (normalized.includes("git") || normalized === "\u{1F4BB}") return <Code2 className="w-3.5 h-3.5 text-white" />;
-  if (normalized.includes("web") || normalized === "\u{1F310}") return <Globe className="w-3.5 h-3.5 text-cyan-400" />;
+  if (normalized.includes("insta")) return <Camera className="w-3.5 h-3.5 text-pink-400" />;
+  if (normalized.includes("whats")) return <MessageSquare className="w-3.5 h-3.5 text-emerald-400" />;
+  if (normalized.includes("link")) return <Briefcase className="w-3.5 h-3.5 text-blue-400" />;
+  if (normalized.includes("disc")) return <Gamepad2 className="w-3.5 h-3.5 text-indigo-400" />;
+  if (normalized.includes("you")) return <Video className="w-3.5 h-3.5 text-red-400" />;
+  if (normalized.includes("git")) return <Code2 className="w-3.5 h-3.5 text-white" />;
+  if (normalized.includes("web")) return <Globe className="w-3.5 h-3.5 text-cyan-400" />;
   return <Link2 className="w-3.5 h-3.5 text-[var(--ck-primary)]" />;
 }
 

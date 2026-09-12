@@ -44,6 +44,7 @@
     },
     {
       "id": "REL-001",
+      "status": "RESOLVED",
       "severity": "P0_CRITICAL",
       "domain": "Backend Reliability & WebSocket Infrastructure",
       "title": "Unhandled Redis Promise Rejection Terminating CTF Backend Process on User Interaction",
@@ -64,6 +65,7 @@
     },
     {
       "id": "UI-001",
+      "status": "RESOLVED",
       "severity": "P1_HIGH",
       "domain": "Responsive Design & Viewport Layout",
       "title": "Horizontal Viewport Overflow on Mobile Displays Below 345px Width",
@@ -82,6 +84,7 @@
     },
     {
       "id": "FUNC-001",
+      "status": "RESOLVED",
       "severity": "P2_MEDIUM",
       "domain": "CTF Functional Workflow & State Feedback",
       "title": "Misleading Empty State on Challenge Board for Unregistered Users",
@@ -99,6 +102,7 @@
     },
     {
       "id": "API-001",
+      "status": "RESOLVED",
       "severity": "P2_MEDIUM",
       "domain": "API Standards & Protocol Compliance",
       "title": "HTTP Status 429 Misused for Incorrect CTF Flag Guesses",
@@ -116,6 +120,7 @@
     },
     {
       "id": "A11Y-001",
+      "status": "RESOLVED",
       "severity": "P2_MEDIUM",
       "domain": "Accessibility & WCAG 2.1 AA Compliance",
       "title": "Missing ARIA Labels on Interactive Icon Buttons",
@@ -136,6 +141,7 @@
     },
     {
       "id": "A11Y-002",
+      "status": "RESOLVED",
       "severity": "P2_MEDIUM",
       "domain": "Accessibility & Semantic Structure",
       "title": "Heading Hierarchy Level Skipping on Landing Page",
@@ -153,6 +159,7 @@
     },
     {
       "id": "DEV-001",
+      "status": "RESOLVED",
       "severity": "P3_LOW",
       "domain": "Code Standards & Policy Compliance",
       "title": "Hardcoded Unicode Emoji Literals in Event Match Routing Logic",
