@@ -526,8 +526,8 @@ export default function EventsPage() {
     setForm({ ...form, tags: updatedTags });
   };
 
-  const handleCreate = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleCreate = async (e?: React.FormEvent | React.MouseEvent) => {
+    if (e) e.preventDefault();
     // Strict safeguard: Event creation/editing can ONLY be submitted on Step 4 (Details & Media)
     if (step !== 4) {
       return;
@@ -774,6 +774,22 @@ export default function EventsPage() {
       }
       return true;
     }
+    if (stepNum === 4) {
+      // 1. Poster required (file uploaded, existing preview, or saved URL)
+      const hasPoster = Boolean(posterFile || posterPreview || form.posterUrl);
+      if (!hasPoster) return false;
+      // 2. Rules required (minimum 10 non-whitespace characters)
+      if (!form.rules || form.rules.trim().length < 10) return false;
+      // 3. At least one Student Coordinator required in organizing team
+      const hasStudentCoord = organizersList.some(o => 
+        o.role.toLowerCase().includes("student coordinator") || 
+        o.role.toLowerCase().includes("student") ||
+        o.role.toLowerCase().includes("lead") ||
+        o.role.toLowerCase().includes("technical")
+      );
+      if (!hasStudentCoord) return false;
+      return true;
+    }
     return true;
   };
 
@@ -839,6 +855,27 @@ export default function EventsPage() {
     }
     if (form.minTeamSize && form.maxTeamSize && parseInt(form.minTeamSize) > parseInt(form.maxTeamSize)) {
       warnings.push("Min team size cannot exceed max team size.");
+    }
+    return warnings;
+  };
+
+  const getStep4Warnings = () => {
+    const warnings: string[] = [];
+    const hasPoster = Boolean(posterFile || posterPreview || form.posterUrl);
+    if (!hasPoster) {
+      warnings.push("Event Poster is required (upload an image file).");
+    }
+    if (!form.rules || form.rules.trim().length < 10) {
+      warnings.push("Rules & Guidelines must be provided (minimum 10 characters).");
+    }
+    const hasStudentCoord = organizersList.some(o => 
+      o.role.toLowerCase().includes("student coordinator") || 
+      o.role.toLowerCase().includes("student") ||
+      o.role.toLowerCase().includes("lead") ||
+      o.role.toLowerCase().includes("technical")
+    );
+    if (!hasStudentCoord) {
+      warnings.push("At least one Student Coordinator must be added to Organizing Team.");
     }
     return warnings;
   };
@@ -967,9 +1004,7 @@ export default function EventsPage() {
               <form 
                 onSubmit={(e) => { 
                   e.preventDefault(); 
-                  if (step === 4) {
-                    handleCreate(e); 
-                  }
+                  // Form submit event is strictly prevented; submission requires deliberate click on Step 4 button
                 }} 
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && (e.target as HTMLElement).tagName !== "TEXTAREA") {
@@ -1258,9 +1293,31 @@ export default function EventsPage() {
                       transition={{ duration: 0.2, ease: "easeInOut" }}
                       className="space-y-4"
                     >
+                      {/* Step 4 Requirements Gate Alert */}
+                      {getStep4Warnings().length > 0 ? (
+                        <div className="p-3.5 rounded-lg bg-[var(--ck-danger)]/10 border border-[var(--ck-danger)]/30 text-[var(--ck-danger)] space-y-1.5">
+                          <div className="flex items-center gap-2 font-mono font-bold text-xs">
+                            <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+                            <span className="uppercase tracking-wider">Step 4 Requirements Incomplete — Mandatory Details Required:</span>
+                          </div>
+                          <ul className="list-disc list-inside space-y-0.5 text-xs font-mono pl-1">
+                            {getStep4Warnings().map((warn, i) => (
+                              <li key={i}>{warn}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      ) : (
+                        <div className="p-3 rounded-lg bg-[var(--ck-primary)]/10 border border-[var(--ck-primary)]/30 flex items-center gap-2">
+                          <CheckCircle2 className="w-4 h-4 text-[var(--ck-primary)] flex-shrink-0" />
+                          <span className="text-xs font-mono font-bold text-[var(--ck-primary)] uppercase tracking-wider">
+                            Step 4 Verified: Event Poster, Rules, and Student Coordinator confirmed. Ready to create event!
+                          </span>
+                        </div>
+                      )}
+
                       <div>
                         <div className="flex justify-between items-center mb-1">
-                          <label className="ck-label mb-0">Rules & Guidelines</label>
+                          <label className="ck-label mb-0">Rules & Guidelines * <span className="text-[10px] text-[var(--ck-text-muted)] font-mono">(Min 10 characters)</span></label>
                           <span className="text-[10px] text-[var(--ck-text-muted)] font-mono">{form.rules.length} / 10000000 chars</span>
                         </div>
                         <textarea className="ck-input" rows={4} maxLength={10000000} value={form.rules} onChange={(e) => setForm({ ...form, rules: e.target.value })} placeholder="1. All participants must register before the deadline&#10;2. Team leader must be present at check-in&#10;3. ..." />
@@ -1268,7 +1325,7 @@ export default function EventsPage() {
                       
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                          <label className="ck-label">Event Poster</label>
+                          <label className="ck-label">Event Poster * <span className="text-[10px] text-[var(--ck-text-muted)] font-mono">(Upload Image)</span></label>
                           <div 
                             onDragOver={handlePosterDragOver}
                             onDragLeave={handlePosterDragLeave}
@@ -1674,7 +1731,21 @@ export default function EventsPage() {
                         Next <ChevronRight className="w-3.5 h-3.5" />
                       </button>
                     ) : (
-                      <button type="submit" disabled={creating || !canGoNext()} className="ck-btn-primary py-2 px-5 text-xs">
+                      <button 
+                        type="button" 
+                        onClick={(e) => {
+                          e.preventDefault();
+                          if (canGoNext() && !creating) {
+                            handleCreate(e);
+                          }
+                        }} 
+                        disabled={creating || !canGoNext()} 
+                        className={`py-2 px-5 text-xs font-mono font-bold uppercase tracking-wider rounded-lg transition-all duration-200 ${
+                          !canGoNext() || creating
+                            ? "bg-zinc-800/60 border border-zinc-750 text-zinc-500 cursor-not-allowed opacity-50"
+                            : "ck-btn-primary shadow-[0_0_15px_rgba(0,245,212,0.3)] cursor-pointer"
+                        }`}
+                      >
                         {creating ? "Saving..." : (editingEventId ? "Save Changes" : "Create Event (Draft)")}
                       </button>
                     )}
