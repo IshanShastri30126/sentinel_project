@@ -17,7 +17,7 @@ interface Certificate { id: string; uniqueCode: string; recipientName: string; r
 interface ImportedRecipient { row?: number; name: string; email?: string; valid: boolean; errors: string[]; }
 
 export default function CertificatesPage() {
-  const { token } = useAuth();
+  const { token, user } = useAuth();
   const { confirmModal } = useCyberDialog();
   const router = useRouter();
   const [templates, setTemplates] = useState<Template[]>([]);
@@ -81,14 +81,14 @@ export default function CertificatesPage() {
     const load = async () => {
       try {
         const [t, e] = await Promise.all([
-          api<{ templates: Template[] }>("/certificates/templates", { token }),
-          api<{ events: { id: string; title: string }[] }>("/events/all", { token }),
+          api<{ templates: Template[] }>("/certificates/templates", { token: token || undefined }),
+          api<{ events: { id: string; title: string }[] }>("/events/all", { token: token || undefined }),
         ]);
         setTemplates(t.templates); setEvents(e.events);
       } catch (err) { console.warn("Certificates template notice:", err); }
     };
     load();
-  }, [token]);
+  }, [token, user]);
 
   const loadCerts = useCallback(async (eventId: string) => {
     try {

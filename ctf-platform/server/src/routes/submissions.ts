@@ -200,9 +200,13 @@ router.post(
           },
         });
 
-        res.status(429).json({
-          success: false,
+        // API-001 FIX: Return HTTP 200 with result: "INCORRECT" instead of RFC 6585 misuse HTTP 429
+        res.status(200).json({
+          success: true,
           message: "Incorrect flag. Try again.",
+          data: {
+            result: "INCORRECT",
+          },
         });
         return;
       }
@@ -388,6 +392,7 @@ router.post(
         success: true,
         message: "Correct flag! Points awarded.",
         data: {
+          result: "CORRECT",
           pointsAwarded,
           newTotalScore: participant.totalScore + pointsAwarded,
           solveNumber: newSolveCount,

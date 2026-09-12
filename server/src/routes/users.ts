@@ -1,6 +1,6 @@
 import { Router, Request, Response } from "express";
 import prisma from "../lib/prisma";
-import { authenticate, requireRole, requireMinRole } from "../middlewares/auth";
+import { authenticate, requireRole, requireMinRole, ROLE_HIERARCHY } from "../middlewares/auth";
 import { auditLog } from "../middlewares/auditLog";
 import { sendNotification } from "../lib/notificationService";
 import { sendAccountApprovedEmail, sendRoleUpdatedEmail } from "../lib/emailService";
@@ -243,8 +243,11 @@ router.delete("/:id", authenticate, requireMinRole("STUDENT_COORDINATOR"), audit
   }
 });
 
-// PATCH /api/users/:id/role — Update user role (Faculty, Tech Team, Dev Team, SC)
-router.patch("/:id/role", authenticate, requireRole("DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "TECH_TEAM", "STUDENT_COORDINATOR"), auditLog("USER_ROLE_UPDATED"), async (req: Request, res: Response) => {
+// PATCH /api/users/:id/role — Update user role (Dev Team, Faculty only)
+// SEC-002 FIX: Restricted to DEVELOPMENT_TEAM and FACULTY_COORDINATOR exclusively.
+// STUDENT_COORDINATOR and TECH_TEAM are not authorized to assign roles — removing them
+// eliminates the vertical privilege escalation vector confirmed in SENTINAL-SEC-002.
+router.patch("/:id/role", authenticate, requireRole("DEVELOPMENT_TEAM", "FACULTY_COORDINATOR"), auditLog("USER_ROLE_UPDATED"), async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     let { role } = req.body;
@@ -256,6 +259,25 @@ router.patch("/:id/role", authenticate, requireRole("DEVELOPMENT_TEAM", "FACULTY
     const validRoles: Role[] = ["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_TEAM", "MEMBER", "GUEST"];
     if (!validRoles.includes(role)) {
       res.status(400).json({ error: "Invalid role" });
+      return;
+    }
+
+    // SEC-002 FIX: Block self-promotion — a user must never alter their own role.
+    if (id === req.user!.userId) {
+      res.status(400).json({ error: "Cannot modify your own role" });
+      return;
+    }
+
+    // SEC-002 FIX: Hierarchy guard — FACULTY_COORDINATOR cannot grant DEVELOPMENT_TEAM
+    // or FACULTY_COORDINATOR roles; only DEVELOPMENT_TEAM can assign tier-1 roles.
+    // The role hierarchy defines tier 1 (level 1) as the highest authority level.
+    // A caller may only grant roles at a strictly lower authority level than their own,
+    // unless the caller is DEVELOPMENT_TEAM (level 1) who may grant any valid role.
+    const callerLevel = ROLE_HIERARCHY[req.user!.role];
+    const targetRoleLevel = ROLE_HIERARCHY[role as Role];
+
+    if (req.user!.role !== "DEVELOPMENT_TEAM" && targetRoleLevel <= callerLevel) {
+      res.status(403).json({ error: "Insufficient permissions to assign this role" });
       return;
     }
 

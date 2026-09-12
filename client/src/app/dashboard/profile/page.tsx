@@ -60,7 +60,7 @@ export default function ProfilePage() {
 
     const load = async () => {
       try {
-        const data = await api<any>(`/appreciation/user/${user.id}/history`, { token });
+        const data = await api<any>(`/appreciation/user/${user.id}/history`, { token: token || undefined });
         setHistory(data);
       } catch (err) {
         console.warn("Profile history notice:", err);

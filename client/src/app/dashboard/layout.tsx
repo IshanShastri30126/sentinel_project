@@ -165,7 +165,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     
     const fetchNotifications = async () => {
       try {
-        const data = await api<{ notifications: Notification[] }>("/notifications", { token });
+        const data = await api<{ notifications: Notification[] }>("/notifications", { token: token || undefined });
         const unread = data.notifications.filter((n) => !n.isRead);
         setUnreadNotifications(unread);
         setUnreadCount(unread.length);
@@ -186,7 +186,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     // Set up polling interval to get new ones
     const interval = setInterval(async () => {
       try {
-        const data = await api<{ notifications: Notification[] }>("/notifications", { token });
+        const data = await api<{ notifications: Notification[] }>("/notifications", { token: token || undefined });
         const unread = data.notifications.filter((n) => !n.isRead);
         setUnreadNotifications((prev) => {
           // If there are new unread notifications that were not in prev, trigger active toast!

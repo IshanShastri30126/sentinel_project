@@ -620,92 +620,130 @@ router.post("/:id/register", eventRegistrationLimiter, authenticate, auditLog("E
         data: userUpdateData
       });
     }
-    const event = await prisma.event.findUnique({ where: { id: eventId }, include: { _count: { select: { registrations: true } } } });
-    if (!event || !event.isPublished) { res.status(404).json({ error: "Event not found or not published" }); return; }
-    if (event.registrationDeadline && new Date() > event.registrationDeadline) { res.status(400).json({ error: "Registration deadline has passed" }); return; }
-    if (event.maxCapacity && event._count.registrations >= event.maxCapacity) { res.status(400).json({ error: "Event is at full capacity" }); return; }
-    const existing = await prisma.eventRegistration.findUnique({ where: { userId_eventId: { userId, eventId } } });
-    if (existing) { res.status(409).json({ error: "Already registered" }); return; }
-    
-    let teamId = null;
-    let generatedTeamCode = null;
-    if (teamName && event.maxTeamSize && event.maxTeamSize > 1) {
-      // Create team
-      const seg = Math.random().toString(36).substring(2, 8).toUpperCase();
-      const teamCode = `CK-T-${seg}`;
-      const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-      let joinCode = "CTF-";
-      for (let i = 0; i < 6; i++) {
-        joinCode += chars.charAt(Math.floor(Math.random() * chars.length));
-      }
-      const newTeam = await prisma.team.create({
-        data: { name: teamName, teamCode, joinCode, eventId, leaderId: userId }
+    // SEC-004 FIX: Execute capacity check and registration atomically inside an
+    // interactive transaction with PostgreSQL row-level locking (SELECT ... FOR UPDATE)
+    // to eliminate the TOCTOU concurrency race condition.
+    const txResult = await prisma.$transaction(async (tx) => {
+      // 1. Acquire exclusive row lock on event to serialize concurrent registrations
+      await tx.$queryRaw`SELECT id FROM events WHERE id = ${eventId} FOR UPDATE`;
+
+      const event = await tx.event.findUnique({
+        where: { id: eventId },
+        include: { _count: { select: { registrations: true } } }
       });
-      teamId = newTeam.id;
-      generatedTeamCode = teamCode;
-      // Add creator as member 1
-      await prisma.teamMember.create({ data: { teamId, userId, memberCode: `${teamCode}_1` } });
-      
-      // If team members are provided by email, validate ALL exist as registered+approved+active users
-      if (teamMembers && Array.isArray(teamMembers) && teamMembers.length > 0) {
-        // First validate ALL emails before adding any
-        const memberUsers = await Promise.all(
-          teamMembers.map(async (email: string) => {
-            const memberUser = await prisma.user.findUnique({ 
-              where: { email: email.trim() },
-              select: { id: true, name: true, email: true, isApproved: true, isActive: true }
+
+      if (!event || !event.isPublished) {
+        throw { status: 404, message: "Event not found or not published" };
+      }
+      if (event.registrationDeadline && new Date() > event.registrationDeadline) {
+        throw { status: 400, message: "Registration deadline has passed" };
+      }
+      if (event.maxCapacity && event._count.registrations >= event.maxCapacity) {
+        throw { status: 400, message: "Event is at full capacity" };
+      }
+
+      const existing = await tx.eventRegistration.findUnique({
+        where: { userId_eventId: { userId, eventId } }
+      });
+      if (existing) {
+        throw { status: 409, message: "Already registered" };
+      }
+
+      let teamId = null;
+      let generatedTeamCode = null;
+      const teammatesToEmail: Array<{ name: string; email: string }> = [];
+
+      if (teamName && event.maxTeamSize && event.maxTeamSize > 1) {
+        // Create team
+        const seg = Math.random().toString(36).substring(2, 8).toUpperCase();
+        const teamCode = `CK-T-${seg}`;
+        const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+        let joinCode = "CTF-";
+        for (let i = 0; i < 6; i++) {
+          joinCode += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        const newTeam = await tx.team.create({
+          data: { name: teamName, teamCode, joinCode, eventId, leaderId: userId }
+        });
+        teamId = newTeam.id;
+        generatedTeamCode = teamCode;
+
+        // Add creator as member 1
+        await tx.teamMember.create({ data: { teamId, userId, memberCode: `${teamCode}_1` } });
+
+        // If team members are provided by email, validate ALL exist as registered+approved+active users
+        if (teamMembers && Array.isArray(teamMembers) && teamMembers.length > 0) {
+          const memberUsers = await Promise.all(
+            teamMembers.map(async (email: string) => {
+              const memberUser = await tx.user.findUnique({
+                where: { email: email.trim() },
+                select: { id: true, name: true, email: true, isApproved: true, isActive: true }
+              });
+              return { email: email.trim(), user: memberUser };
+            })
+          );
+
+          const unregistered = memberUsers.filter(m => !m.user);
+          if (unregistered.length > 0) {
+            throw {
+              status: 400,
+              message: `The following emails are not registered in the system: ${unregistered.map(m => m.email).join(", ")}. All team members must be registered users.`
+            };
+          }
+
+          const unapproved = memberUsers.filter(m => m.user && !m.user.isApproved);
+          if (unapproved.length > 0) {
+            throw {
+              status: 400,
+              message: `The following members are not yet approved: ${unapproved.map(m => m.user!.name || m.email).join(", ")}. All team members must have approved accounts.`
+            };
+          }
+
+          const inactive = memberUsers.filter(m => m.user && !m.user.isActive);
+          if (inactive.length > 0) {
+            throw {
+              status: 400,
+              message: `The following members have inactive accounts: ${inactive.map(m => m.user!.name || m.email).join(", ")}. All team members must have active accounts.`
+            };
+          }
+
+          // Check capacity constraint when adding teammates
+          const additionalCount = memberUsers.length;
+          if (event.maxCapacity && (event._count.registrations + 1 + additionalCount > event.maxCapacity)) {
+            throw { status: 400, message: "Event is at full capacity" };
+          }
+
+          for (const { user: memberUser } of memberUsers) {
+            if (!memberUser) continue;
+            const existingReg = await tx.eventRegistration.findUnique({
+              where: { userId_eventId: { userId: memberUser.id, eventId } }
             });
-            return { email: email.trim(), user: memberUser };
-          })
-        );
-
-        // Check for unregistered emails
-        const unregistered = memberUsers.filter(m => !m.user);
-        if (unregistered.length > 0) {
-          res.status(400).json({ 
-            error: `The following emails are not registered in the system: ${unregistered.map(m => m.email).join(", ")}. All team members must be registered users.` 
-          }); 
-          return;
-        }
-
-        // Check for unapproved users
-        const unapproved = memberUsers.filter(m => m.user && !m.user.isApproved);
-        if (unapproved.length > 0) {
-          res.status(400).json({ 
-            error: `The following members are not yet approved: ${unapproved.map(m => m.user!.name || m.email).join(", ")}. All team members must have approved accounts.` 
-          }); 
-          return;
-        }
-
-        // Check for inactive users
-        const inactive = memberUsers.filter(m => m.user && !m.user.isActive);
-        if (inactive.length > 0) {
-          res.status(400).json({ 
-            error: `The following members have inactive accounts: ${inactive.map(m => m.user!.name || m.email).join(", ")}. All team members must have active accounts.` 
-          }); 
-          return;
-        }
-
-        // All validated — now add them
-        for (const { user: memberUser } of memberUsers) {
-          if (!memberUser) continue;
-          const existingReg = await prisma.eventRegistration.findUnique({ where: { userId_eventId: { userId: memberUser.id, eventId } } });
-          if (!existingReg) {
-            const currentCount = await prisma.teamMember.count({ where: { teamId } });
-            const memberCode = `${teamCode}_${currentCount + 1}`;
-            await prisma.teamMember.create({ data: { teamId, userId: memberUser.id, memberCode } });
-            await prisma.eventRegistration.create({ data: { userId: memberUser.id, eventId, teamId } });
-            sendEventRegistrationEmail({ name: memberUser.name, email: memberUser.email }, {
-              title: event.title,
-              startDate: event.startDate,
-              venue: event.venue
-            }).catch(err => console.error("[Events] Teammate email failed:", err));
+            if (!existingReg) {
+              const currentCount = await tx.teamMember.count({ where: { teamId } });
+              const memberCode = `${teamCode}_${currentCount + 1}`;
+              await tx.teamMember.create({ data: { teamId, userId: memberUser.id, memberCode } });
+              await tx.eventRegistration.create({ data: { userId: memberUser.id, eventId, teamId } });
+              teammatesToEmail.push({ name: memberUser.name, email: memberUser.email });
+            }
           }
         }
       }
+
+      const reg = await tx.eventRegistration.create({ data: { userId, eventId, teamId } });
+
+      return { reg, generatedTeamCode, event, teammatesToEmail };
+    });
+
+    const { reg, generatedTeamCode, event, teammatesToEmail } = txResult;
+
+    // Dispatch emails outside the transaction to minimize database lock hold time
+    for (const teammate of teammatesToEmail) {
+      sendEventRegistrationEmail(teammate, {
+        title: event.title,
+        startDate: event.startDate,
+        venue: event.venue
+      }).catch(err => console.error("[Events] Teammate email failed:", err));
     }
-    
-    const reg = await prisma.eventRegistration.create({ data: { userId, eventId, teamId } });
 
     const userObj = await prisma.user.findUnique({
       where: { id: userId },
@@ -721,7 +759,14 @@ router.post("/:id/register", eventRegistrationLimiter, authenticate, auditLog("E
 
     await clearEventsCache();
     res.status(201).json({ registration: reg, teamCode: generatedTeamCode });
-  } catch (err) { console.error("[Events] Register error:", err); res.status(500).json({ error: "Internal server error" }); }
+  } catch (err: any) {
+    if (err.status && err.message) {
+      res.status(err.status).json({ error: err.message });
+      return;
+    }
+    console.error("[Events] Register error:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
 });
 
 // GET /api/events/:id/registrations — List registrations with search (paginated)

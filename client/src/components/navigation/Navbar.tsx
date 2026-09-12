@@ -48,7 +48,7 @@ export function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-white/[0.08] bg-[#030712]/80 backdrop-blur-xl">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 h-16 flex items-center justify-between">
         {/* Brand Logo */}
         <Link href="/" className="flex items-center gap-3">
           <SentinalLogo animateDrawing={false} />
@@ -109,16 +109,16 @@ export function Navbar() {
           )}
         </div>
 
-        {/* Mobile Menu Toggle */}
-        <div className="flex sm:hidden items-center gap-2">
+        {/* Mobile Menu Toggle — UI-001 FIX: compact layout below 380px to prevent 320px overflow */}
+        <div className="flex sm:hidden items-center gap-1.5">
           {user ? (
-            <Link href="/dashboard">
+            <Link href="/dashboard" className="hidden min-[380px]:block">
               <CyberButton variant="primary" size="sm">
                 PORTAL
               </CyberButton>
             </Link>
           ) : (
-            <Link href="/auth">
+            <Link href="/auth" className="hidden min-[380px]:block">
               <CyberButton variant="secondary" size="sm">
                 SIGN IN
               </CyberButton>

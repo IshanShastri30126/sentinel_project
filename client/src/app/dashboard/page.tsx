@@ -273,15 +273,15 @@ const DEFAULT_OPS_DATA: OpsData = {
       try {
         if (["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "TECH_TEAM", "STUDENT_COORDINATOR", "FACULTY", "TECH"].includes(user.role)) {
           const [clubRes, opsRes, usersRes] = await Promise.all([
-            api<ClubAnalytics>("/analytics/club", { token }).catch((err) => {
+            api<ClubAnalytics>("/analytics/club", { token: token || undefined }).catch((err) => {
               console.warn("Club analytics notice:", err);
               return null;
             }),
-            api<OpsData>("/analytics/operations", { token }).catch((err) => {
+            api<OpsData>("/analytics/operations", { token: token || undefined }).catch((err) => {
               console.warn("Ops analytics notice:", err);
               return null;
             }),
-            api<{ users: any[] }>("/users?approved=true", { token }).catch((err) => {
+            api<{ users: any[] }>("/users?approved=true", { token: token || undefined }).catch((err) => {
               console.warn("Users fetch notice:", err);
               return null;
             })
@@ -304,15 +304,15 @@ const DEFAULT_OPS_DATA: OpsData = {
         } else {
           // Fetch personal stats for regular member
           const [historyRes, eventsRes, regRes] = await Promise.all([
-            api<MemberHistory>(`/appreciation/user/${user.id}/history`, { token }).catch((err) => {
+            api<MemberHistory>(`/appreciation/user/${user.id}/history`, { token: token || undefined }).catch((err) => {
               console.warn("Appreciation history notice:", err);
               return null;
             }),
-            api<{ events: PublicEvent[] }>("/events", { token }).catch((err) => {
+            api<{ events: PublicEvent[] }>("/events", { token: token || undefined }).catch((err) => {
               console.warn("Events list notice:", err);
               return null;
             }),
-            api<{ events: PublicEvent[] }>("/events/registered", { token }).catch((err) => {
+            api<{ events: PublicEvent[] }>("/events/registered", { token: token || undefined }).catch((err) => {
               console.warn("Registered events list notice:", err);
               return null;
             })

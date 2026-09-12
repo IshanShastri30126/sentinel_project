@@ -27,9 +27,10 @@ export function setupScoreboardSockets(ctfNamespace: Namespace) {
       console.log(`[Socket.io] Client ${socket.id} left ${room}`);
     });
 
+    // In-memory fallback presence tracking for when Redis is unavailable (SEC-007 / REL-001)
+    const memoryPresence = new Map<string, Set<string>>();
+
     // ── Live Presence (Challenge Viewers) ────────────────────────
-    // When a user opens a challenge modal, they emit this event.
-    // We store it in Redis and broadcast the count.
     socket.on("viewChallenge", async (challengeId: string) => {
       if (!challengeId) return;
       
@@ -38,13 +39,32 @@ export function setupScoreboardSockets(ctfNamespace: Namespace) {
       
       socket.join(room);
       
-      // Add socket ID to a Redis Set to track active viewers
-      await redis.sadd(presenceKey, socket.id);
-      // Give it a 5-minute TTL so it automatically cleans up if the server crashes
-      await redis.expire(presenceKey, 300); 
+      let viewers = 0;
+      if (redis && redis.status === "ready") {
+        try {
+          await redis.sadd(presenceKey, socket.id);
+          await redis.expire(presenceKey, 300);
+          viewers = await redis.scard(presenceKey);
+        } catch (err) {
+          console.warn("[WS] Redis presence update error:", err);
+          let set = memoryPresence.get(challengeId);
+          if (!set) {
+            set = new Set<string>();
+            memoryPresence.set(challengeId, set);
+          }
+          set.add(socket.id);
+          viewers = set.size;
+        }
+      } else {
+        let set = memoryPresence.get(challengeId);
+        if (!set) {
+          set = new Set<string>();
+          memoryPresence.set(challengeId, set);
+        }
+        set.add(socket.id);
+        viewers = set.size;
+      }
 
-      // Broadcast current viewer count to everyone viewing this challenge
-      const viewers = await redis.scard(presenceKey);
       ctfNamespace.to(room).emit("presenceUpdate", { challengeId, viewers });
     });
 
@@ -57,20 +77,40 @@ export function setupScoreboardSockets(ctfNamespace: Namespace) {
       
       socket.leave(room);
       
-      await redis.srem(presenceKey, socket.id);
+      let viewers = 0;
+      if (redis && redis.status === "ready") {
+        try {
+          await redis.srem(presenceKey, socket.id);
+          viewers = await redis.scard(presenceKey);
+        } catch (err) {
+          console.warn("[WS] Redis presence leave error:", err);
+          const set = memoryPresence.get(challengeId);
+          if (set) {
+            set.delete(socket.id);
+            viewers = set.size;
+          }
+        }
+      } else {
+        const set = memoryPresence.get(challengeId);
+        if (set) {
+          set.delete(socket.id);
+          viewers = set.size;
+        }
+      }
       
-      const viewers = await redis.scard(presenceKey);
       ctfNamespace.to(room).emit("presenceUpdate", { challengeId, viewers });
     });
 
     // ── Handle Disconnects ───────────────────────────────────────
     socket.on("disconnect", async () => {
       console.log(`[WS] [Socket.io] Client disconnected: ${socket.id}`);
-      // Note: Socket.io automatically removes the socket from all rooms.
-      // Cleaning up Redis presence for every challenge they might be viewing
-      // would require tracking their viewed challenges in memory or Redis.
-      // For now, the 5-minute TTL on the presence key serves as a fallback,
-      // and active users will emit 'viewChallenge' again if they are still there.
+      // Clean up in-memory presence sets on disconnect
+      for (const [chId, set] of memoryPresence.entries()) {
+        if (set.has(socket.id)) {
+          set.delete(socket.id);
+          ctfNamespace.to(`challenge:${chId}`).emit("presenceUpdate", { challengeId: chId, viewers: set.size });
+        }
+      }
     });
   });
 }

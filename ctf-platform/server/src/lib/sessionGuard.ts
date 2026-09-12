@@ -88,6 +88,10 @@ export function computeFingerprint(req: Request): string {
   return createHash("sha256").update(raw).digest("hex").substring(0, 32);
 }
 
+// In-memory fallback maps when Redis is unavailable (SEC-007)
+const memoryFingerprints = new Map<string, string>();
+const memoryActivities = new Map<string, number>();
+
 /**
  * Store the device fingerprint when a user first authenticates.
  * Called from the auth middleware on the FIRST successful request.
@@ -102,8 +106,15 @@ export async function storeFingerprint(
   fingerprint: string
 ): Promise<void> {
   const key = `${FINGERPRINT_PREFIX}${userId}:${jti}`;
-  // Store with same TTL as the JWT (we'll set 24h as max safety net)
-  await redis.set(key, fingerprint, "EX", 24 * 60 * 60);
+  if (redis && redis.status === "ready") {
+    try {
+      await redis.set(key, fingerprint, "EX", 24 * 60 * 60);
+      return;
+    } catch {
+      // Fall back to memory
+    }
+  }
+  memoryFingerprints.set(key, fingerprint);
 }
 
 /**
@@ -117,7 +128,17 @@ export async function validateFingerprint(
   currentFingerprint: string
 ): Promise<boolean> {
   const key = `${FINGERPRINT_PREFIX}${userId}:${jti}`;
-  const storedFingerprint = await redis.get(key);
+  let storedFingerprint: string | null | undefined = null;
+
+  if (redis && redis.status === "ready") {
+    try {
+      storedFingerprint = await redis.get(key);
+    } catch {
+      storedFingerprint = memoryFingerprints.get(key);
+    }
+  } else {
+    storedFingerprint = memoryFingerprints.get(key);
+  }
 
   if (!storedFingerprint) {
     // First request with this token — store the fingerprint
@@ -154,7 +175,16 @@ export async function updateLastActivity(
   jti: string
 ): Promise<void> {
   const key = `${SESSION_ACTIVITY_PREFIX}${userId}:${jti}`;
-  await redis.set(key, Date.now().toString(), "EX", INACTIVITY_TIMEOUT_SECONDS);
+  const now = Date.now();
+  if (redis && redis.status === "ready") {
+    try {
+      await redis.set(key, now.toString(), "EX", INACTIVITY_TIMEOUT_SECONDS);
+      return;
+    } catch {
+      // Fall back to memory
+    }
+  }
+  memoryActivities.set(key, now);
 }
 
 /**
@@ -167,7 +197,19 @@ export async function isSessionActive(
   jti: string
 ): Promise<boolean> {
   const key = `${SESSION_ACTIVITY_PREFIX}${userId}:${jti}`;
-  const lastActivity = await redis.get(key);
+  let lastActivity: string | null | undefined = null;
+
+  if (redis && redis.status === "ready") {
+    try {
+      lastActivity = await redis.get(key);
+    } catch {
+      const mem = memoryActivities.get(key);
+      lastActivity = mem ? mem.toString() : null;
+    }
+  } else {
+    const mem = memoryActivities.get(key);
+    lastActivity = mem ? mem.toString() : null;
+  }
 
   if (!lastActivity) {
     // No activity record exists — this is either the first request

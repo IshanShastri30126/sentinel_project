@@ -233,21 +233,21 @@ export default function AnalyticsPage() {
         );
         if (isCoordinator) {
           const [data, top3, analysis, activity] = await Promise.all([
-            api<ClubData>("/analytics/club", { token }),
-            api<Top3Data>("/analytics/top3", { token }),
-            api<EventAnalysisItem[]>("/analytics/events-analysis", { token }),
-            api<CoordinatorActivityItem[]>("/analytics/coordinator-activity", { token }),
+            api<ClubData>("/analytics/club", { token: token || undefined }),
+            api<Top3Data>("/analytics/top3", { token: token || undefined }),
+            api<EventAnalysisItem[]>("/analytics/events-analysis", { token: token || undefined }),
+            api<CoordinatorActivityItem[]>("/analytics/coordinator-activity", { token: token || undefined }),
           ]);
           setClubData(data);
           setTop3Data(top3);
           setEventsAnalysis(analysis || []);
           setCoordinatorActivity(activity || []);
         } else {
-          const data = await api<ClubData>("/analytics/operations", { token });
+          const data = await api<ClubData>("/analytics/operations", { token: token || undefined });
           setClubData(data);
         }
 
-        const leaderboardData = await api<{ leaderboard: LeaderboardAchiever[] }>("/appreciation/leaderboard", { token });
+        const leaderboardData = await api<{ leaderboard: LeaderboardAchiever[] }>("/appreciation/leaderboard", { token: token || undefined });
         if (leaderboardData?.leaderboard && leaderboardData.leaderboard.length > 0) {
           setTopAchiever(leaderboardData.leaderboard[0]);
         }
