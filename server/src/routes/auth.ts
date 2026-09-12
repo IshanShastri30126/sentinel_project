@@ -31,7 +31,8 @@ const registerSchema = z.object({
   department: z.string().optional(),
   institute: z.string().optional(),
   semester: z.string().optional(),
-  role: z.string().optional(),
+  // NOTE: 'role' is intentionally excluded — public registration always yields GUEST.
+  // Role elevation is an admin-only operation performed post-approval.
 });
 
 const loginSchema = z.object({
@@ -100,10 +101,11 @@ function setTokenCookies(res: Response, accessToken: string, refreshToken: strin
 
 router.post("/register", signupLimiter, validate(registerSchema), async (req: Request, res: Response) => {
   try {
-    const { name, email, password, studentId, employeeId, phone, department, institute, semester, deviceFingerprint, role } = req.body;
+    // SEC-001 FIX: 'role' is deliberately not destructured from req.body.
+    // All public registrants receive GUEST unconditionally — role is server-controlled only.
+    const { name, email, password, studentId, employeeId, phone, department, institute, semester, deviceFingerprint } = req.body;
     const clientFingerprint = deviceFingerprint || (req.headers["x-device-fingerprint"] as string);
     const targetStudentId = studentId || employeeId;
-    const isFaculty = role === "FACULTY_COORDINATOR" || role === "FACULTY";
 
     const existing = await prisma.user.findUnique({ where: { email } });
     if (existing) {
@@ -123,10 +125,10 @@ router.post("/register", signupLimiter, validate(registerSchema), async (req: Re
         await logAuditEvent({
           action: "USER_REGISTER_FAILED",
           outcome: "FAILED",
-          context: { studentId: targetStudentId, reason: isFaculty ? "Employee ID already registered" : "Student ID already registered" },
+          context: { studentId: targetStudentId, reason: "ID already registered" },
           req,
         });
-        res.status(409).json({ error: isFaculty ? "Employee ID already registered" : "Student ID already registered" });
+        res.status(409).json({ error: "Student/Employee ID already registered" });
         return;
       }
     }
@@ -141,9 +143,9 @@ router.post("/register", signupLimiter, validate(registerSchema), async (req: Re
         phone: phone || null,
         department: department || null,
         institute: institute || null,
-        semester: isFaculty ? null : (semester || null),
-        role: isFaculty ? "FACULTY_COORDINATOR" : "GUEST",
-        isApproved: false,
+        semester: semester || null,
+        role: "GUEST",          // Always GUEST — never trust client-supplied role
+        isApproved: false,      // Always unapproved until an admin grants access
         deviceFingerprint: clientFingerprint || null,
         lastActiveAt: new Date(),
       },
