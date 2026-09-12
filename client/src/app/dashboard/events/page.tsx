@@ -218,8 +218,8 @@ export default function EventsPage() {
   const [direction, setDirection] = useState(1); // 1 = forward, -1 = backward
   const [editingEventId, setEditingEventId] = useState<string | null>(null);
 
-  const isCoord = user && ["FACULTY", "STUDENT_COORDINATOR"].includes(user.role);
-  const isCore = user && ["FACULTY", "STUDENT_COORDINATOR", "TECH", "CONTENT", "SOCIAL_MEDIA"].includes(user.role);
+  const isCoord = Boolean(user && ["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "TECH_TEAM", "STUDENT_COORDINATOR", "FACULTY", "TECH"].includes(user.role));
+  const isCore = Boolean(user && ["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "TECH_TEAM", "STUDENT_COORDINATOR", "FACULTY", "TECH", "CONTENT", "SOCIAL_MEDIA"].includes(user.role));
 
   interface Organizer {
     name: string;
@@ -1643,7 +1643,7 @@ export default function EventsPage() {
                   </div>
                 )}
                 <div className="flex flex-wrap gap-2" onClick={(e) => e.stopPropagation()}>
-                  {event.isPublished && !(user && ["FACULTY", "STUDENT_COORDINATOR"].includes(user.role)) && (
+                  {event.isPublished && !isCoord && (
                     registeredEventIds.has(event.id) ? (
                       <span className="px-3 py-1.5 rounded-lg text-xs font-mono font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 flex items-center gap-1">
                         <CheckCircle2 className="w-3.5 h-3.5" /> Registered
@@ -1654,17 +1654,17 @@ export default function EventsPage() {
                       <button onClick={(e) => handleRegister(event.id, e)} className="ck-btn-primary flex-1 text-xs py-2">Register</button>
                     )
                   )}
-                  {isCoord && user && ["FACULTY", "STUDENT_COORDINATOR"].includes(user.role) && (
+                  {isCoord && (
                     <button 
                       onClick={(e) => handlePublish(event.id, e)} 
-                      disabled={user.role === "STUDENT_COORDINATOR" && !event.isApproved}
+                      disabled={user?.role === "STUDENT_COORDINATOR" && !event.isApproved}
                       className="ck-btn-secondary text-xs py-2 disabled:opacity-40 disabled:cursor-not-allowed"
-                      title={user.role === "STUDENT_COORDINATOR" && !event.isApproved ? "Requires Faculty Approval" : ""}
+                      title={user?.role === "STUDENT_COORDINATOR" && !event.isApproved ? "Requires Faculty Approval" : ""}
                     >
                       {event.isPublished ? <><EyeOff className="w-3 h-3" /> Unpublish</> : <><Eye className="w-3 h-3" /> Publish</>}
                     </button>
                   )}
-                  {user && user.role === "FACULTY" && !event.isApproved && (
+                  {user && ["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "TECH_TEAM", "FACULTY", "TECH"].includes(user.role) && !event.isApproved && (
                     <button 
                       onClick={(e) => handleApproveDirectly(event.id, e)} 
                       className="ck-btn-primary text-xs py-2 shadow-[0_0_10px_rgba(0,245,212,0.3)] border-none" style={{ backgroundColor: "var(--ck-primary)", color: "#000" }}

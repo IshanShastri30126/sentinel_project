@@ -32,15 +32,15 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Teams", href: "/dashboard/teams", icon: <UsersRound className="w-5 h-5" /> },
   { label: "Attendance", href: "/dashboard/attendance", icon: <CheckSquare className="w-5 h-5" /> },
   { label: "Certificates", href: "/dashboard/certificates", icon: <FileCheck className="w-5 h-5" />, roles: ["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_TEAM", "FACULTY", "TECH"] },
-  { label: "Approvals", href: "/dashboard/approvals", icon: <ClipboardList className="w-5 h-5" />, roles: ["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "FACULTY"] },
+  { label: "Approvals", href: "/dashboard/approvals", icon: <ClipboardList className="w-5 h-5" />, roles: ["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_TEAM", "FACULTY", "TECH"] },
   { label: "Leaderboard", href: "/dashboard/leaderboard", icon: <Award className="w-5 h-5" /> },
   { label: "Users", href: "/dashboard/users", icon: <Users className="w-5 h-5" />, roles: ["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_TEAM", "FACULTY", "TECH"] },
   { label: "Analytics", href: "/dashboard/analytics", icon: <BarChart3 className="w-5 h-5" />, roles: ["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_TEAM", "FACULTY", "TECH"] },
-  { label: "Landing CMS", href: "/dashboard/landing-management", icon: <LayoutDashboard className="w-5 h-5" />, roles: ["DEVELOPMENT_TEAM"] },
-  { label: "Maintenance Logs", href: "/dashboard/maintenance", icon: <Terminal className="w-5 h-5" />, roles: ["DEVELOPMENT_TEAM"] },
+  { label: "Landing CMS", href: "/dashboard/landing-management", icon: <LayoutDashboard className="w-5 h-5" />, roles: ["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "TECH_TEAM", "FACULTY", "TECH"] },
+  { label: "Maintenance Logs", href: "/dashboard/maintenance", icon: <Terminal className="w-5 h-5" />, roles: ["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "TECH_TEAM", "FACULTY", "TECH"] },
   { label: "My Certificates", href: "/dashboard/my-certificates", icon: <Award className="w-5 h-5" /> },
   { label: "Profile", href: "/dashboard/profile", icon: <User className="w-5 h-5" /> },
-  { label: "Settings", href: "/dashboard/settings", icon: <Settings className="w-5 h-5" />, roles: ["DEVELOPMENT_TEAM"] },
+  { label: "Settings", href: "/dashboard/settings", icon: <Settings className="w-5 h-5" />, roles: ["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "TECH_TEAM", "FACULTY", "TECH"] },
 ];
 
 const ROLE_LABELS: Record<Role, string> = {

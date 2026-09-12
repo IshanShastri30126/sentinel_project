@@ -271,7 +271,7 @@ const DEFAULT_OPS_DATA: OpsData = {
     if (!token || !user) return;
     const load = async () => {
       try {
-        if (["FACULTY", "STUDENT_COORDINATOR", "TECH"].includes(user.role)) {
+        if (["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "TECH_TEAM", "STUDENT_COORDINATOR", "FACULTY", "TECH"].includes(user.role)) {
           const [clubRes, opsRes, usersRes] = await Promise.all([
             api<ClubAnalytics>("/analytics/club", { token }).catch((err) => {
               console.warn("Club analytics notice:", err);
@@ -470,7 +470,7 @@ const DEFAULT_OPS_DATA: OpsData = {
     );
   }
 
-  const isCoordinator = ["FACULTY", "STUDENT_COORDINATOR"].includes(user?.role || "");
+  const isCoordinator = ["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "TECH_TEAM", "STUDENT_COORDINATOR", "FACULTY", "TECH"].includes(user?.role || "");
 
   return (
     <div className="space-y-6">
@@ -1126,7 +1126,7 @@ const DEFAULT_OPS_DATA: OpsData = {
                 ) : (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
                     {memberEvents.map((event) => {
-                      const isFacultyOrCoord = user?.role === "FACULTY" || user?.role === "STUDENT_COORDINATOR";
+                      const isFacultyOrCoord = Boolean(user?.role && ["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "TECH_TEAM", "STUDENT_COORDINATOR", "FACULTY", "TECH"].includes(user.role));
                       const isAlreadyRegistered = registeredEvents.some((r) => r.id === event.id);
 
                       return (

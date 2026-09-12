@@ -111,7 +111,7 @@ export default function LandingManagementPage() {
 
   const handleSaveModal = () => {
     if (!activeMember) return;
-    const isFac = activeMember.role === "FACULTY";
+    const isFac = activeMember.role === "FACULTY" || activeMember.role === "FACULTY_COORDINATOR";
     const idVal = activeMember.employeeId || activeMember.studentId || "";
     const cleanMember = {
       ...activeMember,
@@ -162,7 +162,19 @@ export default function LandingManagementPage() {
     );
   }
 
-  if (user?.role !== "FACULTY" && user?.role !== "STUDENT_COORDINATOR") {
+  const canManageLanding = Boolean(
+    user?.role &&
+    [
+      "DEVELOPMENT_TEAM",
+      "FACULTY_COORDINATOR",
+      "TECH_TEAM",
+      "STUDENT_COORDINATOR",
+      "FACULTY",
+      "TECH"
+    ].includes(user.role)
+  );
+
+  if (!canManageLanding) {
     return (
       <div className="p-10 text-center text-rose-400 font-mono uppercase text-sm tracking-wider">
         Access Denied. You do not have permission to view this page.
@@ -426,21 +438,22 @@ export default function LandingManagementPage() {
                     </div>
                     <div>
                       <label className="text-[10px] uppercase font-mono text-[var(--ck-text-muted)] font-bold">
-                        {activeMember.role === "FACULTY" ? "Employee ID" : "Student ID"}
+                        {(activeMember.role === "FACULTY" || activeMember.role === "FACULTY_COORDINATOR") ? "Employee ID" : "Student ID"}
                       </label>
                       <input 
                         type="text"
                         className="ck-input w-full mt-1"
-                        value={(activeMember.role === "FACULTY" ? (activeMember.employeeId || activeMember.studentId) : activeMember.studentId) || ""} 
+                        value={((activeMember.role === "FACULTY" || activeMember.role === "FACULTY_COORDINATOR") ? (activeMember.employeeId || activeMember.studentId) : activeMember.studentId) || ""} 
                         onChange={(e) => {
                           const val = e.target.value;
+                          const isFacultyRole = activeMember.role === "FACULTY" || activeMember.role === "FACULTY_COORDINATOR";
                           setActiveMember({
                             ...activeMember,
                             studentId: val,
-                            ...(activeMember.role === "FACULTY" ? { employeeId: val } : {}),
+                            ...(isFacultyRole ? { employeeId: val } : {}),
                           });
                         }}
-                        placeholder={activeMember.role === "FACULTY" ? "e.g. EMP101" : "e.g. 22DCS116"}
+                        placeholder={(activeMember.role === "FACULTY" || activeMember.role === "FACULTY_COORDINATOR") ? "e.g. EMP101" : "e.g. 22DCS116"}
                       />
                     </div>
                     <div>

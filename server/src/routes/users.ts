@@ -56,7 +56,14 @@ router.get("/", authenticate, requireMinRole("TECH_TEAM"), async (req: Request, 
         { studentId: { contains: search as string, mode: "insensitive" } },
       ];
     }
-    if (role) where.role = role as Role;
+    if (role) {
+      const roleStr = String(role).toUpperCase();
+      const normalizedRole = roleStr === "FACULTY" ? "FACULTY_COORDINATOR" :
+                             roleStr === "TECH" ? "TECH_TEAM" :
+                             roleStr === "DEV" || roleStr === "DEVELOPMENT" ? "DEVELOPMENT_TEAM" :
+                             roleStr;
+      where.role = normalizedRole as Role;
+    }
     if (approved !== undefined) where.isApproved = approved === "true";
 
     const total = await prisma.user.count({ where });
@@ -236,11 +243,15 @@ router.delete("/:id", authenticate, requireMinRole("STUDENT_COORDINATOR"), audit
   }
 });
 
-// PATCH /api/users/:id/role — Update user role (Faculty only)
-router.patch("/:id/role", authenticate, requireRole("DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "STUDENT_COORDINATOR"), auditLog("USER_ROLE_UPDATED"), async (req: Request, res: Response) => {
+// PATCH /api/users/:id/role — Update user role (Faculty, Tech Team, Dev Team, SC)
+router.patch("/:id/role", authenticate, requireRole("DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "TECH_TEAM", "STUDENT_COORDINATOR"), auditLog("USER_ROLE_UPDATED"), async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const { role } = req.body;
+    let { role } = req.body;
+
+    if (role === "FACULTY") role = "FACULTY_COORDINATOR";
+    if (role === "TECH") role = "TECH_TEAM";
+    if (role === "DEV" || role === "DEVELOPMENT") role = "DEVELOPMENT_TEAM";
 
     const validRoles: Role[] = ["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_TEAM", "MEMBER", "GUEST"];
     if (!validRoles.includes(role)) {
@@ -277,7 +288,7 @@ router.patch("/:id/role", authenticate, requireRole("DEVELOPMENT_TEAM", "FACULTY
 });
 
 // PATCH /api/users/:id/deactivate — Deactivate user (Staff only)
-router.patch("/:id/deactivate", authenticate, requireRole("DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "STUDENT_COORDINATOR"), auditLog("USER_DEACTIVATED"), async (req: Request, res: Response) => {
+router.patch("/:id/deactivate", authenticate, requireRole("DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "TECH_TEAM", "STUDENT_COORDINATOR"), auditLog("USER_DEACTIVATED"), async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     if (id === req.user!.userId) {
@@ -301,7 +312,7 @@ router.patch("/:id/deactivate", authenticate, requireRole("DEVELOPMENT_TEAM", "F
 });
 
 // PATCH /api/users/:id/activate — Re-activate user (Staff only)
-router.patch("/:id/activate", authenticate, requireRole("DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "STUDENT_COORDINATOR"), auditLog("USER_ACTIVATED"), async (req: Request, res: Response) => {
+router.patch("/:id/activate", authenticate, requireRole("DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "TECH_TEAM", "STUDENT_COORDINATOR"), auditLog("USER_ACTIVATED"), async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const updated = await prisma.user.update({
@@ -410,8 +421,8 @@ router.patch("/profile", authenticate, upload.single("avatar"), async (req: Requ
   }
 });
 
-// GET /api/users/audit-logs — List system audit logs (Development Team only)
-router.get("/audit-logs", authenticate, requireRole("DEVELOPMENT_TEAM"), async (req: Request, res: Response) => {
+// GET /api/users/audit-logs — List system audit logs (Dev Team, Faculty, Tech Team)
+router.get("/audit-logs", authenticate, requireRole("DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "TECH_TEAM"), async (req: Request, res: Response) => {
   try {
     const { action, outcome, page, limit } = req.query;
     const pageNum = page ? parseInt(page as string) : 1;

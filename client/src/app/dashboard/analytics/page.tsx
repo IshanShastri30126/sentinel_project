@@ -11,8 +11,11 @@ import {
 } from "lucide-react";
 
 const ROLE_COLORS: Record<string, string> = {
-  FACULTY: "#9333ea",
+  DEVELOPMENT_TEAM: "#00E1FF",
+  FACULTY_COORDINATOR: "#9333ea",
+  TECH_TEAM: "#00D2FF",
   STUDENT_COORDINATOR: "#00F5D4",
+  FACULTY: "#9333ea",
   TECH: "#00D2FF",
   CONTENT: "#FFD700",
   SOCIAL_MEDIA: "#f43f5e",
@@ -217,7 +220,17 @@ export default function AnalyticsPage() {
     if (!token) return;
     const load = async () => {
       try {
-        const isCoordinator = user?.role && ["FACULTY", "STUDENT_COORDINATOR"].includes(user.role);
+        const isCoordinator = Boolean(
+          user?.role &&
+          [
+            "DEVELOPMENT_TEAM",
+            "FACULTY_COORDINATOR",
+            "TECH_TEAM",
+            "STUDENT_COORDINATOR",
+            "FACULTY",
+            "TECH"
+          ].includes(user.role)
+        );
         if (isCoordinator) {
           const [data, top3, analysis, activity] = await Promise.all([
             api<ClubData>("/analytics/club", { token }),
@@ -248,7 +261,17 @@ export default function AnalyticsPage() {
   }, [token, user]);
 
   const maxStat = clubData?.overview ? Math.max(...Object.values(clubData.overview).map(Number)) : 1;
-  const isCoordinator = user?.role && ["FACULTY", "STUDENT_COORDINATOR"].includes(user.role);
+  const isCoordinator = Boolean(
+    user?.role &&
+    [
+      "DEVELOPMENT_TEAM",
+      "FACULTY_COORDINATOR",
+      "TECH_TEAM",
+      "STUDENT_COORDINATOR",
+      "FACULTY",
+      "TECH"
+    ].includes(user.role)
+  );
 
   // Sorting logic for events analysis
   const handleSort = (field: string) => {

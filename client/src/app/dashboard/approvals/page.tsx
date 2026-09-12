@@ -59,7 +59,7 @@ export default function ApprovalsPage() {
   const [filter, setFilter] = useState("ALL");
   const [decisionComment, setDecisionComment] = useState("");
 
-  const canApprove = user && ["FACULTY", "STUDENT_COORDINATOR"].includes(user.role);
+  const canApprove = Boolean(user && ["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "TECH_TEAM", "STUDENT_COORDINATOR", "FACULTY", "TECH"].includes(user.role));
 
   const load = async () => {
     try {

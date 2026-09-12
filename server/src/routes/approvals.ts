@@ -156,7 +156,7 @@ router.get("/", authenticate, async (req: Request, res: Response) => {
     if (type) where.type = type;
 
     let requests;
-    if (role === "FACULTY_COORDINATOR" || role === "DEVELOPMENT_TEAM" || (role as string) === "FACULTY") {
+    if (role === "FACULTY_COORDINATOR" || role === "DEVELOPMENT_TEAM" || role === "TECH_TEAM" || (role as string) === "FACULTY" || (role as string) === "TECH") {
       requests = await prisma.approvalRequest.findMany({ where, include: includeOpts, orderBy: { createdAt: "desc" } });
     } else if (role === "STUDENT_COORDINATOR") {
       requests = await prisma.approvalRequest.findMany({
@@ -224,14 +224,10 @@ router.get("/:id", authenticate, async (req: Request, res: Response) => {
       return;
     }
 
-    // Visibility: only requester, SC, Faculty Coordinator, and Development Team can view
+    // Visibility: requester, SC, Faculty Coordinator, Tech Team, and Development Team can view
     const { role, userId } = req.user!;
-    if (
-      request.requesterId !== userId &&
-      role !== "FACULTY_COORDINATOR" &&
-      role !== "STUDENT_COORDINATOR" &&
-      role !== "DEVELOPMENT_TEAM"
-    ) {
+    const isElevated = ["FACULTY_COORDINATOR", "TECH_TEAM", "DEVELOPMENT_TEAM", "STUDENT_COORDINATOR", "FACULTY", "TECH"].includes(role);
+    if (request.requesterId !== userId && !isElevated) {
       res.status(403).json({ error: "You do not have access to this request" });
       return;
     }
@@ -247,7 +243,7 @@ router.get("/:id", authenticate, async (req: Request, res: Response) => {
 router.post(
   "/:id/decide",
   authenticate,
-  requireRole("DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "STUDENT_COORDINATOR"),
+  requireRole("DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "TECH_TEAM", "STUDENT_COORDINATOR"),
   validate(decisionSchema),
   async (req: Request, res: Response) => {
     try {
@@ -282,7 +278,8 @@ router.post(
           .json({ error: "No pending step at the current level" });
         return;
       }
-      if (currentStep.role !== role && role !== "DEVELOPMENT_TEAM") {
+      const isSuperUser = role === "DEVELOPMENT_TEAM" || role === "FACULTY_COORDINATOR" || role === "TECH_TEAM";
+      if (currentStep.role !== role && !isSuperUser) {
         res.status(403).json({
           error: `This step requires approval from ${currentStep.role}, not ${role}`,
         });

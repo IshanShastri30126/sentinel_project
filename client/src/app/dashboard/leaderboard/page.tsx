@@ -42,9 +42,9 @@ export default function LeaderboardPage() {
   const [compLoading, setCompLoading] = useState(false);
   const [togglingVisibility, setTogglingVisibility] = useState(false);
 
-  const isCoord = user && ["FACULTY", "STUDENT_COORDINATOR", "FACULTY_COORDINATOR"].includes(user.role);
-  const isFaculty = user && ["FACULTY", "STUDENT_COORDINATOR", "FACULTY_COORDINATOR"].includes(user.role);
-  const isTechOrDev = user && ["DEVELOPMENT_TEAM", "TECH_TEAM", "ADMIN"].includes(user.role);
+  const isCoord = Boolean(user && ["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "TECH_TEAM", "STUDENT_COORDINATOR", "FACULTY", "TECH"].includes(user.role));
+  const isFaculty = Boolean(user && ["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "TECH_TEAM", "STUDENT_COORDINATOR", "FACULTY", "TECH"].includes(user.role));
+  const isTechOrDev = Boolean(user && ["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "TECH_TEAM", "STUDENT_COORDINATOR", "ADMIN", "FACULTY", "TECH"].includes(user.role));
 
   // Modals
   const [showGivePoints, setShowGivePoints] = useState(false);

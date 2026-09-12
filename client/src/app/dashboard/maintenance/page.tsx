@@ -1091,7 +1091,7 @@ export default function MaintenancePage() {
                                       {log.user.email}
                                     </span>
                                     <span className="text-[9px] text-[#00F5D4] font-mono uppercase">
-                                      {log.user.role} {log.user.role === "FACULTY" && log.user.employeeId ? `· EMP: ${log.user.employeeId}` : log.user.studentId ? `· ID: ${log.user.studentId}` : ""}
+                                      {log.user.role} {(log.user.role === "FACULTY" || log.user.role === "FACULTY_COORDINATOR") ? (log.user.employeeId || log.user.studentId ? `· EMP: ${log.user.employeeId || log.user.studentId}` : "") : log.user.studentId ? `· ID: ${log.user.studentId}` : ""}
                                     </span>
                                   </div>
                                 ) : (
@@ -1186,7 +1186,7 @@ export default function MaintenancePage() {
                                         <div className="text-zinc-200 mt-1 space-y-0.5">
                                           <p>Name: <span className="text-white font-bold">{log.user?.name || "Anonymous Gateway"}</span></p>
                                           <p>Role: <span className="text-[#00F5D4] font-bold">{log.user?.role || "NONE"}</span></p>
-                                          <p>ID: <span className="text-zinc-400">{log.user?.role === "FACULTY" ? log.user.employeeId || "EMP-N/A" : log.user?.studentId || log.user?.id?.slice(0, 8) || "N/A"}</span></p>
+                                          <p>ID: <span className="text-zinc-400">{(log.user?.role === "FACULTY" || log.user?.role === "FACULTY_COORDINATOR") ? (log.user.employeeId || log.user.studentId || "EMP-N/A") : log.user?.studentId || log.user?.id?.slice(0, 8) || "N/A"}</span></p>
                                         </div>
                                       </div>
 

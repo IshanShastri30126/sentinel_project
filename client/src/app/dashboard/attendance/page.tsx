@@ -421,7 +421,7 @@ export default function AttendancePage() {
   const scannerRef = useRef<Html5QrcodeScanner | null>(null);
   const socketRef = useRef<Socket | null>(null);
 
-  const isCoord = Boolean(user && ["FACULTY", "STUDENT_COORDINATOR", "TECH"].includes(user.role));
+  const isCoord = Boolean(user && ["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "TECH_TEAM", "STUDENT_COORDINATOR", "FACULTY", "TECH"].includes(user.role));
 
   // Participant states
   const [participantCheckedIn, setParticipantCheckedIn] = useState(false);

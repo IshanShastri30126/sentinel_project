@@ -17,7 +17,15 @@ interface Team {
   disqualifyReason?: string;
 }
 
-const MANAGEMENT_ROLES = ["FACULTY", "STUDENT_COORDINATOR", "TECH", "SOCIAL_MEDIA"];
+const MANAGEMENT_ROLES = [
+  "DEVELOPMENT_TEAM",
+  "FACULTY_COORDINATOR",
+  "TECH_TEAM",
+  "STUDENT_COORDINATOR",
+  "FACULTY",
+  "TECH",
+  "SOCIAL_MEDIA"
+];
 
 export default function TeamsPage() {
   const { user, token } = useAuth();

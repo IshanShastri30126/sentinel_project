@@ -68,8 +68,8 @@ export default function EventDetailPage() {
   const [search, setSearch] = useState("");
   const [tab, setTab] = useState<"overview" | "registrations" | "teams">("overview");
 
-  const isCoord = user && ["FACULTY", "STUDENT_COORDINATOR"].includes(user.role);
-  const isCore = user && ["FACULTY", "STUDENT_COORDINATOR", "TECH", "CONTENT", "SOCIAL_MEDIA"].includes(user.role);
+  const isCoord = Boolean(user && ["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "TECH_TEAM", "STUDENT_COORDINATOR", "FACULTY", "TECH"].includes(user.role));
+  const isCore = Boolean(user && ["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "TECH_TEAM", "STUDENT_COORDINATOR", "FACULTY", "TECH", "CONTENT", "SOCIAL_MEDIA"].includes(user.role));
 
   // Google Calendar Sync states
   const [syncLoading, setSyncLoading] = useState(false);
@@ -101,7 +101,7 @@ export default function EventDetailPage() {
   };
 
   useEffect(() => {
-    if (!isLoading && user && !["FACULTY", "STUDENT_COORDINATOR", "TECH", "CONTENT", "SOCIAL_MEDIA"].includes(user.role)) {
+    if (!isLoading && user && !["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "TECH_TEAM", "STUDENT_COORDINATOR", "FACULTY", "TECH", "CONTENT", "SOCIAL_MEDIA"].includes(user.role)) {
       router.push("/dashboard");
     }
   }, [user, isLoading, router]);
@@ -222,7 +222,7 @@ export default function EventDetailPage() {
               {syncLoading ? "Syncing..." : "Sync Calendar"}
             </button>
           )}
-          {isCoord && user && ["FACULTY", "STUDENT_COORDINATOR"].includes(user.role) && (
+          {isCoord && (
             <>
               <button onClick={handlePublish} className="ck-btn-secondary text-xs">
                 {event.isPublished ? <><EyeOff className="w-4 h-4" /> Unpublish</> : <><Eye className="w-4 h-4" /> Publish</>}
@@ -367,7 +367,7 @@ export default function EventDetailPage() {
                     <td className="text-sm font-medium" data-label="Name">{r.user.name}</td>
                     <td className="text-xs" data-label="Email">{r.user.email}</td>
                     <td className="text-xs font-mono" data-label="ID">
-                      {r.user.studentId ? (r.user.role === "FACULTY" ? `EMP: ${r.user.studentId}` : r.user.studentId) : "—"}
+                      {r.user.studentId ? (r.user.role === "FACULTY" || r.user.role === "FACULTY_COORDINATOR" ? `EMP: ${r.user.studentId}` : r.user.studentId) : "—"}
                     </td>
                     <td className="text-xs" data-label="Department">{r.user.department || "—"}</td>
                     <td data-label="Team">{r.team ? <span className="ck-badge ck-badge-primary text-[10px]">{r.team.name} ({r.team.teamCode})</span> : <span className="text-xs" style={{ color: "var(--ck-text-muted)" }}>Individual</span>}</td>

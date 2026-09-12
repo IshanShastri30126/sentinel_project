@@ -63,7 +63,7 @@ const createEventSchema = z.object({
 router.post("/", authenticate, requireMinRole("STUDENT_COORDINATOR"), validate(createEventSchema), auditLog("EVENT_CREATED"), async (req: Request, res: Response) => {
   try {
     const data = req.body;
-    const isApproved = req.user!.role === "FACULTY_COORDINATOR" || req.user!.role === "DEVELOPMENT_TEAM";
+    const isApproved = ["FACULTY_COORDINATOR", "DEVELOPMENT_TEAM", "TECH_TEAM"].includes(req.user!.role);
     const event = await prisma.event.create({
       data: {
         title: data.title, description: data.description, venue: data.venue,
@@ -779,8 +779,8 @@ router.post("/:id/send-email", authenticate, requireMinRole("STUDENT_COORDINATOR
   }
 });
 
-// PATCH /api/events/:id/leaderboard-visibility — Toggle live event leaderboard (Dev Team & Tech Team only)
-router.patch("/:id/leaderboard-visibility", authenticate, requireRole("DEVELOPMENT_TEAM", "TECH_TEAM"), auditLog("EVENT_LEADERBOARD_VISIBILITY_TOGGLED"), async (req: Request, res: Response) => {
+// PATCH /api/events/:id/leaderboard-visibility — Toggle live event leaderboard (Dev Team, Tech Team, Faculty Coordinator)
+router.patch("/:id/leaderboard-visibility", authenticate, requireRole("DEVELOPMENT_TEAM", "TECH_TEAM", "FACULTY_COORDINATOR"), auditLog("EVENT_LEADERBOARD_VISIBILITY_TOGGLED"), async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const { isVisible } = req.body;
