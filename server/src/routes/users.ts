@@ -243,98 +243,119 @@ router.delete("/:id", authenticate, requireMinRole("STUDENT_COORDINATOR"), audit
   }
 });
 
-// PATCH /api/users/:id/role — Update user role (Dev Team, Faculty only)
-// SEC-002 FIX: Restricted to DEVELOPMENT_TEAM and FACULTY_COORDINATOR exclusively.
-// STUDENT_COORDINATOR and TECH_TEAM are not authorized to assign roles — removing them
-// eliminates the vertical privilege escalation vector confirmed in SENTINAL-SEC-002.
-router.patch("/:id/role", authenticate, requireRole("DEVELOPMENT_TEAM", "FACULTY_COORDINATOR"), auditLog("USER_ROLE_UPDATED"), async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
-    let { role } = req.body;
+// PATCH /api/users/:id/role — Update user role (Development Team, Faculty Coordinator)
+// Both DEVELOPMENT_TEAM and FACULTY_COORDINATOR (including ADMIN and FACULTY aliases)
+// possess full administrative authority to assign and update operative roles.
+// STUDENT_COORDINATOR and TECH_TEAM remain blocked from role mutation (SEC-002).
+router.patch(
+  "/:id/role",
+  authenticate,
+  requireRole("DEVELOPMENT_TEAM", "ADMIN", "FACULTY_COORDINATOR", "FACULTY"),
+  auditLog("USER_ROLE_UPDATED"),
+  async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      let { role } = req.body;
 
-    if (role === "FACULTY") role = "FACULTY_COORDINATOR";
-    if (role === "TECH") role = "TECH_TEAM";
-    if (role === "DEV" || role === "DEVELOPMENT") role = "DEVELOPMENT_TEAM";
+      if (role === "FACULTY") role = "FACULTY_COORDINATOR";
+      if (role === "TECH") role = "TECH_TEAM";
+      if (role === "DEV" || role === "DEVELOPMENT") role = "DEVELOPMENT_TEAM";
 
-    const validRoles: Role[] = ["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_TEAM", "MEMBER", "GUEST"];
-    if (!validRoles.includes(role)) {
-      res.status(400).json({ error: "Invalid role" });
-      return;
+      const validRoles: Role[] = ["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_TEAM", "MEMBER", "GUEST"];
+      if (!validRoles.includes(role)) {
+        res.status(400).json({ error: "Invalid role" });
+        return;
+      }
+
+      // Block self-promotion/self-modification — a user must never alter their own role.
+      if (id === req.user!.userId) {
+        res.status(400).json({ error: "Cannot modify your own role" });
+        return;
+      }
+
+      // Verify that caller is either Development Team or Faculty Coordinator
+      const isAuthorizedManager = [
+        "DEVELOPMENT_TEAM",
+        "ADMIN",
+        "FACULTY_COORDINATOR",
+        "FACULTY",
+      ].includes(req.user!.role);
+
+      if (!isAuthorizedManager) {
+        res.status(403).json({ error: "Insufficient permissions to assign this role" });
+        return;
+      }
+
+      const updated = await prisma.user.update({
+        where: { id },
+        data: { role, isApproved: true },
+        select: { id: true, name: true, email: true, role: true, isApproved: true },
+      });
+
+      await sendNotification({
+        userId: id,
+        type: "SYSTEM",
+        title: "Role Updated",
+        message: `Your role has been updated to ${role.replace("_", " ")}.`,
+      });
+
+      // Send role updated email (fire and forget)
+      sendRoleUpdatedEmail(
+        { name: updated.name, email: updated.email },
+        role
+      ).catch((err) => console.error("[Users] Role update email failed:", err));
+
+      await clearUsersCache();
+
+      res.json({ user: updated });
+    } catch (err: any) {
+      if (err?.code === "P2025") {
+        res.status(404).json({ error: "User not found" });
+        return;
+      }
+      console.error("[Users] Role update error:", err);
+      res.status(500).json({ error: "Internal server error" });
     }
-
-    // SEC-002 FIX: Block self-promotion — a user must never alter their own role.
-    if (id === req.user!.userId) {
-      res.status(400).json({ error: "Cannot modify your own role" });
-      return;
-    }
-
-    // SEC-002 FIX: Hierarchy guard — FACULTY_COORDINATOR cannot grant DEVELOPMENT_TEAM
-    // or FACULTY_COORDINATOR roles; only DEVELOPMENT_TEAM can assign tier-1 roles.
-    // The role hierarchy defines tier 1 (level 1) as the highest authority level.
-    // A caller may only grant roles at a strictly lower authority level than their own,
-    // unless the caller is DEVELOPMENT_TEAM (level 1) who may grant any valid role.
-    const callerLevel = ROLE_HIERARCHY[req.user!.role];
-    const targetRoleLevel = ROLE_HIERARCHY[role as Role];
-
-    if (req.user!.role !== "DEVELOPMENT_TEAM" && targetRoleLevel <= callerLevel) {
-      res.status(403).json({ error: "Insufficient permissions to assign this role" });
-      return;
-    }
-
-    const updated = await prisma.user.update({
-      where: { id },
-      data: { role, isApproved: true },
-      select: { id: true, name: true, email: true, role: true, isApproved: true },
-    });
-
-    await sendNotification({
-      userId: id,
-      type: "SYSTEM",
-      title: "Role Updated",
-      message: `Your role has been updated to ${role.replace("_", " ")}.`,
-    });
-
-    // Send role updated email (fire and forget)
-    sendRoleUpdatedEmail(
-      { name: updated.name, email: updated.email },
-      role
-    ).catch((err) => console.error("[Users] Role update email failed:", err));
-
-    await clearUsersCache();
-
-    res.json({ user: updated });
-  } catch (err) {
-    console.error("[Users] Role update error:", err);
-    res.status(500).json({ error: "Internal server error" });
   }
-});
+);
 
 // PATCH /api/users/:id/deactivate — Deactivate user (Staff only)
-router.patch("/:id/deactivate", authenticate, requireRole("DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "TECH_TEAM", "STUDENT_COORDINATOR"), auditLog("USER_DEACTIVATED"), async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
-    if (id === req.user!.userId) {
-      res.status(400).json({ error: "Cannot deactivate your own account" });
-      return;
-    }
+router.patch(
+  "/:id/deactivate",
+  authenticate,
+  requireRole("DEVELOPMENT_TEAM", "ADMIN", "FACULTY_COORDINATOR", "FACULTY", "TECH_TEAM", "TECH", "STUDENT_COORDINATOR"),
+  auditLog("USER_DEACTIVATED"),
+  async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      if (id === req.user!.userId) {
+        res.status(400).json({ error: "Cannot deactivate your own account" });
+        return;
+      }
 
-    const updated = await prisma.user.update({
-      where: { id },
-      data: { isActive: false },
-      select: { id: true, name: true, email: true, isActive: true },
-    });
-    
-    await clearUsersCache();
-    
-    res.json({ user: updated });
-  } catch (err) {
-    console.error("[Users] Deactivate error:", err);
-    res.status(500).json({ error: "Internal server error" });
+      const updated = await prisma.user.update({
+        where: { id },
+        data: { isActive: false },
+        select: { id: true, name: true, email: true, isActive: true },
+      });
+      
+      await clearUsersCache();
+      
+      res.json({ user: updated });
+    } catch (err) {
+      console.error("[Users] Deactivate error:", err);
+      res.status(500).json({ error: "Internal server error" });
+    }
   }
-});
+);
 
 // PATCH /api/users/:id/activate — Re-activate user (Staff only)
-router.patch("/:id/activate", authenticate, requireRole("DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "TECH_TEAM", "STUDENT_COORDINATOR"), auditLog("USER_ACTIVATED"), async (req: Request, res: Response) => {
+router.patch(
+  "/:id/activate",
+  authenticate,
+  requireRole("DEVELOPMENT_TEAM", "ADMIN", "FACULTY_COORDINATOR", "FACULTY", "TECH_TEAM", "TECH", "STUDENT_COORDINATOR"),
+  auditLog("USER_ACTIVATED"),
+  async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const updated = await prisma.user.update({

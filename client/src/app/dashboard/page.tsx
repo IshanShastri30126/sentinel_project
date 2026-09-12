@@ -107,14 +107,14 @@ const STAT_ICONS: Record<string, React.ReactNode> = {
 };
 
 const STAT_ACCENTS = [
-  { gradient: "from-[#00F5D4] to-[#00B4D8]", text: "#00F5D4", glow: "rgba(0,245,212,0.25)" },
-  { gradient: "from-[#00E1FF] to-[#0077B6]", text: "#00E1FF", glow: "rgba(0,225,255,0.25)" },
-  { gradient: "from-[#FF0055] to-[#CC0044]", text: "#FF0055", glow: "rgba(255,0,85,0.25)" },
-  { gradient: "from-[#A855F7] to-[#7C3AED]", text: "#A855F7", glow: "rgba(168,85,247,0.25)" },
-  { gradient: "from-[#FFB800] to-[#D97706]", text: "#FFB800", glow: "rgba(255,184,0,0.25)" },
-  { gradient: "from-[#10B981] to-[#059669]", text: "#10B981", glow: "rgba(16,185,129,0.25)" },
-  { gradient: "from-[#38BDF8] to-[#0284C7]", text: "#38BDF8", glow: "rgba(56,189,248,0.25)" },
-  { gradient: "from-[#EC4899] to-[#DB2777]", text: "#EC4899", glow: "rgba(236,72,153,0.25)" },
+  { text: "#00F5D4", border: "border-[#00F5D4]/40", bg: "bg-[#00F5D4]/10", iconColor: "text-[#00F5D4]" },
+  { text: "#00E1FF", border: "border-[#00E1FF]/40", bg: "bg-[#00E1FF]/10", iconColor: "text-[#00E1FF]" },
+  { text: "#38BDF8", border: "border-[#38BDF8]/40", bg: "bg-[#38BDF8]/10", iconColor: "text-[#38BDF8]" },
+  { text: "#00F5D4", border: "border-[#00F5D4]/40", bg: "bg-[#00F5D4]/10", iconColor: "text-[#00F5D4]" },
+  { text: "#F59E0B", border: "border-[#F59E0B]/40", bg: "bg-[#F59E0B]/10", iconColor: "text-[#F59E0B]" },
+  { text: "#10B981", border: "border-[#10B981]/40", bg: "bg-[#10B981]/10", iconColor: "text-[#10B981]" },
+  { text: "#00E1FF", border: "border-[#00E1FF]/40", bg: "bg-[#00E1FF]/10", iconColor: "text-[#00E1FF]" },
+  { text: "#94A3B8", border: "border-[#94A3B8]/40", bg: "bg-[#94A3B8]/10", iconColor: "text-[#94A3B8]" },
 ];
 
 // Unique Badge Visuals (Lucide icon themed per badge - ZERO emojis)
@@ -514,17 +514,17 @@ const DEFAULT_OPS_DATA: OpsData = {
               <span className={`inline-block w-2 h-2 rounded-full transition-all duration-500 ${livePulse ? "opacity-100 scale-100" : "opacity-30 scale-75"}`} style={{ backgroundColor: "#00F5D4", boxShadow: "0 0 12px #00F5D4" }} />
               SYSTEM STATUS: SYNCED // OPERATIVE
             </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[var(--ck-text)]">
-              {greeting}, <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#00F5D4] via-[#FF4D00] to-[#FF003C]">{user?.name}</span>
+            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
+              {greeting}, <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#00F5D4] via-[#00E1FF] to-white">{user?.name}</span>
             </h1>
-            <p className="mt-2 text-xs sm:text-sm text-[var(--ck-text-secondary)] font-mono">
-              Welcome back to your Chakravyuh Club portal. Managed clearances: <span className="font-semibold uppercase text-[var(--ck-text)] font-mono">{user?.role?.replace(/_/g, " ")}</span>.
+            <p className="mt-2 text-xs sm:text-sm text-slate-300 font-mono">
+              Welcome back to your SENTINAL Operations Command Portal. Managed clearances: <span className="font-semibold uppercase text-white font-mono">{user?.role?.replace(/_/g, " ")}</span>.
             </p>
           </div>
-          <div className="rounded-xl bg-black/50 backdrop-blur-sm p-3.5 flex flex-col justify-center min-w-[140px] font-mono text-center shrink-0 self-start sm:self-auto border border-white/5">
-            <span className="text-[10px] uppercase text-[var(--ck-text-muted)] tracking-wider">Operative Date</span>
-            <span className="text-sm font-bold text-[var(--ck-text)] mt-0.5">{new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span>
-            <span className="text-[10px] mt-0.5 uppercase tracking-widest font-semibold" style={{ color: "#00F5D4" }}>{new Date().toLocaleDateString("en-US", { weekday: "long" })}</span>
+          <div className="rounded border border-slate-800 bg-[#070E1A] p-3.5 flex flex-col justify-center min-w-[140px] font-mono text-center shrink-0 self-start sm:self-auto shadow-sm">
+            <span className="text-[10px] uppercase text-slate-400 tracking-wider">Operative Date</span>
+            <span className="text-sm font-bold text-white mt-0.5">{new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span>
+            <span className="text-[10px] mt-0.5 uppercase tracking-widest font-semibold text-[#00F5D4]">{new Date().toLocaleDateString("en-US", { weekday: "long" })}</span>
           </div>
         </div>
       </motion.div>
@@ -541,29 +541,30 @@ const DEFAULT_OPS_DATA: OpsData = {
                 return (
                   <motion.div
                     key={key}
-                    whileHover={{ scale: 1.03, y: -4 }}
-                    transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                    className="ck-stat-card ck-shimmer group cursor-default"
+                    whileHover={{ scale: 1.02, y: -2 }}
+                    transition={{ duration: 0.2 }}
+                    className="ck-stat-card group cursor-default"
                     style={{ "--accent-color": accent.text } as React.CSSProperties}
                   >
-                    {/* Background glow orb */}
-                    <div className="absolute -right-8 -bottom-8 w-24 h-24 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" style={{ background: `radial-gradient(circle, ${accent.glow}, transparent 70%)` }} />
-
                     <div className="flex items-start justify-between mb-3 relative z-[3]">
-                      <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${accent.gradient} flex items-center justify-center text-[var(--ck-text)] shadow-lg`} style={{ boxShadow: `0 4px 16px ${accent.glow}` }}>
-                        {STAT_ICONS[key] || <TrendingUp className="w-5 h-5" />}
+                      <div className={`w-8 h-8 rounded border ${accent.border} ${accent.bg} flex items-center justify-center ${accent.iconColor} shrink-0`}>
+                        {STAT_ICONS[key] || <TrendingUp className="w-4 h-4" strokeWidth={1.75} />}
                       </div>
-                      <span className={`ck-trend ck-trend-${trend.direction}`}>
+                      <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold border ${
+                        trend.direction === "up" ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" :
+                        trend.direction === "down" ? "bg-rose-500/10 text-rose-400 border-rose-500/20" :
+                        "bg-slate-800/40 text-slate-400 border-slate-700/30"
+                      }`}>
                         {trend.direction === "up" && "↑"}
                         {trend.direction === "down" && "↓"}
                         {trend.direction === "neutral" && "—"}
                         {trend.value > 0 ? ` ${trend.value}%` : ""}
                       </span>
                     </div>
-                    <p className="text-2xl sm:text-3xl font-extrabold font-mono tracking-tighter relative z-[3]" style={{ color: accent.text }}>
+                    <p className="text-2xl sm:text-3xl font-extrabold font-mono tracking-tight text-white relative z-[3]">
                       <CountUp end={Number(value) || 0} durationMs={1200} />
                     </p>
-                    <p className="text-[10px] mt-1.5 uppercase font-mono font-bold tracking-widest text-[var(--ck-text-secondary)] relative z-[3]">
+                    <p className="text-[10px] mt-1.5 uppercase font-mono font-bold tracking-widest text-slate-400 relative z-[3]">
                       {STAT_LABELS[key] || key}
                     </p>
                   </motion.div>
@@ -706,39 +707,39 @@ const DEFAULT_OPS_DATA: OpsData = {
                     {/* Action 1: Pending Approvals */}
                     <div
                       onClick={() => router.push("/dashboard/approvals")}
-                      className="group flex items-center gap-4 p-4 rounded-xl border border-white/[0.04] hover:border-[#FF4D00]/30 cursor-pointer hover:bg-[#FF4D00]/[0.03] transition-all duration-300"
+                      className="group flex items-center gap-4 p-3.5 rounded border border-white/[0.06] hover:border-amber-500/40 cursor-pointer bg-[#070E1A] hover:bg-amber-500/[0.04] transition-all duration-200"
                     >
                       <div className="relative shrink-0">
-                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#FF4D00] to-[#FF003C] flex items-center justify-center text-[var(--ck-text)] text-base font-extrabold shadow-lg" style={{ boxShadow: "0 4px 20px rgba(255,77,0,0.25)" }}>
+                        <div className="w-10 h-10 rounded border border-amber-500/40 bg-amber-500/10 flex items-center justify-center text-amber-400 font-mono text-base font-extrabold">
                           {opsData.pendingApprovals}
                         </div>
                         {opsData.pendingApprovals > 0 && (
-                          <span className="absolute -top-1 -right-1 flex h-3.5 w-3.5">
-                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#FF4D00] opacity-75"></span>
-                            <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-[#FF4D00]"></span>
+                          <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-400"></span>
                           </span>
                         )}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-bold text-[var(--ck-text)] group-hover:text-[var(--ck-accent)] transition-colors">Pending Approvals</p>
-                        <p className="text-[11px] text-[var(--ck-text-muted)] mt-0.5">Click to audit request logs</p>
+                        <p className="text-sm font-bold text-white group-hover:text-amber-400 transition-colors font-mono">Pending Approvals</p>
+                        <p className="text-[11px] text-slate-400 mt-0.5 font-mono">Click to audit request logs</p>
                       </div>
-                      <ArrowRight className="w-4 h-4 text-[var(--ck-text-muted)] group-hover:text-[var(--ck-accent)] transform group-hover:translate-x-1 transition-all shrink-0" />
+                      <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-amber-400 transform group-hover:translate-x-1 transition-all shrink-0" />
                     </div>
 
                     {/* Action 2: Pending Registration approvals */}
                     <div
                       onClick={() => router.push("/dashboard/users")}
-                      className="group flex items-center gap-4 p-4 rounded-xl border border-white/[0.04] hover:border-[#FF003C]/30 cursor-pointer hover:bg-[#FF003C]/[0.03] transition-all duration-300"
+                      className="group flex items-center gap-4 p-3.5 rounded border border-white/[0.06] hover:border-rose-500/40 cursor-pointer bg-[#070E1A] hover:bg-rose-500/[0.04] transition-all duration-200"
                     >
                       <div className="relative shrink-0">
-                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#FF003C] to-[#990024] flex items-center justify-center text-[var(--ck-text)] text-base font-extrabold shadow-lg" style={{ boxShadow: "0 4px 20px rgba(255,0,60,0.2)" }}>
+                        <div className="w-10 h-10 rounded border border-rose-500/40 bg-rose-500/10 flex items-center justify-center text-rose-400 font-mono text-base font-extrabold">
                           {opsData.pendingUsers}
                         </div>
                         {opsData.pendingUsers > 0 && (
-                          <span className="absolute -top-1 -right-1 flex h-3.5 w-3.5">
-                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#FF003C] opacity-75"></span>
-                            <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-[#FF003C]"></span>
+                          <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-500 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-rose-500"></span>
                           </span>
                         )}
                       </div>
@@ -940,28 +941,25 @@ const DEFAULT_OPS_DATA: OpsData = {
           {/* ═══ Member Personal Stats ═══ */}
           <motion.div variants={itemVariants} className="ck-cards-grid" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))" }}>
             {[
-              { value: memberHistory?.totalPoints ?? 0, label: "Contribution Points", icon: <Star className="w-5 h-5" />, accent: STAT_ACCENTS[1], bgIcon: <Sparkles className="w-5 h-5" /> },
-              { value: memberHistory?.badges?.length ?? 0, label: "Badges Earned", icon: <Award className="w-5 h-5" />, accent: STAT_ACCENTS[2], bgIcon: <Shield className="w-5 h-5" /> },
-              { value: memberHistory?.eventParticipation ?? 0, label: "Events Participated", icon: <Calendar className="w-5 h-5" />, accent: STAT_ACCENTS[0], bgIcon: <Activity className="w-5 h-5" /> },
+              { value: memberHistory?.totalPoints ?? 0, label: "Contribution Points", icon: <Star className="w-4 h-4" strokeWidth={1.75} />, accent: STAT_ACCENTS[0] },
+              { value: memberHistory?.badges?.length ?? 0, label: "Badges Earned", icon: <Award className="w-4 h-4" strokeWidth={1.75} />, accent: STAT_ACCENTS[1] },
+              { value: memberHistory?.eventParticipation ?? 0, label: "Events Participated", icon: <Calendar className="w-4 h-4" strokeWidth={1.75} />, accent: STAT_ACCENTS[2] },
             ].map((stat) => (
               <motion.div
                 key={stat.label}
-                whileHover={{ scale: 1.03, y: -4 }}
-                transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                className="ck-stat-card ck-shimmer flex items-center gap-4 group"
+                whileHover={{ scale: 1.02, y: -2 }}
+                transition={{ duration: 0.2 }}
+                className="ck-stat-card flex items-center gap-4 group"
                 style={{ "--accent-color": stat.accent.text } as React.CSSProperties}
               >
-                <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${stat.accent.gradient} flex items-center justify-center text-[var(--ck-text)] shrink-0`} style={{ boxShadow: `0 4px 16px ${stat.accent.glow}` }}>
+                <div className={`w-9 h-9 rounded border ${stat.accent.border} ${stat.accent.bg} flex items-center justify-center ${stat.accent.iconColor} shrink-0`}>
                   {stat.icon}
                 </div>
                 <div className="min-w-0 relative z-[3]">
-                  <p className="text-2xl sm:text-3xl font-extrabold font-mono tracking-tighter" style={{ color: stat.accent.text }}>
+                  <p className="text-2xl sm:text-3xl font-extrabold font-mono tracking-tight text-white">
                     <CountUp end={Number(stat.value) || 0} durationMs={1200} />
                   </p>
-                  <p className="text-[10px] uppercase font-mono tracking-widest text-[var(--ck-text-secondary)] font-bold">{stat.label}</p>
-                </div>
-                <div className="absolute right-4 top-4 opacity-10 group-hover:opacity-20 transition-opacity" style={{ color: stat.accent.text }}>
-                  {stat.bgIcon}
+                  <p className="text-[10px] uppercase font-mono tracking-widest text-slate-400 font-bold">{stat.label}</p>
                 </div>
               </motion.div>
             ))}
@@ -1290,17 +1288,17 @@ const DEFAULT_OPS_DATA: OpsData = {
                         initial={{ opacity: 0, x: -8 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: idx * 0.04 }}
-                        className="flex items-center justify-between p-3.5 rounded-xl border border-white/[0.04] hover:border-white/[0.08] bg-white/[0.02] hover:bg-white/[0.03] transition-all text-xs font-mono gap-3"
+                        className="flex items-center justify-between p-3 rounded border border-white/[0.06] hover:border-slate-700 bg-slate-900/40 hover:bg-slate-900/60 transition-all text-xs font-mono gap-3"
                       >
                         <div className="flex items-center gap-3 min-w-0">
-                          <div className="w-1 h-8 rounded-full shrink-0" style={{ background: log.points >= 0 ? "linear-gradient(180deg, #00F5D4, #00BFA5)" : "linear-gradient(180deg, #FF003C, #CC002F)" }} />
+                          <div className="w-1 h-8 rounded-none shrink-0" style={{ background: log.points >= 0 ? "linear-gradient(180deg, #00F5D4, #00BFA5)" : "linear-gradient(180deg, #FF003C, #CC002F)" }} />
                           <div className="min-w-0">
-                            <p className="font-semibold text-[var(--ck-text)] uppercase">{log.category.replace(/_/g, " ")}</p>
-                            {log.reason && <p className="text-[10px] text-[var(--ck-text-secondary)] mt-0.5 truncate">{log.reason}</p>}
-                            <p className="text-[9px] text-[var(--ck-text-muted)] mt-0.5">Approved by {log.giver?.name || "System"} · {new Date(log.createdAt).toLocaleDateString()}</p>
+                            <p className="font-semibold text-white uppercase">{log.category.replace(/_/g, " ")}</p>
+                            {log.reason && <p className="text-[10px] text-slate-400 mt-0.5 truncate">{log.reason}</p>}
+                            <p className="text-[9px] text-slate-500 mt-0.5">Approved by {log.giver?.name || "System"} · {new Date(log.createdAt).toLocaleDateString()}</p>
                           </div>
                         </div>
-                        <span className="text-sm font-bold font-mono px-2.5 py-1 rounded-lg shrink-0 border" style={{
+                        <span className="text-sm font-bold font-mono px-2.5 py-1 rounded shrink-0 border" style={{
                           backgroundColor: log.points >= 0 ? "rgba(0,245,212,0.08)" : "rgba(255,0,60,0.08)",
                           color: log.points >= 0 ? "#00F5D4" : "#FF003C",
                           borderColor: log.points >= 0 ? "rgba(0,245,212,0.2)" : "rgba(255,0,60,0.2)"
@@ -1337,27 +1335,18 @@ const DEFAULT_OPS_DATA: OpsData = {
                         <motion.div
                           key={b.id}
                           title={b.badge.description || b.badge.name}
-                          whileHover={{ scale: 1.08, y: -4 }}
+                          whileHover={{ scale: 1.04, y: -2 }}
                           transition={{ type: "spring", stiffness: 300 }}
-                          className="relative p-3 rounded-xl border text-center transition-all duration-300 cursor-help overflow-hidden group"
+                          className="relative p-3 rounded border text-center transition-all duration-200 cursor-help overflow-hidden group bg-[#070E1A]"
                           style={{
-                            borderColor: "rgba(255,255,255,0.06)",
-                            background: "rgba(0,0,0,0.3)",
-                            boxShadow: `0 0 18px ${theme.glow}`,
+                            borderColor: "rgba(255,255,255,0.08)",
                           }}
                         >
-                          {/* Gradient background glow orb */}
-                          <div
-                            className={`absolute inset-0 opacity-15 group-hover:opacity-30 transition-opacity bg-gradient-to-br ${theme.gradient}`}
-                          />
-                          {/* Badge icon */}
-                          <div
-                            className={`relative w-10 h-10 rounded-full mx-auto mb-2 flex items-center justify-center bg-gradient-to-br ${theme.gradient} shadow-lg`}
-                            style={{ boxShadow: `0 0 12px ${theme.glow}` }}
-                          >
-                            <BadgeIcon className="w-5 h-5 text-white drop-shadow-md" />
+                          {/* Badge icon - technical rectangular frame */}
+                          <div className="w-8 h-8 rounded border border-slate-700/80 bg-slate-900/90 mx-auto mb-2 flex items-center justify-center">
+                            <BadgeIcon className="w-4 h-4 text-[#00F5D4]" />
                           </div>
-                          <p className="relative text-[9px] font-mono font-bold mt-1 truncate uppercase tracking-wider text-white/80 group-hover:text-[var(--ck-text)] transition-colors">{b.badge.name}</p>
+                          <p className="relative text-[9px] font-mono font-bold mt-1 truncate uppercase tracking-wider text-slate-200 group-hover:text-white transition-colors">{b.badge.name}</p>
                         </motion.div>
                       );
                     })}
@@ -1381,10 +1370,10 @@ const DEFAULT_OPS_DATA: OpsData = {
                     <button
                       key={action.href}
                       onClick={() => router.push(action.href)}
-                      className="w-full flex items-center justify-between px-4 py-3 rounded-xl border border-white/[0.04] hover:border-[rgba(0,245,212,0.2)] bg-white/[0.02] hover:bg-white/[0.04] text-[11px] font-mono transition-all group"
+                      className="w-full flex items-center justify-between px-4 py-3 rounded border border-white/[0.06] hover:border-cyan-500/30 bg-[#070E1A] hover:bg-white/[0.04] text-[11px] font-mono transition-all group cursor-pointer"
                     >
-                      <span className="text-[var(--ck-text)] group-hover:text-[var(--ck-primary)] transition-colors">{action.label}</span>
-                      <ArrowRight className="w-3.5 h-3.5 text-[var(--ck-text-muted)] group-hover:text-[var(--ck-primary)] group-hover:translate-x-0.5 transition-all" />
+                      <span className="text-slate-300 group-hover:text-[#00F5D4] transition-colors">{action.label}</span>
+                      <ArrowRight className="w-3.5 h-3.5 text-slate-500 group-hover:text-[#00F5D4] group-hover:translate-x-0.5 transition-all" />
                     </button>
                   ))}
                 </div>

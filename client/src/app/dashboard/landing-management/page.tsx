@@ -312,9 +312,9 @@ export default function LandingManagementPage() {
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ type: "spring", stiffness: 120 }}
-              className="w-20 h-20 rounded-2xl bg-gradient-to-br from-[#00F5D4] to-[#00D2FF] flex items-center justify-center shadow-[0_0_30px_rgba(0,245,212,0.3)] mb-4 border border-white/10"
+              className="w-16 h-16 rounded border border-cyan-500/40 bg-cyan-950/40 flex items-center justify-center shadow-[0_0_25px_rgba(0,245,212,0.25)] mb-4"
             >
-              <CheckCircle className="w-10 h-10 text-black animate-pulse" />
+              <CheckCircle className="w-8 h-8 text-[#00F5D4] animate-pulse" />
             </motion.div>
             
             <h3 className="text-xl font-bold font-mono uppercase tracking-widest mb-1.5" style={{ color: "#00F5D4" }}>

@@ -61,15 +61,26 @@ export default function UsersPage() {
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("");
   
+  const canAssignRoles = Boolean(
+    user?.role &&
+    [
+      "DEVELOPMENT_TEAM",
+      "ADMIN",
+      "FACULTY_COORDINATOR",
+      "FACULTY"
+    ].includes(user.role)
+  );
+
   const canManageUsers = Boolean(
     user?.role &&
     [
       "DEVELOPMENT_TEAM",
+      "ADMIN",
       "FACULTY_COORDINATOR",
-      "TECH_TEAM",
-      "STUDENT_COORDINATOR",
       "FACULTY",
-      "TECH"
+      "TECH_TEAM",
+      "TECH",
+      "STUDENT_COORDINATOR"
     ].includes(user.role)
   );
 
@@ -178,7 +189,7 @@ export default function UsersPage() {
           </h3>
           <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
             {pendingUsers.map((u) => (
-              <div key={u.id} className="flex items-center justify-between p-3.5 rounded-xl border border-[var(--ck-border)] bg-black/40 hover:border-[#FF4D00]/30 transition duration-200">
+              <div key={u.id} className="flex items-center justify-between p-3.5 rounded-lg border border-[var(--ck-border)] bg-black/40 hover:border-[#FF4D00]/30 transition duration-200">
                 <div>
                   <div className="flex items-center gap-2">
                     <p className="text-sm font-semibold text-[var(--ck-text)]">{u.name}</p>
@@ -297,7 +308,7 @@ export default function UsersPage() {
 
                     {/* Security Role */}
                     <td data-label="Security Role">
-                      {canManageUsers ? (
+                      {canAssignRoles && u.id !== user?.id ? (
                         <select className="ck-input text-[10px] py-1 px-2.5 w-auto font-mono border-[var(--ck-border)] focus:border-cyan-500/40" value={u.role} onChange={(e) => handleRoleChange(u.id, e.target.value)}>
                           {CANONICAL_ROLES.map((r) => <option key={r.value} value={r.value}>{r.label}</option>)}
                         </select>

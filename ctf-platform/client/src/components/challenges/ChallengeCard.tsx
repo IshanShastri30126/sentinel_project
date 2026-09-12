@@ -43,7 +43,7 @@ export function ChallengeCard({ challenge, viewers, onClick, index }: ChallengeC
             transition={{ duration: 0.3, delay: index * 0.05 }}
             onClick={onClick}
             className={cn(
-                "group relative cursor-pointer rounded-xl border p-5 transition-all duration-200",
+                "group relative cursor-pointer rounded-lg border p-5 transition-all duration-200",
                 isSolved
                     ? "border-[var(--ctf-green)]/30 bg-[var(--ctf-green-subtle)]"
                     : "border-[var(--ctf-border)] bg-[var(--ctf-card)] card-hover"

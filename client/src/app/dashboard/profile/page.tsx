@@ -214,19 +214,18 @@ export default function ProfilePage() {
         {/* Metric 1 */}
         <motion.div
           variants={itemVariants}
-          whileHover={{ y: -4, scale: 1.01 }}
-          className="ck-card p-5 bg-gradient-to-br from-zinc-950/60 to-black border-[var(--ck-border)] hover:border-[#00F5D4]/30 transition-all duration-300 relative group overflow-hidden"
+          whileHover={{ y: -2 }}
+          className="ck-card p-5 bg-[#070E1A] border border-[#1E293B] hover:border-[#00F5D4]/40 transition-all duration-200 relative group overflow-hidden"
         >
-          <div className="absolute -right-4 -bottom-4 w-12 h-12 rounded-full bg-[#00F5D4]/5 group-hover:bg-[#00F5D4]/10 transition-colors pointer-events-none" />
           <div className="flex items-center gap-4">
-            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[#00F5D4]/15 to-transparent text-[var(--ck-primary)] border border-[#00F5D4]/30 flex items-center justify-center shadow-[0_0_10px_rgba(0,245,212,0.1)]">
-              <Star className="w-5 h-5" />
+            <div className="w-9 h-9 rounded border border-[#00F5D4]/40 bg-[#00F5D4]/10 text-[#00F5D4] flex items-center justify-center shrink-0">
+              <Star className="w-4 h-4" strokeWidth={1.75} />
             </div>
             <div>
-              <p className="text-3xl font-extrabold font-mono text-[var(--ck-text)] tracking-tighter">
+              <p className="text-2xl sm:text-3xl font-extrabold font-mono text-white tracking-tight">
                 {history?.totalPoints || 0}
               </p>
-              <p className="text-[10px] uppercase font-mono tracking-widest text-[var(--ck-text-secondary)] font-bold">Total Points</p>
+              <p className="text-[10px] uppercase font-mono tracking-widest text-slate-400 font-bold">Total Points</p>
             </div>
           </div>
         </motion.div>
@@ -234,19 +233,18 @@ export default function ProfilePage() {
         {/* Metric 2 */}
         <motion.div
           variants={itemVariants}
-          whileHover={{ y: -4, scale: 1.01 }}
-          className="ck-card p-5 bg-gradient-to-br from-zinc-950/60 to-black border-[var(--ck-border)] hover:border-[#FF4D00]/30 transition-all duration-300 relative group overflow-hidden"
+          whileHover={{ y: -2 }}
+          className="ck-card p-5 bg-[#070E1A] border border-[#1E293B] hover:border-[#00E1FF]/40 transition-all duration-200 relative group overflow-hidden"
         >
-          <div className="absolute -right-4 -bottom-4 w-12 h-12 rounded-full bg-[#FF4D00]/5 group-hover:bg-[#FF4D00]/10 transition-colors pointer-events-none" />
           <div className="flex items-center gap-4">
-            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[#FF4D00]/15 to-transparent text-[var(--ck-accent)] border border-[#FF4D00]/30 flex items-center justify-center shadow-[0_0_10px_rgba(255,77,0,0.1)]">
-              <Award className="w-5 h-5" />
+            <div className="w-9 h-9 rounded border border-[#00E1FF]/40 bg-[#00E1FF]/10 text-[#00E1FF] flex items-center justify-center shrink-0">
+              <Award className="w-4 h-4" strokeWidth={1.75} />
             </div>
             <div>
-              <p className="text-3xl font-extrabold font-mono text-[var(--ck-text)] tracking-tighter">
+              <p className="text-2xl sm:text-3xl font-extrabold font-mono text-white tracking-tight">
                 {history?.badges?.length || 0}
               </p>
-              <p className="text-[10px] uppercase font-mono tracking-widest text-[var(--ck-text-secondary)] font-bold">Badges unlocked</p>
+              <p className="text-[10px] uppercase font-mono tracking-widest text-slate-400 font-bold">Badges unlocked</p>
             </div>
           </div>
         </motion.div>
@@ -254,19 +252,18 @@ export default function ProfilePage() {
         {/* Metric 3 */}
         <motion.div
           variants={itemVariants}
-          whileHover={{ y: -4, scale: 1.01 }}
-          className="ck-card p-5 bg-gradient-to-br from-zinc-950/60 to-black border-[var(--ck-border)] hover:border-[#00F5D4]/30 transition-all duration-300 relative group overflow-hidden"
+          whileHover={{ y: -2 }}
+          className="ck-card p-5 bg-[#070E1A] border border-[#1E293B] hover:border-[#00F5D4]/40 transition-all duration-200 relative group overflow-hidden"
         >
-          <div className="absolute -right-4 -bottom-4 w-12 h-12 rounded-full bg-[#00F5D4]/5 group-hover:bg-[#00F5D4]/10 transition-colors pointer-events-none" />
           <div className="flex items-center gap-4">
-            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[#00F5D4]/15 to-transparent text-[var(--ck-primary)] border border-[#00F5D4]/30 flex items-center justify-center shadow-[0_0_10px_rgba(0,245,212,0.1)]">
-              <Calendar className="w-5 h-5" />
+            <div className="w-9 h-9 rounded border border-slate-700/60 bg-slate-800/20 text-slate-300 flex items-center justify-center shrink-0">
+              <Calendar className="w-4 h-4" strokeWidth={1.75} />
             </div>
             <div>
-              <p className="text-3xl font-extrabold font-mono text-[var(--ck-text)] tracking-tighter">
+              <p className="text-2xl sm:text-3xl font-extrabold font-mono text-white tracking-tight">
                 {history?.eventParticipation || 0}
               </p>
-              <p className="text-[10px] uppercase font-mono tracking-widest text-[var(--ck-text-secondary)] font-bold">Events Participated</p>
+              <p className="text-[10px] uppercase font-mono tracking-widest text-slate-400 font-bold">Events Participated</p>
             </div>
           </div>
         </motion.div>
@@ -280,83 +277,83 @@ export default function ProfilePage() {
         
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm font-mono">
           {/* Full Name */}
-          <div className="p-3.5 rounded-xl border border-zinc-900/60 bg-zinc-950/30 flex items-center gap-4 hover:border-[var(--ck-border)] transition duration-300">
-            <div className="w-9 h-9 rounded-lg bg-[var(--ck-bg-card)] flex items-center justify-center text-[var(--ck-text-secondary)] border border-zinc-850">
-              <User className="w-4 h-4" />
+          <div className="p-3.5 rounded border border-slate-800 bg-[#070E1A]/80 flex items-center gap-4 hover:border-[#00F5D4]/40 transition duration-200">
+            <div className="w-8 h-8 rounded border border-slate-700/60 bg-slate-800/30 flex items-center justify-center text-[#00F5D4] shrink-0">
+              <User className="w-4 h-4" strokeWidth={1.75} />
             </div>
             <div className="min-w-0">
-              <p className="text-[10px] uppercase tracking-wider text-[var(--ck-text-muted)] font-semibold">Full Name</p>
-              <p className="font-bold mt-0.5 text-[var(--ck-text)] truncate">{user?.name}</p>
+              <p className="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">Full Name</p>
+              <p className="font-bold mt-0.5 text-white truncate">{user?.name}</p>
             </div>
           </div>
 
           {/* Email */}
-          <div className="p-3.5 rounded-xl border border-zinc-900/60 bg-zinc-950/30 flex items-center gap-4 hover:border-[var(--ck-border)] transition duration-300">
-            <div className="w-9 h-9 rounded-lg bg-[var(--ck-bg-card)] flex items-center justify-center text-[var(--ck-text-secondary)] border border-zinc-850">
-              <Mail className="w-4 h-4" />
+          <div className="p-3.5 rounded border border-slate-800 bg-[#070E1A]/80 flex items-center gap-4 hover:border-[#00F5D4]/40 transition duration-200">
+            <div className="w-8 h-8 rounded border border-slate-700/60 bg-slate-800/30 flex items-center justify-center text-[#00E1FF] shrink-0">
+              <Mail className="w-4 h-4" strokeWidth={1.75} />
             </div>
             <div className="min-w-0">
-              <p className="text-[10px] uppercase tracking-wider text-[var(--ck-text-muted)] font-semibold">College Email</p>
-              <p className="font-bold mt-0.5 text-[var(--ck-text)] truncate">{user?.email}</p>
+              <p className="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">College Email</p>
+              <p className="font-bold mt-0.5 text-white truncate">{user?.email}</p>
             </div>
           </div>
 
           {/* Student / Employee ID */}
-          <div className="p-3.5 rounded-xl border border-zinc-900/60 bg-zinc-950/30 flex items-center gap-4 hover:border-[var(--ck-border)] transition duration-300">
-            <div className="w-9 h-9 rounded-lg bg-[var(--ck-bg-card)] flex items-center justify-center text-[var(--ck-text-secondary)] border border-zinc-850">
-              <Hash className="w-4 h-4" />
+          <div className="p-3.5 rounded border border-slate-800 bg-[#070E1A]/80 flex items-center gap-4 hover:border-[#00F5D4]/40 transition duration-200">
+            <div className="w-8 h-8 rounded border border-slate-700/60 bg-slate-800/30 flex items-center justify-center text-slate-300 shrink-0">
+              <Hash className="w-4 h-4" strokeWidth={1.75} />
             </div>
             <div className="min-w-0">
-              <p className="text-[10px] uppercase tracking-wider text-[var(--ck-text-muted)] font-semibold">
+              <p className="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">
                 {isFaculty ? "Employee ID" : "Student ID"}
               </p>
-              <p className="font-bold mt-0.5 text-[var(--ck-text)] truncate">{((user as any)?.employeeId || user?.studentId || "N/A")}</p>
+              <p className="font-bold mt-0.5 text-white truncate">{((user as any)?.employeeId || user?.studentId || "N/A")}</p>
             </div>
           </div>
 
           {/* Department */}
-          <div className="p-3.5 rounded-xl border border-zinc-900/60 bg-zinc-950/30 flex items-center gap-4 hover:border-[var(--ck-border)] transition duration-300">
-            <div className="w-9 h-9 rounded-lg bg-[var(--ck-bg-card)] flex items-center justify-center text-[var(--ck-text-secondary)] border border-zinc-850">
-              <BookOpen className="w-4 h-4" />
+          <div className="p-3.5 rounded border border-slate-800 bg-[#070E1A]/80 flex items-center gap-4 hover:border-[#00F5D4]/40 transition duration-200">
+            <div className="w-8 h-8 rounded border border-slate-700/60 bg-slate-800/30 flex items-center justify-center text-slate-300 shrink-0">
+              <BookOpen className="w-4 h-4" strokeWidth={1.75} />
             </div>
             <div className="min-w-0">
-              <p className="text-[10px] uppercase tracking-wider text-[var(--ck-text-muted)] font-semibold">Department</p>
-              <p className="font-bold mt-0.5 text-[var(--ck-text)] truncate">{user?.department || "N/A"}</p>
+              <p className="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">Department</p>
+              <p className="font-bold mt-0.5 text-white truncate">{user?.department || "N/A"}</p>
             </div>
           </div>
 
           {/* Institute */}
-          <div className="p-3.5 rounded-xl border border-zinc-900/60 bg-zinc-950/30 flex items-center gap-4 hover:border-[var(--ck-border)] transition duration-300">
-            <div className="w-9 h-9 rounded-lg bg-[var(--ck-bg-card)] flex items-center justify-center text-[var(--ck-text-secondary)] border border-zinc-850">
-              <Building className="w-4 h-4" />
+          <div className="p-3.5 rounded border border-slate-800 bg-[#070E1A]/80 flex items-center gap-4 hover:border-[#00F5D4]/40 transition duration-200">
+            <div className="w-8 h-8 rounded border border-slate-700/60 bg-slate-800/30 flex items-center justify-center text-slate-300 shrink-0">
+              <Building className="w-4 h-4" strokeWidth={1.75} />
             </div>
             <div className="min-w-0">
-              <p className="text-[10px] uppercase tracking-wider text-[var(--ck-text-muted)] font-semibold">Institute</p>
-              <p className="font-bold mt-0.5 text-[var(--ck-text)] truncate">{user?.institute || "N/A"}</p>
+              <p className="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">Institute</p>
+              <p className="font-bold mt-0.5 text-white truncate">{user?.institute || "N/A"}</p>
             </div>
           </div>
 
           {/* Semester (Completely Removed for Faculty) */}
           {!isFaculty && (
-            <div className="p-3.5 rounded-xl border border-zinc-900/60 bg-zinc-950/30 flex items-center gap-4 hover:border-[var(--ck-border)] transition duration-300">
-              <div className="w-9 h-9 rounded-lg bg-[var(--ck-bg-card)] flex items-center justify-center text-[var(--ck-text-secondary)] border border-zinc-850">
-                <GraduationCap className="w-4 h-4" />
+            <div className="p-3.5 rounded border border-slate-800 bg-[#070E1A]/80 flex items-center gap-4 hover:border-[#00F5D4]/40 transition duration-200">
+              <div className="w-8 h-8 rounded border border-slate-700/60 bg-slate-800/30 flex items-center justify-center text-slate-300 shrink-0">
+                <GraduationCap className="w-4 h-4" strokeWidth={1.75} />
               </div>
               <div className="min-w-0">
-                <p className="text-[10px] uppercase tracking-wider text-[var(--ck-text-muted)] font-semibold">Semester</p>
-                <p className="font-bold mt-0.5 text-[var(--ck-text)] truncate">{user?.semester || "N/A"}</p>
+                <p className="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">Semester</p>
+                <p className="font-bold mt-0.5 text-white truncate">{user?.semester || "N/A"}</p>
               </div>
             </div>
           )}
 
           {/* Contact info */}
-          <div className="p-3.5 rounded-xl border border-zinc-900/60 bg-zinc-950/30 flex items-center gap-4 hover:border-[var(--ck-border)] transition duration-300 sm:col-span-2">
-            <div className="w-9 h-9 rounded-lg bg-[var(--ck-bg-card)] flex items-center justify-center text-[var(--ck-text-secondary)] border border-zinc-850">
-              <Phone className="w-4 h-4" />
+          <div className="p-3.5 rounded border border-slate-800 bg-[#070E1A]/80 flex items-center gap-4 hover:border-[#00F5D4]/40 transition duration-200 sm:col-span-2">
+            <div className="w-8 h-8 rounded border border-slate-700/60 bg-slate-800/30 flex items-center justify-center text-[#00F5D4] shrink-0">
+              <Phone className="w-4 h-4" strokeWidth={1.75} />
             </div>
             <div className="min-w-0">
-              <p className="text-[10px] uppercase tracking-wider text-[var(--ck-text-muted)] font-semibold">Contact Phone</p>
-              <p className="font-bold mt-0.5 text-[var(--ck-text)] truncate">{user?.phone || "N/A"}</p>
+              <p className="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">Contact Phone</p>
+              <p className="font-bold mt-0.5 text-white truncate">{user?.phone || "N/A"}</p>
             </div>
           </div>
         </div>

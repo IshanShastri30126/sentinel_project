@@ -230,17 +230,16 @@ export default function MyCertificatesPage() {
       {certificates.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-24 gap-5">
           <div className="relative">
-            <div className="absolute inset-0 bg-[#00F5D4]/10 rounded-full blur-3xl animate-pulse" />
-            <div className="relative w-24 h-24 rounded-3xl border border-[var(--ck-border)] bg-gradient-to-br from-zinc-950/30 to-black flex items-center justify-center">
-              <Trophy className="w-10 h-10" style={{ color: "#00F5D4" }} />
+            <div className="w-16 h-16 rounded border border-cyan-500/40 bg-[#070E1A] flex items-center justify-center shadow-[0_0_20px_rgba(0,245,212,0.15)]">
+              <Trophy className="w-8 h-8 text-[#00F5D4]" strokeWidth={1.75} />
             </div>
           </div>
           <div className="text-center">
-            <p className="text-sm font-black uppercase tracking-widest text-[var(--ck-text-secondary)] font-mono">VAULT EMPTY</p>
-            <p className="text-xs text-zinc-650 mt-1 max-w-xs font-mono">No achievements yet. Participate in events to earn verified certificates.</p>
+            <p className="text-sm font-black uppercase tracking-widest text-slate-300 font-mono">VAULT EMPTY</p>
+            <p className="text-xs text-slate-400 mt-1 max-w-xs font-mono">No achievements yet. Participate in events to earn verified certificates.</p>
           </div>
           <Link href="/dashboard/events"
-            className="flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-[#00F5D4] to-[#00D2FF] text-black text-xs font-black uppercase tracking-wider hover:scale-[1.02] active:scale-[0.98] transition-all shadow-[0_0_15px_rgba(0,245,212,0.3)]"
+            className="flex items-center gap-2 px-6 py-3 rounded bg-gradient-to-r from-[#00F5D4] to-[#00D2FF] text-black text-xs font-black uppercase tracking-wider hover:scale-[1.02] active:scale-[0.98] transition-all shadow-[0_0_15px_rgba(0,245,212,0.3)] cursor-pointer"
           >
             EXPLORE EVENTS
           </Link>

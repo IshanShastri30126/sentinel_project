@@ -265,8 +265,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     return (
       <div className="min-h-screen flex items-center justify-center p-4" style={{ background: "var(--ck-bg)" }}>
         <div className="ck-card p-8 max-w-md text-center">
-          <div className="w-16 h-16 rounded-full bg-amber-500/10 flex items-center justify-center mx-auto mb-4">
-            <ClipboardList className="w-8 h-8 text-amber-500" />
+          <div className="w-12 h-12 rounded border border-amber-500/40 bg-amber-500/10 flex items-center justify-center mx-auto mb-4">
+            <ClipboardList className="w-6 h-6 text-amber-500" />
           </div>
           <h2 className="text-xl font-bold mb-2" style={{ color: "var(--ck-text)" }}>Account Pending Approval</h2>
           <p className="text-sm mb-6" style={{ color: "var(--ck-text-secondary)" }}>
@@ -377,7 +377,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                                 key={item.href}
                                 href={item.href}
                                 onClick={() => setMobileOpen(false)}
-                                className={`group relative flex items-center justify-between px-3 py-2 rounded-xl border font-mono text-[11px] transition-all duration-200 ${
+                                className={`group relative flex items-center justify-between px-3 py-2 rounded border font-mono text-[11px] transition-all duration-200 ${
                                   isActive
                                     ? "bg-[#00F5D4]/10 border-[#00F5D4] text-[#00F5D4] font-bold shadow-[0_0_12px_rgba(0,245,212,0.15)]"
                                     : "bg-[#080E24]/60 border-[#121F3D]/80 text-slate-300 hover:border-[#00F5D4]/40 hover:text-white hover:bg-[#0A122A] hover:translate-x-1"
@@ -413,7 +413,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 <Link
                   href="/dashboard/profile"
                   onClick={() => setMobileOpen(false)}
-                  className="flex items-center gap-3 bg-[#080E24] border border-[#121F3D] rounded-xl p-2.5 hover:border-[#00F5D4]/40 transition-all duration-200 group"
+                  className="flex items-center gap-3 bg-[#080E24] border border-[#121F3D] rounded p-2.5 hover:border-[#00F5D4]/40 transition-all duration-200 group"
                 >
                   <DefaultAvatar
                     src={user.avatarUrl ? getFileUrl(user.avatarUrl) : null}
@@ -433,7 +433,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 <button
                   type="button"
                   onClick={() => { setMobileOpen(false); logout(); router.push("/"); }}
-                  className="w-full py-2.5 px-4 rounded-xl bg-[#FF0055]/10 border border-[#FF0055]/30 text-[#FF0055] font-mono text-[10px] font-bold uppercase tracking-widest hover:bg-[#FF0055] hover:text-black hover:shadow-[0_0_18px_rgba(255,0,85,0.4)] transition-all duration-200 cursor-pointer min-h-[44px] flex items-center justify-center gap-2"
+                  className="w-full py-2.5 px-4 rounded bg-[#FF0055]/10 border border-[#FF0055]/30 text-[#FF0055] font-mono text-[10px] font-bold uppercase tracking-widest hover:bg-[#FF0055] hover:text-black hover:shadow-[0_0_18px_rgba(255,0,85,0.4)] transition-all duration-200 cursor-pointer min-h-[44px] flex items-center justify-center gap-2"
                 >
                   <LogOut className="w-4 h-4" /> TERMINATE SESSION
                 </button>
@@ -557,7 +557,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                               exit={{ opacity: 0, x: 50, transition: { duration: 0.15 } }}
                               className="overflow-hidden"
                             >
-                              <div className="p-3 rounded-xl border border-[#1A1E26] hover:border-[rgba(0,245,212,0.15)] transition-all flex gap-3 relative group overflow-hidden bg-[var(--ck-bg-card)]">
+                              <div className="p-3 rounded border border-[#1A1E26] hover:border-[rgba(0,245,212,0.15)] transition-all flex gap-3 relative group overflow-hidden bg-[var(--ck-bg-card)]">
                                 <div className="absolute top-0 bottom-0 left-0 w-[2px]" style={{ background: "#00F5D4", boxShadow: "0 0 6px rgba(0,245,212,0.6)" }} />
 
                                 <div className="flex-1 min-w-0 pl-1">
@@ -577,7 +577,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                                 <div className="flex flex-col justify-center shrink-0">
                                   <button
                                     onClick={() => markNotificationRead(notif.id)}
-                                    className="p-1.5 rounded-lg border border-[#1A1E26] hover:border-[rgba(0,245,212,0.3)] transition-all cursor-pointer"
+                                    className="p-1.5 rounded border border-[#1A1E26] hover:border-[rgba(0,245,212,0.3)] transition-all cursor-pointer"
                                     style={{ color: "#00F5D4" }}
                                     title="Mark as read"
                                   >
@@ -596,9 +596,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                             className="py-8 flex flex-col items-center justify-center text-center px-4 select-none"
                           >
                             <div className="relative mb-3">
-                              <div className="absolute -inset-1.5 bg-cyan-500/10 rounded-full blur-lg animate-pulse" />
-                              <div className="relative w-12 h-12 rounded-full border border-cyan-500/30 bg-cyan-950/20 flex items-center justify-center text-cyan-550/70">
-                                <Shield className="w-6 h-6" />
+                              <div className="w-10 h-10 rounded border border-cyan-500/30 bg-cyan-950/20 flex items-center justify-center text-cyan-400">
+                                <Shield className="w-5 h-5" />
                               </div>
                             </div>
                             <h4 className="text-[9px] uppercase tracking-widest text-[var(--ck-text-secondary)] font-bold mb-1">
@@ -626,7 +625,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               animate={{ opacity: 1, y: 0, x: 0 }}
               exit={{ opacity: 0, y: 20, x: 20 }}
               transition={{ duration: 0.3, type: "spring", stiffness: 160, damping: 20 }}
-              className="fixed bottom-5 right-5 z-[60] w-72 sm:w-80 rounded-2xl overflow-hidden border shadow-2xl"
+              className="fixed bottom-5 right-5 z-[60] w-72 sm:w-80 rounded-lg overflow-hidden border shadow-2xl"
               style={{ background: "rgba(8,10,15,0.97)", borderColor: "rgba(0,245,212,0.25)", borderLeft: "3px solid #00F5D4" }}
             >
               {/* Top glow bar */}
@@ -655,7 +654,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 <div className="flex items-center justify-between border-t border-[#1A1E26] pt-3">
                   <button
                     onClick={() => handleMarkToastRead(activeToast.id)}
-                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-[#1A1E26] text-[9px] font-bold font-mono uppercase tracking-wider transition-all hover:border-[rgba(0,245,212,0.3)] cursor-pointer"
+                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded border border-[#1A1E26] text-[9px] font-bold font-mono uppercase tracking-wider transition-all hover:border-[rgba(0,245,212,0.3)] cursor-pointer"
                     style={{ color: "#00F5D4" }}
                   >
                     <Check className="w-3 h-3" /> MARK READ

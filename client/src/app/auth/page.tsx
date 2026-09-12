@@ -323,7 +323,10 @@ function LoginPageContent() {
 
   return (
     <div className="min-h-screen flex flex-col justify-between p-4 sm:p-6 lg:p-10 relative overflow-hidden bg-[#02050B] text-slate-100 font-sans">
-      <PlexusBackground />
+      {/* Dimmed Background Canvas */}
+      <div className="fixed inset-0 pointer-events-none z-0 opacity-25">
+        <PlexusBackground />
+      </div>
 
       {/* Top Header Bar */}
       <div className="relative z-10 flex items-center justify-between max-w-6xl mx-auto w-full mb-6">
@@ -334,7 +337,7 @@ function LoginPageContent() {
           <ArrowLeft className="w-3.5 h-3.5" />
           <span>RETURN TO PORTAL</span>
         </Link>
-        <div className="hidden sm:flex items-center gap-2 text-xs font-mono text-[#00F5D4] bg-[#070D18]/80 px-3 py-1.5 rounded-full border border-cyan-500/30 backdrop-blur">
+        <div className="hidden sm:flex items-center gap-2 text-xs font-mono text-[#00F5D4] bg-[#070D18]/80 px-3 py-1.5 rounded border border-cyan-500/30 backdrop-blur">
           <Shield className="w-3.5 h-3.5 text-[#00F5D4]" />
           <span>SECURE AUTHENTICATION GATEWAY</span>
         </div>
@@ -348,7 +351,7 @@ function LoginPageContent() {
           transition={{ duration: 0.4 }}
           className={`w-full ${isLogin ? "max-w-md" : "max-w-xl"} transition-all duration-300`}
         >
-          <div className="relative rounded-xl bg-[#070D18]/95 backdrop-blur-2xl p-6 sm:p-8 border border-white/[0.12] shadow-[0_12px_40px_rgba(0,0,0,0.8),0_0_25px_rgba(0,245,212,0.08)] hud-brackets">
+          <div className="relative rounded-lg bg-[#070E1A] p-6 sm:p-8 border border-[#1E293B] shadow-[0_12px_40px_rgba(0,0,0,0.9),0_0_20px_rgba(0,245,212,0.06)] hud-brackets">
             <BorderBeam size={180} duration={12} />
 
             {/* Header Identity */}
@@ -591,7 +594,7 @@ function LoginPageContent() {
                   <Mail className="w-4 h-4 text-[#00F5D4] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                   <input
                     type="email"
-                    placeholder="user@chakravyuh.edu"
+                    placeholder="operative@sentinal.defense"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
@@ -726,8 +729,8 @@ function LoginPageContent() {
       </div>
 
       {/* Footer watermark */}
-      <div className="relative z-10 text-center py-2 font-mono text-[10px] text-slate-600">
-        © {new Date().getFullYear()} Chakravyuh Club • Defense Network • TLS 1.3 Certified
+      <div className="relative z-10 text-center py-2 font-mono text-[10px] text-slate-500">
+        © {new Date().getFullYear()} SENTINAL Cyber Defense Operations Hub • Defense Network • TLS 1.3 Certified
       </div>
     </div>
   );

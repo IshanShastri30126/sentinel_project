@@ -139,7 +139,7 @@ function ChallengesContent() {
             {/* Challenge Grid */}
             {notRegistered ? (
                 <div
-                    className="flex flex-col items-center justify-center rounded-xl border p-8 text-center max-w-lg mx-auto my-12"
+                    className="flex flex-col items-center justify-center rounded-lg border p-8 text-center max-w-lg mx-auto my-12"
                     style={{
                         backgroundColor: "rgba(255, 184, 0, 0.05)",
                         borderColor: "rgba(255, 184, 0, 0.2)",
@@ -179,13 +179,13 @@ function ChallengesContent() {
             ) : loading ? (
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                     {Array.from({ length: 6 }).map((_, i) => (
-                        <Skeleton key={i} className="h-40 rounded-xl" />
+                        <Skeleton key={i} className="h-40 rounded-lg" />
                     ))}
                 </div>
             ) : filtered.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-20 gap-4">
-                    <Swords className="size-10" style={{ color: "#333" }} />
-                    <p className="text-sm" style={{ color: "#666" }}>
+                    <Swords className="size-10 text-slate-500" />
+                    <p className="text-sm text-slate-400 font-mono">
                         {activeCategory === "ALL"
                             ? "No challenges available yet."
                             : `No ${activeCategory} challenges found.`}

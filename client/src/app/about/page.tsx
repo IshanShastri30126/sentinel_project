@@ -74,7 +74,7 @@ export default function AboutPage() {
             <h1 className="text-3xl sm:text-5xl font-black uppercase font-mono tracking-tight text-white">
               ABOUT <span className="text-[#00F5D4]">CHAKRAVYUH CLUB</span>
             </h1>
-            <p className="font-mono text-xs sm:text-sm text-slate-400 leading-relaxed">
+            <p className="font-mono text-xs sm:text-sm text-slate-300 leading-relaxed">
               The Official Cybersecurity Society of the Computer Engineering Department, CSPIT.
               Fostering relentless technical rigor, offensive defense, and peer-to-peer security engineering.
             </p>
@@ -148,7 +148,7 @@ export default function AboutPage() {
                         {item.title}
                       </h4>
                     </div>
-                    <p className="font-mono text-xs text-slate-400 leading-relaxed">
+                    <p className="font-mono text-xs text-slate-300 leading-relaxed">
                       {item.desc}
                     </p>
                   </div>
@@ -175,7 +175,7 @@ export default function AboutPage() {
                 <h3 className="font-mono text-sm font-bold text-white uppercase">
                   Ethical Hacking & Audits
                 </h3>
-                <p className="font-mono text-xs text-slate-400 leading-relaxed">
+                <p className="font-mono text-xs text-slate-300 leading-relaxed">
                   Educating students in authorized testing environments, identifying code vulnerabilities,
                   and generating structured remediation reports compliant with OWASP standards.
                 </p>
@@ -185,7 +185,7 @@ export default function AboutPage() {
                 <h3 className="font-mono text-sm font-bold text-white uppercase">
                   Competitive CTF Training
                 </h3>
-                <p className="font-mono text-xs text-slate-400 leading-relaxed">
+                <p className="font-mono text-xs text-slate-300 leading-relaxed">
                   Training members in cryptography, reverse engineering, web exploitation, and binary analysis
                   to compete on national and global leaderboards.
                 </p>
@@ -195,7 +195,7 @@ export default function AboutPage() {
                 <h3 className="font-mono text-sm font-bold text-white uppercase">
                   Incident Simulation
                 </h3>
-                <p className="font-mono text-xs text-slate-400 leading-relaxed">
+                <p className="font-mono text-xs text-slate-300 leading-relaxed">
                   Simulating multi-vector adversary tactics to train defense analysts in detection, containment,
                   forensics, and system resilience.
                 </p>
@@ -205,7 +205,7 @@ export default function AboutPage() {
                 <h3 className="font-mono text-sm font-bold text-white uppercase">
                   Campus Digital Hygiene
                 </h3>
-                <p className="font-mono text-xs text-slate-400 leading-relaxed">
+                <p className="font-mono text-xs text-slate-300 leading-relaxed">
                   Promoting institutional security hygiene, strong authentication protocols, phishing prevention,
                   and safe software engineering practices.
                 </p>
@@ -216,7 +216,7 @@ export default function AboutPage() {
 
         {/* Call to Action Card */}
         <SectionReveal delay={0.25}>
-          <div className="relative rounded-xl bg-gradient-to-b from-[#081220] to-[#040812] border border-cyan-500/30 p-8 text-center space-y-4 hud-brackets">
+          <div className="relative rounded-lg bg-[#070E1A] border border-[#1E293B] p-8 text-center space-y-4 hud-brackets">
             <BorderBeam size={200} duration={12} />
             <h3 className="text-xl sm:text-2xl font-black uppercase font-mono tracking-tight text-white">
               JOIN THE CHAKRAVYUH CADRE
