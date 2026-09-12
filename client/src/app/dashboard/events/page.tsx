@@ -403,6 +403,17 @@ export default function EventsPage() {
   const [newOrganizer, setNewOrganizer] = useState<Organizer>({ name: "", role: "Student Coordinator", email: "", phone: "" });
   const [availableFaculty, setAvailableFaculty] = useState<Organizer[]>([]);
   const [availableStudentCoords, setAvailableStudentCoords] = useState<Organizer[]>([]);
+  const [step4Confirmed, setStep4Confirmed] = useState(false);
+  const [step4EnteredAt, setStep4EnteredAt] = useState<number>(0);
+
+  useEffect(() => {
+    if (step === 4) {
+      setStep4EnteredAt(Date.now());
+      if (!editingEventId) {
+        setStep4Confirmed(false);
+      }
+    }
+  }, [step, editingEventId]);
 
   // Auto-fetch Faculty & Student Coordinators from landing team roster
   useEffect(() => {
@@ -528,6 +539,10 @@ export default function EventsPage() {
 
   const handleCreate = async (e?: React.FormEvent | React.MouseEvent) => {
     if (e) e.preventDefault();
+    // Cooldown check: prevent clicks occurring within 600ms of entering Step 4
+    if (Date.now() - step4EnteredAt < 600) {
+      return;
+    }
     // Strict safeguard: Event creation/editing can ONLY be submitted on Step 4 (Details & Media)
     if (step !== 4) {
       return;
@@ -788,6 +803,8 @@ export default function EventsPage() {
         o.role.toLowerCase().includes("technical")
       );
       if (!hasStudentCoord) return false;
+      // 4. User confirmation checkbox required
+      if (!step4Confirmed && !editingEventId) return false;
       return true;
     }
     return true;
@@ -804,6 +821,9 @@ export default function EventsPage() {
   };
 
   const navigateToStep = (targetStep: number) => {
+    if (typeof document !== "undefined" && document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
     setDirection(targetStep > step ? 1 : -1);
     setStep(targetStep);
   };
@@ -877,6 +897,9 @@ export default function EventsPage() {
     if (!hasStudentCoord) {
       warnings.push("At least one Student Coordinator must be added to Organizing Team.");
     }
+    if (!step4Confirmed && !editingEventId) {
+      warnings.push("Please check the confirmation box below to verify Step 4 details.");
+    }
     return warnings;
   };
 
@@ -911,6 +934,8 @@ export default function EventsPage() {
               setPosterFile(null); 
               setPosterPreview(null); 
               setDocumentFiles([]); 
+              setStep4Confirmed(false);
+              setStep4EnteredAt(0);
               // Always auto-add all Faculty Coordinators in every new event
               const defaultFaculty = availableFaculty.length > 0 ? availableFaculty : [
                 { name: "Dr. Parag Shah", role: "Faculty Coordinator", email: "paragshah.ce@charusat.ac.in", phone: "9876543210" },
@@ -1709,6 +1734,26 @@ export default function EventsPage() {
                           )}
                         </div>
                       </div>
+
+                      {/* Step 4 Mandatory Confirmation Checkbox */}
+                      <div className="p-4 rounded-xl border border-[var(--ck-border)] bg-zinc-950/80 space-y-2">
+                        <label className="flex items-start gap-3 cursor-pointer group">
+                          <input
+                            type="checkbox"
+                            checked={step4Confirmed || Boolean(editingEventId)}
+                            onChange={(e) => setStep4Confirmed(e.target.checked)}
+                            className="mt-0.5 w-4 h-4 rounded border-[var(--ck-border)] text-[var(--ck-primary)] focus:ring-[var(--ck-primary)]/40 focus:ring-offset-0 bg-zinc-900 cursor-pointer"
+                          />
+                          <div className="space-y-0.5">
+                            <span className="text-xs font-mono font-bold text-[var(--ck-text)] uppercase tracking-wider group-hover:text-[var(--ck-primary)] transition-colors">
+                              I have verified all event parameters, poster, rules, and student coordinators *
+                            </span>
+                            <p className="text-[10px] font-mono text-[var(--ck-text-muted)]">
+                              Enables final event creation. Prevents accidental or premature submission.
+                            </p>
+                          </div>
+                        </label>
+                      </div>
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -1725,23 +1770,28 @@ export default function EventsPage() {
                   <div className="flex items-center gap-3">
                     <span className="text-[10px] font-mono text-[var(--ck-text-muted)] uppercase tracking-wider">Step {step} of {STEPS.length}</span>
                     {step < STEPS.length ? (
-                      <button type="button" onClick={() => { if (canGoNext()) navigateToStep(step + 1); }}
+                      <button 
+                        key={`btn-next-step-${step}`}
+                        type="button" 
+                        onClick={() => { if (canGoNext()) navigateToStep(step + 1); }}
                         disabled={!canGoNext()}
-                        className="ck-btn-primary py-2 px-4 text-xs">
+                        className="ck-btn-primary py-2 px-4 text-xs"
+                      >
                         Next <ChevronRight className="w-3.5 h-3.5" />
                       </button>
                     ) : (
                       <button 
+                        key="btn-submit-final"
                         type="button" 
                         onClick={(e) => {
                           e.preventDefault();
-                          if (canGoNext() && !creating) {
+                          if (canGoNext() && !creating && (Date.now() - step4EnteredAt >= 600)) {
                             handleCreate(e);
                           }
                         }} 
-                        disabled={creating || !canGoNext()} 
+                        disabled={creating || !canGoNext() || (Date.now() - step4EnteredAt < 600)} 
                         className={`py-2 px-5 text-xs font-mono font-bold uppercase tracking-wider rounded-lg transition-all duration-200 ${
-                          !canGoNext() || creating
+                          !canGoNext() || creating || (Date.now() - step4EnteredAt < 600)
                             ? "bg-zinc-800/60 border border-zinc-750 text-zinc-500 cursor-not-allowed opacity-50"
                             : "ck-btn-primary shadow-[0_0_15px_rgba(0,245,212,0.3)] cursor-pointer"
                         }`}
