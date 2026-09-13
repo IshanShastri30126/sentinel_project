@@ -16,15 +16,12 @@ datasource db {
 // ─── Enums ──────────────────────────────────────────────────
 
 enum Role {
-  DEVELOPMENT_TEAM
   ADMIN
   FACULTY_COORDINATOR
-  FACULTY
-  TECH_TEAM
-  TECH
+  TECH_COORDINATOR
+  SOCIAL_MEDIA_COORDINATOR
   STUDENT_COORDINATOR
   MEMBER
-  GUEST
 }
 
 enum ApprovalStatus {
@@ -74,11 +71,11 @@ model User {
   passwordHash  String
   name          String
   studentId     String?  @unique
+  employeeId    String?  @unique
   phone         String?
   department    String?
   institute     String?
-  semester      String?
-  role          Role     @default(GUEST)
+  role          Role     @default(MEMBER)
   avatarUrl     String?
   isActive      Boolean  @default(true)
   isApproved    Boolean  @default(false)

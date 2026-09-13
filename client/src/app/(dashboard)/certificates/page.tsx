@@ -347,7 +347,7 @@ export default function CertificatesPage() {
 
       {/* ── Action row ── */}
       <div className="flex items-center gap-3 flex-wrap">
-        <Link href="/dashboard/certificates/builder"
+        <Link href="/certificates/builder"
           className="ck-btn-secondary flex items-center gap-2 text-xs py-2 px-4"
         >
           <Palette className="w-4 h-4" /> DESIGN TEMPLATE
@@ -385,7 +385,7 @@ export default function CertificatesPage() {
               <p className="text-xs text-[#4B5563] font-mono mt-1">Upload or design a certificate template to begin</p>
             </div>
             <div className="flex gap-2">
-              <Link href="/dashboard/certificates/builder" className="ck-btn-secondary text-xs py-1.5 px-3">OPEN DESIGNER</Link>
+              <Link href="/certificates/builder" className="ck-btn-secondary text-xs py-1.5 px-3">OPEN DESIGNER</Link>
               <button onClick={() => setShowUpload(true)} className="ck-btn-primary text-xs py-1.5 px-3">UPLOAD FILE</button>
             </div>
           </div>
@@ -394,7 +394,7 @@ export default function CertificatesPage() {
             {templates.map((t, i) => (
               <motion.div key={t.id}
                 initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}
-                onClick={() => router.push(`/dashboard/certificates/builder?templateId=${t.id}`)}
+                onClick={() => router.push(`/certificates/builder?templateId=${t.id}`)}
                 className="group relative rounded-xl border bg-[var(--ck-bg-card)] overflow-hidden cursor-pointer transition-all hover:border-[rgba(0,245,212,0.3)]"
                 style={{ borderColor: "#1A1E26" }}
               >
@@ -487,7 +487,7 @@ export default function CertificatesPage() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             {[
               { step: "01", icon: <Calendar className="w-5 h-5" />, title: "LINK EVENT", desc: "Select target event to view or generate certificates", color: "#00F5D4" },
-              { step: "02", icon: <Palette className="w-5 h-5" />, title: "DESIGN TEMPLATE", desc: "Build credential layout in the designer workspace", color: "#FF4D00", action: () => router.push("/dashboard/certificates/builder") },
+              { step: "02", icon: <Palette className="w-5 h-5" />, title: "DESIGN TEMPLATE", desc: "Build credential layout in the designer workspace", color: "#FF4D00", action: () => router.push("/certificates/builder") },
               { step: "03", icon: <Plus className="w-5 h-5" />, title: "BULK GENERATE", desc: "Issue certificates to participants via CSV or registrations", color: "#FF003C", action: () => setShowGenerate(true) },
             ].map(s => (
               <button key={s.step} type="button" onClick={s.action}

@@ -27,20 +27,20 @@ interface Notification {
 interface NavItem { label: string; href: string; icon: React.ReactNode; roles?: Role[]; }
 
 const NAV_ITEMS: NavItem[] = [
-  { label: "Overview", href: "/dashboard", icon: <LayoutDashboard className="w-5 h-5" /> },
-  { label: "Events", href: "/dashboard/events", icon: <Calendar className="w-5 h-5" />, roles: ["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_TEAM", "FACULTY", "TECH"] },
-  { label: "Teams", href: "/dashboard/teams", icon: <UsersRound className="w-5 h-5" /> },
-  { label: "Attendance", href: "/dashboard/attendance", icon: <CheckSquare className="w-5 h-5" /> },
-  { label: "Certificates", href: "/dashboard/certificates", icon: <FileCheck className="w-5 h-5" />, roles: ["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_TEAM", "FACULTY", "TECH"] },
-  { label: "Approvals", href: "/dashboard/approvals", icon: <ClipboardList className="w-5 h-5" />, roles: ["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_TEAM", "FACULTY", "TECH"] },
-  { label: "Leaderboard", href: "/dashboard/leaderboard", icon: <Award className="w-5 h-5" /> },
-  { label: "Users", href: "/dashboard/users", icon: <Users className="w-5 h-5" />, roles: ["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_TEAM", "FACULTY", "TECH"] },
-  { label: "Analytics", href: "/dashboard/analytics", icon: <BarChart3 className="w-5 h-5" />, roles: ["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_TEAM", "FACULTY", "TECH"] },
-  { label: "Landing CMS", href: "/dashboard/landing-management", icon: <LayoutDashboard className="w-5 h-5" />, roles: ["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "TECH_TEAM", "FACULTY", "TECH"] },
-  { label: "Maintenance Logs", href: "/dashboard/maintenance", icon: <Terminal className="w-5 h-5" />, roles: ["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "TECH_TEAM", "FACULTY", "TECH"] },
-  { label: "My Certificates", href: "/dashboard/my-certificates", icon: <Award className="w-5 h-5" /> },
-  { label: "Profile", href: "/dashboard/profile", icon: <User className="w-5 h-5" /> },
-  { label: "Settings", href: "/dashboard/settings", icon: <Settings className="w-5 h-5" />, roles: ["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "TECH_TEAM", "FACULTY", "TECH"] },
+  { label: "Overview", href: "/", icon: <LayoutDashboard className="w-5 h-5" /> },
+  { label: "Events", href: "/events", icon: <Calendar className="w-5 h-5" />, roles: ["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_TEAM", "FACULTY", "TECH"] },
+  { label: "Teams", href: "/teams", icon: <UsersRound className="w-5 h-5" /> },
+  { label: "Attendance", href: "/attendance", icon: <CheckSquare className="w-5 h-5" /> },
+  { label: "Certificates", href: "/certificates", icon: <FileCheck className="w-5 h-5" />, roles: ["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_TEAM", "FACULTY", "TECH"] },
+  { label: "Approvals", href: "/approvals", icon: <ClipboardList className="w-5 h-5" />, roles: ["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_TEAM", "FACULTY", "TECH"] },
+  { label: "Leaderboard", href: "/leaderboard", icon: <Award className="w-5 h-5" /> },
+  { label: "Users", href: "/users", icon: <Users className="w-5 h-5" />, roles: ["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_TEAM", "FACULTY", "TECH"] },
+  { label: "Analytics", href: "/analytics", icon: <BarChart3 className="w-5 h-5" />, roles: ["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_TEAM", "FACULTY", "TECH"] },
+  { label: "Landing CMS", href: "/landing-management", icon: <LayoutDashboard className="w-5 h-5" />, roles: ["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "TECH_TEAM", "FACULTY", "TECH"] },
+  { label: "Maintenance Logs", href: "/maintenance", icon: <Terminal className="w-5 h-5" />, roles: ["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "TECH_TEAM", "FACULTY", "TECH"] },
+  { label: "My Certificates", href: "/my-certificates", icon: <Award className="w-5 h-5" /> },
+  { label: "Profile", href: "/profile", icon: <User className="w-5 h-5" /> },
+  { label: "Settings", href: "/settings", icon: <Settings className="w-5 h-5" />, roles: ["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "TECH_TEAM", "FACULTY", "TECH"] },
 ];
 
 const ROLE_LABELS: Record<Role, string> = {
@@ -140,7 +140,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   };
 
   const handleToastRedirect = () => {
-    router.push("/dashboard/notifications");
+    router.push("/notifications");
     setActiveToast(null);
   };
 
@@ -314,7 +314,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               {/* Drawer Top Header */}
               <div className="h-[52px] sm:h-[56px] px-4 border-b border-[#121F3D] flex items-center justify-between shrink-0 bg-[#050A18]/80">
                 <Link
-                  href="/dashboard"
+                  href="/"
                   onClick={() => setMobileOpen(false)}
                   className="flex items-center gap-2 hover:opacity-90 transition"
                 >
@@ -411,7 +411,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               {/* Bottom Pinned User Profile Card & Sign Out */}
               <div className="p-3 border-t border-[#121F3D] bg-[#050A18]/90 shrink-0 space-y-2.5">
                 <Link
-                  href="/dashboard/profile"
+                  href="/profile"
                   onClick={() => setMobileOpen(false)}
                   className="flex items-center gap-3 bg-[#080E24] border border-[#121F3D] rounded p-2.5 hover:border-[#00F5D4]/40 transition-all duration-200 group"
                 >
@@ -455,7 +455,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             />
 
             {/* Merged Logo Mark + Wordmark inside Sticky Top Bar */}
-            <Link href="/dashboard" className="flex items-center gap-2 min-w-0 shrink hover:opacity-90 transition">
+            <Link href="/" className="flex items-center gap-2 min-w-0 shrink hover:opacity-90 transition">
               <SentinalLogo collapsed={false} showText={true} animateDrawing={false} className="scale-90 origin-left shrink-0" />
             </Link>
           </div>
@@ -682,7 +682,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           initial={{ opacity: 0, y: 10 }} 
           animate={{ opacity: 1, y: 0 }} 
           transition={{ duration: 0.3 }} 
-          className={pathname?.includes("/dashboard/certificates/builder") ? "p-1.5 sm:p-3" : "p-3 sm:p-6 lg:p-8"}
+          className={pathname?.includes("/certificates/builder") ? "p-1.5 sm:p-3" : "p-3 sm:p-6 lg:p-8"}
         >
           {children}
         </motion.div>

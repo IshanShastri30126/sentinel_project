@@ -418,15 +418,10 @@ export default function EventsPage() {
 
   const [form, setForm] = useState({
     title: "", description: "", venue: "", startDate: "", endDate: "",
-    maxCapacity: "", eventType: "general", tags: "",
-    registrationDeadline: "", minTeamSize: "", maxTeamSize: "", rules: "",
-    googleFormUrl: "",
+    maxCapacity: "", eventType: "",
+    registrationDeadline: "", minTeamSize: "", maxTeamSize: "", notTeamEvent: false, rules: "",
     documentUrl: "",
     posterUrl: "",
-    // Social links for the event (defaults to landing page URLs)
-    instagramUrl: "https://instagram.com/chakravyuh_club",
-    linkedinUrl: "https://linkedin.com/company/chakravyuh-club",
-    whatsappUrl: "https://chat.whatsapp.com/chakravyuh-community",
   });
   const [customSocialLinks, setCustomSocialLinks] = useState<Array<{ id: string; name: string; url: string; logo: string }>>([]);
   const [newCustomLink, setNewCustomLink] = useState({ name: "", url: "", logo: "INSTAGRAM" });
@@ -558,19 +553,6 @@ export default function EventsPage() {
     }
   };
 
-  // Tag helper functions
-  const tagList = form.tags ? form.tags.split(",").map(t => t.trim()).filter(Boolean) : [];
-  const addTag = (tag: string) => {
-    const trimmed = tag.trim().toLowerCase();
-    if (!trimmed) return;
-    if (tagList.includes(trimmed)) return;
-    const updatedTags = [...tagList, trimmed].join(",");
-    setForm({ ...form, tags: updatedTags });
-  };
-  const removeTag = (indexToRemove: number) => {
-    const updatedTags = tagList.filter((_, i) => i !== indexToRemove).join(",");
-    setForm({ ...form, tags: updatedTags });
-  };
 
   const handleCreate = async (e?: React.FormEvent | React.MouseEvent) => {
     if (e) e.preventDefault();
@@ -596,19 +578,12 @@ export default function EventsPage() {
         startDate: form.startDate, endDate: form.endDate,
         maxCapacity: form.maxCapacity ? parseInt(form.maxCapacity) : undefined,
         eventType: form.eventType,
-        tags: tagList,
         registrationDeadline: form.registrationDeadline || undefined,
-        minTeamSize: form.minTeamSize ? parseInt(form.minTeamSize) : undefined,
-        maxTeamSize: form.maxTeamSize ? parseInt(form.maxTeamSize) : undefined,
+        minTeamSize: form.notTeamEvent ? 1 : (form.minTeamSize ? parseInt(form.minTeamSize) : undefined),
+        maxTeamSize: form.notTeamEvent ? 1 : (form.maxTeamSize ? parseInt(form.maxTeamSize) : undefined),
         rules: form.rules || undefined,
-        googleFormUrl: form.googleFormUrl || undefined,
         documentUrl: editingEventId ? JSON.stringify(existingDocuments) : undefined,
         organizers: JSON.stringify(organizersList),
-        socialLinks: JSON.stringify({
-          instagram: form.instagramUrl || undefined,
-          linkedin: form.linkedinUrl || undefined,
-          whatsapp: form.whatsappUrl || undefined,
-        }),
       };
 
       let eventId = editingEventId;
@@ -642,7 +617,7 @@ export default function EventsPage() {
         setShowCreate(false);
         setStep(1);
         setEditingEventId(null);
-        setForm({ title: "", description: "", venue: "", startDate: "", endDate: "", maxCapacity: "", eventType: "general", tags: "", registrationDeadline: "", minTeamSize: "", maxTeamSize: "", rules: "", googleFormUrl: "", documentUrl: "", posterUrl: "", instagramUrl: "https://instagram.com/chakravyuh_club", linkedinUrl: "https://linkedin.com/company/chakravyuh-club", whatsappUrl: "https://chat.whatsapp.com/chakravyuh-community" });
+        setForm({ title: "", description: "", venue: "", startDate: "", endDate: "", maxCapacity: "", eventType: "", registrationDeadline: "", minTeamSize: "", maxTeamSize: "", notTeamEvent: false, rules: "", documentUrl: "", posterUrl: "" });
         setCustomSocialLinks([]);
         setPosterFile(null); setPosterPreview(null);
         setDocumentFiles([]);
@@ -663,42 +638,16 @@ export default function EventsPage() {
       startDate: event.startDate || "",
       endDate: event.endDate || "",
       maxCapacity: event.maxCapacity ? String(event.maxCapacity) : "",
-      eventType: event.eventType || "general",
-      tags: event.tags ? event.tags.join(",") : "",
+      eventType: event.eventType || "",
       registrationDeadline: event.registrationDeadline || "",
       minTeamSize: event.minTeamSize ? String(event.minTeamSize) : "",
       maxTeamSize: event.maxTeamSize ? String(event.maxTeamSize) : "",
+      notTeamEvent: event.minTeamSize === 1 && event.maxTeamSize === 1,
       rules: event.rules || "",
-      googleFormUrl: event.googleFormUrl || "",
       documentUrl: event.documentUrl || "",
       posterUrl: event.posterUrl || "",
-      // Parse socialLinks
-      instagramUrl: "",
-      linkedinUrl: "",
-      whatsappUrl: "",
     });
 
-    // Pre-populate social links if they exist
-    if (event.socialLinks) {
-      try {
-        const sl = JSON.parse(event.socialLinks);
-        setForm(prev => ({
-          ...prev,
-          instagramUrl: sl.instagram || "https://instagram.com/chakravyuh_club",
-          linkedinUrl: sl.linkedin || "https://linkedin.com/company/chakravyuh-club",
-          whatsappUrl: sl.whatsapp || "https://chat.whatsapp.com/chakravyuh-community",
-        }));
-        if (sl.customLinks && Array.isArray(sl.customLinks)) {
-          setCustomSocialLinks(sl.customLinks);
-        } else {
-          setCustomSocialLinks([]);
-        }
-      } catch {
-        setCustomSocialLinks([]);
-      }
-    } else {
-      setCustomSocialLinks([]);
-    }
     setPosterPreview(event.posterUrl ? getFileUrl(event.posterUrl) : null);
     setPosterFile(null);
     
@@ -806,14 +755,12 @@ export default function EventsPage() {
   const isStepValid = (stepNum: number) => {
     if (stepNum === 1) return form.title.length >= 3;
     if (stepNum === 2) {
-      if (!form.startDate || !form.endDate) return false;
+      if (!form.startDate || !form.endDate || !form.registrationDeadline) return false;
       const start = new Date(form.startDate);
       const end = new Date(form.endDate);
       if (end <= start) return false;
-      if (form.registrationDeadline) {
-        const deadline = new Date(form.registrationDeadline);
-        if (deadline > start) return false;
-      }
+      const deadline = new Date(form.registrationDeadline);
+      if (deadline > start) return false;
       return true;
     }
     if (stepNum === 3) {
@@ -821,18 +768,20 @@ export default function EventsPage() {
         const cap = parseInt(form.maxCapacity);
         if (isNaN(cap) || cap <= 0) return false;
       }
-      if (form.minTeamSize) {
-        const minS = parseInt(form.minTeamSize);
-        if (isNaN(minS) || minS <= 0) return false;
-      }
-      if (form.maxTeamSize) {
-        const maxS = parseInt(form.maxTeamSize);
-        if (isNaN(maxS) || maxS <= 0) return false;
-      }
-      if (form.minTeamSize && form.maxTeamSize) {
-        const minS = parseInt(form.minTeamSize);
-        const maxS = parseInt(form.maxTeamSize);
-        if (!isNaN(minS) && !isNaN(maxS) && minS > maxS) return false;
+      if (!form.notTeamEvent) {
+        if (form.minTeamSize) {
+          const minS = parseInt(form.minTeamSize);
+          if (isNaN(minS) || minS <= 0) return false;
+        }
+        if (form.maxTeamSize) {
+          const maxS = parseInt(form.maxTeamSize);
+          if (isNaN(maxS) || maxS <= 0) return false;
+        }
+        if (form.minTeamSize && form.maxTeamSize) {
+          const minS = parseInt(form.minTeamSize);
+          const maxS = parseInt(form.maxTeamSize);
+          if (!isNaN(minS) && !isNaN(maxS) && minS > maxS) return false;
+        }
       }
       return true;
     }
@@ -842,12 +791,9 @@ export default function EventsPage() {
       if (!hasPoster) return false;
       // 2. Rules required (minimum 10 non-whitespace characters)
       if (!form.rules || form.rules.trim().length < 10) return false;
-      // 3. At least one Student Coordinator required in organizing team
+      // 3. At least one Event Lead required in organizing team
       const hasStudentCoord = organizersList.some(o => 
-        o.role.toLowerCase().includes("student coordinator") || 
-        o.role.toLowerCase().includes("student") ||
-        o.role.toLowerCase().includes("lead") ||
-        o.role.toLowerCase().includes("technical")
+        o.role.toLowerCase().includes("lead")
       );
       if (!hasStudentCoord) return false;
       // 4. User confirmation checkbox required
@@ -936,13 +882,10 @@ export default function EventsPage() {
       warnings.push("Rules & Guidelines must be provided (minimum 10 characters).");
     }
     const hasStudentCoord = organizersList.some(o => 
-      o.role.toLowerCase().includes("student coordinator") || 
-      o.role.toLowerCase().includes("student") ||
-      o.role.toLowerCase().includes("lead") ||
-      o.role.toLowerCase().includes("technical")
+      o.role.toLowerCase().includes("lead")
     );
     if (!hasStudentCoord) {
-      warnings.push("At least one Student Coordinator must be added to Organizing Team.");
+      warnings.push("At least one Event Lead must be added to Organizing Team.");
     }
     if (!step4Confirmed && !editingEventId) {
       warnings.push("Please check the confirmation box below to verify Step 4 details.");
@@ -977,7 +920,7 @@ export default function EventsPage() {
           <button 
             onClick={() => { 
               setEditingEventId(null); 
-              setForm({ title: "", description: "", venue: "", startDate: "", endDate: "", maxCapacity: "", eventType: "general", tags: "", registrationDeadline: "", minTeamSize: "", maxTeamSize: "", rules: "", googleFormUrl: "", documentUrl: "", posterUrl: "", instagramUrl: "", linkedinUrl: "", whatsappUrl: "" }); 
+              setForm({ title: "", description: "", venue: "", startDate: "", endDate: "", maxCapacity: "", eventType: "", registrationDeadline: "", minTeamSize: "", maxTeamSize: "", notTeamEvent: false, rules: "", documentUrl: "", posterUrl: "" });
               setPosterFile(null); 
               setPosterPreview(null); 
               setDocumentFiles([]); 
@@ -1117,99 +1060,24 @@ export default function EventsPage() {
                       </div>
                       <div>
                         <div className="flex justify-between items-center mb-1">
-                          <label className="ck-label mb-0">Description</label>
+                          <label className="ck-label mb-0">Description *</label>
                           <span className="text-[10px] text-[var(--ck-text-muted)] font-mono">{form.description.length} / 10000000 chars</span>
                         </div>
-                        <textarea className="ck-input" rows={4} maxLength={10000000} placeholder="Describe the event, its purpose, and what participants can expect..." value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
+                        <textarea className="ck-input" rows={4} maxLength={10000000} placeholder="Describe the event, its purpose, and what participants can expect..." value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} required />
                       </div>
                       
                       {/* Visual Event Type Selector */}
-                      <div>
-                        <label className="ck-label mb-2">Event Type</label>
-                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-                          {EVENT_TYPES.map((type) => {
-                            const IconComp = type.icon;
-                            const isSelected = form.eventType === type.value;
-                            return (
-                              <button
-                                key={type.value}
-                                type="button"
-                                onClick={() => setForm({ ...form, eventType: type.value })}
-                                className={`flex flex-col items-start p-3 rounded-xl border text-left transition-all duration-300 relative overflow-hidden group ${
-                                  isSelected
-                                    ? "border-[var(--ck-primary)] bg-[var(--ck-primary)]/10 shadow-[0_0_12px_rgba(0,245,212,0.15)]"
-                                    : "border-[var(--ck-border)] bg-zinc-950/40 hover:border-[var(--ck-border)] hover:bg-[var(--ck-bg-card)]/30"
-                                }`}
-                              >
-                                <div className="p-2 rounded-lg mb-2 transition-colors duration-300" style={{
-                                  backgroundColor: isSelected ? "rgba(0,245,212,0.1)" : "rgba(0,0,0,0.4)",
-                                  color: isSelected ? "var(--ck-primary)" : "#8892A4"
-                                }}>
-                                  <IconComp className="w-4 h-4" />
-                                </div>
-                                <span className="text-xs font-semibold uppercase tracking-wider font-mono" style={{
-                                  color: isSelected ? "var(--ck-primary)" : "#F0F4FF"
-                                }}>
-                                  {type.label}
-                                </span>
-                                <span className="text-[10px] text-[var(--ck-text-muted)] mt-1 line-clamp-1 group-hover:text-[var(--ck-text-secondary)] transition-colors">
-                                  {type.desc}
-                                </span>
-                                {isSelected && (
-                                  <div className="absolute top-2.5 right-2.5 rounded-full p-0.5" style={{ backgroundColor: "var(--ck-primary)", color: "#000", boxShadow: "0 0 5px var(--ck-primary)" }}>
-                                    <Check className="w-2.5 h-2.5 text-black" strokeWidth={3} />
-                                  </div>
-                                )}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         <div>
-                          <label className="ck-label">Venue</label>
+                          <label className="ck-label mb-2">Event Type *</label>
+                          <input className="ck-input" placeholder="e.g. Hackathon, Workshop" value={form.eventType} onChange={(e) => setForm({ ...form, eventType: e.target.value })} required />
+                        </div>
+                        <div>
+                          <label className="ck-label mb-2">Venue *</label>
                           <div className="relative">
                             <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none" style={{ color: "var(--ck-primary)" }} />
-                            <input className="ck-input pl-10" placeholder="e.g. Lab 301, CSPIT" value={form.venue} onChange={(e) => setForm({ ...form, venue: e.target.value })} />
+                            <input className="ck-input pl-10" placeholder="e.g. Lab 301, CSPIT" value={form.venue} onChange={(e) => setForm({ ...form, venue: e.target.value })} required />
                           </div>
-                        </div>
-                        {/* Interactive Tag Input */}
-                        <div>
-                          <label className="ck-label">Tags</label>
-                          <div className="flex flex-wrap gap-2 p-2 rounded-lg border border-[var(--ck-border)] bg-black/50 min-h-[44px] mb-1.5 focus-within:border-[var(--ck-primary)]/50 focus-within:ring-1 focus-within:ring-[var(--ck-primary)]/30 transition-all duration-300">
-                            {tagList.map((tag, idx) => (
-                              <span key={idx} className="flex items-center gap-1 px-2 py-0.5 rounded bg-cyan-950/40 border border-cyan-900/30 text-[10px] text-cyan-200 uppercase font-mono tracking-wider transition-all duration-200 hover:bg-cyan-900/30">
-                                {tag}
-                                <button type="button" onClick={() => removeTag(idx)} className="p-0.5 rounded-full transition hover:text-[var(--ck-text)]" style={{ color: "var(--ck-primary)" }}>
-                                  <X className="w-2.5 h-2.5" />
-                                </button>
-                              </span>
-                            ))}
-                            <input
-                              type="text"
-                              placeholder={tagList.length === 0 ? "cybersecurity, networking, etc. (Press Enter)" : "Add..."}
-                              className="flex-1 min-w-[80px] bg-transparent border-0 outline-none text-xs text-[var(--ck-text)] focus:ring-0 placeholder:text-[var(--ck-text-muted)] font-mono py-0.5"
-                              onKeyDown={(e) => {
-                                  if (e.key === "Enter" || e.key === ",") {
-                                    e.preventDefault();
-                                    const val = e.currentTarget.value.trim();
-                                    if (val) {
-                                      addTag(val);
-                                      e.currentTarget.value = "";
-                                    }
-                                  }
-                                }}
-                              onBlur={(e) => {
-                                  const val = e.currentTarget.value.trim();
-                                  if (val) {
-                                    addTag(val);
-                                    e.currentTarget.value = "";
-                                  }
-                                }}
-                            />
-                          </div>
-                          <span className="text-[10px] text-[var(--ck-text-muted)] font-mono">Press Enter or comma to add tag.</span>
                         </div>
                       </div>
                     </motion.div>
@@ -1228,46 +1096,33 @@ export default function EventsPage() {
                       className="space-y-4"
                     >
                       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                        <MiniCalendar 
-                          label="Start Date & Time *" 
-                          selectedDate={form.startDate}
-                          onSelect={(v) => {
+                        <div>
+                          <label className="ck-label mb-2">Start Date & Time *</label>
+                          <input type="datetime-local" className="ck-input bg-zinc-900 text-[var(--ck-text)] [color-scheme:dark]" value={form.startDate} onChange={(e) => {
                             setForm(prev => {
-                              const updated = { ...prev, startDate: v };
-                              if (prev.endDate && new Date(prev.endDate) <= new Date(v)) {
-                                const nextDay = new Date(new Date(v).getTime() + 24 * 60 * 60 * 1000);
+                              const updated = { ...prev, startDate: e.target.value };
+                              if (prev.endDate && new Date(prev.endDate) <= new Date(e.target.value)) {
+                                const nextDay = new Date(new Date(e.target.value).getTime() + 24 * 60 * 60 * 1000);
                                 updated.endDate = nextDay.toISOString().slice(0, 16);
                               }
-                              if (prev.registrationDeadline && new Date(prev.registrationDeadline) >= new Date(v)) {
+                              if (!prev.registrationDeadline) {
+                                const defaultDeadline = new Date(new Date(e.target.value).getTime() - 24 * 60 * 60 * 1000);
+                                updated.registrationDeadline = defaultDeadline.toISOString().slice(0, 16);
+                              } else if (new Date(prev.registrationDeadline) >= new Date(e.target.value)) {
                                 updated.registrationDeadline = "";
                               }
                               return updated;
                             });
-                          }}
-                          minDate={new Date()}
-                          rangeStart={form.startDate} 
-                          rangeEnd={form.endDate} 
-                        />
-                        <MiniCalendar 
-                          label="End Date & Time *" 
-                          selectedDate={form.endDate}
-                          onSelect={(v) => setForm({ ...form, endDate: v })}
-                          minDate={form.startDate ? new Date(form.startDate) : new Date()}
-                          rangeStart={form.startDate} 
-                          rangeEnd={form.endDate}
-                          disabledNotice={!form.startDate ? "Please set Start Date first" : undefined}
-                        />
-                        <MiniCalendar 
-                          label="Registration Deadline" 
-                          selectedDate={form.registrationDeadline}
-                          onSelect={(v) => setForm({ ...form, registrationDeadline: v })}
-                          minDate={new Date()}
-                          maxDate={form.startDate ? new Date(form.startDate) : null}
-                          rangeStart={form.startDate} 
-                          rangeEnd={form.endDate}
-                          onClear={() => setForm({ ...form, registrationDeadline: "" })}
-                          disabledNotice={!form.startDate ? "Select Start Date first to enable deadline" : undefined}
-                        />
+                          }} required />
+                        </div>
+                        <div>
+                          <label className="ck-label mb-2">End Date & Time *</label>
+                          <input type="datetime-local" className="ck-input bg-zinc-900 text-[var(--ck-text)] [color-scheme:dark]" value={form.endDate} onChange={(e) => setForm({ ...form, endDate: e.target.value })} min={form.startDate} required />
+                        </div>
+                        <div>
+                          <label className="ck-label mb-2">Registration Deadline *</label>
+                          <input type="datetime-local" className="ck-input bg-zinc-900 text-[var(--ck-text)] [color-scheme:dark]" value={form.registrationDeadline} onChange={(e) => setForm({ ...form, registrationDeadline: e.target.value })} max={form.startDate} required />
+                        </div>
                       </div>
                       
                       {/* Date Validation Warnings */}
@@ -1320,19 +1175,29 @@ export default function EventsPage() {
                           <input className="ck-input pl-10" type="number" min="1" placeholder="e.g. 100 (Leave blank for unlimited)" value={form.maxCapacity} onChange={(e) => setForm({ ...form, maxCapacity: e.target.value })} />
                         </div>
                       </div>
+                      <div className="mb-4 flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          id="notTeamEvent"
+                          className="w-4 h-4 rounded border-[var(--ck-border)] text-[var(--ck-primary)] focus:ring-[var(--ck-primary)] bg-zinc-900 cursor-pointer"
+                          checked={form.notTeamEvent}
+                          onChange={(e) => setForm({ ...form, notTeamEvent: e.target.checked, minTeamSize: e.target.checked ? "1" : form.minTeamSize, maxTeamSize: e.target.checked ? "1" : form.maxTeamSize })}
+                        />
+                        <label htmlFor="notTeamEvent" className="ck-label mb-0 cursor-pointer text-sm">Not Team Event</label>
+                      </div>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
                           <label className="ck-label">Min Team Size</label>
-                          <input className="ck-input" type="number" min="1" placeholder="e.g. 2" value={form.minTeamSize} onChange={(e) => setForm({ ...form, minTeamSize: e.target.value })} />
+                          <input className="ck-input" type="number" min="1" placeholder="e.g. 2" value={form.notTeamEvent ? "1" : form.minTeamSize} onChange={(e) => setForm({ ...form, minTeamSize: e.target.value })} disabled={form.notTeamEvent} />
                         </div>
                         <div>
                           <label className="ck-label">Max Team Size</label>
-                          <input className="ck-input" type="number" min="1" placeholder="e.g. 5" value={form.maxTeamSize} onChange={(e) => setForm({ ...form, maxTeamSize: e.target.value })} />
+                          <input className="ck-input" type="number" min="1" placeholder="e.g. 5" value={form.notTeamEvent ? "1" : form.maxTeamSize} onChange={(e) => setForm({ ...form, maxTeamSize: e.target.value })} disabled={form.notTeamEvent} />
                         </div>
                       </div>
                       
                       {/* Capacity warnings */}
-                      {getParticipantWarnings().length > 0 && (
+                      {getParticipantWarnings().length > 0 && !form.notTeamEvent && (
                         <div className="p-3 rounded-lg bg-[var(--ck-danger)]/10 border border-[var(--ck-danger)]/20 text-[var(--ck-danger)] space-y-1">
                           {getParticipantWarnings().map((warn, i) => (
                             <p key={i} className="text-xs font-mono flex items-center gap-2">
@@ -1342,14 +1207,6 @@ export default function EventsPage() {
                           ))}
                         </div>
                       )}
-
-                      <div>
-                        <label className="ck-label">Google Form Link <span className="text-[var(--ck-text-muted)]">(Optional)</span></label>
-                        <div className="relative">
-                          <Link2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none" style={{ color: "var(--ck-primary)" }} />
-                          <input className="ck-input pl-10" type="url" placeholder="https://forms.google.com/..." value={form.googleFormUrl} onChange={(e) => setForm({ ...form, googleFormUrl: e.target.value })} />
-                        </div>
-                      </div>
                     </motion.div>
                   )}
 
@@ -1382,7 +1239,7 @@ export default function EventsPage() {
                         <div className="p-3 rounded-lg bg-[var(--ck-primary)]/10 border border-[var(--ck-primary)]/30 flex items-center gap-2">
                           <CheckCircle2 className="w-4 h-4 text-[var(--ck-primary)] flex-shrink-0" />
                           <span className="text-xs font-mono font-bold text-[var(--ck-primary)] uppercase tracking-wider">
-                            Step 4 Verified: Event Poster, Rules, and Student Coordinator confirmed. Ready to create event!
+                            Step 4 Verified: Event Poster, Rules, and Event Lead confirmed. Ready to create event!
                           </span>
                         </div>
                       )}
@@ -1498,55 +1355,15 @@ export default function EventsPage() {
                       <div className="p-4 rounded-xl border border-zinc-850 bg-black/40 space-y-4">
                         <div className="flex items-center gap-2 border-b border-[var(--ck-border)] pb-2">
                           <Users className="w-4 h-4 text-[var(--ck-primary)]" />
-                          <h3 className="text-sm font-black font-mono text-zinc-350 uppercase tracking-widest">Organizing Team Setup</h3>
-                        </div>
-
-                        {/* Student Coordinator Quick Selection & Auto-Fill */}
-                        <div className="p-3 rounded-lg border border-[var(--ck-primary)]/30 bg-[var(--ck-primary)]/5 space-y-2">
-                          <label className="ck-label text-[10px] uppercase font-mono font-bold text-[var(--ck-primary)]">
-                            Select Student Coordinator (Auto-Fill Details)
-                          </label>
-                          <select 
-                            className="ck-input text-xs py-1.5 bg-[#050A18]"
-                            onChange={(e) => {
-                              const selName = e.target.value;
-                              if (!selName) return;
-                              const found = availableStudentCoords.find((c) => c.name === selName);
-                              if (found) {
-                                setNewOrganizer({
-                                  name: found.name,
-                                  role: found.role || "Student Coordinator",
-                                  email: found.email || "coordinator@chakravyuhclub.com",
-                                  phone: found.phone || "9876543210"
-                                });
-                              }
-                            }}
-                          >
-                            <option value="" className="bg-[#050A18]">Select Student Coordinator to auto-fill details...</option>
-                            {availableStudentCoords.map((coord, idx) => (
-                              <option key={idx} value={coord.name} className="bg-[#050A18] text-white">
-                                {coord.name} ({coord.role})
-                              </option>
-                            ))}
-                          </select>
+                          <h3 className="text-sm font-black font-mono text-zinc-350 uppercase tracking-widest">Event Lead Setup</h3>
                         </div>
 
                         {/* Add Organizer Form */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                           <div>
-                            <label className="ck-label text-[10px]">Name *</label>
-                            <input className="ck-input text-xs py-1.5" placeholder="e.g. Prof. Alice" value={newOrganizer.name}
-                              onChange={(e) => setNewOrganizer({ ...newOrganizer, name: e.target.value })} />
-                          </div>
-                          <div>
-                            <label className="ck-label text-[10px]">Role / designation *</label>
-                            <select className="ck-input text-xs py-1.5 bg-[var(--ck-bg)]" value={newOrganizer.role}
-                              onChange={(e) => setNewOrganizer({ ...newOrganizer, role: e.target.value })}>
-                              <option value="Student Coordinator">Student Coordinator</option>
-                              <option value="Lead Student Coordinator">Lead Student Coordinator</option>
-                              <option value="Student Co-Coordinator">Student Co-Coordinator</option>
-                              <option value="Technical Student Coordinator">Technical Student Coordinator</option>
-                            </select>
+                            <label className="ck-label text-[10px]">Lead Name *</label>
+                            <input className="ck-input text-xs py-1.5" placeholder="e.g. Alice" value={newOrganizer.name}
+                              onChange={(e) => setNewOrganizer({ ...newOrganizer, name: e.target.value, role: "Event Lead" })} />
                           </div>
                           <div>
                             <label className="ck-label text-[10px]">Email *</label>
@@ -1570,20 +1387,20 @@ export default function EventsPage() {
                         <div className="flex justify-end">
                           <button type="button" 
                             onClick={() => {
-                              if (!newOrganizer.name || !newOrganizer.role || !newOrganizer.email || !newOrganizer.phone) {
-                                showToast("Please fill all organizer fields.", "warning");
+                              if (!newOrganizer.name || !newOrganizer.email || !newOrganizer.phone) {
+                                showToast("Please fill all event lead fields.", "warning");
                                 return;
                               }
                               if (!/^\d{10}$/.test(newOrganizer.phone)) {
                                 showToast("Mobile number must contain exactly 10 numeric digits.", "warning");
                                 return;
                               }
-                              setOrganizersList([...organizersList, newOrganizer]);
-                              setNewOrganizer({ name: "", role: "Student Coordinator", email: "", phone: "" });
+                              setOrganizersList([...organizersList, { ...newOrganizer, role: "Event Lead" }]);
+                              setNewOrganizer({ name: "", role: "Event Lead", email: "", phone: "" });
                             }}
                             className="ck-btn-primary py-1.5 px-4 text-xs font-mono flex items-center gap-1.5"
                           >
-                            <Plus className="w-3.5 h-3.5" /> ADD ORGANIZER
+                            <Plus className="w-3.5 h-3.5" /> ADD LEAD
                           </button>
                         </div>
 
@@ -1606,181 +1423,7 @@ export default function EventsPage() {
                         )}
                       </div>
 
-                      {/* Social Links Section */}
-                      <div className="p-4 rounded-xl border border-[var(--ck-border)] bg-black/40 space-y-4">
-                        <div className="flex items-center gap-2 border-b border-[var(--ck-border)] pb-2">
-                          <Link2 className="w-4 h-4" style={{ color: "var(--ck-primary)" }} />
-                          <h3 className="text-sm font-black font-mono text-zinc-350 uppercase tracking-widest">Event Social Links</h3>
-                        </div>
-                        <p className="text-[10px] text-[var(--ck-text-muted)] font-mono">Defaults pre-filled with club landing page URLs. Modify or add custom event-specific links below.</p>
-                        
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                          <div>
-                            <label className="ck-label text-[10px]">Instagram URL</label>
-                            <div className="relative">
-                              <Camera className="w-3.5 h-3.5 text-pink-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                              <input
-                                className="ck-input pl-8 text-xs py-1.5"
-                                type="url"
-                                placeholder="https://instagram.com/..."
-                                value={form.instagramUrl}
-                                onChange={(e) => setForm({ ...form, instagramUrl: e.target.value })}
-                              />
-                            </div>
-                          </div>
-                          <div>
-                            <label className="ck-label text-[10px]">LinkedIn URL</label>
-                            <div className="relative">
-                              <Briefcase className="w-3.5 h-3.5 text-blue-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                              <input
-                                className="ck-input pl-8 text-xs py-1.5"
-                                type="url"
-                                placeholder="https://linkedin.com/..."
-                                value={form.linkedinUrl}
-                                onChange={(e) => setForm({ ...form, linkedinUrl: e.target.value })}
-                              />
-                            </div>
-                          </div>
-                          <div>
-                            <label className="ck-label text-[10px]">WhatsApp Invite URL</label>
-                            <div className="relative">
-                              <MessageSquare className="w-3.5 h-3.5 text-emerald-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                              <input
-                                className="ck-input pl-8 text-xs py-1.5"
-                                type="url"
-                                placeholder="https://chat.whatsapp.com/..."
-                                value={form.whatsappUrl}
-                                onChange={(e) => setForm({ ...form, whatsappUrl: e.target.value })}
-                              />
-                            </div>
-                          </div>
-                        </div>
 
-                        {/* Custom Event-Specific Links & Suggestions */}
-                        <div className="pt-3 border-t border-[var(--ck-border)] space-y-3">
-                          <p className="text-xs font-mono font-bold text-[var(--ck-primary)] uppercase tracking-wider">Add Custom Event Links</p>
-                          
-                          {/* Quick Suggestion Preset Buttons */}
-                          <div className="flex flex-wrap gap-1.5">
-                            <span className="text-[10px] font-mono text-[var(--ck-text-muted)] py-1 uppercase">Suggestions:</span>
-                            <button
-                              type="button"
-                              onClick={() => setNewCustomLink({ name: "WhatsApp Group", url: "https://chat.whatsapp.com/", logo: "WHATSAPP" })}
-                              className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-emerald-950/40 border border-emerald-800/40 text-[10px] font-mono text-emerald-300 hover:bg-emerald-900/40 transition"
-                            >
-                              <MessageSquare className="w-3 h-3" /> WhatsApp Group
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setNewCustomLink({ name: "Instagram Event Page", url: "https://instagram.com/", logo: "INSTAGRAM" })}
-                              className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-pink-950/40 border border-pink-800/40 text-[10px] font-mono text-pink-300 hover:bg-pink-900/40 transition"
-                            >
-                              <Camera className="w-3 h-3" /> Instagram Page
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setNewCustomLink({ name: "LinkedIn Post", url: "https://linkedin.com/", logo: "LINKEDIN" })}
-                              className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-blue-950/40 border border-blue-800/40 text-[10px] font-mono text-blue-300 hover:bg-blue-900/40 transition"
-                            >
-                              <Briefcase className="w-3 h-3" /> LinkedIn Post
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setNewCustomLink({ name: "Discord Channel", url: "https://discord.gg/", logo: "DISCORD" })}
-                              className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-indigo-950/40 border border-indigo-800/40 text-[10px] font-mono text-indigo-300 hover:bg-indigo-900/40 transition"
-                            >
-                              <Gamepad2 className="w-3 h-3" /> Discord
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setNewCustomLink({ name: "YouTube Stream", url: "https://youtube.com/", logo: "YOUTUBE" })}
-                              className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-red-950/40 border border-red-800/40 text-[10px] font-mono text-red-300 hover:bg-red-900/40 transition"
-                            >
-                              <Video className="w-3 h-3" /> YouTube
-                            </button>
-                          </div>
-
-                          {/* Add Custom Link Input Form */}
-                          <div className="grid grid-cols-1 sm:grid-cols-4 gap-2.5">
-                            <div>
-                              <label className="ck-label text-[10px]">Icon Logo</label>
-                              <select
-                                className="ck-input text-xs py-1.5 bg-[var(--ck-bg)]"
-                                value={newCustomLink.logo}
-                                onChange={(e) => setNewCustomLink({ ...newCustomLink, logo: e.target.value })}
-                              >
-                                <option value="INSTAGRAM">Instagram</option>
-                                <option value="WHATSAPP">WhatsApp</option>
-                                <option value="LINKEDIN">LinkedIn</option>
-                                <option value="DISCORD">Discord</option>
-                                <option value="YOUTUBE">YouTube</option>
-                                <option value="GITHUB">GitHub</option>
-                                <option value="WEB">Web Link</option>
-                                <option value="LINK">Link</option>
-                              </select>
-                            </div>
-                            <div>
-                              <label className="ck-label text-[10px]">Link Name *</label>
-                              <input
-                                className="ck-input text-xs py-1.5"
-                                placeholder="e.g. Rulebook PDF / Discord"
-                                value={newCustomLink.name}
-                                onChange={(e) => setNewCustomLink({ ...newCustomLink, name: e.target.value })}
-                              />
-                            </div>
-                            <div className="sm:col-span-2">
-                              <label className="ck-label text-[10px]">Destination URL *</label>
-                              <div className="flex gap-2">
-                                <input
-                                  className="ck-input text-xs py-1.5 flex-1"
-                                  type="url"
-                                  placeholder="https://..."
-                                  value={newCustomLink.url}
-                                  onChange={(e) => setNewCustomLink({ ...newCustomLink, url: e.target.value })}
-                                />
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    if (!newCustomLink.name || !newCustomLink.url) {
-                                      showToast("Please enter both link name and URL.", "warning");
-                                      return;
-                                    }
-                                    setCustomSocialLinks([...customSocialLinks, { id: Date.now().toString(), ...newCustomLink }]);
-                                    setNewCustomLink({ name: "", url: "", logo: "INSTAGRAM" });
-                                  }}
-                                  className="ck-btn-primary py-1.5 px-3 text-xs font-mono shrink-0 flex items-center gap-1"
-                                >
-                                  <Plus className="w-3.5 h-3.5" /> ADD LINK
-                                </button>
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* List of Custom Links Added */}
-                          {customSocialLinks.length > 0 && (
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2">
-                              {customSocialLinks.map((link, idx) => (
-                                <div key={link.id || idx} className="flex items-center justify-between p-2.5 rounded-lg border border-[var(--ck-border)] bg-zinc-950/80">
-                                  <div className="flex items-center gap-2 min-w-0">
-                                    <span className="shrink-0">{renderSocialIcon(link.logo)}</span>
-                                    <div className="min-w-0">
-                                      <p className="text-xs font-bold font-mono text-[var(--ck-text)] truncate">{link.name}</p>
-                                      <p className="text-[9px] font-mono text-[var(--ck-text-muted)] truncate">{link.url}</p>
-                                    </div>
-                                  </div>
-                                  <button
-                                    type="button"
-                                    onClick={() => setCustomSocialLinks(prev => prev.filter((_, i) => i !== idx))}
-                                    className="p-1 rounded hover:bg-white/5 text-[var(--ck-text-muted)] hover:text-[var(--ck-text)] transition"
-                                  >
-                                    <X className="w-3.5 h-3.5" />
-                                  </button>
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      </div>
 
                       {/* Step 4 Mandatory Confirmation Checkbox */}
                       <div className="p-4 rounded-xl border border-[var(--ck-border)] bg-zinc-950/80 space-y-2">
@@ -1793,7 +1436,7 @@ export default function EventsPage() {
                           />
                           <div className="space-y-0.5">
                             <span className="text-xs font-mono font-bold text-[var(--ck-text)] uppercase tracking-wider group-hover:text-[var(--ck-primary)] transition-colors">
-                              I have verified all event parameters, poster, rules, and student coordinators *
+                              I have verified all event parameters, poster, rules, and event leads *
                             </span>
                             <p className="text-[10px] font-mono text-[var(--ck-text-muted)]">
                               Enables final event creation. Prevents accidental or premature submission.
@@ -1917,7 +1560,7 @@ export default function EventsPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredEvents.map((event, i) => (
             <motion.div key={event.id} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}
-              onClick={() => isCore ? router.push(`/dashboard/events/${event.id}`) : undefined}
+              onClick={() => isCore ? router.push(`/events/${event.id}`) : undefined}
               className={`ck-card overflow-hidden hover:border-[rgba(0,245,212,0.3)] hover:shadow-[0_0_20px_rgba(0,245,212,0.08)] ${isCore ? "cursor-pointer" : ""} transition-all`}>
               {/* Poster/Header */}
               <div className="h-44 bg-gradient-to-br from-[#0D0F14]/50 to-black flex items-center justify-center relative overflow-hidden">
@@ -2073,7 +1716,7 @@ export default function EventsPage() {
                     </a>
                   )}
                   {isCore && (
-                    <button onClick={(e) => { e.stopPropagation(); router.push(`/dashboard/events/${event.id}`); }}
+                    <button onClick={(e) => { e.stopPropagation(); router.push(`/events/${event.id}`); }}
                       className="ck-btn-secondary text-xs py-2">
                       <ChevronRight className="w-3 h-3" />
                     </button>

@@ -6,7 +6,7 @@ import { api, getFileUrl } from "@/lib/api";
 import { motion } from "framer-motion";
 import { 
   Users, UserCheck, UserX, Search, Shield, ChevronDown, 
-  ChevronLeft, ChevronRight, GraduationCap, Mail, Phone 
+  ChevronLeft, ChevronRight, GraduationCap, Mail, Phone, AlertTriangle 
 } from "lucide-react";
 import { DefaultAvatar } from "@/components/default-avatar";
 import { useCyberDialog } from "@/components/ui/CyberDialogContext";
@@ -29,28 +29,24 @@ interface UserEntry {
 }
 
 const CANONICAL_ROLES = [
-  { value: "DEVELOPMENT_TEAM", label: "Development Team" },
+  { value: "ADMIN", label: "Admin" },
   { value: "FACULTY_COORDINATOR", label: "Faculty Coordinator" },
-  { value: "TECH_TEAM", label: "Tech Team" },
+  { value: "TECH_COORDINATOR", label: "Tech Coordinator" },
   { value: "STUDENT_COORDINATOR", label: "Student Coordinator" },
+  { value: "SOCIAL_MEDIA_COORDINATOR", label: "Social Media Coordinator" },
   { value: "MEMBER", label: "Member" },
-  { value: "GUEST", label: "Guest" },
 ];
 
 const ROLE_DISPLAY_NAMES: Record<string, string> = {
-  DEVELOPMENT_TEAM: "Development Team",
+  ADMIN: "Admin",
   FACULTY_COORDINATOR: "Faculty Coordinator",
-  TECH_TEAM: "Tech Team",
+  TECH_COORDINATOR: "Tech Coordinator",
   STUDENT_COORDINATOR: "Student Coordinator",
+  SOCIAL_MEDIA_COORDINATOR: "Social Media Coordinator",
   MEMBER: "Member",
-  GUEST: "Guest",
-  FACULTY: "Faculty Coordinator",
-  TECH: "Tech Team",
-  CONTENT: "Content Team",
-  SOCIAL_MEDIA: "Social Media",
 };
 
-const isFaculty = (role?: string): boolean => role === "FACULTY" || role === "FACULTY_COORDINATOR";
+const isFaculty = (role?: string): boolean => role === "FACULTY_COORDINATOR";
 
 export default function UsersPage() {
   const { user, token } = useAuth();
@@ -64,23 +60,18 @@ export default function UsersPage() {
   const canAssignRoles = Boolean(
     user?.role &&
     [
-      "DEVELOPMENT_TEAM",
       "ADMIN",
       "FACULTY_COORDINATOR",
-      "FACULTY"
+      "TECH_COORDINATOR"
     ].includes(user.role)
   );
 
   const canManageUsers = Boolean(
     user?.role &&
     [
-      "DEVELOPMENT_TEAM",
       "ADMIN",
       "FACULTY_COORDINATOR",
-      "FACULTY",
-      "TECH_TEAM",
-      "TECH",
-      "STUDENT_COORDINATOR"
+      "TECH_COORDINATOR"
     ].includes(user.role)
   );
 
@@ -116,6 +107,16 @@ export default function UsersPage() {
   };
 
   useEffect(() => { if (user) load(); }, [user, search, roleFilter, currentPage]);
+
+  if (!user || user.role === "MEMBER" || user.role === "GUEST") {
+    return (
+      <div className="flex flex-col items-center justify-center h-[70vh]">
+        <AlertTriangle className="w-16 h-16 text-red-500 mb-4" />
+        <h2 className="text-2xl font-mono text-white mb-2">ACCESS DENIED</h2>
+        <p className="text-slate-400 font-mono text-sm">You do not have clearance to view this sector.</p>
+      </div>
+    );
+  }
 
   // Reset pagination when search queries or filters change
   useEffect(() => {

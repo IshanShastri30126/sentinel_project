@@ -58,10 +58,9 @@ function LoginPageContent() {
   const { login, loginWithGoogle, register, user } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirectTarget = searchParams?.get("redirect") || "/dashboard";
+  const redirectTarget = searchParams?.get("redirect") || "/";
 
   const [isLogin, setIsLogin] = useState(true);
-  const [roleType, setRoleType] = useState<"STUDENT" | "FACULTY">("STUDENT");
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -70,7 +69,6 @@ function LoginPageContent() {
   const [phone, setPhone] = useState("");
   const [department, setDepartment] = useState("");
   const [institute, setInstitute] = useState("");
-  const [semester, setSemester] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -219,12 +217,9 @@ function LoginPageContent() {
 
         await register(name, email, password, {
           studentId: identifier,
-          employeeId: roleType === "FACULTY" ? identifier : undefined,
           phone,
           department,
           institute,
-          // Faculty role omits semester
-          semester: roleType === "FACULTY" ? "" : semester,
           ...(selectedClubId ? { clubId: selectedClubId } : {})
         });
         setRegisteredPending(true);
@@ -245,7 +240,6 @@ function LoginPageContent() {
     setPhone("");
     setDepartment("");
     setInstitute("");
-    setSemester("");
     setRegisteredPending(false);
   };
 
@@ -396,44 +390,6 @@ function LoginPageContent() {
               {/* Registration Fields */}
               {!isLogin && (
                 <div className="space-y-4">
-                  {/* Role Selection: Student vs Faculty */}
-                  <div className="space-y-1.5">
-                    <label className="block font-mono text-xs font-medium uppercase tracking-wider text-slate-300">
-                      OPERATIVE ROLE CLASSIFICATION
-                    </label>
-                    <div className="grid grid-cols-2 gap-2">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setRoleType("STUDENT");
-                          setSemester("1");
-                        }}
-                        className={`p-2.5 rounded-md border font-mono text-xs font-bold flex items-center justify-center gap-2 transition-all ${
-                          roleType === "STUDENT"
-                            ? "bg-[rgba(0,245,212,0.12)] border-[#00F5D4] text-[#00F5D4]"
-                            : "bg-[#050A14] border-white/10 text-slate-400 hover:text-white"
-                        }`}
-                      >
-                        <GraduationCap className="w-3.5 h-3.5" />
-                        <span>STUDENT</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setRoleType("FACULTY");
-                          setSemester(""); // Faculty omits semester per rule
-                        }}
-                        className={`p-2.5 rounded-md border font-mono text-xs font-bold flex items-center justify-center gap-2 transition-all ${
-                          roleType === "FACULTY"
-                            ? "bg-[rgba(0,245,212,0.12)] border-[#00F5D4] text-[#00F5D4]"
-                            : "bg-[#050A14] border-white/10 text-slate-400 hover:text-white"
-                        }`}
-                      >
-                        <Briefcase className="w-3.5 h-3.5" />
-                        <span>FACULTY</span>
-                      </button>
-                    </div>
-                  </div>
 
                   {/* Name and Identifier */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -456,17 +412,13 @@ function LoginPageContent() {
 
                     <div>
                       <label className="block font-mono text-xs font-medium uppercase tracking-wider text-slate-300 mb-1">
-                        {roleType === "FACULTY" ? "EMPLOYEE ID" : "STUDENT ID"}
+                        STUDENT ID
                       </label>
                       <div className="relative">
-                        {roleType === "FACULTY" ? (
-                          <Briefcase className="w-4 h-4 text-[#00F5D4] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                        ) : (
-                          <GraduationCap className="w-4 h-4 text-[#00F5D4] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                        )}
+                        <GraduationCap className="w-4 h-4 text-[#00F5D4] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                         <input
                           type="text"
-                          placeholder={roleType === "FACULTY" ? "e.g. EMP1024" : "e.g. 24DCS101"}
+                          placeholder="e.g. 24DCS101"
                           value={identifier}
                           onChange={(e) => setIdentifier(e.target.value)}
                           required={!isLogin}
@@ -532,31 +484,8 @@ function LoginPageContent() {
                     </div>
                   </div>
 
-                  {/* Semester (Students only) and Mobile Number */}
-                  <div className={`grid grid-cols-1 ${roleType === "STUDENT" ? "sm:grid-cols-2" : "sm:grid-cols-1"} gap-3`}>
-                    {roleType === "STUDENT" && (
-                      <div>
-                        <label className="block font-mono text-xs font-medium uppercase tracking-wider text-slate-300 mb-1">
-                          SEMESTER (1-8)
-                        </label>
-                        <div className="relative">
-                          <GraduationCap className="w-4 h-4 text-[#00F5D4] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                          <select
-                            value={semester}
-                            onChange={(e) => setSemester(e.target.value)}
-                            required={roleType === "STUDENT"}
-                            className="w-full h-10 rounded-md bg-[#050A14] border border-white/[0.12] pl-10 pr-3.5 font-mono text-xs text-white focus:outline-none focus:border-[#00F5D4] cursor-pointer"
-                          >
-                            <option value="" className="bg-[#050A14] text-slate-500">Select Semester...</option>
-                            {SEMESTERS.map((sem) => (
-                              <option key={sem} value={sem} className="bg-[#050A14] text-white">
-                                Semester {sem}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                      </div>
-                    )}
+                  {/* Mobile Number */}
+                  <div className="grid grid-cols-1 gap-3">
 
                     <div>
                       <label className="block font-mono text-xs font-medium uppercase tracking-wider text-slate-300 mb-1">

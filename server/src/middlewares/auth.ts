@@ -4,6 +4,7 @@ import { config } from "../config";
 import { Role } from "@prisma/client";
 import prisma from "../lib/prisma";
 import { logAuditEvent } from "../lib/auditLogger";
+import { redisGet, redisSet } from "../lib/redis";
 
 export interface AuthPayload {
   userId: string;
@@ -45,16 +46,37 @@ export async function authenticate(req: Request, res: Response, next: NextFuncti
   try {
     const payload = jwt.verify(token, config.jwt.secret) as AuthPayload;
 
-    const dbUser = await prisma.user.findUnique({
-      where: { id: payload.userId },
-      select: { isActive: true },
-    });
+    // Cache isActive check in Redis (60s TTL) to avoid a Neon round-trip on every request.
+    // The cache key is scoped to the userId so deactivations propagate within 60s.
+    const cacheKey = `auth:active:${payload.userId}`;
+    const cached = await redisGet(cacheKey);
 
-    if (!dbUser || !dbUser.isActive) {
-      // Generic message — do not reveal whether account exists or is inactive
+    if (cached === null) {
+      // Cache miss — hit the DB and populate cache
+      // SEC-001 residual fix: also check isApproved so unapproved GUESTs cannot
+      // access authenticated routes even before an admin approves their account.
+      const dbUser = await prisma.user.findUnique({
+        where: { id: payload.userId },
+        select: { isActive: true, isApproved: true, role: true },
+      });
+
+      // Allow access only when active AND (approved OR is a high-trust role that
+      // was created directly by an admin, e.g. FACULTY_COORDINATOR/DEVELOPMENT_TEAM).
+      // GUEST and MEMBER must be explicitly approved.
+      const highTrustRoles = ["ADMIN", "FACULTY_COORDINATOR", "TECH_COORDINATOR", "STUDENT_COORDINATOR", "SOCIAL_MEDIA_COORDINATOR"];
+      const approvalRequired = dbUser && !highTrustRoles.includes(dbUser.role);
+
+      if (!dbUser || !dbUser.isActive || (approvalRequired && !dbUser.isApproved)) {
+        res.status(401).json({ error: "Authentication required" });
+        return;
+      }
+      await redisSet(cacheKey, "1", 60);
+    } else if (cached === "0") {
+      // Cached as inactive or unapproved
       res.status(401).json({ error: "Authentication required" });
       return;
     }
+    // cached === "1" → active and approved, proceed without DB hit
 
     req.user = payload;
     next();
@@ -70,15 +92,12 @@ export async function authenticate(req: Request, res: Response, next: NextFuncti
  * Role hierarchy levels — lower number = higher authority.
  */
 export const ROLE_HIERARCHY: Record<Role, number> = {
-  DEVELOPMENT_TEAM: 1,
   ADMIN: 1,
   FACULTY_COORDINATOR: 1,
-  FACULTY: 1,
-  TECH_TEAM: 1,
-  TECH: 1,
+  TECH_COORDINATOR: 1,
   STUDENT_COORDINATOR: 2,
-  MEMBER: 5,
-  GUEST: 6,
+  SOCIAL_MEDIA_COORDINATOR: 2,
+  MEMBER: 3,
 };
 
 /**

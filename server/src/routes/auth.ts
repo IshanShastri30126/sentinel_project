@@ -26,11 +26,9 @@ const registerSchema = z.object({
   email: z.string().email(),
   password: z.string().min(6).max(128),
   studentId: z.string().optional(),
-  employeeId: z.string().optional(),
   phone: z.string().regex(/^\d{10}$/, "Mobile number must be exactly 10 digits"),
   department: z.string().optional(),
   institute: z.string().optional(),
-  semester: z.string().optional(),
   // NOTE: 'role' is intentionally excluded — public registration always yields GUEST.
   // Role elevation is an admin-only operation performed post-approval.
 });
@@ -53,11 +51,9 @@ function formatUserPayload(user: any) {
     isApproved: user.isApproved,
     avatarUrl: user.avatarUrl,
     studentId: user.studentId,
-    employeeId: isFaculty ? user.studentId : undefined,
     phone: user.phone,
     department: user.department,
     institute: user.institute,
-    semester: isFaculty ? null : user.semester,
     createdAt: user.createdAt,
     isActive: user.isActive,
   };
@@ -103,9 +99,9 @@ router.post("/register", signupLimiter, validate(registerSchema), async (req: Re
   try {
     // SEC-001 FIX: 'role' is deliberately not destructured from req.body.
     // All public registrants receive GUEST unconditionally — role is server-controlled only.
-    const { name, email, password, studentId, employeeId, phone, department, institute, semester, deviceFingerprint } = req.body;
+    const { name, email, password, studentId, phone, department, institute, deviceFingerprint } = req.body;
     const clientFingerprint = deviceFingerprint || (req.headers["x-device-fingerprint"] as string);
-    const targetStudentId = studentId || employeeId;
+    const targetStudentId = studentId;
 
     const existing = await prisma.user.findUnique({ where: { email } });
     if (existing) {
@@ -143,8 +139,7 @@ router.post("/register", signupLimiter, validate(registerSchema), async (req: Re
         phone: phone || null,
         department: department || null,
         institute: institute || null,
-        semester: semester || null,
-        role: "GUEST",          // Always GUEST — never trust client-supplied role
+        role: "MEMBER",          // Default public role
         isApproved: false,      // Always unapproved until an admin grants access
         deviceFingerprint: clientFingerprint || null,
         lastActiveAt: new Date(),
@@ -185,7 +180,7 @@ router.post("/register", signupLimiter, validate(registerSchema), async (req: Re
       });
     }
 
-    sendWelcomeEmail({ name, email, role: "GUEST" }).catch((err) =>
+    sendWelcomeEmail({ name, email, role: "MEMBER" }).catch((err) =>
       console.error("[Auth] Welcome email failed:", err)
     );
 
@@ -263,7 +258,7 @@ router.post("/login", loginLimiter, validate(loginSchema), async (req: Request, 
       }
 
       res.status(401).json({
-        error: failResult.message,
+        error: "Invalid email or password",
         remainingAttempts: failResult.remainingAttempts,
       });
       return;
@@ -292,7 +287,7 @@ router.post("/login", loginLimiter, validate(loginSchema), async (req: Request, 
       }
 
       res.status(401).json({
-        error: failResult.message,
+        error: "Invalid email or password",
         remainingAttempts: failResult.remainingAttempts,
       });
       return;

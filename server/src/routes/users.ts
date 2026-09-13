@@ -29,8 +29,8 @@ async function clearUsersCache() {
 
 const router = Router();
 
-// GET /api/users — List all users (SC+/Tech)
-router.get("/", authenticate, requireMinRole("TECH_TEAM"), async (req: Request, res: Response) => {
+// GET /api/users — List all users (SMC+)
+router.get("/", authenticate, requireMinRole("SOCIAL_MEDIA_COORDINATOR"), async (req: Request, res: Response) => {
   try {
     const { search, role, approved, page, limit } = req.query;
     
@@ -58,11 +58,7 @@ router.get("/", authenticate, requireMinRole("TECH_TEAM"), async (req: Request, 
     }
     if (role) {
       const roleStr = String(role).toUpperCase();
-      const normalizedRole = roleStr === "FACULTY" ? "FACULTY_COORDINATOR" :
-                             roleStr === "TECH" ? "TECH_TEAM" :
-                             roleStr === "DEV" || roleStr === "DEVELOPMENT" ? "DEVELOPMENT_TEAM" :
-                             roleStr;
-      where.role = normalizedRole as Role;
+      where.role = roleStr as Role;
     }
     if (approved !== undefined) where.isApproved = approved === "true";
 
@@ -131,8 +127,8 @@ router.get("/search", authenticate, async (req: Request, res: Response) => {
   }
 });
 
-// PATCH /api/users/:id/approve — Approve new user account (SC+ only)
-router.patch("/:id/approve", authenticate, requireMinRole("STUDENT_COORDINATOR"), auditLog("USER_APPROVED"), async (req: Request, res: Response) => {
+// PATCH /api/users/:id/approve — Approve user access (Tech+)
+router.patch("/:id/approve", authenticate, requireMinRole("TECH_COORDINATOR"), auditLog("USER_APPROVED"), async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const user = await prisma.user.findUnique({ where: { id } });
@@ -160,6 +156,7 @@ router.patch("/:id/approve", authenticate, requireMinRole("STUDENT_COORDINATOR")
     );
 
     await clearUsersCache();
+    await redisDel(`auth:active:${id}`); // Let approval take effect immediately
 
     res.json({ user: updated });
   } catch (err) {
@@ -193,8 +190,8 @@ async function deleteUserCascade(userId: string) {
   ]);
 }
 
-// PATCH /api/users/:id/reject — Reject & permanently remove candidate from portal (SC+ only)
-router.patch("/:id/reject", authenticate, requireMinRole("STUDENT_COORDINATOR"), auditLog("USER_REJECTED"), async (req: Request, res: Response) => {
+// PATCH /api/users/:id/reject — Reject & permanently remove candidate from portal (Tech+)
+router.patch("/:id/reject", authenticate, requireMinRole("TECH_COORDINATOR"), auditLog("USER_REJECTED"), async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const user = await prisma.user.findUnique({ where: { id } });
@@ -218,8 +215,8 @@ router.patch("/:id/reject", authenticate, requireMinRole("STUDENT_COORDINATOR"),
   }
 });
 
-// DELETE /api/users/:id — Delete user and remove all associated data (SC+ only)
-router.delete("/:id", authenticate, requireMinRole("STUDENT_COORDINATOR"), auditLog("USER_DELETED"), async (req: Request, res: Response) => {
+// DELETE /api/users/:id — Delete user and remove all associated data (Tech+)
+router.delete("/:id", authenticate, requireMinRole("TECH_COORDINATOR"), auditLog("USER_DELETED"), async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const user = await prisma.user.findUnique({ where: { id } });
@@ -243,25 +240,18 @@ router.delete("/:id", authenticate, requireMinRole("STUDENT_COORDINATOR"), audit
   }
 });
 
-// PATCH /api/users/:id/role — Update user role (Development Team, Faculty Coordinator)
-// Both DEVELOPMENT_TEAM and FACULTY_COORDINATOR (including ADMIN and FACULTY aliases)
-// possess full administrative authority to assign and update operative roles.
-// STUDENT_COORDINATOR and TECH_TEAM remain blocked from role mutation (SEC-002).
+// PATCH /api/users/:id/role — Update user role (Admin, Faculty, Tech)
 router.patch(
   "/:id/role",
   authenticate,
-  requireRole("DEVELOPMENT_TEAM", "ADMIN", "FACULTY_COORDINATOR", "FACULTY"),
+  requireRole("ADMIN", "FACULTY_COORDINATOR", "TECH_COORDINATOR"),
   auditLog("USER_ROLE_UPDATED"),
   async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
       let { role } = req.body;
 
-      if (role === "FACULTY") role = "FACULTY_COORDINATOR";
-      if (role === "TECH") role = "TECH_TEAM";
-      if (role === "DEV" || role === "DEVELOPMENT") role = "DEVELOPMENT_TEAM";
-
-      const validRoles: Role[] = ["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_TEAM", "MEMBER", "GUEST"];
+      const validRoles: Role[] = ["ADMIN", "FACULTY_COORDINATOR", "TECH_COORDINATOR", "STUDENT_COORDINATOR", "SOCIAL_MEDIA_COORDINATOR", "MEMBER"];
       if (!validRoles.includes(role)) {
         res.status(400).json({ error: "Invalid role" });
         return;
@@ -273,12 +263,11 @@ router.patch(
         return;
       }
 
-      // Verify that caller is either Development Team or Faculty Coordinator
+      // Verify that caller is either Admin, Tech Coordinator, or Faculty Coordinator
       const isAuthorizedManager = [
-        "DEVELOPMENT_TEAM",
         "ADMIN",
         "FACULTY_COORDINATOR",
-        "FACULTY",
+        "TECH_COORDINATOR",
       ].includes(req.user!.role);
 
       if (!isAuthorizedManager) {
@@ -319,11 +308,11 @@ router.patch(
   }
 );
 
-// PATCH /api/users/:id/deactivate — Deactivate user (Staff only)
+// PATCH /api/users/:id/deactivate — Deactivate user (Tech+)
 router.patch(
   "/:id/deactivate",
   authenticate,
-  requireRole("DEVELOPMENT_TEAM", "ADMIN", "FACULTY_COORDINATOR", "FACULTY", "TECH_TEAM", "TECH", "STUDENT_COORDINATOR"),
+  requireMinRole("TECH_COORDINATOR"),
   auditLog("USER_DEACTIVATED"),
   async (req: Request, res: Response) => {
     try {
@@ -340,6 +329,7 @@ router.patch(
       });
       
       await clearUsersCache();
+      await redisDel(`auth:active:${id}`); // Bust auth cache immediately
       
       res.json({ user: updated });
     } catch (err) {
@@ -349,11 +339,11 @@ router.patch(
   }
 );
 
-// PATCH /api/users/:id/activate — Re-activate user (Staff only)
+// PATCH /api/users/:id/activate — Re-activate user (Tech+)
 router.patch(
   "/:id/activate",
   authenticate,
-  requireRole("DEVELOPMENT_TEAM", "ADMIN", "FACULTY_COORDINATOR", "FACULTY", "TECH_TEAM", "TECH", "STUDENT_COORDINATOR"),
+  requireMinRole("TECH_COORDINATOR"),
   auditLog("USER_ACTIVATED"),
   async (req: Request, res: Response) => {
   try {
@@ -365,6 +355,7 @@ router.patch(
     });
     
     await clearUsersCache();
+    await redisDel(`auth:active:${id}`); // Bust auth cache immediately
     
     res.json({ user: updated });
   } catch (err) {
@@ -376,7 +367,7 @@ router.patch(
 // PATCH /api/users/profile — Update current user's profile
 router.patch("/profile", authenticate, upload.single("avatar"), async (req: Request, res: Response) => {
   try {
-    const { name, password, studentId, employeeId, phone, department, institute, semester } = req.body;
+    const { name, password, studentId, phone, department, institute } = req.body;
     const userId = req.user!.userId;
     const updateData: any = {};
 
@@ -391,14 +382,14 @@ router.patch("/profile", authenticate, upload.single("avatar"), async (req: Requ
     const currentUser = await prisma.user.findUnique({ where: { id: userId }, select: { role: true } });
     const isFaculty = currentUser?.role === "FACULTY_COORDINATOR" || (currentUser?.role as string) === "FACULTY";
 
-    const targetId = studentId !== undefined ? studentId : employeeId;
+    const targetId = studentId;
     if (targetId !== undefined) {
       if (targetId) {
         const existingStudent = await prisma.user.findFirst({
           where: { studentId: targetId, NOT: { id: userId } }
         });
         if (existingStudent) {
-          res.status(409).json({ error: isFaculty ? "Employee ID is already in use" : "Student ID is already in use" });
+          res.status(409).json({ error: "Student ID is already in use" });
           return;
         }
         updateData.studentId = targetId;
@@ -416,12 +407,6 @@ router.patch("/profile", authenticate, upload.single("avatar"), async (req: Requ
     }
     if (department !== undefined) updateData.department = department || null;
     if (institute !== undefined) updateData.institute = institute || null;
-
-    if (isFaculty) {
-      updateData.semester = null;
-    } else if (semester !== undefined) {
-      updateData.semester = semester || null;
-    }
 
     if (Object.keys(updateData).length === 0) {
       res.status(400).json({ error: "No update fields provided" });
@@ -441,7 +426,6 @@ router.patch("/profile", authenticate, upload.single("avatar"), async (req: Requ
         phone: true,
         department: true,
         institute: true,
-        semester: true,
       },
     });
 
@@ -452,11 +436,7 @@ router.patch("/profile", authenticate, upload.single("avatar"), async (req: Requ
     await clearUsersCache();
 
     res.json({
-      user: {
-        ...updated,
-        employeeId: (updated.role === "FACULTY_COORDINATOR" || (updated.role as string) === "FACULTY") ? updated.studentId : undefined,
-        semester: (updated.role === "FACULTY_COORDINATOR" || (updated.role as string) === "FACULTY") ? null : updated.semester,
-      }
+      user: updated
     });
   } catch (err) {
     console.error("[Users] Profile update error:", err);

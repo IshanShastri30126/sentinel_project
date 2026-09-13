@@ -104,7 +104,7 @@ export default function EventDetailPage() {
 
   useEffect(() => {
     if (!isLoading && user && !["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "TECH_TEAM", "STUDENT_COORDINATOR", "FACULTY", "TECH", "CONTENT", "SOCIAL_MEDIA"].includes(user.role)) {
-      router.push("/dashboard");
+      router.push("/");
     }
   }, [user, isLoading, router]);
 
@@ -144,7 +144,7 @@ export default function EventDetailPage() {
     try {
       await api(`/events/${eventId}`, { method: "DELETE", token: token || undefined });
       showToast("Event archived successfully", "success");
-      router.push("/dashboard/events");
+      router.push("/events");
     } catch (err) { showToast(err instanceof Error ? err.message : "Failed", "error"); }
   };
 
@@ -178,7 +178,7 @@ export default function EventDetailPage() {
     <div>
       {/* Back + Header */}
       <div className="flex items-center gap-3 mb-6">
-        <button onClick={() => router.push("/dashboard/events")} className="p-2 rounded-lg hover:bg-[#1A1E26] transition">
+        <button onClick={() => router.push("/events")} className="p-2 rounded-lg hover:bg-[#1A1E26] transition">
           <ArrowLeft className="w-5 h-5" style={{ color: "var(--ck-text-secondary)" }} />
         </button>
         <div className="flex-1">

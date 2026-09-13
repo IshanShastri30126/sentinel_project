@@ -603,7 +603,7 @@ const DEFAULT_OPS_DATA: OpsData = {
                             initial={{ opacity: 0, x: -10 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: idx * 0.06 }}
-                            onClick={() => router.push(`/dashboard/events/${event.id}`)}
+                            onClick={() => router.push(`/events/${event.id}`)}
                             className="flex items-center justify-between p-3.5 rounded-xl border border-white/[0.04] hover:border-[rgba(0,245,212,0.2)] bg-white/[0.02] hover:bg-white/[0.04] transition-all duration-300 group cursor-pointer"
                           >
                             <div className="flex items-center gap-3.5 sm:gap-4 min-w-0">
@@ -706,7 +706,7 @@ const DEFAULT_OPS_DATA: OpsData = {
                   <div className="space-y-3">
                     {/* Action 1: Pending Approvals */}
                     <div
-                      onClick={() => router.push("/dashboard/approvals")}
+                      onClick={() => router.push("/approvals")}
                       className="group flex items-center gap-4 p-3.5 rounded border border-white/[0.06] hover:border-amber-500/40 cursor-pointer bg-[#070E1A] hover:bg-amber-500/[0.04] transition-all duration-200"
                     >
                       <div className="relative shrink-0">
@@ -729,7 +729,7 @@ const DEFAULT_OPS_DATA: OpsData = {
 
                     {/* Action 2: Pending Registration approvals */}
                     <div
-                      onClick={() => router.push("/dashboard/users")}
+                      onClick={() => router.push("/users")}
                       className="group flex items-center gap-4 p-3.5 rounded border border-white/[0.06] hover:border-rose-500/40 cursor-pointer bg-[#070E1A] hover:bg-rose-500/[0.04] transition-all duration-200"
                     >
                       <div className="relative shrink-0">
@@ -1104,7 +1104,7 @@ const DEFAULT_OPS_DATA: OpsData = {
                                 </button>
                               ) : status.label === "ENDED" ? (
                                 <button
-                                  onClick={() => router.push(isCoordinator ? `/dashboard/attendance?eventId=${event.id}` : `/events/${event.slug}`)}
+                                  onClick={() => router.push(isCoordinator ? `/attendance?eventId=${event.id}` : `/events/${event.slug}`)}
                                   className="flex-1 ck-btn-secondary py-2 text-xs font-bold font-mono tracking-wider uppercase text-center cursor-pointer"
                                 >
                                   {isCoordinator ? "Attendance" : "Concluded"}
@@ -1363,9 +1363,9 @@ const DEFAULT_OPS_DATA: OpsData = {
                 </div>
                 <div className="space-y-2">
                   {[
-                    { label: "BROWSE ALL EVENTS", href: "/dashboard/events" },
-                    { label: "LEADERBOARD SCORES", href: "/dashboard/leaderboard" },
-                    { label: "EDIT OPERATIVE PROFILE", href: "/dashboard/profile" },
+                    { label: "BROWSE ALL EVENTS", href: "/events" },
+                    { label: "LEADERBOARD SCORES", href: "/leaderboard" },
+                    { label: "EDIT OPERATIVE PROFILE", href: "/profile" },
                   ].map((action) => (
                     <button
                       key={action.href}

@@ -28,7 +28,7 @@ interface NavLinkItem {
 
 const NAV_LINKS: NavLinkItem[] = [
   { name: "Events", href: "/events", icon: Calendar },
-  { name: "Leaderboard", href: "/dashboard/leaderboard", icon: Trophy },
+  { name: "Leaderboard", href: "/leaderboard", icon: Trophy },
   { name: "About", href: "/about", icon: Info },
   { name: "Team", href: "/team", icon: Users },
 ];
@@ -87,7 +87,7 @@ export function Navbar() {
           <CyberStatus status="operational" label="ACTIVE" />
 
           {user ? (
-            <Link href="/dashboard">
+            <Link href="/">
               <CyberButton
                 variant="primary"
                 size="sm"
@@ -112,7 +112,7 @@ export function Navbar() {
         {/* Mobile Menu Toggle — UI-001 FIX: compact layout below 380px to prevent 320px overflow */}
         <div className="flex sm:hidden items-center gap-1.5">
           {user ? (
-            <Link href="/dashboard" className="hidden min-[380px]:block">
+            <Link href="/" className="hidden min-[380px]:block">
               <CyberButton variant="primary" size="sm">
                 PORTAL
               </CyberButton>
@@ -173,7 +173,7 @@ export function Navbar() {
             <div className="pt-2 border-t border-white/[0.06]">
               {user ? (
                 <Link
-                  href="/dashboard"
+                  href="/"
                   onClick={() => setMobileMenuOpen(false)}
                   className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-md bg-[#00F5D4] text-slate-950 font-mono text-xs font-bold uppercase tracking-wider transition hover:bg-[#52FFE3]"
                 >

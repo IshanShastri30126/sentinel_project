@@ -43,7 +43,7 @@ export function Footer() {
               </Link>
             </li>
             <li>
-              <Link href="/dashboard/leaderboard" className="hover:text-white transition-colors flex items-center gap-1">
+              <Link href="/leaderboard" className="hover:text-white transition-colors flex items-center gap-1">
                 <span>Leaderboard</span>
                 <ArrowUpRight className="w-3 h-3 text-slate-500" />
               </Link>
