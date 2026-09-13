@@ -352,11 +352,6 @@ export default function CertificatesPage() {
         >
           <Palette className="w-4 h-4" /> DESIGN TEMPLATE
         </Link>
-        <button onClick={() => setShowUpload(true)}
-          className="ck-btn-secondary flex items-center gap-2 text-xs py-2 px-4"
-        >
-          <Upload className="w-4 h-4" /> UPLOAD TEMPLATE
-        </button>
         <button onClick={() => setShowGenerate(true)}
           className="ck-btn-primary flex items-center gap-2 text-xs py-2 px-4"
         >
@@ -390,7 +385,6 @@ export default function CertificatesPage() {
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-3">
             {templates.map((t, i) => (
               <motion.div key={t.id}
                 initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}
@@ -602,52 +596,6 @@ export default function CertificatesPage() {
         )}
       </div>
 
-      {/* ── Upload Template Modal ── */}
-      <AnimatePresence>
-        {showUpload && (
-          <div className="ck-modal-overlay">
-            <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
-              className="w-full max-w-md rounded-2xl border bg-[var(--ck-bg-card)] overflow-hidden"
-              style={{ borderColor: "rgba(0,245,212,0.2)" }}
-            >
-              {/* Modal header bar */}
-              <div className="h-0.5 w-full" style={{ background: "linear-gradient(90deg, transparent, #00F5D4, transparent)" }} />
-              <div className="px-6 py-4 border-b flex items-center justify-between" style={{ borderColor: "#1A1E26" }}>
-                <div className="flex items-center gap-2">
-                  <Upload className="w-4 h-4" style={{ color: "#00F5D4" }} />
-                  <h2 className="text-sm font-bold uppercase tracking-wider text-[var(--ck-text)]" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>UPLOAD TEMPLATE</h2>
-                </div>
-                <button onClick={() => setShowUpload(false)} className="w-7 h-7 rounded-lg border border-[#1A1E26] flex items-center justify-center text-[#4B5563] hover:text-[var(--ck-text)] hover:border-[rgba(255,0,60,0.3)] transition-all">
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-
-              <div className="p-6 flex flex-col gap-4">
-                <div className="ck-field-group">
-                  <label className="ck-label">Template Name</label>
-                  <input className="ck-input ck-field-input text-xs" value={templateName} onChange={e => setTemplateName(e.target.value)} placeholder="e.g. CYBERSEC_2026" />
-                </div>
-                <div className="ck-field-group">
-                  <label className="ck-label">Upload File (PNG, JPG, PDF)</label>
-                  <div
-                    className="relative rounded-xl border-2 border-dashed p-8 text-center cursor-pointer transition-all hover:border-[rgba(0,245,212,0.3)]"
-                    style={{ borderColor: "#1A1E26", background: "rgba(0,0,0,0.3)" }}
-                  >
-                    <input type="file" accept=".png,.pdf,.jpg,.jpeg" className="absolute inset-0 opacity-0 cursor-pointer" onChange={e => setTemplateFile(e.target.files?.[0] || null)} />
-                    <Upload className="w-8 h-8 mx-auto mb-2 text-[#4B5563]" />
-                    <p className="text-xs font-mono text-[#8892A4]">{templateFile ? templateFile.name : "Click or drag to upload"}</p>
-                    <p className="text-[9px] font-mono text-[#4B5563] mt-1">PNG · JPG · PDF — MAX 5MB</p>
-                  </div>
-                </div>
-                <div className="flex gap-2 pt-1">
-                  <button onClick={() => setShowUpload(false)} className="ck-btn-secondary flex-1 text-xs py-2">CANCEL</button>
-                  <button onClick={handleUploadTemplate} disabled={!templateFile} className="ck-btn-primary flex-1 text-xs py-2">UPLOAD</button>
-                </div>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
 
       {/* ── Generate Certs Modal ── */}
       <AnimatePresence>
