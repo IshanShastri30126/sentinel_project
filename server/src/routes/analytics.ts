@@ -115,7 +115,7 @@ router.get("/operations", authenticate, requireMinRole("TECH_TEAM"), async (_req
 });
 
 // GET /api/analytics/top3 — Top 3 items across key domains (registrations, points, team sizes)
-router.get("/top3", authenticate, requireMinRole("STUDENT_COORDINATOR"), async (_req: Request, res: Response) => {
+router.get("/top3", authenticate, requireMinRole("TECH_TEAM"), async (_req: Request, res: Response) => {
   try {
     const cacheKey = "analytics:top3";
     const cached = await redisGet(cacheKey);
@@ -216,7 +216,7 @@ router.get("/top3", authenticate, requireMinRole("STUDENT_COORDINATOR"), async (
 });
 
 // GET /api/analytics/events-analysis — Event-wise metrics, capacity, registration timelines
-router.get("/events-analysis", authenticate, requireMinRole("STUDENT_COORDINATOR"), async (_req: Request, res: Response) => {
+router.get("/events-analysis", authenticate, requireMinRole("TECH_TEAM"), async (_req: Request, res: Response) => {
   try {
     const cacheKey = "analytics:events-analysis";
     const cached = await redisGet(cacheKey);
@@ -285,7 +285,7 @@ router.get("/events-analysis", authenticate, requireMinRole("STUDENT_COORDINATOR
 });
 
 // GET /api/analytics/coordinator-activity — Productivity, events, points, approvals marked
-router.get("/coordinator-activity", authenticate, requireMinRole("STUDENT_COORDINATOR"), async (_req: Request, res: Response) => {
+router.get("/coordinator-activity", authenticate, requireMinRole("TECH_TEAM"), async (_req: Request, res: Response) => {
   try {
     const cacheKey = "analytics:coordinator-activity";
     const cached = await redisGet(cacheKey);

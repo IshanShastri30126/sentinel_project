@@ -11,8 +11,11 @@ import {
 } from "lucide-react";
 
 const ROLE_COLORS: Record<string, string> = {
-  FACULTY: "#9333ea",
+  DEVELOPMENT_TEAM: "#FF0055",
+  FACULTY_COORDINATOR: "#9333ea",
   STUDENT_COORDINATOR: "#00F5D4",
+  TECH_TEAM: "#00D2FF",
+  FACULTY: "#9333ea",
   TECH: "#00D2FF",
   CONTENT: "#FFD700",
   SOCIAL_MEDIA: "#f43f5e",
@@ -213,28 +216,47 @@ export default function AnalyticsPage() {
   const [eventSortField, setEventSortField] = useState<string>("registrationsCount");
   const [eventSortOrder, setEventSortOrder] = useState<"asc" | "desc">("desc");
 
+  const isStaff = Boolean(
+    user?.role &&
+      [
+        "DEVELOPMENT_TEAM",
+        "FACULTY_COORDINATOR",
+        "STUDENT_COORDINATOR",
+        "TECH_TEAM",
+        "FACULTY",
+        "TECH",
+      ].includes(user.role)
+  );
+
   useEffect(() => {
     if (!token) return;
     const load = async () => {
       try {
-        const isCoordinator = user?.role && ["FACULTY", "STUDENT_COORDINATOR"].includes(user.role);
-        if (isCoordinator) {
-          const [data, top3, analysis, activity] = await Promise.all([
-            api<ClubData>("/analytics/club", { token }),
-            api<Top3Data>("/analytics/top3", { token }),
-            api<EventAnalysisItem[]>("/analytics/events-analysis", { token }),
-            api<CoordinatorActivityItem[]>("/analytics/coordinator-activity", { token }),
-          ]);
-          setClubData(data);
-          setTop3Data(top3);
-          setEventsAnalysis(analysis || []);
-          setCoordinatorActivity(activity || []);
-        } else {
-          const data = await api<ClubData>("/analytics/operations", { token });
-          setClubData(data);
+        const clubRes = await api<ClubData>("/analytics/club", { token }).catch((err) => {
+          console.warn("Analytics club notice:", err);
+          return null;
+        });
+        if (clubRes) {
+          setClubData(clubRes);
         }
 
-        const leaderboardData = await api<{ leaderboard: LeaderboardAchiever[] }>("/appreciation/leaderboard", { token });
+        const [top3Res, analysisRes, activityRes] = await Promise.allSettled([
+          api<Top3Data>("/analytics/top3", { token }),
+          api<EventAnalysisItem[]>("/analytics/events-analysis", { token }),
+          api<CoordinatorActivityItem[]>("/analytics/coordinator-activity", { token }),
+        ]);
+
+        if (top3Res.status === "fulfilled" && top3Res.value) {
+          setTop3Data(top3Res.value);
+        }
+        if (analysisRes.status === "fulfilled" && analysisRes.value) {
+          setEventsAnalysis(analysisRes.value || []);
+        }
+        if (activityRes.status === "fulfilled" && activityRes.value) {
+          setCoordinatorActivity(activityRes.value || []);
+        }
+
+        const leaderboardData = await api<{ leaderboard: LeaderboardAchiever[] }>("/appreciation/leaderboard", { token }).catch(() => null);
         if (leaderboardData?.leaderboard && leaderboardData.leaderboard.length > 0) {
           setTopAchiever(leaderboardData.leaderboard[0]);
         }
@@ -248,7 +270,6 @@ export default function AnalyticsPage() {
   }, [token, user]);
 
   const maxStat = clubData?.overview ? Math.max(...Object.values(clubData.overview).map(Number)) : 1;
-  const isCoordinator = user?.role && ["FACULTY", "STUDENT_COORDINATOR"].includes(user.role);
 
   // Sorting logic for events analysis
   const handleSort = (field: string) => {
@@ -384,7 +405,7 @@ export default function AnalyticsPage() {
       )}
 
       {/* ═══ Top 3 Leaderboards Section (Podium UI) ═══ */}
-      {isCoordinator && top3Data && (
+      {isStaff && top3Data && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -396,19 +417,25 @@ export default function AnalyticsPage() {
               <Calendar className="w-4.5 h-4.5" /> TOP EVENTS
             </h3>
             <div className="space-y-3">
-              {top3Data.events.map((e, idx: number) => (
-                <div key={e.id} className="flex items-center gap-3 p-3 rounded-xl bg-white/3 border border-white/5 group hover:border-[#00F5D4]/30 transition-all">
-                  <RankBadge rank={idx} />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-bold text-[var(--ck-text)] truncate">{e.title}</p>
-                    <p className="text-[10px] text-zinc-550 font-mono uppercase">{e.eventType} · {new Date(e.startDate).toLocaleDateString("en-IN")}</p>
+              {top3Data.events && top3Data.events.length > 0 ? (
+                top3Data.events.map((e, idx: number) => (
+                  <div key={e.id} className="flex items-center gap-3 p-3 rounded-xl bg-white/3 border border-white/5 group hover:border-[#00F5D4]/30 transition-all">
+                    <RankBadge rank={idx} />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-bold text-[var(--ck-text)] truncate">{e.title}</p>
+                      <p className="text-[10px] text-zinc-550 font-mono uppercase">{e.eventType} · {new Date(e.startDate).toLocaleDateString("en-IN")}</p>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <span className="text-sm font-black text-[var(--ck-primary)] font-mono">{e.registrations}</span>
+                      <p className="text-[8px] text-[var(--ck-text-muted)] uppercase font-mono">REGS</p>
+                    </div>
                   </div>
-                  <div className="text-right shrink-0">
-                    <span className="text-sm font-black text-[var(--ck-primary)] font-mono">{e.registrations}</span>
-                    <p className="text-[8px] text-[var(--ck-text-muted)] uppercase font-mono">REGS</p>
-                  </div>
+                ))
+              ) : (
+                <div className="p-4 text-center text-xs font-mono text-zinc-500 border border-white/5 rounded-xl bg-black/20">
+                  NO EVENT REGISTRATIONS YET
                 </div>
-              ))}
+              )}
             </div>
           </div>
 
@@ -418,24 +445,30 @@ export default function AnalyticsPage() {
               <Star className="w-4.5 h-4.5" /> TOP OPERATIVES
             </h3>
             <div className="space-y-3">
-              {top3Data.members.map((m, idx: number) => (
-                <div key={m.id} className="flex items-center gap-3 p-3 rounded-xl bg-white/3 border border-white/5 group hover:border-[#06b6d4]/30 transition-all">
-                  <RankBadge rank={idx} />
-                  <DefaultAvatar
-                    src={m.avatarUrl ? getFileUrl(m.avatarUrl) : null}
-                    alt={m.name}
-                    className="w-8 h-8 rounded-full"
-                  />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-bold text-[var(--ck-text)] truncate">{m.name}</p>
-                    <p className="text-[10px] text-zinc-550 font-mono uppercase">{m.role.replace(/_/g, " ")}</p>
+              {top3Data.members && top3Data.members.length > 0 ? (
+                top3Data.members.map((m, idx: number) => (
+                  <div key={m.id} className="flex items-center gap-3 p-3 rounded-xl bg-white/3 border border-white/5 group hover:border-[#06b6d4]/30 transition-all">
+                    <RankBadge rank={idx} />
+                    <DefaultAvatar
+                      src={m.avatarUrl ? getFileUrl(m.avatarUrl) : null}
+                      alt={m.name}
+                      className="w-8 h-8 rounded-full"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-bold text-[var(--ck-text)] truncate">{m.name}</p>
+                      <p className="text-[10px] text-zinc-550 font-mono uppercase">{m.role.replace(/_/g, " ")}</p>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <span className="text-sm font-black text-[#06b6d4] font-mono">{m.points}</span>
+                      <p className="text-[8px] text-[var(--ck-text-muted)] uppercase font-mono">XP</p>
+                    </div>
                   </div>
-                  <div className="text-right shrink-0">
-                    <span className="text-sm font-black text-[#06b6d4] font-mono">{m.points}</span>
-                    <p className="text-[8px] text-[var(--ck-text-muted)] uppercase font-mono">XP</p>
-                  </div>
+                ))
+              ) : (
+                <div className="p-4 text-center text-xs font-mono text-zinc-500 border border-white/5 rounded-xl bg-black/20">
+                  NO XP POINTS RECORDED YET
                 </div>
-              ))}
+              )}
             </div>
           </div>
 
@@ -445,19 +478,25 @@ export default function AnalyticsPage() {
               <Users2 className="w-4.5 h-4.5" /> TOP TEAMS
             </h3>
             <div className="space-y-3">
-              {top3Data.teams.map((t, idx: number) => (
-                <div key={t.id} className="flex items-center gap-3 p-3 rounded-xl bg-white/3 border border-white/5 group hover:border-[#FF003C]/30 transition-all">
-                  <RankBadge rank={idx} />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-bold text-[var(--ck-text)] truncate">{t.name}</p>
-                    <p className="text-[10px] text-zinc-550 font-mono uppercase truncate">{t.eventTitle}</p>
+              {top3Data.teams && top3Data.teams.length > 0 ? (
+                top3Data.teams.map((t, idx: number) => (
+                  <div key={t.id} className="flex items-center gap-3 p-3 rounded-xl bg-white/3 border border-white/5 group hover:border-[#FF003C]/30 transition-all">
+                    <RankBadge rank={idx} />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-bold text-[var(--ck-text)] truncate">{t.name}</p>
+                      <p className="text-[10px] text-zinc-550 font-mono uppercase truncate">{t.eventTitle}</p>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <span className="text-sm font-black text-[var(--ck-danger)] font-mono">{t.membersCount}</span>
+                      <p className="text-[8px] text-[var(--ck-text-muted)] uppercase font-mono">MEMBERS</p>
+                    </div>
                   </div>
-                  <div className="text-right shrink-0">
-                    <span className="text-sm font-black text-[var(--ck-danger)] font-mono">{t.membersCount}</span>
-                    <p className="text-[8px] text-[var(--ck-text-muted)] uppercase font-mono">MEMBERS</p>
-                  </div>
+                ))
+              ) : (
+                <div className="p-4 text-center text-xs font-mono text-zinc-500 border border-white/5 rounded-xl bg-black/20">
+                  NO TEAMS FORMED YET
                 </div>
-              ))}
+              )}
             </div>
           </div>
         </motion.div>
@@ -490,7 +529,7 @@ export default function AnalyticsPage() {
       )}
 
       {/* ═══ Event-Wise Analysis Section (Interactive Table & Trends) ═══ */}
-      {isCoordinator && eventsAnalysis.length > 0 && (
+      {isStaff && eventsAnalysis.length > 0 && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -576,7 +615,7 @@ export default function AnalyticsPage() {
       )}
 
       {/* ═══ Coordinator Activity Section ═══ */}
-      {isCoordinator && coordinatorActivity.length > 0 && (
+      {isStaff && coordinatorActivity.length > 0 && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -647,6 +686,13 @@ export default function AnalyticsPage() {
             <div className="space-y-4 relative z-10">
               {(() => {
                 const stats = clubData.approvalStats || [];
+                if (stats.length === 0) {
+                  return (
+                    <div className="py-8 text-center text-xs font-mono text-zinc-500 border border-white/5 rounded-xl bg-black/20">
+                      NO ACTIVE APPROVAL REQUESTS IN PIPELINE
+                    </div>
+                  );
+                }
                 return stats.map((s, i: number) => {
                   const total = stats.reduce((sum: number, a) => sum + a.count, 0) || 1;
                   const colorMap: Record<string, string> = {
@@ -688,7 +734,7 @@ export default function AnalyticsPage() {
       </div>
 
       {/* ═══ Recent Events ═══ */}
-      {clubData?.recentEvents && clubData.recentEvents.length > 0 && (
+      {clubData?.recentEvents && (
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}
           className="ck-glass-card p-6 relative overflow-hidden"
         >
@@ -697,24 +743,30 @@ export default function AnalyticsPage() {
             <h2 className="text-sm font-black uppercase tracking-widest text-[var(--ck-text)]">RECENT EVENTS ACTIVITY</h2>
           </div>
           <div className="space-y-2.5 relative z-10">
-            {clubData.recentEvents.map((ev, i: number) => (
-              <motion.div key={ev.id}
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.4 + i * 0.06 }}
-                className="flex items-center gap-3.5 p-3.5 rounded-xl border border-white/[0.04] hover:border-emerald-500/20 bg-white/[0.02] hover:bg-emerald-950/[0.06] transition-all group"
-              >
-                <div className="w-1 h-8 rounded-full bg-gradient-to-b from-emerald-400 to-cyan-500 shrink-0 group-hover:shadow-[0_0_10px_rgba(16,185,129,0.5)] transition-all" />
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-[var(--ck-text)] truncate group-hover:text-emerald-400 transition-colors">{ev.title}</p>
-                  <p className="text-[11px] text-[var(--ck-text-muted)] font-mono">{new Date(ev.startDate).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</p>
-                </div>
-                <div className="text-right shrink-0">
-                  <p className="text-lg font-black font-mono text-emerald-400">{ev._count?.registrations || 0}</p>
-                  <p className="text-[9px] text-[var(--ck-text-muted)] uppercase tracking-widest">REGS</p>
-                </div>
-              </motion.div>
-            ))}
+            {clubData.recentEvents.length > 0 ? (
+              clubData.recentEvents.map((ev, i: number) => (
+                <motion.div key={ev.id}
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.4 + i * 0.06 }}
+                  className="flex items-center gap-3.5 p-3.5 rounded-xl border border-white/[0.04] hover:border-emerald-500/20 bg-white/[0.02] hover:bg-emerald-950/[0.06] transition-all group"
+                >
+                  <div className="w-1 h-8 rounded-full bg-gradient-to-b from-emerald-400 to-cyan-500 shrink-0 group-hover:shadow-[0_0_10px_rgba(16,185,129,0.5)] transition-all" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-[var(--ck-text)] truncate group-hover:text-emerald-400 transition-colors">{ev.title}</p>
+                    <p className="text-[11px] text-[var(--ck-text-muted)] font-mono">{new Date(ev.startDate).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</p>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <p className="text-lg font-black font-mono text-emerald-400">{ev._count?.registrations || 0}</p>
+                    <p className="text-[9px] text-[var(--ck-text-muted)] uppercase tracking-widest">REGS</p>
+                  </div>
+                </motion.div>
+              ))
+            ) : (
+              <div className="py-8 text-center text-xs font-mono text-zinc-500 border border-white/5 rounded-xl bg-black/20">
+                NO RECENT EVENTS SCHEDULED
+              </div>
+            )}
           </div>
         </motion.div>
       )}

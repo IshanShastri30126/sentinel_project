@@ -9,8 +9,8 @@ import os from "os";
 
 const router = Router();
 
-// Maintenance and diagnostics restricted strictly to DEVELOPMENT_TEAM
-router.use(authenticate, requireRole("DEVELOPMENT_TEAM"));
+// Maintenance and diagnostics accessible to DEVELOPMENT_TEAM, FACULTY_COORDINATOR, and TECH_TEAM
+router.use(authenticate, requireRole("DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "TECH_TEAM"));
 
 // ─── 1. Maintenance Overview & Level 2 Real-time Metrics ───────────────────
 router.get("/overview", async (req: Request, res: Response) => {
