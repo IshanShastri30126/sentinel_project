@@ -103,7 +103,7 @@ export const FALLBACK_TEAM_CADRE: TeamCadreMember[] = [
  */
 export function formatSocialUrl(type: "linkedin" | "github" | "instagram", raw?: string): string {
   if (!raw || !raw.trim()) {
-    if (type === "instagram") return "https://www.instagram.com/chakravyuh.charusat/";
+    if (type === "instagram") return "https://instagram.com/chakravyuh.charusat";
     return "#";
   }
   const clean = raw.trim();

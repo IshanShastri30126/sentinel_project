@@ -1016,9 +1016,8 @@ function PublicEventPageContent() {
               if (event.socialLinks) {
                 try { socialLinks = JSON.parse(event.socialLinks); } catch {}
               }
-              const instagramUrl = socialLinks.instagram || "https://www.instagram.com/chakravyuh.charusat/";
-              const linkedinUrl = socialLinks.linkedin || "https://linkedin.com/company/chakravyuhclub";
-              const whatsappUrl = socialLinks.whatsapp || "https://chat.whatsapp.com/chakravyuhclub";
+              const instagramUrl = socialLinks.instagram || "https://instagram.com/chakravyuh.charusat";
+              const linkedinUrl = socialLinks.linkedin || "https://linkedin.com/company/chakravyuh-charusat";
               return (
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
                   className="ck-card p-6 mt-4">
@@ -1034,11 +1033,7 @@ function PublicEventPageContent() {
                       <InstagramIcon className="w-4 h-4" style={{ color: themeAccent }} />
                       <span className="group-hover:text-white transition">Instagram Feed</span>
                     </a>
-                    <a href={whatsappUrl} target="_blank" rel="noopener noreferrer"
-                      className="flex items-center gap-3 p-2.5 rounded-lg border border-zinc-800 bg-[#0D0F14]/30 hover:border-green-500/40 hover:bg-green-950/10 transition-all font-mono text-xs text-slate-350 group">
-                      <MessageSquare className="w-4 h-4 shrink-0" style={{ color: themeAccent }} />
-                      <span className="group-hover:text-white transition">WhatsApp Community</span>
-                    </a>
+
                     {isFullFromUrl && (
                       <div className="flex items-center gap-2 p-2.5 rounded-lg border border-red-900/40 bg-red-950/10 font-mono text-xs text-red-400">
                         <Users className="w-4 h-4 shrink-0" />

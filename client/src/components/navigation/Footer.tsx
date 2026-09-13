@@ -70,7 +70,7 @@ export function Footer() {
           </h4>
           <div className="flex flex-col space-y-2">
             <a
-              href="https://linkedin.com/company/chakravyuh"
+              href="https://linkedin.com/company/chakravyuh-charusat"
               target="_blank"
               rel="noopener noreferrer"
               className="hover:text-white transition-colors flex items-center gap-2"
@@ -79,22 +79,13 @@ export function Footer() {
               <span>LinkedIn</span>
             </a>
             <a
-              href="https://www.instagram.com/chakravyuh.charusat/"
+              href="https://instagram.com/chakravyuh.charusat"
               target="_blank"
               rel="noopener noreferrer"
               className="hover:text-white transition-colors flex items-center gap-2"
             >
               <span className="w-1.5 h-1.5 rounded-full bg-[#00F5D4]" />
               <span>Instagram</span>
-            </a>
-            <a
-              href="https://chat.whatsapp.com/chakravyuh"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:text-white transition-colors flex items-center gap-2"
-            >
-              <span className="w-1.5 h-1.5 rounded-full bg-[#FFB800]" />
-              <span>Community Discord/Chat</span>
             </a>
           </div>
         </div>

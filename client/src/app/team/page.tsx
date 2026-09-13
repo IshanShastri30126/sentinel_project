@@ -457,15 +457,7 @@ export default function TeamPage() {
                 and creative directors ready to defend and build.
               </p>
               <div className="pt-3 flex flex-col sm:flex-row items-center justify-center gap-3">
-                <a
-                  href="https://chat.whatsapp.com/chakravyuh"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <CyberButton variant="primary" size="md" glow="primary" leftIcon={<MessageSquare className="w-4 h-4" />}>
-                    JOIN CADRE CHAT
-                  </CyberButton>
-                </a>
+
                 <Link href="/auth">
                   <CyberButton variant="outline" size="md">
                     OPERATIVE GATEWAY

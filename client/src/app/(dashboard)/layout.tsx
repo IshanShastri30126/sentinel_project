@@ -10,7 +10,7 @@ import {
   Shield, LayoutDashboard, Calendar, Users, Award,
   FileCheck, BarChart3, CheckSquare, LogOut,
   ChevronLeft, ChevronRight, ClipboardList, Bell, Menu, X, UsersRound,
-  User, Settings, Check, CheckCheck, RotateCw, ShieldAlert, Terminal
+  User, Info, Check, CheckCheck, RotateCw, ShieldAlert, Terminal
 } from "lucide-react";
 import { DefaultAvatar } from "@/components/default-avatar";
 import { SentinalLogo } from "@/components/SentinalLogo";
@@ -40,7 +40,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Maintenance Logs", href: "/maintenance", icon: <Terminal className="w-5 h-5" />, roles: ["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "TECH_TEAM", "FACULTY", "TECH"] },
   { label: "My Certificates", href: "/my-certificates", icon: <Award className="w-5 h-5" /> },
   { label: "Profile", href: "/profile", icon: <User className="w-5 h-5" /> },
-  { label: "Settings", href: "/settings", icon: <Settings className="w-5 h-5" />, roles: ["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "TECH_TEAM", "FACULTY", "TECH"] },
+  { label: "Info", href: "/info", icon: <Info className="w-5 h-5" />, roles: ["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "TECH_TEAM", "FACULTY", "TECH"] },
 ];
 
 const ROLE_LABELS: Record<Role, string> = {
@@ -67,7 +67,7 @@ const getModuleCategoryKey = (label: string): string => {
   if (["Overview", "Analytics", "Profile"].includes(label)) return "core";
   if (["Events", "Teams", "Attendance"].includes(label)) return "tactical";
   if (["Certificates", "My Certificates", "Leaderboard"].includes(label)) return "credentials";
-  if (["Approvals", "Landing CMS", "Users", "Settings"].includes(label)) return "clearance";
+  if (["Approvals", "Landing CMS", "Users", "Info"].includes(label)) return "clearance";
   return "core";
 };
 
