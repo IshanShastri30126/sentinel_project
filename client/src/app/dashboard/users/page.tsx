@@ -27,10 +27,39 @@ interface UserEntry {
   avatarUrl?: string; 
 }
 
-const ROLES = ["FACULTY", "STUDENT_COORDINATOR", "TECH", "CONTENT", "SOCIAL_MEDIA", "MEMBER", "GUEST"];
+const ROLES = [
+  "DEVELOPMENT_TEAM",
+  "FACULTY_COORDINATOR",
+  "STUDENT_COORDINATOR",
+  "TECH_TEAM",
+  "MEMBER",
+  "GUEST",
+];
+
+const ROLE_DISPLAY_NAMES: Record<string, string> = {
+  DEVELOPMENT_TEAM: "Development Team",
+  FACULTY_COORDINATOR: "Faculty Coordinator",
+  STUDENT_COORDINATOR: "Student Coordinator",
+  TECH_TEAM: "Tech Team",
+  MEMBER: "Member",
+  GUEST: "Guest",
+  FACULTY: "Faculty Coordinator",
+  TECH: "Tech Team",
+  CONTENT: "Content Team",
+  SOCIAL_MEDIA: "Social Media",
+};
 
 export default function UsersPage() {
   const { user, token } = useAuth();
+  const canManageUsers = Boolean(
+    user?.role &&
+      [
+        "DEVELOPMENT_TEAM",
+        "FACULTY_COORDINATOR",
+        "STUDENT_COORDINATOR",
+        "FACULTY",
+      ].includes(user.role)
+  );
   const [approvedUsers, setApprovedUsers] = useState<UserEntry[]>([]);
   const [pendingUsers, setPendingUsers] = useState<UserEntry[]>([]);
   const [loading, setLoading] = useState(true);
@@ -122,12 +151,12 @@ export default function UsersPage() {
                     <p className="text-sm font-semibold text-[var(--ck-text)]">{u.name}</p>
                     {(u.employeeId || u.studentId) && (
                       <span className="text-[9px] font-mono bg-[#FF4D00]/10 border border-[#FF4D00]/25 px-1.5 py-0.5 rounded text-[var(--ck-accent)]">
-                        {u.role === "FACULTY" ? `EMP ID: ${u.employeeId || u.studentId}` : `ST ID: ${u.studentId}`}
+                        {["FACULTY", "FACULTY_COORDINATOR"].includes(u.role) ? `EMP ID: ${u.employeeId || u.studentId}` : `ST ID: ${u.studentId}`}
                       </span>
                     )}
                   </div>
                   <p className="text-[10px] font-mono mt-1 text-[var(--ck-text-muted)] uppercase">
-                    {u.email.toLowerCase()} {u.phone ? `// TEL: ${u.phone}` : ""} {u.department ? `// DEPT: ${u.department}` : ""} {u.role !== "FACULTY" && u.semester ? `// SEM: ${u.semester}` : ""}
+                    {u.email.toLowerCase()} {u.phone ? `// TEL: ${u.phone}` : ""} {u.department ? `// DEPT: ${u.department}` : ""} {!["FACULTY", "FACULTY_COORDINATOR"].includes(u.role) && u.semester ? `// SEM: ${u.semester}` : ""}
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
@@ -155,7 +184,7 @@ export default function UsersPage() {
         </div>
         <select className="ck-input w-auto text-xs py-2 font-mono" value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)}>
           <option value="">ALL ROLES</option>
-          {ROLES.map((r) => <option key={r} value={r}>{r.replace(/_/g, " ")}</option>)}
+          {ROLES.map((r) => <option key={r} value={r}>{ROLE_DISPLAY_NAMES[r] || r.replace(/_/g, " ")}</option>)}
         </select>
       </div>
 
@@ -197,7 +226,7 @@ export default function UsersPage() {
                         <div>
                           <p className="text-sm font-semibold text-[var(--ck-text)] tracking-wide">{u.name}</p>
                           <p className="text-[10px] font-mono mt-0.5 text-[var(--ck-text-muted)] uppercase">
-                            {u.role === "FACULTY" 
+                            {["FACULTY", "FACULTY_COORDINATOR"].includes(u.role) 
                               ? (u.employeeId || u.studentId ? `EMPID: ${u.employeeId || u.studentId}` : "FACULTY / NO ID")
                               : (u.studentId ? `STID: ${u.studentId}` : "GUEST / NO ID")}
                           </p>
@@ -228,19 +257,19 @@ export default function UsersPage() {
                           <GraduationCap className="w-3.5 h-3.5 text-[var(--ck-accent)]/60" /> {u.department || "N/A"}
                         </p>
                         <p className="text-[10px] text-[var(--ck-text-muted)] font-mono uppercase pl-5">
-                          {u.role === "FACULTY" ? (u.institute || "FACULTY") : `${u.semester ? `SEM: ${u.semester}` : "SEM: —"} / ${u.institute || "GUEST"}`}
+                          {["FACULTY", "FACULTY_COORDINATOR"].includes(u.role) ? (u.institute || "FACULTY") : `${u.semester ? `SEM: ${u.semester}` : "SEM: —"} / ${u.institute || "GUEST"}`}
                         </p>
                       </div>
                     </td>
 
                     {/* Security Role */}
                     <td data-label="Security Role">
-                      {user?.role && ["FACULTY", "STUDENT_COORDINATOR"].includes(user.role) ? (
+                      {canManageUsers ? (
                         <select className="ck-input text-[10px] py-1 px-2.5 w-auto font-mono border-[var(--ck-border)] focus:border-cyan-500/40" value={u.role} onChange={(e) => handleRoleChange(u.id, e.target.value)}>
-                          {ROLES.map((r) => <option key={r} value={r}>{r.replace(/_/g, " ")}</option>)}
+                          {ROLES.map((r) => <option key={r} value={r}>{ROLE_DISPLAY_NAMES[r] || r.replace(/_/g, " ")}</option>)}
                         </select>
                       ) : (
-                        <span className="ck-badge ck-badge-primary text-[10px]">{u.role.replace(/_/g, " ")}</span>
+                        <span className="ck-badge ck-badge-primary text-[10px]">{ROLE_DISPLAY_NAMES[u.role] || u.role.replace(/_/g, " ")}</span>
                       )}
                     </td>
 
@@ -255,7 +284,7 @@ export default function UsersPage() {
 
                     {/* Actions */}
                     <td data-label="Actions">
-                      {user?.role && ["FACULTY", "STUDENT_COORDINATOR"].includes(user.role) && u.id !== user.id && (
+                      {canManageUsers && u.id !== user?.id && (
                         <div className="flex items-center gap-2">
                           <button 
                             onClick={() => handleToggleActive(u.id, u.isActive)} 
