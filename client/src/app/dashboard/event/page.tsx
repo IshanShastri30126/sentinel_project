@@ -1093,33 +1093,49 @@ export default function EventsPage() {
                       className="space-y-4"
                     >
                       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                        <div>
-                          <label className="ck-label mb-2">Start Date & Time *</label>
-                          <input type="datetime-local" className="ck-input bg-zinc-900 text-[var(--ck-text)] [color-scheme:dark]" value={form.startDate} onChange={(e) => {
+                        <MiniCalendar 
+                          label="Start Date & Time *" 
+                          selectedDate={form.startDate}
+                          onSelect={(v) => {
                             setForm(prev => {
-                              const updated = { ...prev, startDate: e.target.value };
-                              if (prev.endDate && new Date(prev.endDate) <= new Date(e.target.value)) {
-                                const nextDay = new Date(new Date(e.target.value).getTime() + 24 * 60 * 60 * 1000);
+                              const updated = { ...prev, startDate: v };
+                              if (prev.endDate && new Date(prev.endDate) <= new Date(v)) {
+                                const nextDay = new Date(new Date(v).getTime() + 24 * 60 * 60 * 1000);
                                 updated.endDate = nextDay.toISOString().slice(0, 16);
                               }
                               if (!prev.registrationDeadline) {
-                                const defaultDeadline = new Date(new Date(e.target.value).getTime() - 24 * 60 * 60 * 1000);
+                                const defaultDeadline = new Date(new Date(v).getTime() - 24 * 60 * 60 * 1000);
                                 updated.registrationDeadline = defaultDeadline.toISOString().slice(0, 16);
-                              } else if (new Date(prev.registrationDeadline) >= new Date(e.target.value)) {
+                              } else if (new Date(prev.registrationDeadline) >= new Date(v)) {
                                 updated.registrationDeadline = "";
                               }
                               return updated;
                             });
-                          }} required />
-                        </div>
-                        <div>
-                          <label className="ck-label mb-2">End Date & Time *</label>
-                          <input type="datetime-local" className="ck-input bg-zinc-900 text-[var(--ck-text)] [color-scheme:dark]" value={form.endDate} onChange={(e) => setForm({ ...form, endDate: e.target.value })} min={form.startDate} required />
-                        </div>
-                        <div>
-                          <label className="ck-label mb-2">Registration Deadline *</label>
-                          <input type="datetime-local" className="ck-input bg-zinc-900 text-[var(--ck-text)] [color-scheme:dark]" value={form.registrationDeadline} onChange={(e) => setForm({ ...form, registrationDeadline: e.target.value })} max={form.startDate} required />
-                        </div>
+                          }}
+                          minDate={new Date()}
+                          rangeStart={form.startDate} 
+                          rangeEnd={form.endDate} 
+                        />
+                        <MiniCalendar 
+                          label="End Date & Time *" 
+                          selectedDate={form.endDate}
+                          onSelect={(v) => setForm({ ...form, endDate: v })}
+                          minDate={form.startDate ? new Date(form.startDate) : new Date()}
+                          rangeStart={form.startDate} 
+                          rangeEnd={form.endDate}
+                          disabledNotice={!form.startDate ? "Please set Start Date first" : undefined}
+                        />
+                        <MiniCalendar 
+                          label="Registration Deadline *" 
+                          selectedDate={form.registrationDeadline}
+                          onSelect={(v) => setForm({ ...form, registrationDeadline: v })}
+                          minDate={new Date()}
+                          maxDate={form.startDate ? new Date(form.startDate) : null}
+                          rangeStart={form.startDate} 
+                          rangeEnd={form.endDate}
+                          onClear={() => setForm({ ...form, registrationDeadline: "" })}
+                          disabledNotice={!form.startDate ? "Select Start Date first to enable deadline" : undefined}
+                        />
                       </div>
                       
                       {/* Date Validation Warnings */}

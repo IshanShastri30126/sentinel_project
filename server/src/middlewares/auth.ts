@@ -128,8 +128,8 @@ export function requireMinRole(minRole: Role) {
       return;
     }
 
-    const userLevel = ROLE_HIERARCHY[req.user.role];
-    const requiredLevel = ROLE_HIERARCHY[minRole];
+    const userLevel = ROLE_HIERARCHY[req.user.role] ?? 99;
+    const requiredLevel = ROLE_HIERARCHY[minRole] ?? 99;
 
     if (userLevel > requiredLevel) {
       res.status(403).json({ error: "Insufficient permissions" });
