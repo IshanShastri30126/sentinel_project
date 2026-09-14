@@ -70,7 +70,7 @@ router.get("/", authenticate, requireMinRole("SOCIAL_MEDIA_COORDINATOR"), async 
         id: true, name: true, email: true, role: true,
         studentId: true, department: true, phone: true,
         avatarUrl: true, isActive: true, isApproved: true, createdAt: true,
-        institute: true, semester: true,
+        institute: true, 
       },
       orderBy: { createdAt: "desc" },
       ...(pageVal && limitVal ? {
@@ -82,7 +82,7 @@ router.get("/", authenticate, requireMinRole("SOCIAL_MEDIA_COORDINATOR"), async 
     const mappedUsers = users.map((u) => ({
       ...u,
       employeeId: (u.role === "FACULTY_COORDINATOR" || (u.role as string) === "FACULTY") ? u.studentId : undefined,
-      semester: (u.role === "FACULTY_COORDINATOR" || (u.role as string) === "FACULTY") ? null : u.semester,
+      
     }));
 
     const responsePayload = {
@@ -409,7 +409,6 @@ router.patch("/profile", authenticate, upload.single("avatar"), async (req: Requ
         }
       }
     }
-    if (phone !== undefined) {
     if (phone !== undefined) {
       const sanitizedPhone = phone ? String(phone).replace(/\D/g, "") : "";
       if (sanitizedPhone && !/^\d{10}$/.test(sanitizedPhone)) {
