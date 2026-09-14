@@ -10,38 +10,53 @@ import { upload, getUploadedFileUrl } from "../middlewares/upload";
 import { sendEventPublishedEmail, sendEventRegistrationEmail } from "../lib/emailService";
 import { sendBulkNotification, sendNotification } from "../lib/notificationService";
 import redis, { redisGet, redisSet, redisDel } from "../lib/redis";
+import { l1Cache } from "../lib/cache";
 import { eventRegistrationLimiter, mailLimiter } from "../middlewares/rateLimiter";
 
 async function clearEventsCache() {
   try {
-    await Promise.all([
+    // 1. Immediately invalidate in-memory L1 cache (< 0.01ms)
+    l1Cache.delPrefix("l1:events:");
+
+    // 2. Concurrently delete all independent L2 Redis keys in parallel
+    const delPromises: Promise<void>[] = [
       redisDel("PUBLIC_EVENTS_LIMIT_3"),
-      redisDel("PUBLIC_EVENTS_LIMIT_all")
-    ]);
+      redisDel("PUBLIC_EVENTS_LIMIT_all"),
+      redisDel("analytics:operations"),
+      redisDel("analytics:sentinel"),
+      redisDel("analytics:top3"),
+      redisDel("analytics:events-analysis"),
+      redisDel("analytics:coordinator-activity"),
+    ];
+
     const redisClient = redis;
     if (redisClient) {
-      const keys = await redisClient.keys("events:all:*");
-      if (keys && keys.length > 0) {
-        await Promise.all(keys.map(key => redisClient.del(key)));
+      try {
+        const keys = await redisClient.keys("events:all:*");
+        if (keys && keys.length > 0) {
+          keys.forEach((key) => delPromises.push(redisClient.del(key).then(() => {})));
+        }
+      } catch (keyErr) {
+        console.warn("[Events] Error fetching dynamic Redis event keys:", keyErr);
       }
     }
-    await redisDel("analytics:operations");
-    await redisDel("analytics:sentinel");
-    await redisDel("analytics:top3");
-    await redisDel("analytics:events-analysis");
-    await redisDel("analytics:coordinator-activity");
 
-    // Proactively warm the public cache so Render and clients have instantaneous sync
-    try {
-      const activeEvents = await prisma.event.findMany({
-        where: { isPublished: true, isApproved: true, endDate: { gte: new Date() } },
-        include: { creator: { select: { id: true, name: true } }, _count: { select: { registrations: true } } },
-        orderBy: { startDate: "desc" }
-      });
-      await redisSet("PUBLIC_EVENTS_LIMIT_all", JSON.stringify(activeEvents), 600);
-    } catch (warmErr) {
-      console.warn("[Events] Cache warm error:", warmErr);
-    }
+    await Promise.all(delPromises);
+
+    // 3. Proactively warm the public cache in the background (non-blocking post-commit)
+    setImmediate(async () => {
+      try {
+        const activeEvents = await prisma.event.findMany({
+          where: { isPublished: true, isApproved: true, endDate: { gte: new Date() } },
+          include: { creator: { select: { id: true, name: true } }, _count: { select: { registrations: true } } },
+          orderBy: { startDate: "desc" },
+        });
+        await redisSet("PUBLIC_EVENTS_LIMIT_all", JSON.stringify(activeEvents), 600);
+        l1Cache.set("l1:events:public:all", activeEvents, 30);
+      } catch (warmErr) {
+        console.warn("[Events] Cache warm error:", warmErr);
+      }
+    });
   } catch (err) {
     console.error("[Events] Cache clear error:", err);
   }
@@ -79,13 +94,32 @@ async function validateEventLeads(organizersStr: string | null): Promise<string 
   try {
     const organizers = JSON.parse(organizersStr);
     if (!Array.isArray(organizers)) return null;
-    
+
+    const leadEmails: string[] = [];
     for (const org of organizers) {
-      if (org.role === "Event Lead" && org.email) {
-        const user = await prisma.user.findUnique({ where: { email: org.email } });
-        if (!user) {
-          return `User with email ${org.email} does not exist. All Event Leads must be registered users.`;
-        }
+      if (org && org.role === "Event Lead" && org.email && typeof org.email === "string") {
+        leadEmails.push(org.email.trim());
+      }
+    }
+
+    if (leadEmails.length === 0) return null;
+
+    // Fetch all lead emails in a single database round trip
+    const foundUsers = await prisma.user.findMany({
+      where: {
+        email: {
+          in: leadEmails,
+          mode: "insensitive",
+        },
+      },
+      select: { email: true },
+    });
+
+    const foundEmailSet = new Set(foundUsers.map((u) => u.email.toLowerCase()));
+
+    for (const email of leadEmails) {
+      if (!foundEmailSet.has(email.toLowerCase())) {
+        return `User with email ${email} does not exist. All Event Leads must be registered users.`;
       }
     }
   } catch (e) {
@@ -227,13 +261,23 @@ router.get("/", async (req: Request, res: Response) => {
     const { search, tag, from, to, limit } = req.query;
 
     const isCacheable = !search && !tag && !from && !to;
-    const cacheKey = `PUBLIC_EVENTS_LIMIT_${limit || 'all'}`;
+    const l1Key = `l1:events:public:${limit || "all"}`;
+    const cacheKey = `PUBLIC_EVENTS_LIMIT_${limit || "all"}`;
 
     if (isCacheable) {
+      // 1. Check process-local L1 cache (< 0.01ms)
+      const l1Cached = l1Cache.get<any>(l1Key);
+      if (l1Cached) {
+        res.json({ events: l1Cached });
+        return;
+      }
+
+      // 2. Check distributed L2 Upstash Redis
       const cached = await redisGet(cacheKey);
       if (cached) {
         try {
           const parsed = JSON.parse(cached);
+          l1Cache.set(l1Key, parsed, 30); // Populate L1 (30s TTL)
           res.json({ events: parsed });
           return;
         } catch (e) {
@@ -277,7 +321,8 @@ router.get("/", async (req: Request, res: Response) => {
     }
 
     if (isCacheable) {
-      // Cache standard queries for 5 minutes (300s)
+      // Populate L1 cache (30s) and L2 Redis (300s)
+      l1Cache.set(l1Key, events, 30);
       await redisSet(cacheKey, JSON.stringify(events), 300);
     }
 
@@ -325,11 +370,39 @@ router.get("/all", authenticate, requireRole("FACULTY_COORDINATOR", "TECH_COORDI
 // GET /api/events/public/:slug — Public event detail
 router.get("/public/:slug", async (req: Request, res: Response) => {
   try {
+    const slug = req.params.slug;
+    const l1Key = `l1:events:detail:${slug}`;
+    
+    // 1. Check L1 cache
+    const l1Cached = l1Cache.get<any>(l1Key);
+    if (l1Cached) {
+      res.json({ event: l1Cached });
+      return;
+    }
+
+    // 2. Check L2 Redis
+    const l2Cached = await redisGet(`EVENT_DETAIL_${slug}`);
+    if (l2Cached) {
+      try {
+        const parsed = JSON.parse(l2Cached);
+        l1Cache.set(l1Key, parsed, 30);
+        res.json({ event: parsed });
+        return;
+      } catch (e) {
+        console.warn("[Events] Parse cached event detail failed:", e);
+      }
+    }
+
     const event = await prisma.event.findUnique({
-      where: { slug: req.params.slug },
+      where: { slug },
       include: { creator: { select: { name: true, role: true } }, _count: { select: { registrations: true, teams: true } } },
     });
     if (!event || !event.isPublished) { res.status(404).json({ error: "Event not found" }); return; }
+
+    // Populate L1 (30s) and L2 (300s)
+    l1Cache.set(l1Key, event, 30);
+    await redisSet(`EVENT_DETAIL_${slug}`, JSON.stringify(event), 300);
+
     res.json({ event });
   } catch (err) { console.error("[Events] Public error:", err); res.status(500).json({ error: "Internal server error" }); }
 });

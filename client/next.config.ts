@@ -57,6 +57,11 @@ const nextConfig: NextConfig = {
   // Strip X-Powered-By header at Next.js level
   poweredByHeader: false,
 
+  // Tree-shake large client icon and animation packages
+  experimental: {
+    optimizePackageImports: ["lucide-react", "framer-motion"],
+  },
+
   // Remote image patterns for next/image
   images: {
     remotePatterns: [

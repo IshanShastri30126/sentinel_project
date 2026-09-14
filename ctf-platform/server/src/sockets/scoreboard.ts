@@ -3,6 +3,10 @@
 import { Namespace, Socket } from "socket.io";
 import redis from "../lib/ctfRedis";
 
+// In-memory fallback presence tracking for when Redis is unavailable (SEC-007 / REL-001)
+// Module-level singleton ensures presence is shared across all socket connections
+const memoryPresence = new Map<string, Set<string>>();
+
 /**
  * Attaches real-time CTF events to the provided Socket.io namespace.
  */
@@ -26,9 +30,6 @@ export function setupScoreboardSockets(ctfNamespace: Namespace) {
       socket.leave(room);
       console.log(`[Socket.io] Client ${socket.id} left ${room}`);
     });
-
-    // In-memory fallback presence tracking for when Redis is unavailable (SEC-007 / REL-001)
-    const memoryPresence = new Map<string, Set<string>>();
 
     // ── Live Presence (Challenge Viewers) ────────────────────────
     socket.on("viewChallenge", async (challengeId: string) => {

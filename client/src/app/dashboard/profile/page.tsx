@@ -45,18 +45,17 @@ export default function ProfilePage() {
   const [editPhone, setEditPhone] = useState("");
   const [editDepartment, setEditDepartment] = useState("");
   const [editInstitute, setEditInstitute] = useState("");
-  const [editSemester, setEditSemester] = useState("");
   const [editAvatar, setEditAvatar] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     if (!user) return;
+    const isFac = user.role === "FACULTY_COORDINATOR" || user.role === "FACULTY";
     setEditName(user.name || "");
-    setEditStudentId(user.studentId || "");
+    setEditStudentId((isFac ? user.employeeId : user.studentId) || "");
     setEditPhone(user.phone || "");
     setEditDepartment(user.department || "");
     setEditInstitute(user.institute || "");
-    setEditSemester(user.semester || "");
 
     const load = async () => {
       try {
@@ -99,10 +98,8 @@ export default function ProfilePage() {
       if (editAvatar) formData.append("avatar", editAvatar);
       if (isFaculty) {
         formData.append("employeeId", editStudentId);
-        formData.append("studentId", editStudentId);
       } else {
         formData.append("studentId", editStudentId);
-        formData.append("semester", editSemester);
       }
       formData.append("phone", sanitizedPhone);
       formData.append("department", editDepartment);
@@ -333,18 +330,7 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          {/* Semester (Completely Removed for Faculty) */}
-          {!isFaculty && (
-            <div className="p-3.5 rounded border border-slate-800 bg-[#070E1A]/80 flex items-center gap-4 hover:border-[#00F5D4]/40 transition duration-200">
-              <div className="w-8 h-8 rounded border border-slate-700/60 bg-slate-800/30 flex items-center justify-center text-slate-300 shrink-0">
-                <GraduationCap className="w-4 h-4" strokeWidth={1.75} />
-              </div>
-              <div className="min-w-0">
-                <p className="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">Semester</p>
-                <p className="font-bold mt-0.5 text-white truncate">{user?.semester || "N/A"}</p>
-              </div>
-            </div>
-          )}
+
 
           {/* Contact info */}
           <div className="p-3.5 rounded border border-slate-800 bg-[#070E1A]/80 flex items-center gap-4 hover:border-[#00F5D4]/40 transition duration-200 sm:col-span-2">
@@ -483,22 +469,7 @@ export default function ProfilePage() {
                   </div>
                 </div>
 
-                {!isFaculty && (
-                  <div>
-                    <label className="ck-label">Semester (1-8)</label>
-                    <select 
-                      className="ck-input" 
-                      value={editSemester} 
-                      onChange={(e) => setEditSemester(e.target.value)} 
-                      required
-                    >
-                      <option value="" className="bg-[#050A18]">Select Semester...</option>
-                      {SEMESTERS.map((sem) => (
-                        <option key={sem} value={sem} className="bg-[#050A18] text-white">Semester {sem}</option>
-                      ))}
-                    </select>
-                  </div>
-                )}
+
 
                 <div>
                   <label className="ck-label">New Password (Optional)</label>

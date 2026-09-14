@@ -2,6 +2,7 @@ import { Router, Request, Response } from "express";
 import prisma from "../lib/prisma";
 import { authenticate, requireMinRole } from "../middlewares/auth";
 import { redisGet, redisSet, redisDel } from "../lib/redis";
+import { l1Cache } from "../lib/cache";
 
 const router = Router();
 
@@ -18,12 +19,21 @@ router.get("/", async (req: Request, res: Response) => {
 router.get("/:slug", async (req: Request, res: Response) => {
   try {
     const slug = req.params.slug;
+    const l1Key = `l1:clubs:branding:${slug}`;
+
+    // 1. Check L1 Memory Cache (< 0.01ms)
+    const l1Cached = l1Cache.get<any>(l1Key);
+    if (l1Cached) {
+      res.json({ sentinel: l1Cached });
+      return;
+    }
     
-    // Check Redis cache first
+    // 2. Check L2 Redis cache
     const cachedBranding = await redisGet(`BRANDING_${slug}`);
     if (cachedBranding) {
       try {
         const branding = JSON.parse(cachedBranding);
+        l1Cache.set(l1Key, branding, 300); // 5 min in L1
         res.json({ sentinel: branding });
         return;
       } catch (e) {
@@ -48,7 +58,8 @@ router.get("/:slug", async (req: Request, res: Response) => {
 
     const finalBranding = setting ? { ...defaultBranding, ...setting.value as any } : defaultBranding;
 
-    // Cache in Redis for 1 hour
+    // Cache in L1 for 5 mins and Redis for 1 hour
+    l1Cache.set(l1Key, finalBranding, 300);
     await redisSet(`BRANDING_${slug}`, JSON.stringify(finalBranding), 3600);
 
     res.json({ sentinel: finalBranding });
@@ -84,7 +95,8 @@ router.patch("/:clubId/branding", authenticate, requireMinRole("STUDENT_COORDINA
       create: { key: `BRANDING_${clubId}`, value: updatedVal }
     });
 
-    // Invalidate Cache
+    // Invalidate both L1 and L2 Caches
+    l1Cache.del(`l1:clubs:branding:${clubId}`);
     await redisDel(`BRANDING_${clubId}`);
 
     res.json({
