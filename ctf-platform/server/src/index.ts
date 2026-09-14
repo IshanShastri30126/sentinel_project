@@ -1,5 +1,8 @@
 // Created: 2026-08-02 | Modified: 2026-08-14 — Full 67-page security compliance hardening
 
+// ─── Load .env FIRST — before any module reads process.env ──
+import "dotenv/config";
+
 import express, { Request, Response, NextFunction } from "express";
 import http from "http";
 import cors from "cors";

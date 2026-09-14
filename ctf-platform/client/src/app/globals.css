@@ -36,7 +36,8 @@
     --secondary-foreground: oklch(0.97 0 0);
 
     --muted: oklch(0.15 0.005 0);
-    --muted-foreground: oklch(0.55 0 0);
+    --muted-foreground: oklch(0.68 0.02 240);
+    /* #94A3B8 high-contrast WCAG AA compliant muted text */
 
     --accent: oklch(0.15 0.01 160);
     --accent-foreground: oklch(0.82 0.19 160);
@@ -77,11 +78,15 @@
     --ctf-green: #00FF88;
     --ctf-green-glow: rgba(0, 255, 136, 0.15);
     --ctf-green-subtle: rgba(0, 255, 136, 0.08);
+    --ctf-cyan: #00E1FF;
+    --ctf-cyan-glow: rgba(0, 225, 255, 0.15);
     --ctf-orange: #F97316;
     --ctf-amber: #FBBF24;
     --ctf-bg: #0A0A0A;
     --ctf-card: #111111;
     --ctf-border: #262626;
+    --text-secondary: #94A3B8;
+    --text-muted: #64748B;
 
     /* Tier Colors */
     --tier-apprentice: #A1A1AA;

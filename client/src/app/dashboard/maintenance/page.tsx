@@ -13,6 +13,7 @@ import {
   Copy, ChevronLeft, ChevronRight,
   BarChart2, Shield, List, TerminalSquare
 } from "lucide-react";
+import { useCyberDialog } from "@/components/ui/CyberDialogContext";
 
 interface SystemMetrics {
   uptimeSeconds: number;
@@ -150,6 +151,7 @@ type LogViewMode = "table" | "terminal" | "timeline" | "analytics";
 
 export default function MaintenancePage() {
   const { token } = useAuth();
+  const { confirmModal } = useCyberDialog();
   const [activeTab, setActiveTab] = useState<TabType>("logs");
 
   // Overview State
@@ -404,7 +406,13 @@ export default function MaintenancePage() {
 
   // Handle Delete Firewall Rule
   const handleDeleteRule = async (ruleId: string) => {
-    if (!confirm("Are you sure you want to remove this security rule?")) return;
+    const confirmed = await confirmModal({
+      title: "Remove Firewall Rule",
+      message: "Are you sure you want to remove this security rule?",
+      variant: "danger",
+      confirmText: "REMOVE RULE"
+    });
+    if (!confirmed) return;
     try {
       await api(`/maintenance/firewall/rules/${ruleId}`, {
         method: "DELETE",
@@ -611,18 +619,18 @@ export default function MaintenancePage() {
       </AnimatePresence>
 
       {/* ── HEADER BANNER ── */}
-      <div className="relative overflow-hidden rounded-2xl border border-white/[0.08] bg-gradient-to-b from-[#0A101D] to-[#040810] p-5 sm:p-6 shadow-2xl">
+      <div className="relative overflow-hidden rounded-lg border border-[#1E293B] bg-[#070E1A] p-5 sm:p-6 shadow-2xl">
         <div className="absolute top-0 right-0 w-96 h-96 bg-[#00F5D4]/5 rounded-full blur-3xl pointer-events-none -mr-20 -mt-20" />
         <div className="absolute bottom-0 left-1/3 w-64 h-64 bg-[#00F5D4]/5 rounded-full blur-3xl pointer-events-none" />
 
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <div className="flex flex-wrap items-center gap-2 mb-1.5">
-              <span className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-extrabold bg-[#00F5D4]/10 border border-[#00F5D4]/30 text-[#00F5D4]">
+              <span className="flex items-center gap-1.5 px-2.5 py-0.5 rounded text-[10px] font-mono font-extrabold bg-[#00F5D4]/10 border border-[#00F5D4]/30 text-[#00F5D4]">
                 <span className="w-1.5 h-1.5 rounded-full bg-[#00F5D4] animate-pulse" />
                 ENTERPRISE LEVEL 2 AUDIT CORE
               </span>
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-mono bg-cyan-500/10 border border-cyan-500/30 text-cyan-400">
+              <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-cyan-500/10 border border-cyan-500/30 text-cyan-400">
                 OWASP ASVS Hardened
               </span>
               <span className="px-2 py-0.5 rounded-full text-[10px] font-mono bg-zinc-800 text-zinc-400">
@@ -1091,7 +1099,7 @@ export default function MaintenancePage() {
                                       {log.user.email}
                                     </span>
                                     <span className="text-[9px] text-[#00F5D4] font-mono uppercase">
-                                      {log.user.role} {log.user.role === "FACULTY" && log.user.employeeId ? `· EMP: ${log.user.employeeId}` : log.user.studentId ? `· ID: ${log.user.studentId}` : ""}
+                                      {log.user.role} {(log.user.role === "FACULTY" || log.user.role === "FACULTY_COORDINATOR") ? (log.user.employeeId || log.user.studentId ? `· EMP: ${log.user.employeeId || log.user.studentId}` : "") : log.user.studentId ? `· ID: ${log.user.studentId}` : ""}
                                     </span>
                                   </div>
                                 ) : (
@@ -1186,7 +1194,7 @@ export default function MaintenancePage() {
                                         <div className="text-zinc-200 mt-1 space-y-0.5">
                                           <p>Name: <span className="text-white font-bold">{log.user?.name || "Anonymous Gateway"}</span></p>
                                           <p>Role: <span className="text-[#00F5D4] font-bold">{log.user?.role || "NONE"}</span></p>
-                                          <p>ID: <span className="text-zinc-400">{log.user?.role === "FACULTY" ? log.user.employeeId || "EMP-N/A" : log.user?.studentId || log.user?.id?.slice(0, 8) || "N/A"}</span></p>
+                                          <p>ID: <span className="text-zinc-400">{(log.user?.role === "FACULTY" || log.user?.role === "FACULTY_COORDINATOR") ? (log.user.employeeId || log.user.studentId || "EMP-N/A") : log.user?.studentId || log.user?.id?.slice(0, 8) || "N/A"}</span></p>
                                         </div>
                                       </div>
 

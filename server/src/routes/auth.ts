@@ -14,6 +14,7 @@ import { OAuth2Client } from "google-auth-library";
 import crypto from "crypto";
 import { Role } from "@prisma/client";
 import { LoginRateLimiter } from "../lib/loginRateLimiter";
+import { loginLimiter, signupLimiter, mailLimiter } from "../middlewares/rateLimiter";
 
 const router = Router();
 const googleClient = new OAuth2Client(config.google.clientId);
@@ -25,12 +26,11 @@ const registerSchema = z.object({
   email: z.string().email(),
   password: z.string().min(6).max(128),
   studentId: z.string().optional(),
-  employeeId: z.string().optional(),
   phone: z.string().regex(/^\d{10}$/, "Mobile number must be exactly 10 digits"),
   department: z.string().optional(),
   institute: z.string().optional(),
-  semester: z.string().optional(),
-  role: z.string().optional(),
+  // NOTE: 'role' is intentionally excluded — public registration always yields GUEST.
+  // Role elevation is an admin-only operation performed post-approval.
 });
 
 const loginSchema = z.object({
@@ -51,11 +51,9 @@ function formatUserPayload(user: any) {
     isApproved: user.isApproved,
     avatarUrl: user.avatarUrl,
     studentId: user.studentId,
-    employeeId: isFaculty ? user.studentId : undefined,
     phone: user.phone,
     department: user.department,
     institute: user.institute,
-    semester: isFaculty ? null : user.semester,
     createdAt: user.createdAt,
     isActive: user.isActive,
   };
@@ -97,12 +95,13 @@ function setTokenCookies(res: Response, accessToken: string, refreshToken: strin
 
 // ─── POST /api/auth/register ───────────────────────────────
 
-router.post("/register", validate(registerSchema), async (req: Request, res: Response) => {
+router.post("/register", signupLimiter, validate(registerSchema), async (req: Request, res: Response) => {
   try {
-    const { name, email, password, studentId, employeeId, phone, department, institute, semester, deviceFingerprint, role } = req.body;
+    // SEC-001 FIX: 'role' is deliberately not destructured from req.body.
+    // All public registrants receive GUEST unconditionally — role is server-controlled only.
+    const { name, email, password, studentId, phone, department, institute, deviceFingerprint } = req.body;
     const clientFingerprint = deviceFingerprint || (req.headers["x-device-fingerprint"] as string);
-    const targetStudentId = studentId || employeeId;
-    const isFaculty = role === "FACULTY_COORDINATOR" || role === "FACULTY";
+    const targetStudentId = studentId;
 
     const existing = await prisma.user.findUnique({ where: { email } });
     if (existing) {
@@ -122,10 +121,10 @@ router.post("/register", validate(registerSchema), async (req: Request, res: Res
         await logAuditEvent({
           action: "USER_REGISTER_FAILED",
           outcome: "FAILED",
-          context: { studentId: targetStudentId, reason: isFaculty ? "Employee ID already registered" : "Student ID already registered" },
+          context: { studentId: targetStudentId, reason: "ID already registered" },
           req,
         });
-        res.status(409).json({ error: isFaculty ? "Employee ID already registered" : "Student ID already registered" });
+        res.status(409).json({ error: "Student/Employee ID already registered" });
         return;
       }
     }
@@ -140,9 +139,8 @@ router.post("/register", validate(registerSchema), async (req: Request, res: Res
         phone: phone || null,
         department: department || null,
         institute: institute || null,
-        semester: isFaculty ? null : (semester || null),
-        role: isFaculty ? "FACULTY_COORDINATOR" : "GUEST",
-        isApproved: false,
+        role: "MEMBER",          // Default public role
+        isApproved: false,      // Always unapproved until an admin grants access
         deviceFingerprint: clientFingerprint || null,
         lastActiveAt: new Date(),
       },
@@ -169,7 +167,7 @@ router.post("/register", validate(registerSchema), async (req: Request, res: Res
 
     // Notify coordinators about new registration
     const coordinators = await prisma.user.findMany({
-      where: { role: { in: ["STUDENT_COORDINATOR", "FACULTY_COORDINATOR", "DEVELOPMENT_TEAM"] }, isActive: true },
+      where: { role: { in: ["STUDENT_COORDINATOR", "FACULTY_COORDINATOR"] }, isActive: true },
       select: { id: true },
     });
     for (const coord of coordinators) {
@@ -182,7 +180,7 @@ router.post("/register", validate(registerSchema), async (req: Request, res: Res
       });
     }
 
-    sendWelcomeEmail({ name, email, role: "GUEST" }).catch((err) =>
+    sendWelcomeEmail({ name, email, role: "MEMBER" }).catch((err) =>
       console.error("[Auth] Welcome email failed:", err)
     );
 
@@ -213,7 +211,7 @@ router.get("/login-status", async (req: Request, res: Response) => {
 
 // ─── POST /api/auth/login ──────────────────────────────────
 
-router.post("/login", validate(loginSchema), async (req: Request, res: Response) => {
+router.post("/login", loginLimiter, validate(loginSchema), async (req: Request, res: Response) => {
   try {
     const { email, password, deviceFingerprint } = req.body;
     const clientIp = (req.headers["x-forwarded-for"] as string || req.ip || req.socket.remoteAddress || "127.0.0.1").split(",")[0].trim();
@@ -260,7 +258,7 @@ router.post("/login", validate(loginSchema), async (req: Request, res: Response)
       }
 
       res.status(401).json({
-        error: failResult.message,
+        error: "Invalid email or password",
         remainingAttempts: failResult.remainingAttempts,
       });
       return;
@@ -289,7 +287,7 @@ router.post("/login", validate(loginSchema), async (req: Request, res: Response)
       }
 
       res.status(401).json({
-        error: failResult.message,
+        error: "Invalid email or password",
         remainingAttempts: failResult.remainingAttempts,
       });
       return;
@@ -346,7 +344,7 @@ router.post("/login", validate(loginSchema), async (req: Request, res: Response)
 
 // ─── POST /api/auth/forgot-password ────────────────────────
 
-router.post("/forgot-password", async (req: Request, res: Response) => {
+router.post("/forgot-password", mailLimiter, async (req: Request, res: Response) => {
   try {
     const { email } = req.body;
     if (!email) {
@@ -386,7 +384,7 @@ router.post("/forgot-password", async (req: Request, res: Response) => {
 
 // ─── POST /api/auth/reset-password ─────────────────────────
 
-router.post("/reset-password", async (req: Request, res: Response) => {
+router.post("/reset-password", mailLimiter, async (req: Request, res: Response) => {
   try {
     const { token, newPassword } = req.body;
     if (!token || !newPassword || newPassword.length < 6) {
@@ -429,7 +427,7 @@ router.post("/reset-password", async (req: Request, res: Response) => {
 
 // ─── POST /api/auth/google ─────────────────────────────────
 
-router.post("/google", async (req: Request, res: Response) => {
+router.post("/google", loginLimiter, async (req: Request, res: Response) => {
   try {
     const { credential, deviceFingerprint } = req.body;
     const clientFingerprint = deviceFingerprint || (req.headers["x-device-fingerprint"] as string);
@@ -643,6 +641,10 @@ router.post("/logout", async (req: Request, res: Response) => {
 
 router.get("/me", authenticate, async (req: Request, res: Response) => {
   try {
+    const token =
+      req.cookies?.accessToken ||
+      req.headers.authorization?.replace(/^Bearer\s+/i, "");
+
     const user = await prisma.user.findUnique({
       where: { id: req.user!.userId },
       select: {
@@ -658,7 +660,8 @@ router.get("/me", authenticate, async (req: Request, res: Response) => {
         isActive: true,
         createdAt: true,
         institute: true,
-        semester: true,
+employeeId: true,
+        
     
       },
     });
@@ -666,7 +669,7 @@ router.get("/me", authenticate, async (req: Request, res: Response) => {
       res.status(404).json({ error: "User not found" });
       return;
     }
-    res.json({ user: formatUserPayload(user) });
+    res.json({ user: formatUserPayload(user), accessToken: token });
   } catch (err) {
     console.error("[Auth] Me error:", err);
     res.status(500).json({ error: "Internal server error" });

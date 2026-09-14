@@ -32,8 +32,8 @@ const PlexusBackground = dynamic(() => import("@/components/PlexusBackground"), 
 /**
  * AboutPage
  *
- * Official club charter, mission briefing, history, and strategic operational pillars
- * of the Chakravyuh Cybersecurity Society at CSPIT Computer Engineering.
+ * Official sentinel charter, mission briefing, history, and strategic operational pillars
+ * of the Sentinel Cybersecurity Society at CSPIT Computer Engineering.
  *
  * @returns {JSX.Element} Rendered about view.
  */
@@ -68,13 +68,13 @@ export default function AboutPage() {
         {/* Hero Title */}
         <SectionReveal>
           <div className="space-y-3 text-center max-w-3xl mx-auto">
-            <SystemLabel prefix="[// CLUB.CHARTER]" showDot={true}>
+            <SystemLabel prefix="[// SENTINEL.CHARTER]" showDot={true}>
               STRATEGIC FORMATION & MISSION
             </SystemLabel>
             <h1 className="text-3xl sm:text-5xl font-black uppercase font-mono tracking-tight text-white">
-              ABOUT <span className="text-[#00F5D4]">CHAKRAVYUH CLUB</span>
+              ABOUT <span className="text-[#00F5D4]">SENTINEL</span>
             </h1>
-            <p className="font-mono text-xs sm:text-sm text-slate-400 leading-relaxed">
+            <p className="font-mono text-xs sm:text-sm text-slate-300 leading-relaxed">
               The Official Cybersecurity Society of the Computer Engineering Department, CSPIT.
               Fostering relentless technical rigor, offensive defense, and peer-to-peer security engineering.
             </p>
@@ -91,7 +91,7 @@ export default function AboutPage() {
               </h2>
             </div>
             <p className="text-slate-300 text-sm leading-relaxed">
-              Chakravyuh Club was established within the <strong>Department of Computer Engineering at CSPIT</strong> as a specialized hub for offensive defense, reverse engineering, and threat intelligence. It provides students with an arena to push beyond textbook theory and tackle active defense challenges.
+              Sentinel was established within the <strong>Department of Computer Engineering at CSPIT</strong> as a specialized hub for offensive defense, reverse engineering, and threat intelligence. It provides students with an arena to push beyond textbook theory and tackle active defense challenges.
             </p>
             <p className="text-slate-300 text-sm leading-relaxed">
               A foundational cornerstone of the organization is our <strong>Working Saturday peer-learning sessions</strong>. Every working Saturday, senior operatives, research leads, and invited industry practitioners deliver immersive workshops for all members and juniors. No prior cybersecurity certifications are needed — curiosity, discipline, and passion are the only prerequisites.
@@ -132,8 +132,7 @@ export default function AboutPage() {
                   title: "Hands-on Technical Labs",
                   desc: "Laboratory sessions covering Linux internals, network protocol analysis, wireless penetration, and defensive hardening.",
                   icon: Award,
-                },
-              ].map((item, idx) => {
+                }].map((item, idx) => {
                 const Icon = item.icon;
                 return (
                   <div
@@ -148,7 +147,7 @@ export default function AboutPage() {
                         {item.title}
                       </h4>
                     </div>
-                    <p className="font-mono text-xs text-slate-400 leading-relaxed">
+                    <p className="font-mono text-xs text-slate-300 leading-relaxed">
                       {item.desc}
                     </p>
                   </div>
@@ -175,7 +174,7 @@ export default function AboutPage() {
                 <h3 className="font-mono text-sm font-bold text-white uppercase">
                   Ethical Hacking & Audits
                 </h3>
-                <p className="font-mono text-xs text-slate-400 leading-relaxed">
+                <p className="font-mono text-xs text-slate-300 leading-relaxed">
                   Educating students in authorized testing environments, identifying code vulnerabilities,
                   and generating structured remediation reports compliant with OWASP standards.
                 </p>
@@ -185,7 +184,7 @@ export default function AboutPage() {
                 <h3 className="font-mono text-sm font-bold text-white uppercase">
                   Competitive CTF Training
                 </h3>
-                <p className="font-mono text-xs text-slate-400 leading-relaxed">
+                <p className="font-mono text-xs text-slate-300 leading-relaxed">
                   Training members in cryptography, reverse engineering, web exploitation, and binary analysis
                   to compete on national and global leaderboards.
                 </p>
@@ -195,7 +194,7 @@ export default function AboutPage() {
                 <h3 className="font-mono text-sm font-bold text-white uppercase">
                   Incident Simulation
                 </h3>
-                <p className="font-mono text-xs text-slate-400 leading-relaxed">
+                <p className="font-mono text-xs text-slate-300 leading-relaxed">
                   Simulating multi-vector adversary tactics to train defense analysts in detection, containment,
                   forensics, and system resilience.
                 </p>
@@ -205,7 +204,7 @@ export default function AboutPage() {
                 <h3 className="font-mono text-sm font-bold text-white uppercase">
                   Campus Digital Hygiene
                 </h3>
-                <p className="font-mono text-xs text-slate-400 leading-relaxed">
+                <p className="font-mono text-xs text-slate-300 leading-relaxed">
                   Promoting institutional security hygiene, strong authentication protocols, phishing prevention,
                   and safe software engineering practices.
                 </p>
@@ -216,10 +215,10 @@ export default function AboutPage() {
 
         {/* Call to Action Card */}
         <SectionReveal delay={0.25}>
-          <div className="relative rounded-xl bg-gradient-to-b from-[#081220] to-[#040812] border border-cyan-500/30 p-8 text-center space-y-4 hud-brackets">
+          <div className="relative rounded-lg bg-[#070E1A] border border-[#1E293B] p-8 text-center space-y-4 hud-brackets">
             <BorderBeam size={200} duration={12} />
             <h3 className="text-xl sm:text-2xl font-black uppercase font-mono tracking-tight text-white">
-              JOIN THE CHAKRAVYUH CADRE
+              JOIN THE SENTINEL CADRE
             </h3>
             <p className="font-mono text-xs text-slate-300 max-w-xl mx-auto">
               All students across departments and semesters are welcome to attend peer sessions,

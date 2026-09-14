@@ -1,7 +1,7 @@
 /**
  * Fallback Team Cadre Dataset
  *
- * Provides a resilient, pre-compiled team directory for Chakravyuh Club.
+ * Provides a resilient, pre-compiled team directory for Sentinel.
  * Utilized when API requests are rejected by firewall policies (e.g. IP block list),
  * offline network states, or cold-start conditions.
  */
@@ -34,7 +34,7 @@ export const FALLBACK_TEAM_CADRE: TeamCadreMember[] = [
   {
     id: "member_1786134186573",
     name: "Dr. Pritesh Prajapati",
-    role: "FACULTY",
+    role: "FACULTY_COORDINATOR",
     designation: "Faculty Mentor",
     department: "CE - CSPIT",
     email: "priteshprajapati@charusat.ac.in",
@@ -63,12 +63,12 @@ export const FALLBACK_TEAM_CADRE: TeamCadreMember[] = [
     phone: "9999888877",
     studentId: "D25CE145",
     joinedDate: "July 2026",
-    imageUrl: "https://res.cloudinary.com/da36ypzco/image/upload/v1789071330/sentinal/ppglscj9cl4f5iyn1hbl.png",
-    coverPosterUrl: "https://res.cloudinary.com/da36ypzco/image/upload/v1789071343/sentinal/ggr9pkmhsggxbvivebuk.png",
-    cyberAvatarUrl: "https://res.cloudinary.com/da36ypzco/image/upload/v1789071362/sentinal/rwhqjxeqivxwnpihtin9.png",
+    imageUrl: "https://res.cloudinary.com/da36ypzco/image/upload/v1789071330/sentinel/ppglscj9cl4f5iyn1hbl.png",
+    coverPosterUrl: "https://res.cloudinary.com/da36ypzco/image/upload/v1789071343/sentinel/ggr9pkmhsggxbvivebuk.png",
+    cyberAvatarUrl: "https://res.cloudinary.com/da36ypzco/image/upload/v1789071362/sentinel/rwhqjxeqivxwnpihtin9.png",
     cyberName: "GhosttyyyViber",
     cyberSpecialAbility: "FULL-STACK DEFENSE & PROTOCOL REVERSE ENGINEERING",
-    cyberBackstory: "Chief architect of the Sentinal operations console. Specializes in real-time intrusion monitoring, hardened cryptographic transport, and offensive security tooling.",
+    cyberBackstory: "Chief architect of the Sentinel operations console. Specializes in real-time intrusion monitoring, hardened cryptographic transport, and offensive security tooling.",
     about: "Domain: Application Security & Zero-Trust Auth\nFocus: Real-time telemetry, tamper-proof audit trails, and automated firewall orchestration\nAffiliation: Chakravyuh Core Technical Cadre",
     linkedin: "kush-shah",
     github: "kush-shah",
@@ -103,7 +103,7 @@ export const FALLBACK_TEAM_CADRE: TeamCadreMember[] = [
  */
 export function formatSocialUrl(type: "linkedin" | "github" | "instagram", raw?: string): string {
   if (!raw || !raw.trim()) {
-    if (type === "instagram") return "https://www.instagram.com/chakravyuh.charusat/";
+    if (type === "instagram") return "https://instagram.com/chakravyuh.charusat";
     return "#";
   }
   const clean = raw.trim();

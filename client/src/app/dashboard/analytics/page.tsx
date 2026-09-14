@@ -11,16 +11,18 @@ import {
 } from "lucide-react";
 
 const ROLE_COLORS: Record<string, string> = {
-  DEVELOPMENT_TEAM: "#FF0055",
   FACULTY_COORDINATOR: "#9333ea",
+  TECH_COORDINATOR: "#00D2FF",
   STUDENT_COORDINATOR: "#00F5D4",
+  SOCIAL_MEDIA_COORDINATOR: "#f43f5e",
+  MEMBER: "#38bdf8",
+  GUEST: "#64748b",
+  DEVELOPMENT_TEAM: "#00E1FF",
   TECH_TEAM: "#00D2FF",
   FACULTY: "#9333ea",
   TECH: "#00D2FF",
   CONTENT: "#FFD700",
   SOCIAL_MEDIA: "#f43f5e",
-  MEMBER: "#38bdf8",
-  GUEST: "#64748b",
 };
 
 function RankBadge({ rank }: { rank: number }) {
@@ -229,9 +231,10 @@ export default function AnalyticsPage() {
   );
 
   useEffect(() => {
-    if (!token) return;
+    if (!user) return;
     const load = async () => {
       try {
+<<<<<<< HEAD
         const clubRes = await api<ClubData>("/analytics/club", { token }).catch((err) => {
           console.warn("Analytics club notice:", err);
           return null;
@@ -257,6 +260,36 @@ export default function AnalyticsPage() {
         }
 
         const leaderboardData = await api<{ leaderboard: LeaderboardAchiever[] }>("/appreciation/leaderboard", { token }).catch(() => null);
+=======
+        const isCoordinator = Boolean(
+          user?.role &&
+          [
+            "DEVELOPMENT_TEAM",
+            "FACULTY_COORDINATOR",
+            "TECH_TEAM",
+            "STUDENT_COORDINATOR",
+            "FACULTY",
+            "TECH"
+          ].includes(user.role)
+        );
+        if (isCoordinator) {
+          const [data, top3, analysis, activity] = await Promise.all([
+            api<ClubData>("/analytics/club", { token: token || undefined }),
+            api<Top3Data>("/analytics/top3", { token: token || undefined }),
+            api<EventAnalysisItem[]>("/analytics/events-analysis", { token: token || undefined }),
+            api<CoordinatorActivityItem[]>("/analytics/coordinator-activity", { token: token || undefined }),
+          ]);
+          setClubData(data);
+          setTop3Data(top3);
+          setEventsAnalysis(analysis || []);
+          setCoordinatorActivity(activity || []);
+        } else {
+          const data = await api<ClubData>("/analytics/operations", { token: token || undefined });
+          setClubData(data);
+        }
+
+        const leaderboardData = await api<{ leaderboard: LeaderboardAchiever[] }>("/appreciation/leaderboard", { token: token || undefined });
+>>>>>>> sentinel/dev
         if (leaderboardData?.leaderboard && leaderboardData.leaderboard.length > 0) {
           setTopAchiever(leaderboardData.leaderboard[0]);
         }
@@ -270,6 +303,20 @@ export default function AnalyticsPage() {
   }, [token, user]);
 
   const maxStat = clubData?.overview ? Math.max(...Object.values(clubData.overview).map(Number)) : 1;
+<<<<<<< HEAD
+=======
+  const isCoordinator = Boolean(
+    user?.role &&
+    [
+      "DEVELOPMENT_TEAM",
+      "FACULTY_COORDINATOR",
+      "TECH_TEAM",
+      "STUDENT_COORDINATOR",
+      "FACULTY",
+      "TECH"
+    ].includes(user.role)
+  );
+>>>>>>> sentinel/dev
 
   // Sorting logic for events analysis
   const handleSort = (field: string) => {

@@ -1,14 +1,14 @@
 // ==========================================================
-// OAuth 2.0 Authorization Code Routes — Chakravyuh (IdP)
+// OAuth 2.0 Authorization Code Routes — Sentinel (IdP)
 // ==========================================================
-// These routes allow CTF Wars to authenticate users via Chakravyuh
+// These routes allow CTF Wars to authenticate users via Sentinel
 // using the industry-standard Authorization Code flow.
 //
 // Flow:
 //   1. User clicks "Enter CTF Wars" → GET /api/oauth/authorize
-//   2. Chakravyuh verifies session, generates auth_code, redirects to CTF Wars
+//   2. Sentinel verifies session, generates auth_code, redirects to CTF Wars
 //   3. CTF Wars backend calls POST /api/oauth/token with the code
-//   4. Chakravyuh validates code, returns signed JWT
+//   4. Sentinel validates code, returns signed JWT
 //   5. CTF Wars sets its own HttpOnly cookie
 // ==========================================================
 
@@ -24,7 +24,7 @@ const router = Router();
 
 // ─── GET /api/oauth/authorize ──────────────────────────────
 // The user's browser visits this URL (via a link/button on the
-// Chakravyuh dashboard). If they have a valid Chakravyuh session,
+// Sentinel dashboard). If they have a valid Sentinel session,
 // we generate a single-use authorization code and redirect them
 // to CTF Wars with that code in the URL.
 //
@@ -178,7 +178,7 @@ router.post("/token", async (req: Request, res: Response) => {
 
         // Generate a short-lived JWT (5 minutes) for CTF Wars
         // This token has the `type: 'CTF_SSO'` claim to prevent
-        // it from being used as a regular Chakravyuh session token
+        // it from being used as a regular Sentinel session token
         const ssoToken = jwt.sign(
             {
                 userId: oauthCode.user.id,

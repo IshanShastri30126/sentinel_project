@@ -5,10 +5,11 @@ import { GoogleOAuthProvider } from "@react-oauth/google";
 import { ThemeBrandingProvider } from "@/components/ThemeProvider";
 import { PWARegistration } from "@/components/PWARegistration";
 import { NetworkInspectionGuard } from "@/components/NetworkInspectionGuard";
+import { CyberDialogProvider } from "@/components/ui/CyberDialogContext";
 
 export const metadata: Metadata = {
-  title: "Chakravyuh Club — Digital Operations & Cyber Defense Hub",
-  description: "Centralized, strategic operating system for the Chakravyuh Club",
+  title: "SENTINEL — Cyber Defense Operations & Command Hub",
+  description: "Centralized, strategic operating system for cybersecurity defense operations, events, and CTF wargames.",
   manifest: "/manifest.json",
   icons: {
     icon: "/ck-logo.svg",
@@ -16,7 +17,7 @@ export const metadata: Metadata = {
     apple: "/ck-logo.svg",
   },
   other: {
-    "theme-color": "#FFD700",
+    "theme-color": "#00F5D4",
     "mobile-web-app-capable": "yes",
     "apple-mobile-web-app-capable": "yes",
     "apple-mobile-web-app-status-bar-style": "black-translucent"
@@ -34,9 +35,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!}>
           <ThemeBrandingProvider>
             <AuthProvider>
-              {children}
-              <PWARegistration />
-              <NetworkInspectionGuard />
+              <CyberDialogProvider>
+                {children}
+                <PWARegistration />
+                <NetworkInspectionGuard />
+              </CyberDialogProvider>
             </AuthProvider>
           </ThemeBrandingProvider>
         </GoogleOAuthProvider>

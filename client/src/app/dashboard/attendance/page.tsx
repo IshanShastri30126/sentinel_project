@@ -359,7 +359,7 @@ function ManualOverridePanel({
         <button
           onClick={handleSubmit}
           disabled={!selectedUser || submitting}
-          className="w-full py-2.5 rounded-xl text-[11px] font-mono font-bold uppercase tracking-widest flex items-center justify-center gap-2 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+          className="w-full py-2.5 rounded text-[11px] font-mono font-bold uppercase tracking-widest flex items-center justify-center gap-2 transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
           style={{ background: "rgba(168,85,247,0.12)", border: "1px solid rgba(168,85,247,0.3)", color: "#A855F7" }}
         >
           {submitting ? <div className="w-3.5 h-3.5 border border-purple-500/40 border-t-purple-400 rounded-full animate-spin" /> : <Shield className="w-3.5 h-3.5" />}
@@ -421,7 +421,7 @@ export default function AttendancePage() {
   const scannerRef = useRef<Html5QrcodeScanner | null>(null);
   const socketRef = useRef<Socket | null>(null);
 
-  const isCoord = Boolean(user && ["FACULTY", "STUDENT_COORDINATOR", "TECH"].includes(user.role));
+  const isCoord = Boolean(user && ["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "TECH_TEAM", "STUDENT_COORDINATOR", "FACULTY", "TECH"].includes(user.role));
 
   // Participant states
   const [participantCheckedIn, setParticipantCheckedIn] = useState(false);

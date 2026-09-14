@@ -7,7 +7,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { api } from "@/lib/api";
 import PlexusBackground from "@/components/PlexusBackground";
-import { SentinalLogo } from "@/components/SentinalLogo";
+import { SentinelLogo } from "@/components/SentinelLogo";
 import { CyberButton } from "@/components/ui/CyberButton";
 import { SystemLabel } from "@/components/ui/SystemLabel";
 import { BorderBeam } from "@/components/effects/BorderBeam";
@@ -85,7 +85,7 @@ function ResetPasswordPageContent() {
 
           {/* Logo */}
           <div className="flex justify-center mb-6">
-            <SentinalLogo animateDrawing={false} />
+            <SentinelLogo animateDrawing={false} />
           </div>
 
           {success ? (

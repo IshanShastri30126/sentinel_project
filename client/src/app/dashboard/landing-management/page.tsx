@@ -9,9 +9,11 @@ import {
   Mail, Phone, BookOpen, UserCheck, ShieldAlert 
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useCyberDialog } from "@/components/ui/CyberDialogContext";
 
 export default function LandingManagementPage() {
   const { token, user } = useAuth();
+  const { confirmModal, showToast } = useCyberDialog();
   const [team, setTeam] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -54,7 +56,7 @@ export default function LandingManagementPage() {
         setShowCMSAnimation(false);
       }, 2500);
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Failed to update team");
+      showToast(err instanceof Error ? err.message : "Failed to update team", "error");
     } finally {
       setSaving(false);
     }
@@ -102,16 +104,23 @@ export default function LandingManagementPage() {
     setActiveTab("basic");
   };
 
-  const handleDeleteMember = (id: string, e: React.MouseEvent) => {
+  const handleDeleteMember = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (confirm("Are you sure you want to delete this crew member?")) {
+    const confirmed = await confirmModal({
+      title: "Remove Crew Member",
+      message: "Are you sure you want to delete this crew member from the landing cadre?",
+      variant: "danger",
+      confirmText: "DELETE MEMBER"
+    });
+    if (confirmed) {
       setTeam(team.filter(m => m.id !== id));
+      showToast("Crew member removed from list", "info");
     }
   };
 
   const handleSaveModal = () => {
     if (!activeMember) return;
-    const isFac = activeMember.role === "FACULTY";
+    const isFac = activeMember.role === "FACULTY" || activeMember.role === "FACULTY_COORDINATOR";
     const idVal = activeMember.employeeId || activeMember.studentId || "";
     const cleanMember = {
       ...activeMember,
@@ -148,7 +157,7 @@ export default function LandingManagementPage() {
         [fieldName]: res.fileUrl
       });
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Upload failed");
+      showToast(err instanceof Error ? err.message : "Upload failed", "error");
     } finally {
       setUploadingField(null);
     }
@@ -162,7 +171,19 @@ export default function LandingManagementPage() {
     );
   }
 
-  if (user?.role !== "FACULTY" && user?.role !== "STUDENT_COORDINATOR") {
+  const canManageLanding = Boolean(
+    user?.role &&
+    [
+      "DEVELOPMENT_TEAM",
+      "FACULTY_COORDINATOR",
+      "TECH_TEAM",
+      "STUDENT_COORDINATOR",
+      "FACULTY",
+      "TECH"
+    ].includes(user.role)
+  );
+
+  if (!canManageLanding) {
     return (
       <div className="p-10 text-center text-rose-400 font-mono uppercase text-sm tracking-wider">
         Access Denied. You do not have permission to view this page.
@@ -291,9 +312,9 @@ export default function LandingManagementPage() {
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ type: "spring", stiffness: 120 }}
-              className="w-20 h-20 rounded-2xl bg-gradient-to-br from-[#00F5D4] to-[#00D2FF] flex items-center justify-center shadow-[0_0_30px_rgba(0,245,212,0.3)] mb-4 border border-white/10"
+              className="w-16 h-16 rounded border border-cyan-500/40 bg-cyan-950/40 flex items-center justify-center shadow-[0_0_25px_rgba(0,245,212,0.25)] mb-4"
             >
-              <CheckCircle className="w-10 h-10 text-black animate-pulse" />
+              <CheckCircle className="w-8 h-8 text-[#00F5D4] animate-pulse" />
             </motion.div>
             
             <h3 className="text-xl font-bold font-mono uppercase tracking-widest mb-1.5" style={{ color: "#00F5D4" }}>
@@ -426,21 +447,22 @@ export default function LandingManagementPage() {
                     </div>
                     <div>
                       <label className="text-[10px] uppercase font-mono text-[var(--ck-text-muted)] font-bold">
-                        {activeMember.role === "FACULTY" ? "Employee ID" : "Student ID"}
+                        {(activeMember.role === "FACULTY" || activeMember.role === "FACULTY_COORDINATOR") ? "Employee ID" : "Student ID"}
                       </label>
                       <input 
                         type="text"
                         className="ck-input w-full mt-1"
-                        value={(activeMember.role === "FACULTY" ? (activeMember.employeeId || activeMember.studentId) : activeMember.studentId) || ""} 
+                        value={((activeMember.role === "FACULTY" || activeMember.role === "FACULTY_COORDINATOR") ? (activeMember.employeeId || activeMember.studentId) : activeMember.studentId) || ""} 
                         onChange={(e) => {
                           const val = e.target.value;
+                          const isFacultyRole = activeMember.role === "FACULTY" || activeMember.role === "FACULTY_COORDINATOR";
                           setActiveMember({
                             ...activeMember,
                             studentId: val,
-                            ...(activeMember.role === "FACULTY" ? { employeeId: val } : {}),
+                            ...(isFacultyRole ? { employeeId: val } : {}),
                           });
                         }}
-                        placeholder={activeMember.role === "FACULTY" ? "e.g. EMP101" : "e.g. 22DCS116"}
+                        placeholder={(activeMember.role === "FACULTY" || activeMember.role === "FACULTY_COORDINATOR") ? "e.g. EMP101" : "e.g. 22DCS116"}
                       />
                     </div>
                     <div>

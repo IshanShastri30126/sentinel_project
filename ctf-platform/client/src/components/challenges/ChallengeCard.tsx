@@ -43,7 +43,7 @@ export function ChallengeCard({ challenge, viewers, onClick, index }: ChallengeC
             transition={{ duration: 0.3, delay: index * 0.05 }}
             onClick={onClick}
             className={cn(
-                "group relative cursor-pointer rounded-xl border p-5 transition-all duration-200",
+                "group relative cursor-pointer rounded-lg border p-5 transition-all duration-200",
                 isSolved
                     ? "border-[var(--ctf-green)]/30 bg-[var(--ctf-green-subtle)]"
                     : "border-[var(--ctf-border)] bg-[var(--ctf-card)] card-hover"
@@ -96,12 +96,12 @@ export function ChallengeCard({ challenge, viewers, onClick, index }: ChallengeC
                     >
                         {challenge.currentPoints}
                     </span>
-                    <span className="text-xs" style={{ color: "#555" }}>
+                    <span className="text-xs text-slate-400 font-mono">
                         pts
                     </span>
                 </div>
 
-                <div className="flex items-center gap-3 text-xs" style={{ color: "#666" }}>
+                <div className="flex items-center gap-3 text-xs text-slate-400 font-mono">
                     {/* Solve count */}
                     <span>
                         {challenge.solveCount} solve{challenge.solveCount !== 1 ? "s" : ""}

@@ -9,6 +9,7 @@ import {
   ChevronLeft, ChevronRight, GraduationCap, Mail, Phone 
 } from "lucide-react";
 import { DefaultAvatar } from "@/components/default-avatar";
+import { useCyberDialog } from "@/components/ui/CyberDialogContext";
 
 interface UserEntry { 
   id: string; 
@@ -19,7 +20,6 @@ interface UserEntry {
   employeeId?: string; 
   department?: string; 
   phone?: string; 
-  semester?: string; 
   institute?: string; 
   isActive: boolean; 
   isApproved: boolean; 
@@ -27,45 +27,58 @@ interface UserEntry {
   avatarUrl?: string; 
 }
 
-const ROLES = [
-  "DEVELOPMENT_TEAM",
-  "FACULTY_COORDINATOR",
-  "STUDENT_COORDINATOR",
-  "TECH_TEAM",
-  "MEMBER",
-  "GUEST",
+const CANONICAL_ROLES = [
+  { value: "FACULTY_COORDINATOR", label: "Faculty Coordinator" },
+  { value: "TECH_COORDINATOR", label: "Tech Team" },
+  { value: "STUDENT_COORDINATOR", label: "Student Coordinator" },
+  { value: "SOCIAL_MEDIA_COORDINATOR", label: "Social Media Coordinator" },
+  { value: "MEMBER", label: "Member" },
 ];
 
 const ROLE_DISPLAY_NAMES: Record<string, string> = {
-  DEVELOPMENT_TEAM: "Development Team",
   FACULTY_COORDINATOR: "Faculty Coordinator",
+  TECH_COORDINATOR: "Tech Team",
   STUDENT_COORDINATOR: "Student Coordinator",
-  TECH_TEAM: "Tech Team",
+  SOCIAL_MEDIA_COORDINATOR: "Social Media Coordinator",
   MEMBER: "Member",
   GUEST: "Guest",
+  DEVELOPMENT_TEAM: "Development Team",
+  TECH_TEAM: "Tech Team",
   FACULTY: "Faculty Coordinator",
   TECH: "Tech Team",
   CONTENT: "Content Team",
   SOCIAL_MEDIA: "Social Media",
 };
 
+const isFaculty = (role?: string): boolean => role === "FACULTY" || role === "FACULTY_COORDINATOR";
+
 export default function UsersPage() {
   const { user, token } = useAuth();
-  const canManageUsers = Boolean(
-    user?.role &&
-      [
-        "DEVELOPMENT_TEAM",
-        "FACULTY_COORDINATOR",
-        "STUDENT_COORDINATOR",
-        "FACULTY",
-      ].includes(user.role)
-  );
+  const { showToast, confirmModal } = useCyberDialog();
   const [approvedUsers, setApprovedUsers] = useState<UserEntry[]>([]);
   const [pendingUsers, setPendingUsers] = useState<UserEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("");
   
+  const canAssignRoles = Boolean(
+    user?.role &&
+    [
+      "ADMIN",
+      "FACULTY_COORDINATOR",
+      "TECH_COORDINATOR"
+    ].includes(user.role)
+  );
+
+  const canManageUsers = Boolean(
+    user?.role &&
+    [
+      "ADMIN",
+      "FACULTY_COORDINATOR",
+      "TECH_COORDINATOR"
+    ].includes(user.role)
+  );
+
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -97,7 +110,7 @@ export default function UsersPage() {
     }
   };
 
-  useEffect(() => { if (token) load(); }, [token, search, roleFilter, currentPage]);
+  useEffect(() => { if (user) load(); }, [user, search, roleFilter, currentPage]);
 
   // Reset pagination when search queries or filters change
   useEffect(() => {
@@ -105,24 +118,50 @@ export default function UsersPage() {
   }, [search, roleFilter]);
 
   const handleApprove = async (id: string) => {
-    try { await api(`/users/${id}/approve`, { method: "PATCH", token: token || undefined }); load(); }
-    catch (err) { alert(err instanceof Error ? err.message : "Failed"); }
+    try {
+      await api(`/users/${id}/approve`, { method: "PATCH", token: token || undefined });
+      showToast("Candidate access approved successfully", "success");
+      load();
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : "Approval failed", "error");
+    }
   };
 
   const handleReject = async (id: string) => {
-    if (!confirm("Are you sure you want to reject access and permanently remove this candidate and all their data from the portal?")) return;
-    try { await api(`/users/${id}/reject`, { method: "PATCH", token: token || undefined }); load(); }
-    catch (err) { alert(err instanceof Error ? err.message : "Failed"); }
+    const confirmed = await confirmModal({
+      title: "Reject Candidate Access",
+      message: "Are you sure you want to reject access and permanently remove this candidate and all their data from the portal?",
+      variant: "danger",
+      confirmText: "REJECT CANDIDATE"
+    });
+    if (!confirmed) return;
+    try {
+      await api(`/users/${id}/reject`, { method: "PATCH", token: token || undefined });
+      showToast("Candidate rejected and removed", "success");
+      load();
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : "Rejection failed", "error");
+    }
   };
 
   const handleRoleChange = async (id: string, role: string) => {
-    try { await api(`/users/${id}/role`, { method: "PATCH", token: token || undefined, body: JSON.stringify({ role }) }); load(); }
-    catch (err) { alert(err instanceof Error ? err.message : "Failed"); }
+    try {
+      await api(`/users/${id}/role`, { method: "PATCH", token: token || undefined, body: JSON.stringify({ role }) });
+      showToast(`User role updated to ${role.replace(/_/g, " ")}`, "success");
+      load();
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : "Role update failed", "error");
+    }
   };
 
   const handleToggleActive = async (id: string, isActive: boolean) => {
-    try { await api(`/users/${id}/${isActive ? "deactivate" : "activate"}`, { method: "PATCH", token: token || undefined }); load(); }
-    catch (err) { alert(err instanceof Error ? err.message : "Failed"); }
+    try {
+      await api(`/users/${id}/${isActive ? "deactivate" : "activate"}`, { method: "PATCH", token: token || undefined });
+      showToast(`User ${isActive ? "deactivated" : "activated"} successfully`, "success");
+      load();
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : "Status update failed", "error");
+    }
   };
 
   const paginatedUsers = approvedUsers;
@@ -145,18 +184,26 @@ export default function UsersPage() {
           </h3>
           <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
             {pendingUsers.map((u) => (
-              <div key={u.id} className="flex items-center justify-between p-3.5 rounded-xl border border-[var(--ck-border)] bg-black/40 hover:border-[#FF4D00]/30 transition duration-200">
+              <div key={u.id} className="flex items-center justify-between p-3.5 rounded-lg border border-[var(--ck-border)] bg-black/40 hover:border-[#FF4D00]/30 transition duration-200">
                 <div>
                   <div className="flex items-center gap-2">
                     <p className="text-sm font-semibold text-[var(--ck-text)]">{u.name}</p>
                     {(u.employeeId || u.studentId) && (
                       <span className="text-[9px] font-mono bg-[#FF4D00]/10 border border-[#FF4D00]/25 px-1.5 py-0.5 rounded text-[var(--ck-accent)]">
+<<<<<<< HEAD
                         {["FACULTY", "FACULTY_COORDINATOR"].includes(u.role) ? `EMP ID: ${u.employeeId || u.studentId}` : `ST ID: ${u.studentId}`}
+=======
+                        {isFaculty(u.role) ? `EMP ID: ${u.employeeId || u.studentId}` : `ST ID: ${u.studentId}`}
+>>>>>>> sentinel/dev
                       </span>
                     )}
                   </div>
                   <p className="text-[10px] font-mono mt-1 text-[var(--ck-text-muted)] uppercase">
+<<<<<<< HEAD
                     {u.email.toLowerCase()} {u.phone ? `// TEL: ${u.phone}` : ""} {u.department ? `// DEPT: ${u.department}` : ""} {!["FACULTY", "FACULTY_COORDINATOR"].includes(u.role) && u.semester ? `// SEM: ${u.semester}` : ""}
+=======
+                    {u.email.toLowerCase()} {u.phone ? `// TEL: ${u.phone}` : ""} {u.department ? `// DEPT: ${u.department}` : ""} 
+>>>>>>> sentinel/dev
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
@@ -184,7 +231,11 @@ export default function UsersPage() {
         </div>
         <select className="ck-input w-auto text-xs py-2 font-mono" value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)}>
           <option value="">ALL ROLES</option>
+<<<<<<< HEAD
           {ROLES.map((r) => <option key={r} value={r}>{ROLE_DISPLAY_NAMES[r] || r.replace(/_/g, " ")}</option>)}
+=======
+          {CANONICAL_ROLES.map((r) => <option key={r.value} value={r.value}>{r.label.toUpperCase()}</option>)}
+>>>>>>> sentinel/dev
         </select>
       </div>
 
@@ -226,7 +277,7 @@ export default function UsersPage() {
                         <div>
                           <p className="text-sm font-semibold text-[var(--ck-text)] tracking-wide">{u.name}</p>
                           <p className="text-[10px] font-mono mt-0.5 text-[var(--ck-text-muted)] uppercase">
-                            {["FACULTY", "FACULTY_COORDINATOR"].includes(u.role) 
+                            {isFaculty(u.role) 
                               ? (u.employeeId || u.studentId ? `EMPID: ${u.employeeId || u.studentId}` : "FACULTY / NO ID")
                               : (u.studentId ? `STID: ${u.studentId}` : "GUEST / NO ID")}
                           </p>
@@ -257,16 +308,16 @@ export default function UsersPage() {
                           <GraduationCap className="w-3.5 h-3.5 text-[var(--ck-accent)]/60" /> {u.department || "N/A"}
                         </p>
                         <p className="text-[10px] text-[var(--ck-text-muted)] font-mono uppercase pl-5">
-                          {["FACULTY", "FACULTY_COORDINATOR"].includes(u.role) ? (u.institute || "FACULTY") : `${u.semester ? `SEM: ${u.semester}` : "SEM: —"} / ${u.institute || "GUEST"}`}
+                          {isFaculty(u.role) ? (u.institute || "FACULTY") : `${u.institute || "GUEST"}`}
                         </p>
                       </div>
                     </td>
 
                     {/* Security Role */}
                     <td data-label="Security Role">
-                      {canManageUsers ? (
+                      {canAssignRoles && u.id !== user?.id ? (
                         <select className="ck-input text-[10px] py-1 px-2.5 w-auto font-mono border-[var(--ck-border)] focus:border-cyan-500/40" value={u.role} onChange={(e) => handleRoleChange(u.id, e.target.value)}>
-                          {ROLES.map((r) => <option key={r} value={r}>{ROLE_DISPLAY_NAMES[r] || r.replace(/_/g, " ")}</option>)}
+                          {CANONICAL_ROLES.map((r) => <option key={r.value} value={r.value}>{r.label}</option>)}
                         </select>
                       ) : (
                         <span className="ck-badge ck-badge-primary text-[10px]">{ROLE_DISPLAY_NAMES[u.role] || u.role.replace(/_/g, " ")}</span>

@@ -140,8 +140,8 @@ export function BinarySkullBackground() {
         // Very large code font
         ctx.font = "bold 64px 'Courier New', monospace";
         
-        // Typewriter animation (Slow, no repeat, only SENTINAL CLUB)
-        const fullText = "CHAKRAVYUH\\nCLUB";
+        // Typewriter animation (Slow, no repeat, only SENTINEL)
+        const fullText = "SENTINEL\\nCLUB";
         const charsPerTick = 3.5; // Slower speed
         const currentTick = Math.floor(time * charsPerTick);
         const visibleChars = Math.min(currentTick, fullText.length);

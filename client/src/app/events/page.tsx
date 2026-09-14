@@ -113,7 +113,7 @@ export default function PublicEventsPage() {
                 <span>BACK</span>
               </button>
 
-              <div className="inline-flex items-center gap-2 bg-[#070D18] border border-cyan-500/30 px-3.5 py-1.5 rounded-full backdrop-blur">
+              <div className="inline-flex items-center gap-2 bg-[#070D18] border border-cyan-500/30 px-3.5 py-1.5 rounded backdrop-blur">
                 <Shield className="w-3.5 h-3.5 text-[#00F5D4]" />
                 <span className="text-[11px] font-bold text-[#00F5D4] font-mono tracking-widest uppercase">
                   OPERATIONS REPOSITORY
@@ -129,9 +129,9 @@ export default function PublicEventsPage() {
                 <h1 className="text-3xl sm:text-5xl font-black uppercase font-mono tracking-tight text-white">
                   CYBER DEFENSE <span className="text-[#00F5D4]">OPERATIONS</span>
                 </h1>
-                <p className="font-mono text-xs sm:text-sm text-slate-400 max-w-2xl mx-auto leading-relaxed">
+                <p className="font-mono text-xs sm:text-sm text-slate-300 max-w-2xl mx-auto leading-relaxed">
                   Discover upcoming workshops, strategic hackathons, zero-day threat exercises,
-                  and official Chakravyuh certification summits.
+                  and official SENTINEL certification summits.
                 </p>
               </div>
             </SectionReveal>
@@ -193,7 +193,7 @@ export default function PublicEventsPage() {
                 const isUpcoming = new Date(event.startDate).getTime() >= now.getTime();
                 return (
                   <SectionReveal key={event.id} delay={i * 0.05}>
-                    <Link href={`/events/${event.slug}`} className="block h-full">
+                    <Link href={`/event/${event.slug}`} className="block h-full">
                       <CyberCard
                         variant="interactive"
                         showAccentTop={true}
@@ -237,7 +237,7 @@ export default function PublicEventsPage() {
                               {event.title}
                             </h3>
 
-                            <div className="space-y-1.5 font-mono text-xs text-slate-400">
+                            <div className="space-y-1.5 font-mono text-xs text-slate-300">
                               <div className="flex items-center gap-2">
                                 <Calendar className="w-3.5 h-3.5 text-[#00F5D4] shrink-0" />
                                 <span>
@@ -268,7 +268,7 @@ export default function PublicEventsPage() {
                           </div>
 
                           <div className="pt-3 border-t border-white/[0.06] flex items-center justify-between gap-2">
-                            <span className="font-mono text-[11px] font-semibold text-slate-400 flex items-center gap-1.5">
+                            <span className="font-mono text-[11px] font-semibold text-slate-300 flex items-center gap-1.5">
                               <Users className="w-3.5 h-3.5 text-[#00F5D4]" />
                               {event._count.registrations} Enrolled
                             </span>

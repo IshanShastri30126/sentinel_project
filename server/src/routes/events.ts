@@ -3,13 +3,14 @@ import { z } from "zod";
 import jwt from "jsonwebtoken";
 import prisma from "../lib/prisma";
 import { config } from "../config";
-import { authenticate, requireRole, requireMinRole, AuthPayload } from "../middlewares/auth";
+import { authenticate, requireRole, AuthPayload } from "../middlewares/auth";
 import { validate } from "../middlewares/validate";
 import { auditLog } from "../middlewares/auditLog";
 import { upload, getUploadedFileUrl } from "../middlewares/upload";
 import { sendEventPublishedEmail, sendEventRegistrationEmail } from "../lib/emailService";
 import { sendBulkNotification, sendNotification } from "../lib/notificationService";
 import redis, { redisGet, redisSet, redisDel } from "../lib/redis";
+import { eventRegistrationLimiter, mailLimiter } from "../middlewares/rateLimiter";
 
 async function clearEventsCache() {
   try {
@@ -25,10 +26,22 @@ async function clearEventsCache() {
       }
     }
     await redisDel("analytics:operations");
-    await redisDel("analytics:club");
+    await redisDel("analytics:sentinel");
     await redisDel("analytics:top3");
     await redisDel("analytics:events-analysis");
     await redisDel("analytics:coordinator-activity");
+
+    // Proactively warm the public cache so Render and clients have instantaneous sync
+    try {
+      const activeEvents = await prisma.event.findMany({
+        where: { isPublished: true, isApproved: true, endDate: { gte: new Date() } },
+        include: { creator: { select: { id: true, name: true } }, _count: { select: { registrations: true } } },
+        orderBy: { startDate: "desc" }
+      });
+      await redisSet("PUBLIC_EVENTS_LIMIT_all", JSON.stringify(activeEvents), 600);
+    } catch (warmErr) {
+      console.warn("[Events] Cache warm error:", warmErr);
+    }
   } catch (err) {
     console.error("[Events] Cache clear error:", err);
   }
@@ -60,14 +73,64 @@ const createEventSchema = z.object({
 });
 
 // POST /api/events — Create event
-router.post("/", authenticate, requireMinRole("STUDENT_COORDINATOR"), validate(createEventSchema), auditLog("EVENT_CREATED"), async (req: Request, res: Response) => {
+
+async function validateEventLeads(organizersStr: string | null): Promise<string | null> {
+  if (!organizersStr) return null;
+  try {
+    const organizers = JSON.parse(organizersStr);
+    if (!Array.isArray(organizers)) return null;
+    
+    for (const org of organizers) {
+      if (org.role === "Event Lead" && org.email) {
+        const user = await prisma.user.findUnique({ where: { email: org.email } });
+        if (!user) {
+          return `User with email ${org.email} does not exist. All Event Leads must be registered users.`;
+        }
+      }
+    }
+  } catch (e) {
+    // invalid JSON, ignore
+  }
+  return null;
+}
+
+router.post("/", authenticate, requireRole("FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_COORDINATOR"), validate(createEventSchema), auditLog("EVENT_CREATED"), async (req: Request, res: Response) => {
   try {
     const data = req.body;
-    const isApproved = req.user!.role === "FACULTY_COORDINATOR" || req.user!.role === "DEVELOPMENT_TEAM";
+    const startDateObj = new Date(data.startDate);
+    const endDateObj = new Date(data.endDate);
+
+    
+    const leadError = await validateEventLeads(data.organizers);
+    if (leadError) {
+      res.status(400).json({ error: leadError });
+      return;
+    }
+    if (isNaN(startDateObj.getTime()) || isNaN(endDateObj.getTime())) {
+      res.status(400).json({ error: "Invalid start or end date format." });
+      return;
+    }
+    if (endDateObj <= startDateObj) {
+      res.status(400).json({ error: "Event end date must be strictly after start date." });
+      return;
+    }
+    if (data.registrationDeadline) {
+      const deadlineObj = new Date(data.registrationDeadline);
+      if (isNaN(deadlineObj.getTime())) {
+        res.status(400).json({ error: "Invalid registration deadline format." });
+        return;
+      }
+      if (deadlineObj > startDateObj) {
+        res.status(400).json({ error: "Registration deadline cannot be after event start date." });
+        return;
+      }
+    }
+
+    const isApproved = ["FACULTY_COORDINATOR", "TECH_COORDINATOR", "FACULTY", "TECH"].includes(req.user!.role);
     const event = await prisma.event.create({
       data: {
         title: data.title, description: data.description, venue: data.venue,
-        startDate: new Date(data.startDate), endDate: new Date(data.endDate),
+        startDate: startDateObj, endDate: endDateObj,
         registrationDeadline: data.registrationDeadline ? new Date(data.registrationDeadline) : null,
         rules: data.rules, tags: data.tags || [],
         minTeamSize: data.minTeamSize, maxTeamSize: data.maxTeamSize,
@@ -121,13 +184,14 @@ router.post("/", authenticate, requireMinRole("STUDENT_COORDINATOR"), validate(c
 });
 
 // POST /api/events/:id/poster — Upload poster
-router.post("/:id/poster", authenticate, requireMinRole("STUDENT_COORDINATOR"), upload.single("poster"), async (req: Request, res: Response) => {
+router.post("/:id/poster", authenticate, requireRole("FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_COORDINATOR", "SOCIAL_MEDIA_COORDINATOR"), upload.single("poster"), async (req: Request, res: Response) => {
   try {
     if (!req.file) { res.status(400).json({ error: "No file uploaded" }); return; }
     const existing = await prisma.event.findUnique({ where: { id: req.params.id } });
     if (!existing) { res.status(404).json({ error: "Event not found" }); return; }
 
-    const isElevated = ["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "TECH_TEAM"].includes(req.user!.role);
+    // [MIGRATION]: SOCIAL_MEDIA_COORDINATOR can upload posters for any event
+    const isElevated = ["FACULTY_COORDINATOR", "TECH_COORDINATOR", "SOCIAL_MEDIA_COORDINATOR"].includes(req.user!.role);
     if (!isElevated && existing.creatorId !== req.user!.userId) {
       res.status(403).json({ error: "Unauthorized: You can only modify events you created" });
       return;
@@ -140,13 +204,13 @@ router.post("/:id/poster", authenticate, requireMinRole("STUDENT_COORDINATOR"), 
 });
 
 // POST /api/events/:id/document — Upload document
-router.post("/:id/document", authenticate, requireMinRole("STUDENT_COORDINATOR"), upload.single("document"), async (req: Request, res: Response) => {
+router.post("/:id/document", authenticate, requireRole("FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_COORDINATOR"), upload.single("document"), async (req: Request, res: Response) => {
   try {
     if (!req.file) { res.status(400).json({ error: "No file uploaded" }); return; }
     const existing = await prisma.event.findUnique({ where: { id: req.params.id } });
     if (!existing) { res.status(404).json({ error: "Event not found" }); return; }
 
-    const isElevated = ["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "TECH_TEAM"].includes(req.user!.role);
+    const isElevated = ["FACULTY_COORDINATOR", "TECH_COORDINATOR"].includes(req.user!.role);
     if (!isElevated && existing.creatorId !== req.user!.userId) {
       res.status(403).json({ error: "Unauthorized: You can only modify events you created" });
       return;
@@ -182,7 +246,6 @@ router.get("/", async (req: Request, res: Response) => {
     const where: any = {
       isPublished: true,
       isApproved: true,
-      endDate: { gte: new Date() }
     };
     if (search) {
       where.OR = [
@@ -196,12 +259,22 @@ router.get("/", async (req: Request, res: Response) => {
 
     const takeCount = limit ? parseInt(limit as string) : undefined;
 
-    const events = await prisma.event.findMany({
-      where,
-      include: { creator: { select: { id: true, name: true, role: true } }, _count: { select: { registrations: true } } },
-      orderBy: { startDate: "desc" },
-      take: takeCount,
-    });
+    let events;
+    try {
+      events = await prisma.event.findMany({
+        where,
+        include: { creator: { select: { id: true, name: true } }, _count: { select: { registrations: true } } },
+        orderBy: { startDate: "desc" },
+        take: takeCount,
+      });
+    } catch (queryErr) {
+      console.warn("[Events] Primary query with creator failed, using basic fallback query:", queryErr);
+      events = await prisma.event.findMany({
+        where,
+        orderBy: { startDate: "desc" },
+        take: takeCount,
+      });
+    }
 
     if (isCacheable) {
       // Cache standard queries for 5 minutes (300s)
@@ -213,7 +286,7 @@ router.get("/", async (req: Request, res: Response) => {
 });
 
 // GET /api/events/all — All events for coordinators with search/filter
-router.get("/all", authenticate, requireMinRole("TECH_TEAM"), async (req: Request, res: Response) => {
+router.get("/all", authenticate, requireRole("FACULTY_COORDINATOR", "TECH_COORDINATOR", "SOCIAL_MEDIA_COORDINATOR", "STUDENT_COORDINATOR", "MEMBER"), async (req: Request, res: Response) => {
   try {
     const { search, status, tag } = req.query;
     
@@ -225,6 +298,10 @@ router.get("/all", authenticate, requireMinRole("TECH_TEAM"), async (req: Reques
     }
 
     const where: any = {};
+    // [MIGRATION]: Enforce own_events_only for non-super roles
+    if (["STUDENT_COORDINATOR", "SOCIAL_MEDIA_COORDINATOR", "MEMBER"].includes(req.user!.role)) {
+      where.creatorId = req.user!.userId;
+    }
     if (search) {
       where.OR = [
         { title: { contains: search as string, mode: "insensitive" } },
@@ -336,7 +413,7 @@ router.get("/:id", async (req: Request, res: Response) => {
 });
 
 // GET /api/events/:id/analytics — Registration timeline, team stats, attendance
-router.get("/:id/analytics", authenticate, requireMinRole("TECH_TEAM"), async (req: Request, res: Response) => {
+router.get("/:id/analytics", authenticate, requireRole("TECH_COORDINATOR"), async (req: Request, res: Response) => {
   try {
     const eventId = req.params.id;
     const event = await prisma.event.findUnique({ where: { id: eventId } });
@@ -374,7 +451,7 @@ router.get("/:id/analytics", authenticate, requireMinRole("TECH_TEAM"), async (r
 });
 
 // PATCH /api/events/:id — Update event
-router.patch("/:id", authenticate, requireMinRole("STUDENT_COORDINATOR"), auditLog("EVENT_UPDATED"), async (req: Request, res: Response) => {
+router.patch("/:id", authenticate, requireRole("FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_COORDINATOR", "SOCIAL_MEDIA_COORDINATOR"), auditLog("EVENT_UPDATED"), async (req: Request, res: Response) => {
   try {
     const existingEvent = await prisma.event.findUnique({ where: { id: req.params.id } });
     if (!existingEvent) {
@@ -382,20 +459,51 @@ router.patch("/:id", authenticate, requireMinRole("STUDENT_COORDINATOR"), auditL
       return;
     }
 
-    // Access Control: Non-faculty coordinators can only edit their own created events
-    const isElevated = ["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "TECH_TEAM"].includes(req.user!.role);
+    // [MIGRATION]: Access Control
+    const isElevated = ["FACULTY_COORDINATOR", "TECH_COORDINATOR"].includes(req.user!.role);
     if (!isElevated && existingEvent.creatorId !== req.user!.userId) {
-      res.status(403).json({ error: "Unauthorized: You can only edit events you created" });
-      return;
+      if (req.user!.role === "SOCIAL_MEDIA_COORDINATOR") {
+        const allowedFields = ["description", "socialLinks"];
+        const keys = Object.keys(req.body);
+        const unauthorized = keys.filter(k => !allowedFields.includes(k));
+        if (unauthorized.length > 0) {
+          res.status(403).json({ error: "Social Media Coordinators can only edit marketing details (description, socialLinks)" });
+          return;
+        }
+      } else {
+        res.status(403).json({ error: "Unauthorized: You can only edit events you created" });
+        return;
+      }
     }
 
     const d = req.body; const u: any = {};
+    const finalStart = d.startDate ? new Date(d.startDate) : existingEvent.startDate;
+    const finalEnd = d.endDate ? new Date(d.endDate) : existingEvent.endDate;
+
+    if (isNaN(finalStart.getTime()) || isNaN(finalEnd.getTime())) {
+      res.status(400).json({ error: "Invalid start or end date format." });
+      return;
+    }
+    if (finalEnd <= finalStart) {
+      res.status(400).json({ error: "Event end date must be strictly after start date." });
+      return;
+    }
+
+    const finalDeadline = d.registrationDeadline !== undefined
+      ? (d.registrationDeadline ? new Date(d.registrationDeadline) : null)
+      : existingEvent.registrationDeadline;
+
+    if (finalDeadline && !isNaN(finalDeadline.getTime()) && finalDeadline > finalStart) {
+      res.status(400).json({ error: "Registration deadline cannot be after event start date." });
+      return;
+    }
+
     if (d.title) u.title = d.title;
     if (d.description !== undefined) u.description = d.description;
     if (d.venue !== undefined) u.venue = d.venue;
-    if (d.startDate) u.startDate = new Date(d.startDate);
-    if (d.endDate) u.endDate = new Date(d.endDate);
-    if (d.registrationDeadline !== undefined) u.registrationDeadline = d.registrationDeadline ? new Date(d.registrationDeadline) : null;
+    if (d.startDate) u.startDate = finalStart;
+    if (d.endDate) u.endDate = finalEnd;
+    if (d.registrationDeadline !== undefined) u.registrationDeadline = finalDeadline;
     if (d.rules !== undefined) u.rules = d.rules;
     if (d.tags) u.tags = d.tags;
     if (d.minTeamSize !== undefined) u.minTeamSize = d.minTeamSize;
@@ -454,14 +562,14 @@ router.patch("/:id", authenticate, requireMinRole("STUDENT_COORDINATOR"), auditL
 });
 
 // PATCH /api/events/:id/publish — Toggle publish
-router.patch("/:id/publish", authenticate, requireMinRole("STUDENT_COORDINATOR"), auditLog("EVENT_PUBLISH_TOGGLED"), async (req: Request, res: Response) => {
+router.patch("/:id/publish", authenticate, requireRole("FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_COORDINATOR"), auditLog("EVENT_PUBLISH_TOGGLED"), async (req: Request, res: Response) => {
   try {
     const event = await prisma.event.findUnique({
       where: { id: req.params.id },
     });
     if (!event) { res.status(404).json({ error: "Event not found" }); return; }
 
-    const isElevated = ["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "TECH_TEAM"].includes(req.user!.role);
+    const isElevated = ["FACULTY_COORDINATOR", "TECH_COORDINATOR"].includes(req.user!.role);
     if (!isElevated && event.creatorId !== req.user!.userId) {
       res.status(403).json({ error: "Unauthorized: You can only publish events you created" });
       return;
@@ -485,16 +593,11 @@ router.patch("/:id/publish", authenticate, requireMinRole("STUDENT_COORDINATOR")
 });
 
 // DELETE /api/events/:id — Permanent delete event
-router.delete("/:id", authenticate, requireMinRole("STUDENT_COORDINATOR"), auditLog("EVENT_DELETED"), async (req: Request, res: Response) => {
+// [MIGRATION]: Removed STUDENT_COORDINATOR, they cannot delete events
+router.delete("/:id", authenticate, requireRole("FACULTY_COORDINATOR", "TECH_COORDINATOR"), auditLog("EVENT_DELETED"), async (req: Request, res: Response) => {
   try {
     const event = await prisma.event.findUnique({ where: { id: req.params.id } });
     if (!event) { res.status(404).json({ error: "Event not found" }); return; }
-
-    const isElevated = ["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "TECH_TEAM"].includes(req.user!.role);
-    if (!isElevated && event.creatorId !== req.user!.userId) {
-      res.status(403).json({ error: "Unauthorized: You can only delete events you created" });
-      return;
-    }
     
     await prisma.$transaction([
       prisma.attendance.deleteMany({ where: { eventId: req.params.id } }),
@@ -513,16 +616,16 @@ router.delete("/:id", authenticate, requireMinRole("STUDENT_COORDINATOR"), audit
 });
 
 // POST /api/events/:id/register — Individual or Team registration
-router.post("/:id/register", authenticate, auditLog("EVENT_REGISTRATION"), async (req: Request, res: Response) => {
+router.post("/:id/register", eventRegistrationLimiter, authenticate, auditLog("EVENT_REGISTRATION"), async (req: Request, res: Response) => {
   try {
     const eventId = req.params.id; const userId = req.user!.userId;
     const userRole = req.user?.role;
-    if (userRole === "FACULTY_COORDINATOR" || userRole === "STUDENT_COORDINATOR" || userRole === "DEVELOPMENT_TEAM") {
+    if (userRole === "FACULTY_COORDINATOR" || userRole === "STUDENT_COORDINATOR" ) {
       res.status(400).json({ error: "Faculty and Student Coordinators default to full event access and do not register as participants." });
       return;
     }
 
-    const { teamName, teamMembers, name, studentId, employeeId, phone, department, semester, institute } = req.body;
+    const { teamName, teamMembers, name, studentId, employeeId, phone, department, institute } = req.body;
 
     // Update user details if provided
     const userUpdateData: any = {};
@@ -532,20 +635,19 @@ router.post("/:id/register", authenticate, auditLog("EVENT_REGISTRATION"), async
     if (targetStudentId !== undefined) userUpdateData.studentId = targetStudentId || null;
 
     if (phone !== undefined) {
-      const sanitizedPhone = phone ? String(phone).replace(/\D/g, "") : "";
-      if (sanitizedPhone && !/^\d{10}$/.test(sanitizedPhone)) {
-        res.status(400).json({ error: "Mobile number must contain exactly 10 numeric digits." });
-        return;
+      if (phone !== null && phone !== "") {
+        if (!/^\d{10}$/.test(String(phone))) {
+          res.status(400).json({ error: "Mobile number must be exactly 10 digits with no string or character." });
+          return;
+        }
+        userUpdateData.phone = String(phone);
+      } else {
+        userUpdateData.phone = null;
       }
-      userUpdateData.phone = sanitizedPhone || null;
     }
 
     if (department !== undefined) userUpdateData.department = department || null;
     if (institute !== undefined) userUpdateData.institute = institute || null;
-
-    if (semester !== undefined) {
-      userUpdateData.semester = semester || null;
-    }
 
     if (Object.keys(userUpdateData).length > 0) {
       await prisma.user.update({
@@ -553,92 +655,130 @@ router.post("/:id/register", authenticate, auditLog("EVENT_REGISTRATION"), async
         data: userUpdateData
       });
     }
-    const event = await prisma.event.findUnique({ where: { id: eventId }, include: { _count: { select: { registrations: true } } } });
-    if (!event || !event.isPublished) { res.status(404).json({ error: "Event not found or not published" }); return; }
-    if (event.registrationDeadline && new Date() > event.registrationDeadline) { res.status(400).json({ error: "Registration deadline has passed" }); return; }
-    if (event.maxCapacity && event._count.registrations >= event.maxCapacity) { res.status(400).json({ error: "Event is at full capacity" }); return; }
-    const existing = await prisma.eventRegistration.findUnique({ where: { userId_eventId: { userId, eventId } } });
-    if (existing) { res.status(409).json({ error: "Already registered" }); return; }
-    
-    let teamId = null;
-    let generatedTeamCode = null;
-    if (teamName && event.maxTeamSize && event.maxTeamSize > 1) {
-      // Create team
-      const seg = Math.random().toString(36).substring(2, 8).toUpperCase();
-      const teamCode = `CK-T-${seg}`;
-      const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-      let joinCode = "CTF-";
-      for (let i = 0; i < 6; i++) {
-        joinCode += chars.charAt(Math.floor(Math.random() * chars.length));
-      }
-      const newTeam = await prisma.team.create({
-        data: { name: teamName, teamCode, joinCode, eventId, leaderId: userId }
+    // SEC-004 FIX: Execute capacity check and registration atomically inside an
+    // interactive transaction with PostgreSQL row-level locking (SELECT ... FOR UPDATE)
+    // to eliminate the TOCTOU concurrency race condition.
+    const txResult = await prisma.$transaction(async (tx) => {
+      // 1. Acquire exclusive row lock on event to serialize concurrent registrations
+      await tx.$queryRaw`SELECT id FROM events WHERE id = ${eventId} FOR UPDATE`;
+
+      const event = await tx.event.findUnique({
+        where: { id: eventId },
+        include: { _count: { select: { registrations: true } } }
       });
-      teamId = newTeam.id;
-      generatedTeamCode = teamCode;
-      // Add creator as member 1
-      await prisma.teamMember.create({ data: { teamId, userId, memberCode: `${teamCode}_1` } });
-      
-      // If team members are provided by email, validate ALL exist as registered+approved+active users
-      if (teamMembers && Array.isArray(teamMembers) && teamMembers.length > 0) {
-        // First validate ALL emails before adding any
-        const memberUsers = await Promise.all(
-          teamMembers.map(async (email: string) => {
-            const memberUser = await prisma.user.findUnique({ 
-              where: { email: email.trim() },
-              select: { id: true, name: true, email: true, isApproved: true, isActive: true }
+
+      if (!event || !event.isPublished) {
+        throw { status: 404, message: "Event not found or not published" };
+      }
+      if (event.registrationDeadline && new Date() > event.registrationDeadline) {
+        throw { status: 400, message: "Registration deadline has passed" };
+      }
+      if (event.maxCapacity && event._count.registrations >= event.maxCapacity) {
+        throw { status: 400, message: "Event is at full capacity" };
+      }
+
+      const existing = await tx.eventRegistration.findUnique({
+        where: { userId_eventId: { userId, eventId } }
+      });
+      if (existing) {
+        throw { status: 409, message: "Already registered" };
+      }
+
+      let teamId = null;
+      let generatedTeamCode = null;
+      const teammatesToEmail: Array<{ name: string; email: string }> = [];
+
+      if (teamName && event.maxTeamSize && event.maxTeamSize > 1) {
+        // Create team
+        const seg = Math.random().toString(36).substring(2, 8).toUpperCase();
+        const teamCode = `CK-T-${seg}`;
+        const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+        let joinCode = "CTF-";
+        for (let i = 0; i < 6; i++) {
+          joinCode += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        const newTeam = await tx.team.create({
+          data: { name: teamName, teamCode, joinCode, eventId, leaderId: userId }
+        });
+        teamId = newTeam.id;
+        generatedTeamCode = teamCode;
+
+        // Add creator as member 1
+        await tx.teamMember.create({ data: { teamId, userId, memberCode: `${teamCode}_1` } });
+
+        // If team members are provided by email, validate ALL exist as registered+approved+active users
+        if (teamMembers && Array.isArray(teamMembers) && teamMembers.length > 0) {
+          const memberUsers = await Promise.all(
+            teamMembers.map(async (email: string) => {
+              const memberUser = await tx.user.findUnique({
+                where: { email: email.trim() },
+                select: { id: true, name: true, email: true, isApproved: true, isActive: true }
+              });
+              return { email: email.trim(), user: memberUser };
+            })
+          );
+
+          const unregistered = memberUsers.filter(m => !m.user);
+          if (unregistered.length > 0) {
+            throw {
+              status: 400,
+              message: `The following emails are not registered in the system: ${unregistered.map(m => m.email).join(", ")}. All team members must be registered users.`
+            };
+          }
+
+          const unapproved = memberUsers.filter(m => m.user && !m.user.isApproved);
+          if (unapproved.length > 0) {
+            throw {
+              status: 400,
+              message: `The following members are not yet approved: ${unapproved.map(m => m.user!.name || m.email).join(", ")}. All team members must have approved accounts.`
+            };
+          }
+
+          const inactive = memberUsers.filter(m => m.user && !m.user.isActive);
+          if (inactive.length > 0) {
+            throw {
+              status: 400,
+              message: `The following members have inactive accounts: ${inactive.map(m => m.user!.name || m.email).join(", ")}. All team members must have active accounts.`
+            };
+          }
+
+          // Check capacity constraint when adding teammates
+          const additionalCount = memberUsers.length;
+          if (event.maxCapacity && (event._count.registrations + 1 + additionalCount > event.maxCapacity)) {
+            throw { status: 400, message: "Event is at full capacity" };
+          }
+
+          for (const { user: memberUser } of memberUsers) {
+            if (!memberUser) continue;
+            const existingReg = await tx.eventRegistration.findUnique({
+              where: { userId_eventId: { userId: memberUser.id, eventId } }
             });
-            return { email: email.trim(), user: memberUser };
-          })
-        );
-
-        // Check for unregistered emails
-        const unregistered = memberUsers.filter(m => !m.user);
-        if (unregistered.length > 0) {
-          res.status(400).json({ 
-            error: `The following emails are not registered in the system: ${unregistered.map(m => m.email).join(", ")}. All team members must be registered users.` 
-          }); 
-          return;
-        }
-
-        // Check for unapproved users
-        const unapproved = memberUsers.filter(m => m.user && !m.user.isApproved);
-        if (unapproved.length > 0) {
-          res.status(400).json({ 
-            error: `The following members are not yet approved: ${unapproved.map(m => m.user!.name || m.email).join(", ")}. All team members must have approved accounts.` 
-          }); 
-          return;
-        }
-
-        // Check for inactive users
-        const inactive = memberUsers.filter(m => m.user && !m.user.isActive);
-        if (inactive.length > 0) {
-          res.status(400).json({ 
-            error: `The following members have inactive accounts: ${inactive.map(m => m.user!.name || m.email).join(", ")}. All team members must have active accounts.` 
-          }); 
-          return;
-        }
-
-        // All validated — now add them
-        for (const { user: memberUser } of memberUsers) {
-          if (!memberUser) continue;
-          const existingReg = await prisma.eventRegistration.findUnique({ where: { userId_eventId: { userId: memberUser.id, eventId } } });
-          if (!existingReg) {
-            const currentCount = await prisma.teamMember.count({ where: { teamId } });
-            const memberCode = `${teamCode}_${currentCount + 1}`;
-            await prisma.teamMember.create({ data: { teamId, userId: memberUser.id, memberCode } });
-            await prisma.eventRegistration.create({ data: { userId: memberUser.id, eventId, teamId } });
-            sendEventRegistrationEmail({ name: memberUser.name, email: memberUser.email }, {
-              title: event.title,
-              startDate: event.startDate,
-              venue: event.venue
-            }).catch(err => console.error("[Events] Teammate email failed:", err));
+            if (!existingReg) {
+              const currentCount = await tx.teamMember.count({ where: { teamId } });
+              const memberCode = `${teamCode}_${currentCount + 1}`;
+              await tx.teamMember.create({ data: { teamId, userId: memberUser.id, memberCode } });
+              await tx.eventRegistration.create({ data: { userId: memberUser.id, eventId, teamId } });
+              teammatesToEmail.push({ name: memberUser.name, email: memberUser.email });
+            }
           }
         }
       }
+
+      const reg = await tx.eventRegistration.create({ data: { userId, eventId, teamId } });
+
+      return { reg, generatedTeamCode, event, teammatesToEmail };
+    }, { maxWait: 10000, timeout: 20000 });
+
+    const { reg, generatedTeamCode, event, teammatesToEmail } = txResult;
+
+    // Dispatch emails outside the transaction to minimize database lock hold time
+    for (const teammate of teammatesToEmail) {
+      sendEventRegistrationEmail(teammate, {
+        title: event.title,
+        startDate: event.startDate,
+        venue: event.venue
+      }).catch(err => console.error("[Events] Teammate email failed:", err));
     }
-    
-    const reg = await prisma.eventRegistration.create({ data: { userId, eventId, teamId } });
 
     const userObj = await prisma.user.findUnique({
       where: { id: userId },
@@ -654,11 +794,18 @@ router.post("/:id/register", authenticate, auditLog("EVENT_REGISTRATION"), async
 
     await clearEventsCache();
     res.status(201).json({ registration: reg, teamCode: generatedTeamCode });
-  } catch (err) { console.error("[Events] Register error:", err); res.status(500).json({ error: "Internal server error" }); }
+  } catch (err: any) {
+    if (err.status && err.message) {
+      res.status(err.status).json({ error: err.message });
+      return;
+    }
+    console.error("[Events] Register error:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
 });
 
 // GET /api/events/:id/registrations — List registrations with search (paginated)
-router.get("/:id/registrations", authenticate, requireMinRole("TECH_TEAM"), async (req: Request, res: Response) => {
+router.get("/:id/registrations", authenticate, requireRole("TECH_COORDINATOR"), async (req: Request, res: Response) => {
   try {
     const { search } = req.query;
     const page = parseInt(req.query.page as string) || 1;
@@ -701,7 +848,7 @@ router.get("/:id/registrations", authenticate, requireMinRole("TECH_TEAM"), asyn
 });
 
 // GET /api/events/:id/registrations/export — CSV export
-router.get("/:id/registrations/export", authenticate, requireMinRole("TECH_TEAM"), async (req: Request, res: Response) => {
+router.get("/:id/registrations/export", authenticate, requireRole("TECH_COORDINATOR"), async (req: Request, res: Response) => {
   try {
     const regs = await prisma.eventRegistration.findMany({
       where: { eventId: req.params.id },
@@ -727,7 +874,7 @@ router.get("/:id/registrations/export", authenticate, requireMinRole("TECH_TEAM"
 });
 
 // POST /api/events/:id/send-email — Manually trigger email/notification broadcast to all members
-router.post("/:id/send-email", authenticate, requireMinRole("STUDENT_COORDINATOR"), auditLog("EVENT_NOTIFICATIONS_SENT"), async (req: Request, res: Response) => {
+router.post("/:id/send-email", mailLimiter, authenticate, requireRole("FACULTY_COORDINATOR", "STUDENT_COORDINATOR"), auditLog("EVENT_NOTIFICATIONS_SENT"), async (req: Request, res: Response) => {
   try {
     const event = await prisma.event.findUnique({
       where: { id: req.params.id },
@@ -779,8 +926,8 @@ router.post("/:id/send-email", authenticate, requireMinRole("STUDENT_COORDINATOR
   }
 });
 
-// PATCH /api/events/:id/leaderboard-visibility — Toggle live event leaderboard (Dev Team & Tech Team only)
-router.patch("/:id/leaderboard-visibility", authenticate, requireRole("DEVELOPMENT_TEAM", "TECH_TEAM"), auditLog("EVENT_LEADERBOARD_VISIBILITY_TOGGLED"), async (req: Request, res: Response) => {
+// PATCH /api/events/:id/leaderboard-visibility — Toggle live event leaderboard (Dev Team, Tech Team, Faculty Coordinator)
+router.patch("/:id/leaderboard-visibility", authenticate, requireRole("TECH_COORDINATOR", "FACULTY_COORDINATOR"), auditLog("EVENT_LEADERBOARD_VISIBILITY_TOGGLED"), async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const { isVisible } = req.body;
@@ -883,7 +1030,7 @@ router.get("/:id/leaderboard", async (req: Request, res: Response) => {
         }
       }
 
-      // If registered participant (even if DEV_TEAM or TECH_TEAM) -> BLOCKED
+      // If registered participant (even if DEV_TEAM or TECH_COORDINATOR) -> BLOCKED
       if (isParticipant) {
         res.status(403).json({
           isHidden: true,
@@ -894,7 +1041,7 @@ router.get("/:id/leaderboard", async (req: Request, res: Response) => {
       }
 
       // If user is staff (and NOT a registered participant for this event) -> ALLOW STAFF VIEW
-      const isStaff = currentUser && ["DEVELOPMENT_TEAM", "TECH_TEAM", "FACULTY_COORDINATOR", "STUDENT_COORDINATOR"].includes(currentUser.role);
+      const isStaff = currentUser && ["TECH_COORDINATOR", "FACULTY_COORDINATOR", "STUDENT_COORDINATOR"].includes(currentUser.role);
       if (!isStaff) {
         res.status(403).json({
           isHidden: true,

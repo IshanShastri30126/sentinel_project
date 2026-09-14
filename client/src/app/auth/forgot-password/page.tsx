@@ -6,7 +6,7 @@ import { Mail, ArrowRight, ArrowLeft, CheckCircle, AlertCircle } from "lucide-re
 import Link from "next/link";
 import { api } from "@/lib/api";
 import PlexusBackground from "@/components/PlexusBackground";
-import { SentinalLogo } from "@/components/SentinalLogo";
+import { SentinelLogo } from "@/components/SentinelLogo";
 import { CyberButton } from "@/components/ui/CyberButton";
 import { SystemLabel } from "@/components/ui/SystemLabel";
 import { BorderBeam } from "@/components/effects/BorderBeam";
@@ -57,7 +57,7 @@ export default function ForgotPasswordPage() {
 
           {/* Logo */}
           <div className="flex justify-center mb-6">
-            <SentinalLogo animateDrawing={false} />
+            <SentinelLogo animateDrawing={false} />
           </div>
 
           {success ? (
@@ -100,7 +100,7 @@ export default function ForgotPasswordPage() {
                     <Mail className="w-4 h-4 text-[#00F5D4] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                     <input
                       type="email"
-                      placeholder="user@chakravyuh.edu"
+                      placeholder="user@sentinel.edu"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required

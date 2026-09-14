@@ -1,20 +1,20 @@
 import { Router, Request, Response } from "express";
 import prisma from "../lib/prisma";
-import { authenticate, requireMinRole } from "../middlewares/auth";
+import { authenticate, requireRole } from "../middlewares/auth";
 import { redisGet, redisSet, redisDel } from "../lib/redis";
 
 const router = Router();
 
-// GET /api/clubs — List all clubs (static single club)
+// GET /api/clubs — List all clubs (static single sentinel)
 router.get("/", async (req: Request, res: Response) => {
   res.json({
     clubs: [
-      { id: "chakravyuh", name: "Chakravyuh Club", slug: "chakravyuh" }
+      { id: "sentinel", name: "Sentinel", slug: "sentinel" }
     ]
   });
 });
 
-// GET /api/clubs/:slug — Get branding settings for a club
+// GET /api/clubs/:slug — Get branding settings for a sentinel
 router.get("/:slug", async (req: Request, res: Response) => {
   try {
     const slug = req.params.slug;
@@ -24,7 +24,7 @@ router.get("/:slug", async (req: Request, res: Response) => {
     if (cachedBranding) {
       try {
         const branding = JSON.parse(cachedBranding);
-        res.json({ club: branding });
+        res.json({ sentinel: branding });
         return;
       } catch (e) {
         console.warn("[Clubs] Parse cached branding failed:", e);
@@ -37,7 +37,7 @@ router.get("/:slug", async (req: Request, res: Response) => {
 
     const defaultBranding = {
       id: slug,
-      name: "Chakravyuh Club",
+      name: "Sentinel",
       slug: slug,
       logoUrl: null,
       primaryColor: "#CCFF00",
@@ -51,15 +51,15 @@ router.get("/:slug", async (req: Request, res: Response) => {
     // Cache in Redis for 1 hour
     await redisSet(`BRANDING_${slug}`, JSON.stringify(finalBranding), 3600);
 
-    res.json({ club: finalBranding });
+    res.json({ sentinel: finalBranding });
   } catch (err) {
     console.error("[Clubs] Get branding error:", err);
     res.status(500).json({ error: "Internal server error" });
   }
 });
 
-// PATCH /api/clubs/:clubId/branding — Update branding (SC/Faculty only)
-router.patch("/:clubId/branding", authenticate, requireMinRole("STUDENT_COORDINATOR"), async (req: Request, res: Response) => {
+// PATCH /api/clubs/:clubId/branding — Update branding
+router.patch("/:clubId/branding", authenticate, requireRole("SOCIAL_MEDIA_COORDINATOR", "TECH_COORDINATOR", "FACULTY_COORDINATOR"), async (req: Request, res: Response) => {
   try {
     const clubId = req.params.clubId;
     const { primaryColor, secondaryColor, themeMode, fontFamily, logoUrl } = req.body;
@@ -88,9 +88,9 @@ router.patch("/:clubId/branding", authenticate, requireMinRole("STUDENT_COORDINA
     await redisDel(`BRANDING_${clubId}`);
 
     res.json({
-      club: {
+      sentinel: {
         id: clubId,
-        name: "Chakravyuh Club",
+        name: "Sentinel",
         slug: clubId,
         ...setting.value as any
       },

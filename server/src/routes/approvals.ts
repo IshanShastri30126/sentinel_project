@@ -1,7 +1,7 @@
 import { Router, Request, Response } from "express";
 import { z } from "zod";
 import prisma from "../lib/prisma";
-import { authenticate, requireRole, requireMinRole } from "../middlewares/auth";
+import { authenticate, requireRole } from "../middlewares/auth";
 import { validate } from "../middlewares/validate";
 import { auditLog } from "../middlewares/auditLog";
 import { sendNotification } from "../lib/notificationService";
@@ -20,7 +20,7 @@ async function invalidateApprovalsCache() {
       }
     }
     await redisDel("analytics:operations");
-    await redisDel("analytics:club");
+    await redisDel("analytics:sentinel");
     await redisDel("analytics:top3");
     await redisDel("analytics:events-analysis");
     await redisDel("analytics:coordinator-activity");
@@ -31,7 +31,7 @@ async function invalidateApprovalsCache() {
 
 const router = Router();
 
-// Approval Chain: Club Member → SC → Faculty Coordinator
+// Approval Chain: Sentinel Member → SC → Faculty Coordinator
 const APPROVAL_CHAIN: { level: number; role: Role }[] = [
   { level: 1, role: "STUDENT_COORDINATOR" },
   { level: 2, role: "FACULTY_COORDINATOR" },
@@ -61,12 +61,25 @@ const decisionSchema = z.object({
 router.post(
   "/",
   authenticate,
-  requireMinRole("MEMBER"),
+// [MIGRATION]: requireMinRole -> explicit requireRole, MEMBER removed
+  requireRole("STUDENT_COORDINATOR", "SOCIAL_MEDIA_COORDINATOR", "TECH_COORDINATOR"),
   validate(createApprovalSchema),
   auditLog("APPROVAL_REQUEST_CREATED"),
   async (req: Request, res: Response) => {
     try {
       const { title, description, type, metadata } = req.body;
+
+      // [MIGRATION]: Type scoping based on role
+      const role = req.user!.role;
+      if (role === "STUDENT_COORDINATOR" && !["EVENT_PERMISSION", "BUDGET", "RESOURCE_VENUE"].includes(type)) {
+        res.status(403).json({ error: "Student Coordinators can only submit EVENT_PERMISSION, BUDGET, or RESOURCE_VENUE approvals" }); return;
+      }
+      if (role === "SOCIAL_MEDIA_COORDINATOR" && !["SOCIAL_MEDIA_POST", "CONTENT_PUBLISH"].includes(type)) {
+        res.status(403).json({ error: "Social Media Coordinators can only submit SOCIAL_MEDIA_POST or CONTENT_PUBLISH approvals" }); return;
+      }
+      if (role === "TECH_COORDINATOR" && type !== "CONFIG_CHANGE") {
+        res.status(403).json({ error: "Tech Coordinators can only submit CONFIG_CHANGE approvals" }); return;
+      }
 
       const request = await prisma.approvalRequest.create({
         data: {
@@ -156,13 +169,9 @@ router.get("/", authenticate, async (req: Request, res: Response) => {
     if (type) where.type = type;
 
     let requests;
-    if (role === "FACULTY_COORDINATOR" || role === "DEVELOPMENT_TEAM" || (role as string) === "FACULTY") {
+    // [MIGRATION]: Remove STUDENT_COORDINATOR from viewing all, enforce own_submissions_only
+    if (role === "FACULTY_COORDINATOR" || role === "TECH_COORDINATOR") {
       requests = await prisma.approvalRequest.findMany({ where, include: includeOpts, orderBy: { createdAt: "desc" } });
-    } else if (role === "STUDENT_COORDINATOR") {
-      requests = await prisma.approvalRequest.findMany({
-        where: { ...where, OR: [{ requesterId: userId }, { steps: { some: { role: "STUDENT_COORDINATOR" } } }] },
-        include: includeOpts, orderBy: { createdAt: "desc" },
-      });
     } else {
       requests = await prisma.approvalRequest.findMany({
         where: { ...where, requesterId: userId },
@@ -224,14 +233,10 @@ router.get("/:id", authenticate, async (req: Request, res: Response) => {
       return;
     }
 
-    // Visibility: only requester, SC, Faculty Coordinator, and Development Team can view
+    // [MIGRATION]: Remove STUDENT_COORDINATOR and legacy strings from elevated view
     const { role, userId } = req.user!;
-    if (
-      request.requesterId !== userId &&
-      role !== "FACULTY_COORDINATOR" &&
-      role !== "STUDENT_COORDINATOR" &&
-      role !== "DEVELOPMENT_TEAM"
-    ) {
+    const isElevated = ["FACULTY_COORDINATOR", "TECH_COORDINATOR"].includes(role);
+    if (request.requesterId !== userId && !isElevated) {
       res.status(403).json({ error: "You do not have access to this request" });
       return;
     }
@@ -247,7 +252,8 @@ router.get("/:id", authenticate, async (req: Request, res: Response) => {
 router.post(
   "/:id/decide",
   authenticate,
-  requireRole("DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "STUDENT_COORDINATOR"),
+  // [MIGRATION]: Removed STUDENT_COORDINATOR from approvals_decide
+  requireRole("FACULTY_COORDINATOR", "TECH_COORDINATOR"),
   validate(decisionSchema),
   async (req: Request, res: Response) => {
     try {
@@ -263,6 +269,11 @@ router.post(
       if (!request) {
         res.status(404).json({ error: "Approval request not found" });
         return;
+      }
+      
+      // [MIGRATION]: Tech Coordinator only for CONFIG_CHANGE
+      if (role === "TECH_COORDINATOR" && request.type !== "CONFIG_CHANGE") {
+        res.status(403).json({ error: "Tech Coordinators can only decide on CONFIG_CHANGE approvals" }); return;
       }
       if (request.status === "APPROVED" || request.status === "REJECTED") {
         res
@@ -282,7 +293,8 @@ router.post(
           .json({ error: "No pending step at the current level" });
         return;
       }
-      if (currentStep.role !== role && role !== "DEVELOPMENT_TEAM") {
+      const isSuperUser = role === "FACULTY_COORDINATOR" || role === "TECH_COORDINATOR";
+      if (currentStep.role !== role && !isSuperUser) {
         res.status(403).json({
           error: `This step requires approval from ${currentStep.role}, not ${role}`,
         });

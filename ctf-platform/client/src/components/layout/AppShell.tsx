@@ -24,7 +24,7 @@ function AppShellInner({ children }: { children: ReactNode }) {
 
             {/* Main content area with sidebar offset */}
             <main className="ml-14 min-h-screen">
-                <div className="mx-auto max-w-6xl px-6 py-8">{children}</div>
+                <div className="mx-auto max-w-6xl px-3 sm:px-6 py-5 sm:py-8">{children}</div>
             </main>
 
             {/* Global overlays */}

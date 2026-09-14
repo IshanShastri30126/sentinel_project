@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { SentinalLogo } from "@/components/SentinalLogo";
+import { SentinelLogo } from "@/components/SentinelLogo";
 import { CyberButton } from "@/components/ui/CyberButton";
 import { CyberStatus } from "@/components/ui/CyberStatus";
 import { useAuth } from "@/lib/auth-context";
@@ -28,10 +28,9 @@ interface NavLinkItem {
 
 const NAV_LINKS: NavLinkItem[] = [
   { name: "Events", href: "/events", icon: Calendar },
-  { name: "Leaderboard", href: "/dashboard/leaderboard", icon: Trophy },
+  { name: "Leaderboard", href: "/leaderboard", icon: Trophy },
   { name: "About", href: "/about", icon: Info },
-  { name: "Team", href: "/team", icon: Users },
-];
+  { name: "Team", href: "/team", icon: Users }];
 
 /**
  * Navbar
@@ -48,10 +47,10 @@ export function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-white/[0.08] bg-[#030712]/80 backdrop-blur-xl">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 h-16 flex items-center justify-between">
         {/* Brand Logo */}
         <Link href="/" className="flex items-center gap-3">
-          <SentinalLogo animateDrawing={false} />
+          <SentinelLogo animateDrawing={false} />
         </Link>
 
         {/* Desktop Navigation Links */}
@@ -87,7 +86,7 @@ export function Navbar() {
           <CyberStatus status="operational" label="ACTIVE" />
 
           {user ? (
-            <Link href="/dashboard">
+            <Link href="/">
               <CyberButton
                 variant="primary"
                 size="sm"
@@ -109,16 +108,16 @@ export function Navbar() {
           )}
         </div>
 
-        {/* Mobile Menu Toggle */}
-        <div className="flex sm:hidden items-center gap-2">
+        {/* Mobile Menu Toggle — UI-001 FIX: compact layout below 380px to prevent 320px overflow */}
+        <div className="flex sm:hidden items-center gap-1.5">
           {user ? (
-            <Link href="/dashboard">
+            <Link href="/" className="hidden min-[380px]:block">
               <CyberButton variant="primary" size="sm">
                 PORTAL
               </CyberButton>
             </Link>
           ) : (
-            <Link href="/auth">
+            <Link href="/auth" className="hidden min-[380px]:block">
               <CyberButton variant="secondary" size="sm">
                 SIGN IN
               </CyberButton>
@@ -169,6 +168,28 @@ export function Navbar() {
                 );
               })}
             </nav>
+
+            <div className="pt-2 border-t border-white/[0.06]">
+              {user ? (
+                <Link
+                  href="/"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-md bg-[#00F5D4] text-slate-950 font-mono text-xs font-bold uppercase tracking-wider transition hover:bg-[#52FFE3]"
+                >
+                  <LayoutDashboard className="w-4 h-4" />
+                  <span>DASHBOARD PORTAL</span>
+                </Link>
+              ) : (
+                <Link
+                  href="/auth"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-md bg-[#00F5D4] text-slate-950 font-mono text-xs font-bold uppercase tracking-wider transition hover:bg-[#52FFE3]"
+                >
+                  <LogIn className="w-4 h-4" />
+                  <span>SIGN IN TO DEFENSE GATEWAY</span>
+                </Link>
+              )}
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

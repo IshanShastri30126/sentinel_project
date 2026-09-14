@@ -126,6 +126,11 @@ let cachedRules: FirewallRule[] | null = null;
 let lastCacheUpdate = 0;
 const CACHE_TTL_MS = 15 * 1000; // 15s memory cache
 
+// SEC-008 FIX: In-memory cache for BLOCKED_IPS to eliminate synchronous DB query per request
+let cachedBlockedIps: Set<string> | null = null;
+let lastBlockedIpsCacheUpdate = 0;
+const BLOCKED_IPS_CACHE_TTL_MS = 30 * 1000; // 30s memory cache
+
 export class FirewallPolicyManager {
   /**
    * Get all Level 2 Firewall Rules
@@ -240,14 +245,23 @@ export class FirewallPolicyManager {
 
   /**
    * Check if a Public Network IP is currently blocked by firewall
+   * SEC-008 FIX: Utilizes process-level cached Set<string> with 30s TTL to eliminate
+   * database pool starvation and sub-millisecond overhead on every HTTP request.
    */
   static async isPublicIpBlocked(ip: string): Promise<boolean> {
+    const now = Date.now();
+    if (cachedBlockedIps && now - lastBlockedIpsCacheUpdate < BLOCKED_IPS_CACHE_TTL_MS) {
+      return cachedBlockedIps.has(ip);
+    }
+
     try {
       const blockedSetting = await prisma.clubSettings.findUnique({ where: { key: "BLOCKED_IPS" } });
       const blockedIps = Array.isArray(blockedSetting?.value) ? (blockedSetting?.value as string[]) : [];
-      return blockedIps.includes(ip);
+      cachedBlockedIps = new Set(blockedIps);
+      lastBlockedIpsCacheUpdate = now;
+      return cachedBlockedIps.has(ip);
     } catch {
-      return false;
+      return cachedBlockedIps ? cachedBlockedIps.has(ip) : false;
     }
   }
 
@@ -264,6 +278,8 @@ export class FirewallPolicyManager {
         update: { value: current },
         create: { key: "BLOCKED_IPS", value: current },
       });
+      cachedBlockedIps = new Set(current);
+      lastBlockedIpsCacheUpdate = Date.now();
       await redisDel("BLOCKED_IPS");
     }
     return current;

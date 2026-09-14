@@ -7,7 +7,7 @@ import fs from "fs";
 import archiver from "archiver";
 import puppeteer from "puppeteer";
 import prisma from "../lib/prisma";
-import { authenticate, requireMinRole } from "../middlewares/auth";
+import { authenticate, requireRole } from "../middlewares/auth";
 import { validate } from "../middlewares/validate";
 import { auditLog } from "../middlewares/auditLog";
 import { upload, getUploadedFileUrl } from "../middlewares/upload";
@@ -83,7 +83,7 @@ const certOutputDir = path.resolve(config.uploadDir, "certificates");
 if (!fs.existsSync(certOutputDir)) { fs.mkdirSync(certOutputDir, { recursive: true }); }
 
 // ─── POST /api/certificates/templates — Upload template ─────
-router.post("/templates", authenticate, requireMinRole("STUDENT_COORDINATOR"), upload.single("template"), async (req: Request, res: Response) => {
+router.post("/templates", authenticate, requireRole("STUDENT_COORDINATOR", "TECH_COORDINATOR", "FACULTY_COORDINATOR"), upload.single("template"), async (req: Request, res: Response) => {
   try {
     if (!req.file) { res.status(400).json({ error: "No file uploaded" }); return; }
     const { name, fields } = req.body;
@@ -101,7 +101,7 @@ router.post("/templates", authenticate, requireMinRole("STUDENT_COORDINATOR"), u
 });
 
 // ─── PUT /api/certificates/templates/:id — Update template ────
-router.put("/templates/:id", authenticate, requireMinRole("STUDENT_COORDINATOR"), upload.single("template"), async (req: Request, res: Response) => {
+router.put("/templates/:id", authenticate, requireRole("STUDENT_COORDINATOR", "TECH_COORDINATOR", "FACULTY_COORDINATOR"), upload.single("template"), async (req: Request, res: Response) => {
   try {
     const { name, fields } = req.body;
     const template = await prisma.certificateTemplate.findUnique({ where: { id: req.params.id } });
@@ -132,7 +132,7 @@ router.put("/templates/:id", authenticate, requireMinRole("STUDENT_COORDINATOR")
 });
 
 // ─── GET /api/certificates/templates ────────────────────────
-router.get("/templates", authenticate, requireMinRole("TECH_TEAM"), async (_req: Request, res: Response) => {
+router.get("/templates", authenticate, requireRole("TECH_COORDINATOR", "FACULTY_COORDINATOR"), async (_req: Request, res: Response) => {
   try {
     const templates = await prisma.certificateTemplate.findMany({
       include: { createdBy: { select: { name: true } } },
@@ -169,7 +169,7 @@ router.get("/my-certificates", authenticate, async (req: Request, res: Response)
 });
 
 // ─── POST /api/certificates/import — Parse CSV/Excel preview ──
-router.post("/import", authenticate, requireMinRole("TECH_TEAM"), upload.single("file"), async (req: Request, res: Response) => {
+router.post("/import", authenticate, requireRole("TECH_COORDINATOR", "FACULTY_COORDINATOR"), upload.single("file"), async (req: Request, res: Response) => {
   try {
     if (!req.file) { res.status(400).json({ error: "No file uploaded" }); return; }
 
@@ -207,7 +207,7 @@ router.post("/import", authenticate, requireMinRole("TECH_TEAM"), upload.single(
 });
 
 // ─── POST /api/certificates/import-registrations — Auto-fill from event ──
-router.post("/import-registrations", authenticate, requireMinRole("TECH_TEAM"), async (req: Request, res: Response) => {
+router.post("/import-registrations", authenticate, requireRole("TECH_COORDINATOR", "FACULTY_COORDINATOR"), async (req: Request, res: Response) => {
   try {
     const { eventId } = req.body;
     if (!eventId) { res.status(400).json({ error: "eventId is required" }); return; }
@@ -238,7 +238,7 @@ const bulkSchema = z.object({
   })).min(1).max(500),
 });
 
-router.post("/bulk", authenticate, requireMinRole("TECH_TEAM"), validate(bulkSchema), auditLog("CERTIFICATES_BULK_GENERATED"), async (req: Request, res: Response) => {
+router.post("/bulk", authenticate, requireRole("TECH_COORDINATOR", "FACULTY_COORDINATOR"), validate(bulkSchema), auditLog("CERTIFICATES_BULK_GENERATED"), async (req: Request, res: Response) => {
   try {
     const { eventId, templateId, recipients } = req.body;
     const event = await prisma.event.findUnique({ where: { id: eventId } });
@@ -293,14 +293,14 @@ router.get("/verify/:code", async (req: Request, res: Response) => {
       certificate: {
         recipientName: cert.recipientName, eventTitle: cert.event.title,
         eventDate: cert.event.startDate, uniqueCode: cert.uniqueCode,
-        generatedAt: cert.generatedAt, issuingAuthority: "Chakravyuh Club",
+        generatedAt: cert.generatedAt, issuingAuthority: "Sentinel",
       },
     });
   } catch (err) { console.error("[Certs] Verify error:", err); res.status(500).json({ error: "Internal server error" }); }
 });
 
 // ─── GET /api/certificates/event/:eventId — List certs for event ──
-router.get("/event/:eventId", authenticate, requireMinRole("TECH_TEAM"), async (req: Request, res: Response) => {
+router.get("/event/:eventId", authenticate, requireRole("TECH_COORDINATOR", "FACULTY_COORDINATOR"), async (req: Request, res: Response) => {
   try {
     const certs = await prisma.certificate.findMany({
       where: { eventId: req.params.eventId },
@@ -326,7 +326,7 @@ router.get("/:id/download", authenticate, async (req: Request, res: Response) =>
     const user = await prisma.user.findUnique({ where: { id: req.user!.userId }, select: { name: true, email: true, role: true } });
     const isOwner = user && (cert.recipientEmail === user.email || cert.recipientName === user.name);
     const isEventCreator = cert.event.creatorId === req.user!.userId;
-    const isCoord = ["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_TEAM"].includes(req.user!.role);
+    const isCoord = ["FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_COORDINATOR"].includes(req.user!.role);
 
     if (!isOwner && !isEventCreator && !isCoord) {
       res.status(403).json({ error: "Unauthorized to download this certificate" });
@@ -386,7 +386,7 @@ router.get("/:id/view", authenticate, async (req: Request, res: Response) => {
     const user = await prisma.user.findUnique({ where: { id: req.user!.userId }, select: { name: true, email: true, role: true } });
     const isOwner = user && (cert.recipientEmail === user.email || cert.recipientName === user.name);
     const isEventCreator = cert.event.creatorId === req.user!.userId;
-    const isCoord = ["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_TEAM"].includes(req.user!.role);
+    const isCoord = ["FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_COORDINATOR"].includes(req.user!.role);
 
     if (!isOwner && !isEventCreator && !isCoord) {
       res.status(403).json({ error: "Unauthorized to view this certificate" });
@@ -408,7 +408,7 @@ router.get("/:id/view", authenticate, async (req: Request, res: Response) => {
 });
 
 // ─── GET /api/certificates/download-zip/:eventId — ZIP all certs (on-the-fly) ──
-router.get("/download-zip/:eventId", authenticate, requireMinRole("TECH_TEAM"), async (req: Request, res: Response) => {
+router.get("/download-zip/:eventId", authenticate, requireRole("TECH_COORDINATOR", "FACULTY_COORDINATOR"), async (req: Request, res: Response) => {
   try {
     const certs = await prisma.certificate.findMany({
       where: { eventId: req.params.eventId, status: "GENERATED" },
@@ -454,7 +454,7 @@ router.get("/download-zip/:eventId", authenticate, requireMinRole("TECH_TEAM"), 
 });
 
 // ─── DELETE /api/certificates/templates/:id — Delete template ─────
-router.delete("/templates/:id", authenticate, requireMinRole("STUDENT_COORDINATOR"), async (req: Request, res: Response) => {
+router.delete("/templates/:id", authenticate, requireRole("STUDENT_COORDINATOR", "TECH_COORDINATOR", "FACULTY_COORDINATOR"), async (req: Request, res: Response) => {
   try {
     const template = await prisma.certificateTemplate.findUnique({ where: { id: req.params.id } });
     if (!template) { res.status(404).json({ error: "Template not found" }); return; }
@@ -470,7 +470,7 @@ router.delete("/templates/:id", authenticate, requireMinRole("STUDENT_COORDINATO
 });
 
 // ─── DELETE /api/certificates/:id — Delete certificate ─────
-router.delete("/:id", authenticate, requireMinRole("TECH_TEAM"), async (req: Request, res: Response) => {
+router.delete("/:id", authenticate, requireRole("TECH_COORDINATOR", "FACULTY_COORDINATOR"), async (req: Request, res: Response) => {
   try {
     const cert = await prisma.certificate.findUnique({ where: { id: req.params.id } });
     if (!cert) { res.status(404).json({ error: "Certificate not found" }); return; }
@@ -746,7 +746,7 @@ ${patternCSS}
     <div class="footer">
       <div>
         <div class="authority-label">Issuing Authority</div>
-        <div class="authority-value">Chakravyuh Club</div>
+        <div class="authority-value">Sentinel</div>
       </div>
       <div>
         <div class="code-label">Certificate ID</div>

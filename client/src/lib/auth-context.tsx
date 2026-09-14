@@ -6,16 +6,13 @@ import { getDeviceFingerprint } from "@/lib/deviceFingerprint";
 import Cookies from "js-cookie";
 
 export type Role =
-  | "DEVELOPMENT_TEAM"
+  
   | "FACULTY_COORDINATOR"
   | "STUDENT_COORDINATOR"
-  | "TECH_TEAM"
+  | "TECH_COORDINATOR"
+  | "SOCIAL_MEDIA_COORDINATOR"
   | "MEMBER"
-  | "GUEST"
-  | "FACULTY"
-  | "TECH"
-  | "CONTENT"
-  | "SOCIAL_MEDIA";
+  | "GUEST";
 
 export interface User {
   id: string;
@@ -28,7 +25,6 @@ export interface User {
   phone?: string;
   department?: string;
   institute?: string;
-  semester?: string;
   isApproved: boolean;
   clubId?: string;
 }
@@ -39,7 +35,7 @@ interface AuthContextType {
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
   loginWithGoogle: (credential: string) => Promise<void>;
-  register: (name: string, email: string, password: string, extra?: { studentId?: string; employeeId?: string; phone?: string; department?: string; institute?: string; semester?: string; clubId?: string; newClubName?: string; newClubSlug?: string }) => Promise<void>;
+  register: (name: string, email: string, password: string, extra?: { studentId?: string; employeeId?: string; phone?: string; department?: string; institute?: string; clubId?: string; newClubName?: string; newClubSlug?: string }) => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -53,9 +49,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const inactivityTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const logout = useCallback(async () => {
-    try {
-      await api("/auth/logout", { method: "POST" });
-    } catch { /* ignore */ }
     setUser(null);
     setToken(null);
     Cookies.remove("accessToken", { path: "/" });
@@ -64,7 +57,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       localStorage.removeItem("token");
       sessionStorage.clear();
-      sessionStorage.setItem("sentinal_session_terminated", "true");
+      sessionStorage.setItem("sentinel_session_terminated", "true");
+    } catch { /* ignore */ }
+    
+    try {
+      await api("/auth/logout", { method: "POST" });
     } catch { /* ignore */ }
   }, []);
 
@@ -96,71 +93,66 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, [user, resetInactivityTimer]);
 
-  const fetchMe = useCallback(async (accessToken: string) => {
+  const fetchMe = useCallback(async (initialToken?: string) => {
     try {
-      const data = await api<{ user: User }>("/auth/me", { token: accessToken });
+      const data = await api<{ user: User; accessToken?: string }>("/auth/me", {
+        token: initialToken || undefined,
+      });
       setUser(data.user);
-      setToken(Cookies.get("accessToken") || accessToken);
+      setToken(data.accessToken || initialToken || "session_active");
     } catch {
       setUser(null);
       setToken(null);
-      Cookies.remove("accessToken");
     }
   }, []);
 
   useEffect(() => {
     try {
-      if (typeof window !== "undefined" && sessionStorage.getItem("sentinal_session_terminated") === "true") {
-        Cookies.remove("accessToken", { path: "/" });
-        Cookies.remove("refreshToken", { path: "/" });
+      if (typeof window !== "undefined" && sessionStorage.getItem("sentinel_session_terminated") === "true") {
         setUser(null);
         setToken(null);
         setIsLoading(false);
         return;
       }
     } catch { /* ignore */ }
-    const savedToken = Cookies.get("accessToken");
-    fetchMe(savedToken || "").finally(() => setIsLoading(false));
+    fetchMe().finally(() => setIsLoading(false));
   }, [fetchMe]);
 
   const login = async (email: string, password: string) => {
     try {
-      sessionStorage.removeItem("sentinal_session_terminated");
+      sessionStorage.removeItem("sentinel_session_terminated");
     } catch { /* ignore */ }
     const deviceFingerprint = getDeviceFingerprint();
     const data = await api<{ user: User; accessToken: string }>("/auth/login", {
       method: "POST",
       body: JSON.stringify({ email, password, deviceFingerprint }),
     });
-    Cookies.set("accessToken", data.accessToken, { expires: 1, path: "/" });
     setUser(data.user);
     setToken(data.accessToken);
   };
 
   const loginWithGoogle = async (credential: string) => {
     try {
-      sessionStorage.removeItem("sentinal_session_terminated");
+      sessionStorage.removeItem("sentinel_session_terminated");
     } catch { /* ignore */ }
     const deviceFingerprint = getDeviceFingerprint();
     const data = await api<{ user: User; accessToken: string }>("/auth/google", {
       method: "POST",
       body: JSON.stringify({ credential, deviceFingerprint }),
     });
-    Cookies.set("accessToken", data.accessToken, { expires: 1, path: "/" });
     setUser(data.user);
     setToken(data.accessToken);
   };
 
-  const register = async (name: string, email: string, password: string, extra?: { studentId?: string; employeeId?: string; phone?: string; department?: string; institute?: string; semester?: string; clubId?: string; newClubName?: string; newClubSlug?: string }) => {
+  const register = async (name: string, email: string, password: string, extra?: { studentId?: string; employeeId?: string; phone?: string; department?: string; institute?: string; clubId?: string; newClubName?: string; newClubSlug?: string }) => {
     try {
-      sessionStorage.removeItem("sentinal_session_terminated");
+      sessionStorage.removeItem("sentinel_session_terminated");
     } catch { /* ignore */ }
     const deviceFingerprint = getDeviceFingerprint();
     const data = await api<{ user: User; accessToken: string }>("/auth/register", {
       method: "POST",
       body: JSON.stringify({ name, email, password, deviceFingerprint, ...extra }),
     });
-    Cookies.set("accessToken", data.accessToken, { expires: 1, path: "/" });
     setUser(data.user);
     setToken(data.accessToken);
   };

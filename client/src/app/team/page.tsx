@@ -187,14 +187,14 @@ function TeamBackground3D() {
 
 const getClearanceLevel = (role: string) => {
   switch (role) {
-    case "FACULTY":
+    case "FACULTY_COORDINATOR":
       return "LVL_5 // FACULTY_ADMIN";
     case "STUDENT_COORDINATOR":
       return "LVL_4 // STUDENT_DIRECTOR";
-    case "TECH":
+    case "FACULTY_COORDINATOR":
       return "LVL_3 // CORE_TECH_SYS";
-    case "SOCIAL_MEDIA":
-    case "CONTENT":
+    case "FACULTY_COORDINATOR":
+    case "FACULTY_COORDINATOR":
       return "LVL_2 // CREATIVE_INTEL";
     default:
       return "LVL_1 // SEC_MEMBER";
@@ -223,7 +223,7 @@ const TeamMemberCard = ({ member, idx }: { member: TeamMemberItem; idx: number }
 
   const linkedInUrl = formatSocialUrl("linkedin", member.linkedin);
   const instagramUrl = formatSocialUrl("instagram", member.instagram);
-  const emailUrl = member.email ? `mailto:${member.email.trim()}` : `mailto:support@chakravyuhclub.com`;
+  const emailUrl = member.email ? `mailto:${member.email.trim()}` : `mailto:support@sentinelclub.com`;
 
   const rawImg = member.imageUrl || member.avatarUrl || member.cyberAvatarUrl || member.coverPosterUrl;
   const avatarSrc = rawImg ? getFileUrl(rawImg) : null;
@@ -289,7 +289,7 @@ const TeamMemberCard = ({ member, idx }: { member: TeamMemberItem; idx: number }
                 href={linkedInUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-7 h-7 rounded-full border border-white/10 flex items-center justify-center text-slate-400 hover:text-white hover:border-[#00F5D4] hover:bg-[#00F5D4]/10 transition-all"
+                className="w-7 h-7 rounded border border-white/10 flex items-center justify-center text-slate-400 hover:text-white hover:border-[#00F5D4] hover:bg-[#00F5D4]/10 transition-all cursor-pointer"
                 title="LinkedIn Profile"
               >
                 <LinkedinIcon className="w-3 h-3" />
@@ -298,14 +298,14 @@ const TeamMemberCard = ({ member, idx }: { member: TeamMemberItem; idx: number }
                 href={instagramUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-7 h-7 rounded-full border border-white/10 flex items-center justify-center text-slate-400 hover:text-white hover:border-[#00F5D4] hover:bg-[#00F5D4]/10 transition-all"
+                className="w-7 h-7 rounded border border-white/10 flex items-center justify-center text-slate-400 hover:text-white hover:border-[#00F5D4] hover:bg-[#00F5D4]/10 transition-all cursor-pointer"
                 title="Instagram Profile"
               >
                 <InstagramIcon className="w-3 h-3" />
               </a>
               <a
                 href={emailUrl}
-                className="w-7 h-7 rounded-full border border-white/10 flex items-center justify-center text-slate-400 hover:text-white hover:border-[#00F5D4] hover:bg-[#00F5D4]/10 transition-all"
+                className="w-7 h-7 rounded border border-white/10 flex items-center justify-center text-slate-400 hover:text-white hover:border-[#00F5D4] hover:bg-[#00F5D4]/10 transition-all cursor-pointer"
                 title="Direct Email"
               >
                 <Mail className="w-3 h-3" />
@@ -330,7 +330,7 @@ const TeamGrid = ({ list, title, tag }: { list: TeamMemberItem[]; title: string;
   return (
     <div className="mb-20">
       <div className="flex items-center gap-3 mb-8 border-b border-white/[0.06] pb-4">
-        <div className="w-1.5 h-6 bg-[#00F5D4] rounded-full shadow-[0_0_10px_rgba(0,245,212,0.8)]" />
+        <div className="w-1.5 h-6 bg-[#00F5D4] rounded-none shadow-[0_0_10px_rgba(0,245,212,0.8)]" />
         <div>
           <h2 className="text-lg sm:text-xl font-black font-mono tracking-wider text-white uppercase">{title}</h2>
           <p className="text-[10px] font-mono text-cyan-400/80 uppercase tracking-widest">{tag}</p>
@@ -349,7 +349,7 @@ const TeamGrid = ({ list, title, tag }: { list: TeamMemberItem[]; title: string;
 /**
  * TeamPage
  *
- * Operational directory showcasing the Chakravyuh Executive Council,
+ * Operational directory showcasing the Sentinel Executive Council,
  * Faculty Mentors, Technical Division, and Creative Intel Leads.
  *
  * @returns {JSX.Element} Rendered team directory.
@@ -377,13 +377,13 @@ export default function TeamPage() {
     loadTeam();
   }, []);
 
-  const facultyList = team.filter((m) => m.role === "FACULTY");
+  const facultyList = team.filter((m) => m.role === "FACULTY_COORDINATOR");
   const coordinatorsList = team.filter((m) => m.role === "STUDENT_COORDINATOR");
-  const techList = team.filter((m) => m.role === "TECH");
-  const creativeList = team.filter((m) => m.role === "SOCIAL_MEDIA" || m.role === "CONTENT");
+  const techList = team.filter((m) => m.role === "TECH_COORDINATOR");
+  const creativeList = team.filter((m) => m.role === "SOCIAL_MEDIA_COORDINATOR");
   const generalList = team.filter(
     (m) =>
-      !["FACULTY", "STUDENT_COORDINATOR", "TECH", "SOCIAL_MEDIA", "CONTENT"].includes(m.role)
+      !["FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_COORDINATOR", "SOCIAL_MEDIA_COORDINATOR"].includes(m.role)
   );
 
   return (
@@ -404,7 +404,7 @@ export default function TeamPage() {
               EXECUTIVE COMMAND
             </SystemLabel>
             <h1 className="text-3xl sm:text-5xl font-black uppercase font-mono tracking-tight text-white">
-              CHAKRAVYUH <span className="text-[#00F5D4]">CADRE</span>
+              SENTINEL <span className="text-[#00F5D4]">CADRE</span>
             </h1>
             <p className="font-mono text-xs sm:text-sm text-slate-400">
               The engineers, student coordinators, research leads, and faculty mentors
@@ -414,14 +414,14 @@ export default function TeamPage() {
         </SectionReveal>
 
         {isIpRestricted && (
-          <div className="mb-8 p-3 rounded-xl border border-cyan-500/30 bg-[#070D18]/90 max-w-xl mx-auto flex items-center justify-center gap-2.5 text-xs font-mono text-[#00F5D4] shadow-lg">
+          <div className="mb-8 p-3 rounded border border-cyan-500/30 bg-[#070D18]/90 max-w-xl mx-auto flex items-center justify-center gap-2.5 text-xs font-mono text-[#00F5D4] shadow-lg">
             <Shield className="w-4 h-4 text-[#00F5D4] shrink-0" />
             <span>[// SECURE RECONNAISSANCE // CACHED OPERATIVE CADRE ACTIVE]</span>
           </div>
         )}
 
         {team.length === 0 ? (
-          <div className="text-center py-16 bg-[#070D18]/60 border border-white/[0.08] rounded-xl max-w-xl mx-auto p-6">
+          <div className="text-center py-16 bg-[#070D18]/60 border border-white/[0.08] rounded max-w-xl mx-auto p-6">
             <Users className="w-10 h-10 text-slate-500 mx-auto mb-3" />
             <h3 className="text-base font-bold font-mono text-white uppercase tracking-wider mb-1">
               ROSTER PENDING INITIALIZATION
@@ -442,10 +442,10 @@ export default function TeamPage() {
 
         {/* Join Recruitment Directive Banner */}
         <SectionReveal delay={0.2}>
-          <div className="mt-16 p-8 sm:p-10 rounded-2xl bg-gradient-to-b from-[#081220] to-[#040810] border border-cyan-500/30 relative overflow-hidden shadow-2xl text-center hud-brackets">
+          <div className="mt-16 p-8 sm:p-10 rounded-lg bg-[#070E1A] border border-[#1E293B] relative overflow-hidden shadow-2xl text-center hud-brackets">
             <BorderBeam size={200} duration={12} />
             <div className="max-w-xl mx-auto space-y-3 relative z-10">
-              <span className="px-3.5 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-[#00F5D4] text-[11px] font-mono font-bold uppercase tracking-widest inline-flex items-center gap-2">
+              <span className="px-3 py-1 rounded bg-cyan-500/10 border border-cyan-500/30 text-[#00F5D4] text-[11px] font-mono font-bold uppercase tracking-widest inline-flex items-center gap-2">
                 <Shield className="w-3.5 h-3.5 text-[#00F5D4]" />
                 RECRUITMENT DIRECTIVE
               </span>
@@ -457,15 +457,7 @@ export default function TeamPage() {
                 and creative directors ready to defend and build.
               </p>
               <div className="pt-3 flex flex-col sm:flex-row items-center justify-center gap-3">
-                <a
-                  href="https://chat.whatsapp.com/chakravyuh"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <CyberButton variant="primary" size="md" glow="primary" leftIcon={<MessageSquare className="w-4 h-4" />}>
-                    JOIN CADRE CHAT
-                  </CyberButton>
-                </a>
+
                 <Link href="/auth">
                   <CyberButton variant="outline" size="md">
                     OPERATIVE GATEWAY

@@ -1,2 +1,2 @@
-export * from "./SentinalLogo";
-export { default } from "./SentinalLogo";
+export * from "./SentinelLogo";
+export { default } from "./SentinelLogo";

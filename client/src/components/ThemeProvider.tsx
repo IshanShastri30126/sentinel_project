@@ -15,14 +15,14 @@ export interface ClubBranding {
 }
 
 interface ThemeContextType {
-  club: ClubBranding | null;
+  sentinel: ClubBranding | null;
   loading: boolean;
   refreshBranding: () => Promise<void>;
   changeClub: (slug: string) => void;
 }
 
 const ThemeContext = createContext<ThemeContextType>({
-  club: null,
+  sentinel: null,
   loading: true,
   refreshBranding: async () => { },
   changeClub: () => { },
@@ -31,7 +31,7 @@ const ThemeContext = createContext<ThemeContextType>({
 export const useThemeBranding = () => useContext(ThemeContext);
 
 export function ThemeBrandingProvider({ children }: { children: React.ReactNode }) {
-  const [club, setClub] = useState<ClubBranding | null>(null);
+  const [sentinel, setClub] = useState<ClubBranding | null>(null);
   const [loading, setLoading] = useState(true);
 
   const applyBranding = React.useCallback((branding: ClubBranding) => {
@@ -107,11 +107,11 @@ export function ThemeBrandingProvider({ children }: { children: React.ReactNode 
 
   const fetchBranding = React.useCallback(async () => {
     try {
-      const slug = localStorage.getItem("ck_active_club_slug") || "chakravyuh";
-      const data = await api<{ club?: ClubBranding }>(`/clubs/${slug}`);
-      if (data.club) {
-        setClub(data.club);
-        applyBranding(data.club);
+      const slug = localStorage.getItem("ck_active_club_slug") || "sentinel";
+      const data = await api<{ sentinel?: ClubBranding }>(`/clubs/${slug}`);
+      if (data.sentinel) {
+        setClub(data.sentinel);
+        applyBranding(data.sentinel);
       }
     } catch (err) {
       console.warn("[ThemeProvider] Remote branding unavailable, applying cyber default:", err);
@@ -137,7 +137,7 @@ export function ThemeBrandingProvider({ children }: { children: React.ReactNode 
   };
 
   return (
-    <ThemeContext.Provider value={{ club, loading, refreshBranding: fetchBranding, changeClub }}>
+    <ThemeContext.Provider value={{ sentinel, loading, refreshBranding: fetchBranding, changeClub }}>
       {children}
     </ThemeContext.Provider>
   );

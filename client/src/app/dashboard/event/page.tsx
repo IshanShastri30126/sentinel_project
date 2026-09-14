@@ -1,0 +1,1729 @@
+"use client";
+
+import React, { useEffect, useState, useCallback } from "react";
+import { useAuth } from "@/lib/auth-context";
+import { api, apiUpload, getFileUrl } from "@/lib/api";
+import { useRouter } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  Calendar, Plus, X, ExternalLink, Users, MapPin, Clock, Eye, EyeOff,
+  Search, ChevronRight, ChevronLeft, Image, FileText,
+  Link2, BookOpen, UserPlus, Info, CheckCircle2,
+  Terminal, Award, Presentation, AlertTriangle, Check, UploadCloud, Layers, Edit, Mail, Trash2,
+  Phone, Camera, Briefcase, MessageSquare, Gamepad2, Video, Code2, Globe
+} from "lucide-react";
+import { useCyberDialog } from "@/components/ui/CyberDialogContext";
+
+const SOCIAL_ICONS: Record<string, React.ReactNode> = {
+  INSTAGRAM: <Camera className="w-3.5 h-3.5 text-pink-400" />,
+  WHATSAPP: <MessageSquare className="w-3.5 h-3.5 text-emerald-400" />,
+  LINKEDIN: <Briefcase className="w-3.5 h-3.5 text-blue-400" />,
+  DISCORD: <Gamepad2 className="w-3.5 h-3.5 text-indigo-400" />,
+  YOUTUBE: <Video className="w-3.5 h-3.5 text-red-400" />,
+  GITHUB: <Code2 className="w-3.5 h-3.5 text-white" />,
+  WEB: <Globe className="w-3.5 h-3.5 text-cyan-400" />,
+  LINK: <Link2 className="w-3.5 h-3.5 text-[var(--ck-primary)]" />,
+};
+
+function renderSocialIcon(logo: string) {
+  if (SOCIAL_ICONS[logo]) return SOCIAL_ICONS[logo];
+  const normalized = (logo || "").toLowerCase();
+  if (normalized.includes("insta")) return <Camera className="w-3.5 h-3.5 text-pink-400" />;
+  if (normalized.includes("whats")) return <MessageSquare className="w-3.5 h-3.5 text-emerald-400" />;
+  if (normalized.includes("link")) return <Briefcase className="w-3.5 h-3.5 text-blue-400" />;
+  if (normalized.includes("disc")) return <Gamepad2 className="w-3.5 h-3.5 text-indigo-400" />;
+  if (normalized.includes("you")) return <Video className="w-3.5 h-3.5 text-red-400" />;
+  if (normalized.includes("git")) return <Code2 className="w-3.5 h-3.5 text-white" />;
+  if (normalized.includes("web")) return <Globe className="w-3.5 h-3.5 text-cyan-400" />;
+  return <Link2 className="w-3.5 h-3.5 text-[var(--ck-primary)]" />;
+}
+
+// ─── Mini Calendar & Custom Cyber Time Picker ─────────────────
+function MiniCalendar({
+  selectedDate,
+  onSelect,
+  rangeStart,
+  rangeEnd,
+  label,
+  onClear,
+  minDate,
+  maxDate,
+  disabledNotice
+}: {
+  selectedDate: string;
+  onSelect: (iso: string) => void;
+  rangeStart?: string;
+  rangeEnd?: string;
+  label: string;
+  onClear?: () => void;
+  minDate?: Date | null;
+  maxDate?: Date | null;
+  disabledNotice?: string;
+}) {
+  const sel = selectedDate ? new Date(selectedDate) : null;
+  const [viewDate, setViewDate] = useState(() => sel && !isNaN(sel.getTime()) ? new Date(sel.getFullYear(), sel.getMonth(), 1) : new Date(new Date().getFullYear(), new Date().getMonth(), 1));
+  const [prevSelectedDate, setPrevSelectedDate] = useState(selectedDate);
+
+  if (selectedDate !== prevSelectedDate) {
+    setPrevSelectedDate(selectedDate);
+    if (sel && !isNaN(sel.getTime())) {
+      setViewDate(new Date(sel.getFullYear(), sel.getMonth(), 1));
+    }
+  }
+
+  const year = viewDate.getFullYear();
+  const month = viewDate.getMonth();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const firstDay = new Date(year, month, 1).getDay();
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+  const DAYS = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
+
+  const isInRange = (d: Date) => {
+    if (!rangeStart || !rangeEnd) return false;
+    const rs = new Date(rangeStart); rs.setHours(0, 0, 0, 0);
+    const re = new Date(rangeEnd); re.setHours(0, 0, 0, 0);
+    return d >= rs && d <= re;
+  };
+
+  const isSelected = (d: Date) => {
+    if (!sel || isNaN(sel.getTime())) return false;
+    return d.getFullYear() === sel.getFullYear() && d.getMonth() === sel.getMonth() && d.getDate() === sel.getDate();
+  };
+
+  const isDayDisabled = (d: Date) => {
+    if (disabledNotice) return true;
+    if (minDate) {
+      const minStart = new Date(minDate);
+      minStart.setHours(0, 0, 0, 0);
+      if (d < minStart) return true;
+    }
+    if (maxDate) {
+      const maxEnd = new Date(maxDate);
+      maxEnd.setHours(23, 59, 59, 999);
+      if (d > maxEnd) return true;
+    }
+    return false;
+  };
+
+  const handleDayClick = (day: number) => {
+    const d = new Date(year, month, day);
+    if (isDayDisabled(d)) return;
+    const time = sel && !isNaN(sel.getTime())
+      ? `${String(sel.getHours()).padStart(2, "0")}:${String(sel.getMinutes()).padStart(2, "0")}`
+      : "09:00";
+    const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}T${time}`;
+    onSelect(dateStr);
+  };
+
+  const updateHoursAndMinutes = (newH: number, newM: number) => {
+    const baseDate = sel && !isNaN(sel.getTime()) ? sel : new Date();
+    const clampedH = Math.max(0, Math.min(23, newH));
+    const clampedM = Math.max(0, Math.min(59, newM));
+    const dateStr = `${baseDate.getFullYear()}-${String(baseDate.getMonth() + 1).padStart(2, "0")}-${String(baseDate.getDate()).padStart(2, "0")}T${String(clampedH).padStart(2, "0")}:${String(clampedM).padStart(2, "0")}`;
+    onSelect(dateStr);
+  };
+
+  const rawHours = sel && !isNaN(sel.getTime()) ? sel.getHours() : 9;
+  const rawMinutes = sel && !isNaN(sel.getTime()) ? sel.getMinutes() : 0;
+  const isPM = rawHours >= 12;
+  const displayHour = rawHours % 12 === 0 ? 12 : rawHours % 12;
+
+  const handleHourChange = (val: number) => {
+    let normalizedH = val;
+    if (normalizedH === 12) {
+      normalizedH = isPM ? 12 : 0;
+    } else {
+      normalizedH = isPM ? normalizedH + 12 : normalizedH;
+    }
+    updateHoursAndMinutes(normalizedH, rawMinutes);
+  };
+
+  const handleMinuteChange = (val: number) => {
+    updateHoursAndMinutes(rawHours, val);
+  };
+
+  const togglePeriod = (targetPeriod: "AM" | "PM") => {
+    if (targetPeriod === "AM" && isPM) {
+      updateHoursAndMinutes(rawHours - 12, rawMinutes);
+    } else if (targetPeriod === "PM" && !isPM) {
+      updateHoursAndMinutes(rawHours + 12, rawMinutes);
+    }
+  };
+
+  const applyPreset = (h24: number, m: number) => {
+    updateHoursAndMinutes(h24, m);
+  };
+
+  return (
+    <div className="rounded-xl border border-[var(--ck-border)] bg-zinc-950/60 backdrop-blur-md overflow-hidden transition-all duration-300 hover:border-[var(--ck-border)] shadow-md flex flex-col">
+      <div className="px-3.5 py-2.5 border-b border-[var(--ck-border)] bg-zinc-900/40 flex items-center justify-between">
+        <span className="text-[10px] uppercase font-bold tracking-wider text-[var(--ck-text-muted)] font-mono">{label}</span>
+        <div className="flex items-center gap-1">
+          {sel && !isNaN(sel.getTime()) && (
+            <span className="text-[10px] font-bold font-mono border px-2 py-0.5 rounded" style={{ color: "var(--ck-primary)", backgroundColor: "rgba(0,245,212,0.1)", borderColor: "rgba(0,245,212,0.25)" }}>
+              {sel.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
+            </span>
+          )}
+          {sel && onClear && (
+            <button type="button" onClick={onClear} className="text-[10px] transition border rounded px-1.5 py-0.5 font-mono" style={{ color: "var(--ck-primary)", borderColor: "rgba(0,245,212,0.25)" }}>
+              CLEAR
+            </button>
+          )}
+        </div>
+      </div>
+
+      <div className="p-3 flex-1 flex flex-col justify-between">
+        {disabledNotice ? (
+          <div className="p-4 rounded-lg bg-zinc-900/50 border border-dashed border-zinc-800 text-center my-auto">
+            <p className="text-xs font-mono text-[var(--ck-text-muted)]">{disabledNotice}</p>
+          </div>
+        ) : (
+          <>
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <button type="button" onClick={() => setViewDate(new Date(year, month - 1, 1))} className="p-1 rounded-lg hover:bg-[var(--ck-bg-elevated)] text-[var(--ck-text-secondary)] hover:text-[var(--ck-text)] transition"><ChevronLeft className="w-4 h-4" /></button>
+                <span className="text-xs font-semibold font-mono tracking-wide uppercase text-[var(--ck-text)]">{MONTHS[month]} {year}</span>
+                <button type="button" onClick={() => setViewDate(new Date(year, month + 1, 1))} className="p-1 rounded-lg hover:bg-[var(--ck-bg-elevated)] text-[var(--ck-text-secondary)] hover:text-[var(--ck-text)] transition"><ChevronRight className="w-4 h-4" /></button>
+              </div>
+              <div className="grid grid-cols-7 gap-0.5 mb-1">
+                {DAYS.map(d => <div key={d} className="text-center text-[9px] text-[var(--ck-text-muted)] font-bold uppercase font-mono py-1">{d}</div>)}
+              </div>
+              <div className="grid grid-cols-7 gap-1">
+                {Array.from({ length: firstDay }).map((_, i) => <div key={`e${i}`} />)}
+                {Array.from({ length: daysInMonth }).map((_, i) => {
+                  const day = i + 1;
+                  const d = new Date(year, month, day);
+                  const selected = isSelected(d);
+                  const inRange = isInRange(d);
+                  const disabled = isDayDisabled(d);
+                  return (
+                    <button
+                      key={day}
+                      type="button"
+                      disabled={disabled}
+                      onClick={() => handleDayClick(day)}
+                      className={`w-full aspect-square rounded-lg text-xs font-bold font-mono transition-all duration-150 ${
+                        selected ? "bg-[var(--ck-primary)] text-black shadow-[0_0_10px_rgba(0,245,212,0.4)] border border-[var(--ck-primary)] font-black" :
+                        inRange ? "bg-[var(--ck-primary)]/15 text-[var(--ck-primary)] border border-[var(--ck-primary)]/30" :
+                        disabled ? "text-zinc-700 cursor-not-allowed line-through opacity-35 hover:bg-transparent" :
+                        "text-[var(--ck-text-secondary)] hover:bg-[var(--ck-bg-elevated)] hover:text-[var(--ck-text)]"
+                      }`}
+                    >
+                      {day}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Custom Cyber Time Picker */}
+            {sel && !isNaN(sel.getTime()) && (
+              <div className="mt-3 pt-3 border-t border-zinc-800/80 space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5 text-[10px] text-[var(--ck-text-muted)] uppercase font-bold tracking-wider font-mono">
+                    <Clock className="w-3.5 h-3.5" style={{ color: "var(--ck-primary)" }} /> Custom Time
+                  </div>
+                  <span className="text-[10px] font-mono text-[var(--ck-primary)] font-bold">
+                    {String(displayHour).padStart(2, "0")}:{String(rawMinutes).padStart(2, "0")} {isPM ? "PM" : "AM"}
+                  </span>
+                </div>
+
+                {/* Direct Hour & Minute Inputs with AM/PM Pills */}
+                <div className="grid grid-cols-12 gap-1.5 items-center">
+                  <div className="col-span-4 flex items-center bg-zinc-900 border border-[var(--ck-border)] rounded-lg px-2 py-1 focus-within:border-[var(--ck-primary)]">
+                    <input
+                      type="number"
+                      min="1"
+                      max="12"
+                      value={displayHour}
+                      onChange={(e) => {
+                        const v = parseInt(e.target.value, 10);
+                        if (!isNaN(v) && v >= 1 && v <= 12) handleHourChange(v);
+                      }}
+                      className="w-full bg-transparent text-center text-xs font-mono font-bold text-[var(--ck-text)] outline-none"
+                    />
+                    <span className="text-[9px] text-[var(--ck-text-muted)] font-mono ml-1">H</span>
+                  </div>
+
+                  <span className="col-span-1 text-center text-sm font-bold text-[var(--ck-primary)] font-mono">:</span>
+
+                  <div className="col-span-4 flex items-center bg-zinc-900 border border-[var(--ck-border)] rounded-lg px-2 py-1 focus-within:border-[var(--ck-primary)]">
+                    <input
+                      type="number"
+                      min="0"
+                      max="59"
+                      value={rawMinutes}
+                      onChange={(e) => {
+                        const v = parseInt(e.target.value, 10);
+                        if (!isNaN(v) && v >= 0 && v <= 59) handleMinuteChange(v);
+                      }}
+                      className="w-full bg-transparent text-center text-xs font-mono font-bold text-[var(--ck-text)] outline-none"
+                    />
+                    <span className="text-[9px] text-[var(--ck-text-muted)] font-mono ml-1">M</span>
+                  </div>
+
+                  <div className="col-span-3 flex rounded-lg border border-[var(--ck-border)] overflow-hidden">
+                    <button
+                      type="button"
+                      onClick={() => togglePeriod("AM")}
+                      className={`flex-1 py-1 text-[10px] font-mono font-bold transition-all ${
+                        !isPM ? "bg-[var(--ck-primary)] text-black font-black" : "bg-zinc-900 text-zinc-400 hover:text-white"
+                      }`}
+                    >
+                      AM
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => togglePeriod("PM")}
+                      className={`flex-1 py-1 text-[10px] font-mono font-bold transition-all ${
+                        isPM ? "bg-[var(--ck-primary)] text-black font-black" : "bg-zinc-900 text-zinc-400 hover:text-white"
+                      }`}
+                    >
+                      PM
+                    </button>
+                  </div>
+                </div>
+
+                {/* Contextual Relative Presets (for Registration Deadline relative to Event Start) */}
+                {rangeStart && label.toLowerCase().includes("deadline") && (
+                  <div className="space-y-1 pt-1.5 border-t border-zinc-800/80">
+                    <span className="text-[9px] text-[var(--ck-primary)] uppercase font-mono tracking-wider font-bold">Relative to Start Time:</span>
+                    <div className="grid grid-cols-2 gap-1">
+                      {[
+                        { label: "Same Day (15m before)", offsetMs: -15 * 60 * 1000 },
+                        { label: "Same Day (30m before)", offsetMs: -30 * 60 * 1000 },
+                        { label: "Same Day (1h before)", offsetMs: -60 * 60 * 1000 },
+                        { label: "Same Day (At Start)", offsetMs: 0 }].map((rel) => {
+                        const targetD = new Date(new Date(rangeStart).getTime() + rel.offsetMs);
+                        const isoStr = `${targetD.getFullYear()}-${String(targetD.getMonth() + 1).padStart(2, "0")}-${String(targetD.getDate()).padStart(2, "0")}T${String(targetD.getHours()).padStart(2, "0")}:${String(targetD.getMinutes()).padStart(2, "0")}`;
+                        const isSelectedRel = selectedDate && Math.abs(new Date(selectedDate).getTime() - targetD.getTime()) < 60000;
+                        return (
+                          <button
+                            key={rel.label}
+                            type="button"
+                            onClick={() => onSelect(isoStr)}
+                            className={`text-[9px] font-mono py-1 px-1 rounded border transition-all truncate text-center cursor-pointer ${
+                              isSelectedRel
+                                ? "border-[var(--ck-primary)] bg-[var(--ck-primary)]/20 text-[var(--ck-primary)] font-bold"
+                                : "border-cyan-900/60 bg-cyan-950/30 text-cyan-300 hover:border-cyan-500 hover:text-white"
+                            }`}
+                          >
+                            {rel.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Quick Preset Buttons */}
+                <div className="space-y-1">
+                  <span className="text-[9px] text-[var(--ck-text-muted)] uppercase font-mono tracking-wider">Quick Presets:</span>
+                  <div className="grid grid-cols-3 gap-1">
+                    {[
+                      { label: "09:00 AM", h: 9, m: 0 },
+                      { label: "12:00 PM", h: 12, m: 0 },
+                      { label: "02:00 PM", h: 14, m: 0 },
+                      { label: "06:00 PM", h: 18, m: 0 },
+                      { label: "08:00 PM", h: 20, m: 0 },
+                      { label: "11:59 PM", h: 23, m: 59 }].map((preset) => (
+                      <button
+                        key={preset.label}
+                        type="button"
+                        onClick={() => applyPreset(preset.h, preset.m)}
+                        className={`text-[9px] font-mono py-1 px-1 rounded border transition-all truncate ${
+                          rawHours === preset.h && rawMinutes === preset.m
+                            ? "border-[var(--ck-primary)] bg-[var(--ck-primary)]/20 text-[var(--ck-primary)] font-bold"
+                            : "border-zinc-800 bg-zinc-900/60 text-zinc-400 hover:border-zinc-700 hover:text-white"
+                        }`}
+                      >
+                        {preset.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+interface Event {
+  id: string; title: string; description?: string; venue?: string; startDate: string; endDate: string;
+  slug: string; isPublished: boolean; isDraft: boolean; maxCapacity?: number; tags: string[]; eventType: string;
+  posterUrl?: string; registrationDeadline?: string; minTeamSize?: number; maxTeamSize?: number;
+  documentUrl?: string; rules?: string; googleFormUrl?: string;
+  organizers?: string;
+  socialLinks?: string;
+  isApproved: boolean;
+  creator: { id: string; name: string; role: string };
+  _count: { registrations: number; teams?: number; attendance?: number };
+}
+
+const STEPS = [
+  { id: 1, label: "Basic Info", icon: Info },
+  { id: 2, label: "Schedule", icon: Calendar },
+  { id: 3, label: "Participants", icon: UserPlus },
+  { id: 4, label: "Details & Media", icon: Image }];
+
+const EVENT_TYPES = [
+  { value: "general", label: "General", icon: Layers, desc: "Standard events and social gatherings" },
+  { value: "workshop", label: "Workshop", icon: BookOpen, desc: "Interactive hands-on learning sessions" },
+  { value: "hackathon", label: "Hackathon", icon: Terminal, desc: "Intense coding and building sprints" },
+  { value: "seminar", label: "Seminar", icon: Presentation, desc: "Educational talks and presentations" },
+  { value: "competition", label: "Competition", icon: Award, desc: "Cybersecurity contests and challenges" },
+  { value: "meetup", label: "Meetup", icon: Users, desc: "Networking and community meetups" }];
+
+export default function EventsPage() {
+  const handleFormKeyDown = (e: React.KeyboardEvent<HTMLFormElement>) => {
+    if (e.key === "Enter" && (e.target as HTMLElement).tagName === "INPUT") {
+      e.preventDefault();
+    }
+  };
+
+  const { user, token, isLoading } = useAuth();
+  const router = useRouter();
+  useEffect(() => { if (!isLoading && user?.role === 'MEMBER') router.push('/dashboard'); }, [user, isLoading, router]);
+  const { showToast, confirmModal } = useCyberDialog();
+  const [events, setEvents] = useState<Event[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showCreate, setShowCreate] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<"all" | "published" | "draft">("all");
+  const [timeFilter, setTimeFilter] = useState<"all" | "active" | "past">("active");
+  const [step, setStep] = useState(1);
+  const [direction, setDirection] = useState(1); // 1 = forward, -1 = backward
+  const [editingEventId, setEditingEventId] = useState<string | null>(null);
+
+  const isCoord = Boolean(user && ["FACULTY_COORDINATOR", "STUDENT_COORDINATOR"].includes(user.role));
+  const isCore = Boolean(user && ["FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_COORDINATOR", "SOCIAL_MEDIA_COORDINATOR"].includes(user.role));
+
+  interface Organizer {
+    name: string;
+    role: string;
+    email: string;
+    phone: string;
+  }
+
+  const [form, setForm] = useState({
+    title: "", description: "", venue: "", startDate: "", endDate: "",
+    maxCapacity: "", eventType: "",
+    registrationDeadline: "", minTeamSize: "", maxTeamSize: "", notTeamEvent: false, rules: "",
+    documentUrl: "",
+    posterUrl: "",
+  });
+  const [customSocialLinks, setCustomSocialLinks] = useState<Array<{ id: string; name: string; url: string; logo: string }>>([]);
+  const [newCustomLink, setNewCustomLink] = useState({ name: "", url: "", logo: "INSTAGRAM" });
+  const [posterFile, setPosterFile] = useState<File | null>(null);
+  const [posterPreview, setPosterPreview] = useState<string | null>(null);
+  const [documentFiles, setDocumentFiles] = useState<File[]>([]);
+  const [existingDocuments, setExistingDocuments] = useState<string[]>([]);
+  const [organizersList, setOrganizersList] = useState<Organizer[]>([]);
+  const [newOrganizer, setNewOrganizer] = useState<Organizer>({ name: "", role: "Event Lead", email: "", phone: "" });
+  const [availableFaculty, setAvailableFaculty] = useState<Organizer[]>([]);
+  const [availableStudentCoords, setAvailableStudentCoords] = useState<Organizer[]>([]);
+  const [step4Confirmed, setStep4Confirmed] = useState(false);
+  const [step4EnteredAt, setStep4EnteredAt] = useState<number>(0);
+
+  useEffect(() => {
+    if (step === 4) {
+      setStep4EnteredAt(Date.now());
+      if (!editingEventId) {
+        setStep4Confirmed(false);
+      }
+    }
+  }, [step, editingEventId]);
+
+  // Auto-fetch Faculty & Student Coordinators from landing team roster
+  useEffect(() => {
+    async function fetchRoster() {
+      try {
+        const data = await api<{ team: Array<{ id: string; name: string; role: string; email?: string; phone?: string; designation?: string }> }>("/settings/landing-team");
+        if (data.team && data.team.length > 0) {
+          const facs: Organizer[] = data.team
+            .filter((m) => m.role === "FACULTY_COORDINATOR" || m.designation?.toLowerCase().includes("faculty"))
+            .map((m) => ({
+              name: m.name,
+              role: "Faculty Coordinator",
+              email: m.email || "faculty@sentinelclub.com",
+              phone: m.phone || "9876543210",
+            }));
+          const coords: Organizer[] = data.team
+            .filter((m) => m.role === "STUDENT_COORDINATOR" || m.designation?.toLowerCase().includes("coordinator"))
+            .map((m) => ({
+              name: m.name,
+              role: "Event Lead",
+              email: m.email || "coordinator@sentinelclub.com",
+              phone: m.phone || "9876543210",
+            }));
+          setAvailableFaculty(facs);
+          setAvailableStudentCoords(coords);
+        }
+      } catch (err) {
+        console.warn("Roster fetch notice:", err);
+      }
+    }
+    fetchRoster();
+  }, []);
+
+  // Drag & Drop state
+  const [isPosterDragging, setIsPosterDragging] = useState(false);
+  const [isDocDragging, setIsDocDragging] = useState(false);
+
+  const [registeredEventIds, setRegisteredEventIds] = useState<Set<string>>(new Set());
+
+  const load = useCallback(async () => {
+    try {
+      const endpoint = isCore ? "/events/all" : "/events";
+      const params = new URLSearchParams();
+      if (searchQuery) params.set("search", searchQuery);
+      if (isCoord && statusFilter !== "all") params.set("status", statusFilter);
+      const qs = params.toString() ? `?${params.toString()}` : "";
+      const data = await api<{ events: Event[] }>(`${endpoint}${qs}`, { token: token || undefined });
+      setEvents(data.events);
+
+      if (token) {
+        api<{ events: { id: string }[] }>("/events/registered", { token })
+          .then((regRes) => {
+            setRegisteredEventIds(new Set(regRes.events.map((e) => e.id)));
+          })
+          .catch(() => {});
+      }
+    } catch (err) { console.warn("Events load notice:", err); }
+    finally { setLoading(false); }
+  }, [isCore, searchQuery, isCoord, statusFilter, token]);
+
+  useEffect(() => { if (user) load(); }, [user, load]);
+
+  const handlePosterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] || null;
+    setPosterFile(file);
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (ev) => setPosterPreview(ev.target?.result as string);
+      reader.readAsDataURL(file);
+    } else { setPosterPreview(null); }
+  };
+
+  // Drag and drop handlers for poster
+  const handlePosterDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsPosterDragging(true);
+  };
+  const handlePosterDragLeave = () => {
+    setIsPosterDragging(false);
+  };
+  const handlePosterDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsPosterDragging(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file && file.type.startsWith("image/")) {
+      setPosterFile(file);
+      const reader = new FileReader();
+      reader.onload = (ev) => setPosterPreview(ev.target?.result as string);
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // Drag and drop handlers for supporting document
+  const handleDocDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDocDragging(true);
+  };
+  const handleDocDragLeave = () => {
+    setIsDocDragging(false);
+  };
+  const handleDocDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDocDragging(false);
+    const files = Array.from(e.dataTransfer.files || []);
+    if (files.length > 0) {
+      setDocumentFiles(prev => [...prev, ...files]);
+    }
+  };
+
+
+  const handleCreate = async (e?: React.FormEvent | React.MouseEvent) => {
+    if (e) e.preventDefault();
+    // Cooldown check: prevent clicks occurring within 600ms of entering Step 4
+    if (Date.now() - step4EnteredAt < 600) {
+      return;
+    }
+    // Strict safeguard: Event creation/editing can ONLY be submitted on Step 4 (Details & Media)
+    if (step !== 4) {
+      return;
+    }
+    for (let s = 1; s <= 4; s++) {
+      if (!isStepValid(s)) {
+        navigateToStep(s);
+        return;
+      }
+    }
+    setCreating(true);
+    try {
+      const body: Record<string, unknown> = {
+        title: form.title, description: form.description || undefined,
+        venue: form.venue || undefined,
+        startDate: form.startDate, endDate: form.endDate,
+        maxCapacity: form.maxCapacity ? parseInt(form.maxCapacity) : undefined,
+        eventType: form.eventType,
+        registrationDeadline: form.registrationDeadline || undefined,
+        minTeamSize: form.notTeamEvent ? 1 : (form.minTeamSize ? parseInt(form.minTeamSize) : undefined),
+        maxTeamSize: form.notTeamEvent ? 1 : (form.maxTeamSize ? parseInt(form.maxTeamSize) : undefined),
+        rules: form.rules || undefined,
+        documentUrl: editingEventId ? JSON.stringify(existingDocuments) : undefined,
+        organizers: JSON.stringify(organizersList),
+      };
+
+      let eventId = editingEventId;
+      if (editingEventId) {
+        await api(`/events/${editingEventId}`, {
+          method: "PATCH", token: token || undefined, body: JSON.stringify(body),
+        });
+      } else {
+        const created = await api<{ event: Event }>("/events", {
+          method: "POST", token: token || undefined, body: JSON.stringify(body),
+        });
+        eventId = created.event.id;
+      }
+
+      if (posterFile && eventId) {
+        const fd = new FormData();
+        fd.append("poster", posterFile);
+        await apiUpload(`/events/${eventId}/poster`, fd, token || undefined);
+      }
+      if (documentFiles.length > 0 && eventId) {
+        const fd = new FormData();
+        documentFiles.forEach(file => {
+          fd.append("document", file);
+        });
+        await apiUpload(`/events/${eventId}/document`, fd, token || undefined);
+      }
+
+      setShowSuccess(true);
+      setTimeout(() => {
+        setShowSuccess(false);
+        setShowCreate(false);
+        setStep(1);
+        setEditingEventId(null);
+        setForm({ title: "", description: "", venue: "", startDate: "", endDate: "", maxCapacity: "", eventType: "", registrationDeadline: "", minTeamSize: "", maxTeamSize: "", notTeamEvent: false, rules: "", documentUrl: "", posterUrl: "" });
+        setCustomSocialLinks([]);
+        setPosterFile(null); setPosterPreview(null);
+        setDocumentFiles([]);
+        setExistingDocuments([]);
+        setOrganizersList([]);
+        load();
+      }, 2500);
+    } catch (err) { showToast(err instanceof Error ? err.message : "Failed", "error"); }
+    finally { setCreating(false); }
+  };
+
+  const handleStartEdit = (event: Event) => {
+    setEditingEventId(event.id);
+    setForm({
+      title: event.title || "",
+      description: event.description || "",
+      venue: event.venue || "",
+      startDate: event.startDate || "",
+      endDate: event.endDate || "",
+      maxCapacity: event.maxCapacity ? String(event.maxCapacity) : "",
+      eventType: event.eventType || "",
+      registrationDeadline: event.registrationDeadline || "",
+      minTeamSize: event.minTeamSize ? String(event.minTeamSize) : "",
+      maxTeamSize: event.maxTeamSize ? String(event.maxTeamSize) : "",
+      notTeamEvent: event.minTeamSize === 1 && event.maxTeamSize === 1,
+      rules: event.rules || "",
+      documentUrl: event.documentUrl || "",
+      posterUrl: event.posterUrl || "",
+    });
+
+    setPosterPreview(event.posterUrl ? getFileUrl(event.posterUrl) : null);
+    setPosterFile(null);
+    
+    // Parse documents
+    let docs: string[] = [];
+    if (event.documentUrl) {
+      if (event.documentUrl.startsWith("[")) {
+        try { docs = JSON.parse(event.documentUrl); } catch { docs = [event.documentUrl]; }
+      } else { docs = [event.documentUrl]; }
+    }
+    setExistingDocuments(docs);
+    setDocumentFiles([]);
+
+    // Parse organizers
+    let orgs: Organizer[] = [];
+    if (event.organizers) {
+      try { orgs = JSON.parse(event.organizers); } catch { orgs = []; }
+    }
+    setOrganizersList(orgs);
+    setStep(1);
+    setShowCreate(true);
+  };
+
+  const handlePublish = async (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      await api(`/events/${id}/publish`, { method: "PATCH", token: token || undefined });
+      load();
+    } catch (err) { showToast(err instanceof Error ? err.message : "Failed to toggle event visibility", "error"); }
+  };
+
+  const handleQuickApprove = async (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      const approvalsRes = await api<{ approvals: { id: string; eventId?: string }[] }>("/approvals/pending", { token: token || undefined });
+      const pendingApproval = approvalsRes.approvals?.find(a => a.eventId === id);
+      if (pendingApproval) {
+        await api(`/approvals/${pendingApproval.id}/review`, {
+          method: "POST",
+          token: token || undefined,
+          body: JSON.stringify({ status: "APPROVED", comment: "Approved directly from event card." })
+        });
+        showToast("Event approved successfully!", "success");
+        load();
+      } else {
+        showToast("No pending approval request found for this event.", "info");
+      }
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : "Approval failed", "error");
+    }
+  };
+
+  const handleSendEmail = async (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const confirmed = await confirmModal({
+      title: "Broadcast Event Email",
+      message: "Are you sure you want to broadcast this event via email to all sentinel members?",
+      variant: "primary",
+      confirmText: "SEND BROADCAST",
+    });
+    if (!confirmed) return;
+    try {
+      await api(`/events/${id}/send-email`, { method: "POST", token: token || undefined });
+      showToast("Email notifications broadcast successfully!", "success");
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : "Failed to send emails", "error");
+    }
+  };
+
+  const handleDeleteEvent = async (id: string, title: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const confirmed = await confirmModal({
+      title: "Delete Event",
+      message: `Are you sure you want to PERMANENTLY DELETE event "${title}"? This action cannot be undone.`,
+      variant: "danger",
+      confirmText: "DELETE EVENT",
+    });
+    if (!confirmed) return;
+    try {
+      await api(`/events/${id}`, { method: "DELETE", token: token || undefined });
+      showToast("Event deleted successfully!", "success");
+      load();
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : "Failed to delete event", "error");
+    }
+  };
+
+  const handleRegister = async (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      await api(`/events/${id}/register`, { method: "POST", token: token || undefined });
+      showToast("Registered successfully!", "success"); load();
+    } catch (err) { showToast(err instanceof Error ? err.message : "Registration failed", "error"); }
+  };
+
+  // Client-side time filter
+  const now = new Date();
+  const filteredEvents = events.filter((ev) => {
+    if (timeFilter === "active") return new Date(ev.endDate) >= now;
+    if (timeFilter === "past") return new Date(ev.endDate) < now;
+    return true;
+  });
+
+  // Step Validation logic
+  const isStepValid = (stepNum: number) => {
+    if (stepNum === 1) return form.title.length >= 3;
+    if (stepNum === 2) {
+      if (!form.startDate || !form.endDate || !form.registrationDeadline) return false;
+      const start = new Date(form.startDate);
+      const end = new Date(form.endDate);
+      if (end <= start) return false;
+      const deadline = new Date(form.registrationDeadline);
+      if (deadline > start) return false;
+      return true;
+    }
+    if (stepNum === 3) {
+      if (form.maxCapacity) {
+        const cap = parseInt(form.maxCapacity);
+        if (isNaN(cap) || cap <= 0) return false;
+      }
+      if (!form.notTeamEvent) {
+        if (form.minTeamSize) {
+          const minS = parseInt(form.minTeamSize);
+          if (isNaN(minS) || minS <= 0) return false;
+        }
+        if (form.maxTeamSize) {
+          const maxS = parseInt(form.maxTeamSize);
+          if (isNaN(maxS) || maxS <= 0) return false;
+        }
+        if (form.minTeamSize && form.maxTeamSize) {
+          const minS = parseInt(form.minTeamSize);
+          const maxS = parseInt(form.maxTeamSize);
+          if (!isNaN(minS) && !isNaN(maxS) && minS > maxS) return false;
+        }
+      }
+      return true;
+    }
+    if (stepNum === 4) {
+      // 1. Poster required (file uploaded, existing preview, or saved URL)
+      const hasPoster = Boolean(posterFile || posterPreview || form.posterUrl);
+      if (!hasPoster) return false;
+      // 2. Rules required (minimum 10 non-whitespace characters)
+      if (!form.rules || form.rules.trim().length < 10) return false;
+      // 3. At least one Event Lead required in organizing team
+      const hasStudentCoord = organizersList.some(o => 
+        o.role.toLowerCase().includes("lead")
+      );
+      if (!hasStudentCoord) return false;
+      // 4. User confirmation checkbox required
+      if (!step4Confirmed && !editingEventId) return false;
+      return true;
+    }
+    return true;
+  };
+
+  const canGoNext = () => isStepValid(step);
+
+  const canNavigateTo = (targetStep: number) => {
+    if (targetStep <= step) return true;
+    for (let i = 1; i < targetStep; i++) {
+      if (!isStepValid(i)) return false;
+    }
+    return true;
+  };
+
+  const navigateToStep = (targetStep: number) => {
+    if (typeof document !== "undefined" && document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
+    setDirection(targetStep > step ? 1 : -1);
+    setStep(targetStep);
+  };
+
+  const getDateWarnings = () => {
+    const warnings: string[] = [];
+    const nowTime = new Date();
+    
+    if (form.startDate) {
+      const start = new Date(form.startDate);
+      if (start < nowTime) {
+        warnings.push("Start date is in the past.");
+      }
+    }
+    
+    if (form.startDate && form.endDate) {
+      const start = new Date(form.startDate);
+      const end = new Date(form.endDate);
+      if (end <= start) {
+        warnings.push("End date must be after start date.");
+      }
+    }
+    
+    if (form.registrationDeadline) {
+      const deadline = new Date(form.registrationDeadline);
+      if (deadline < nowTime) {
+        warnings.push("Registration deadline is in the past.");
+      }
+      if (form.startDate) {
+        const start = new Date(form.startDate);
+        if (deadline > start) {
+          warnings.push("Registration deadline should be before start date.");
+        }
+      }
+    }
+    return warnings;
+  };
+
+  const getParticipantWarnings = () => {
+    const warnings: string[] = [];
+    if (form.maxCapacity && parseInt(form.maxCapacity) <= 0) {
+      warnings.push("Max capacity must be greater than 0.");
+    }
+    if (form.minTeamSize && parseInt(form.minTeamSize) <= 0) {
+      warnings.push("Min team size must be greater than 0.");
+    }
+    if (form.maxTeamSize && parseInt(form.maxTeamSize) <= 0) {
+      warnings.push("Max team size must be greater than 0.");
+    }
+    if (form.minTeamSize && form.maxTeamSize && parseInt(form.minTeamSize) > parseInt(form.maxTeamSize)) {
+      warnings.push("Min team size cannot exceed max team size.");
+    }
+    return warnings;
+  };
+
+  const getStep4Warnings = () => {
+    const warnings: string[] = [];
+    const hasPoster = Boolean(posterFile || posterPreview || form.posterUrl);
+    if (!hasPoster) {
+      warnings.push("Event Poster is required (upload an image file).");
+    }
+    if (!form.rules || form.rules.trim().length < 10) {
+      warnings.push("Rules & Guidelines must be provided (minimum 10 characters).");
+    }
+    const hasStudentCoord = organizersList.some(o => 
+      o.role.toLowerCase().includes("lead")
+    );
+    if (!hasStudentCoord) {
+      warnings.push("At least one Event Lead must be added to Organizing Team.");
+    }
+    if (!step4Confirmed && !editingEventId) {
+      warnings.push("Please check the confirmation box below to verify Step 4 details.");
+    }
+    return warnings;
+  };
+
+  // Motion variants for dynamic sliding step transitions
+  const stepVariants = {
+    enter: (dir: number) => ({
+      x: dir > 0 ? 40 : -40,
+      opacity: 0,
+    }),
+    center: {
+      x: 0,
+      opacity: 1,
+    },
+    exit: (dir: number) => ({
+      x: dir > 0 ? -40 : 40,
+      opacity: 0,
+    }),
+  };
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight" style={{ color: "var(--ck-text)" }}>Events</h1>
+          <p className="mt-1 text-sm" style={{ color: "var(--ck-text-secondary)" }}>Manage and browse sentinel events</p>
+        </div>
+        {isCoord && (
+          <button 
+            onClick={() => { 
+              setEditingEventId(null); 
+              setForm({ title: "", description: "", venue: "", startDate: "", endDate: "", maxCapacity: "", eventType: "", registrationDeadline: "", minTeamSize: "", maxTeamSize: "", notTeamEvent: false, rules: "", documentUrl: "", posterUrl: "" });
+              setPosterFile(null); 
+              setPosterPreview(null); 
+              setDocumentFiles([]); 
+              setStep4Confirmed(false);
+              setStep4EnteredAt(0);
+              // Always auto-add all Faculty Coordinators in every new event
+              const defaultFaculty = availableFaculty.length > 0 ? availableFaculty : [
+                { name: "Dr. Parag Shah", role: "Faculty Coordinator", email: "paragshah.ce@charusat.ac.in", phone: "9876543210" },
+                { name: "Prof. Martin Parmar", role: "Faculty Coordinator", email: "martinparmar.ce@charusat.ac.in", phone: "9876543210" }
+              ];
+              setOrganizersList([...defaultFaculty]);
+              setShowCreate(true); 
+              setStep(1); 
+            }} 
+            className="ck-btn-primary"
+          >
+            <Plus className="w-4 h-4" /> Create Event
+          </button>
+        )}
+      </div>
+
+      {/* Search + Filters */}
+      <div className="flex flex-wrap items-center gap-3 mb-6">
+        <div className="relative flex-1 max-w-sm ck-search-container ck-input-icon-wrapper">
+          <Search className="w-4 h-4" style={{ color: "var(--ck-primary)" }} />
+          <input className="ck-input ck-search-input" placeholder="Search events..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
+        </div>
+        {isCoord && (
+          <div className="flex gap-1 p-1 rounded-xl bg-black/40 border border-[#1A1E26]">
+            {(["all", "published", "draft"] as const).map((s) => (
+              <button key={s} onClick={() => setStatusFilter(s)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-mono uppercase tracking-wider transition ${statusFilter === s ? "bg-[var(--ck-primary)] text-black font-bold shadow-[0_0_8px_rgba(0,245,212,0.3)]" : "text-[var(--ck-text-secondary)] hover:text-[var(--ck-primary)]"}`}>
+                {s}
+              </button>
+            ))}
+          </div>
+        )}
+        <div className="flex gap-1 p-1 rounded-xl bg-black/40 border border-[#1A1E26]">
+          {(["active", "past", "all"] as const).map((t) => (
+            <button key={t} onClick={() => setTimeFilter(t)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-mono uppercase tracking-wider transition ${timeFilter === t ? "bg-[var(--ck-primary)] text-black font-bold shadow-[0_0_8px_rgba(0,245,212,0.3)]" : "text-[var(--ck-text-secondary)] hover:text-[var(--ck-primary)]"}`}>
+              {t === "past" ? "archive" : t}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Create Event Modal — Timeline Stepper */}
+      <AnimatePresence>
+        {showCreate && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/65 backdrop-blur-md">
+            <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
+              className="ck-card w-full max-w-2xl lg:max-w-4xl flex flex-col relative"
+              style={{ maxHeight: "90vh" }}>
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[var(--ck-accent)] via-[var(--ck-primary)] to-[var(--ck-danger)] rounded-t-xl z-10" />
+
+              {/* Header — never scrolls */}
+              <div className="flex justify-between items-center px-6 pt-6 pb-0 shrink-0">
+                <h2 className="text-xl font-bold font-mono tracking-wide" style={{ color: "var(--ck-text)" }}>{editingEventId ? "EDIT EVENT" : "CREATE NEW EVENT"}</h2>
+                <button onClick={() => { setShowCreate(false); setStep(1); setEditingEventId(null); }} className="p-2 rounded-lg hover:bg-[var(--ck-danger)]/10 text-[var(--ck-danger)] transition"><X className="w-5 h-5" /></button>
+              </div>
+
+              {/* Timeline Stepper — never scrolls */}
+              <div className="px-6 pt-5 pb-3 shrink-0">
+                <div className="flex items-center justify-between">
+                  {STEPS.map((s, i) => {
+                    const isReachable = canNavigateTo(s.id);
+                    return (
+                      <React.Fragment key={s.id}>
+                        <button type="button" 
+                          disabled={!isReachable}
+                          onClick={() => { if (isReachable) navigateToStep(s.id); }}
+                          className={`flex flex-col items-center gap-1.5 group transition-opacity duration-300 ${isReachable ? "cursor-pointer" : "cursor-not-allowed opacity-40"}`}>
+                          <div className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all duration-300 ${
+                            step === s.id ? "border-[var(--ck-primary)] bg-[var(--ck-primary)]/20 shadow-[0_0_15px_rgba(0,245,212,0.3)]"
+                            : s.id < step ? "border-[var(--ck-accent)] bg-[var(--ck-accent)]/20"
+                            : "border-[var(--ck-border)] bg-[var(--ck-bg-card)]"
+                          }`}>
+                            {s.id < step ? <CheckCircle2 className="w-5 h-5" style={{ color: "var(--ck-accent)" }} />
+                              : <s.icon className="w-4 h-4" style={{ color: step === s.id ? "var(--ck-primary)" : "#4B5563" }} />}
+                          </div>
+                          <span className="text-[11px] font-mono uppercase tracking-wider" style={{ color: step === s.id ? "var(--ck-primary)" : (s.id < step ? "var(--ck-accent)" : "#4B5563") }}>
+                            {s.label}
+                          </span>
+                        </button>
+                        {i < STEPS.length - 1 && (
+                          <div className="flex-1 h-0.5 mx-2 rounded transition-colors duration-300" style={{ backgroundColor: s.id < step ? "var(--ck-accent)" : "#1A1E26" }} />
+                        )}
+                      </React.Fragment>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Scrollable form area */}
+              <form 
+                onSubmit={(e) => { 
+                  e.preventDefault(); 
+                  // Form submit event is strictly prevented; submission requires deliberate click on Step 4 button
+                }} 
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && (e.target as HTMLElement).tagName !== "TEXTAREA") {
+                    e.preventDefault();
+                  }
+                }} 
+                className="flex-1 overflow-y-auto px-6 pb-6 pt-2 min-h-0"
+              >
+                <AnimatePresence mode="wait" initial={false}>
+                  {/* Step 1: Basic Info */}
+                  {step === 1 && (
+                    <motion.div
+                      key="s1"
+                      custom={direction}
+                      variants={stepVariants}
+                      initial="enter"
+                      animate="center"
+                      exit="exit"
+                      transition={{ duration: 0.2, ease: "easeInOut" }}
+                      className="space-y-4"
+                    >
+                      <div>
+                        <div className="flex justify-between items-center mb-1">
+                          <label className="ck-label mb-0">Event Name *</label>
+                          {form.title.length > 0 && (
+                            <span className="text-[10px] font-mono uppercase" style={{ color: form.title.length >= 3 ? "var(--ck-primary)" : "var(--ck-danger)" }}>
+                              {form.title.length < 3 ? "Too short (min 3 chars)" : "Acceptable"}
+                            </span>
+                          )}
+                        </div>
+                        <input 
+                          className={`ck-input ${form.title.length > 0 && form.title.length < 3 ? "border-[var(--ck-danger)]/50 focus:border-[var(--ck-danger)] focus:shadow-[0_0_12px_rgba(255,0,85,0.4)]" : ""}`} 
+                          placeholder="e.g. CyberHack 3.0" 
+                          value={form.title} 
+                          onChange={(e) => setForm({ ...form, title: e.target.value })} 
+                          required 
+                        />
+                      </div>
+                      <div>
+                        <div className="flex justify-between items-center mb-1">
+                          <label className="ck-label mb-0">Description *</label>
+                          <span className="text-[10px] text-[var(--ck-text-muted)] font-mono">{form.description.length} / 10000000 chars</span>
+                        </div>
+                        <textarea className="ck-input" rows={4} maxLength={10000000} placeholder="Describe the event, its purpose, and what participants can expect..." value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} required />
+                      </div>
+                      
+                      {/* Visual Event Type Selector */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div>
+                          <label className="ck-label mb-2">Event Type *</label>
+                          <input className="ck-input" placeholder="e.g. Hackathon, Workshop" value={form.eventType} onChange={(e) => setForm({ ...form, eventType: e.target.value })} required />
+                        </div>
+                        <div>
+                          <label className="ck-label mb-2">Venue *</label>
+                          <div className="relative">
+                            <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none" style={{ color: "var(--ck-primary)" }} />
+                            <input className="ck-input pl-10" placeholder="e.g. Lab 301, CSPIT" value={form.venue} onChange={(e) => setForm({ ...form, venue: e.target.value })} required />
+                          </div>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {/* Step 2: Schedule */}
+                  {step === 2 && (
+                    <motion.div
+                      key="s2"
+                      custom={direction}
+                      variants={stepVariants}
+                      initial="enter"
+                      animate="center"
+                      exit="exit"
+                      transition={{ duration: 0.2, ease: "easeInOut" }}
+                      className="space-y-4"
+                    >
+                      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                        <div>
+                          <label className="ck-label mb-2">Start Date & Time *</label>
+                          <input type="datetime-local" className="ck-input bg-zinc-900 text-[var(--ck-text)] [color-scheme:dark]" value={form.startDate} onChange={(e) => {
+                            setForm(prev => {
+                              const updated = { ...prev, startDate: e.target.value };
+                              if (prev.endDate && new Date(prev.endDate) <= new Date(e.target.value)) {
+                                const nextDay = new Date(new Date(e.target.value).getTime() + 24 * 60 * 60 * 1000);
+                                updated.endDate = nextDay.toISOString().slice(0, 16);
+                              }
+                              if (!prev.registrationDeadline) {
+                                const defaultDeadline = new Date(new Date(e.target.value).getTime() - 24 * 60 * 60 * 1000);
+                                updated.registrationDeadline = defaultDeadline.toISOString().slice(0, 16);
+                              } else if (new Date(prev.registrationDeadline) >= new Date(e.target.value)) {
+                                updated.registrationDeadline = "";
+                              }
+                              return updated;
+                            });
+                          }} required />
+                        </div>
+                        <div>
+                          <label className="ck-label mb-2">End Date & Time *</label>
+                          <input type="datetime-local" className="ck-input bg-zinc-900 text-[var(--ck-text)] [color-scheme:dark]" value={form.endDate} onChange={(e) => setForm({ ...form, endDate: e.target.value })} min={form.startDate} required />
+                        </div>
+                        <div>
+                          <label className="ck-label mb-2">Registration Deadline *</label>
+                          <input type="datetime-local" className="ck-input bg-zinc-900 text-[var(--ck-text)] [color-scheme:dark]" value={form.registrationDeadline} onChange={(e) => setForm({ ...form, registrationDeadline: e.target.value })} max={form.startDate} required />
+                        </div>
+                      </div>
+                      
+                      {/* Date Validation Warnings */}
+                      {getDateWarnings().length > 0 && (
+                        <div className="p-3.5 rounded-lg bg-[var(--ck-danger)]/10 border border-[var(--ck-danger)]/20 text-[var(--ck-danger)] space-y-1">
+                          {getDateWarnings().map((warn, i) => (
+                            <p key={i} className="text-xs font-mono flex items-center gap-2">
+                              <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0" />
+                              <span>{warn}</span>
+                            </p>
+                          ))}
+                        </div>
+                      )}
+
+                      {form.startDate && form.endDate && getDateWarnings().length === 0 && (
+                        <div className="p-3 rounded-lg bg-[var(--ck-primary)]/10 border border-[var(--ck-primary)]/20">
+                          <p className="text-xs font-mono flex items-center gap-2" style={{ color: "var(--ck-primary)" }}>
+                            <CheckCircle2 className="w-4 h-4" />
+                            <span>
+                              {new Date(form.startDate).toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short", year: "numeric" })}
+                              {" at "}
+                              {new Date(form.startDate).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}
+                              {" — "}
+                              {new Date(form.endDate).toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short", year: "numeric" })}
+                              {" at "}
+                              {new Date(form.endDate).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}
+                            </span>
+                          </p>
+                        </div>
+                      )}
+                    </motion.div>
+                  )}
+
+                  {/* Step 3: Participants */}
+                  {step === 3 && (
+                    <motion.div
+                      key="s3"
+                      custom={direction}
+                      variants={stepVariants}
+                      initial="enter"
+                      animate="center"
+                      exit="exit"
+                      transition={{ duration: 0.2, ease: "easeInOut" }}
+                      className="space-y-4"
+                    >
+                      <div>
+                        <label className="ck-label">Max Capacity</label>
+                        <div className="relative">
+                          <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none" style={{ color: "var(--ck-primary)" }} />
+                          <input className="ck-input pl-10" type="number" min="1" placeholder="e.g. 100 (Leave blank for unlimited)" value={form.maxCapacity} onChange={(e) => setForm({ ...form, maxCapacity: e.target.value })} />
+                        </div>
+                      </div>
+                      <div className="mb-4 flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          id="notTeamEvent"
+                          className="w-4 h-4 rounded border-[var(--ck-border)] text-[var(--ck-primary)] focus:ring-[var(--ck-primary)] bg-zinc-900 cursor-pointer"
+                          checked={form.notTeamEvent}
+                          onChange={(e) => setForm({ ...form, notTeamEvent: e.target.checked, minTeamSize: e.target.checked ? "1" : form.minTeamSize, maxTeamSize: e.target.checked ? "1" : form.maxTeamSize })}
+                        />
+                        <label htmlFor="notTeamEvent" className="ck-label mb-0 cursor-pointer text-sm">Not Team Event</label>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                          <label className="ck-label">Min Team Size</label>
+                          <input className="ck-input" type="number" min="1" placeholder="e.g. 2" value={form.notTeamEvent ? "1" : form.minTeamSize} onChange={(e) => setForm({ ...form, minTeamSize: e.target.value })} disabled={form.notTeamEvent} />
+                        </div>
+                        <div>
+                          <label className="ck-label">Max Team Size</label>
+                          <input className="ck-input" type="number" min="1" placeholder="e.g. 5" value={form.notTeamEvent ? "1" : form.maxTeamSize} onChange={(e) => setForm({ ...form, maxTeamSize: e.target.value })} disabled={form.notTeamEvent} />
+                        </div>
+                      </div>
+                      
+                      {/* Capacity warnings */}
+                      {getParticipantWarnings().length > 0 && !form.notTeamEvent && (
+                        <div className="p-3 rounded-lg bg-[var(--ck-danger)]/10 border border-[var(--ck-danger)]/20 text-[var(--ck-danger)] space-y-1">
+                          {getParticipantWarnings().map((warn, i) => (
+                            <p key={i} className="text-xs font-mono flex items-center gap-2">
+                              <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0" />
+                              <span>{warn}</span>
+                            </p>
+                          ))}
+                        </div>
+                      )}
+                    </motion.div>
+                  )}
+
+                  {/* Step 4: Details & Media */}
+                  {step === 4 && (
+                    <motion.div
+                      key="s4"
+                      custom={direction}
+                      variants={stepVariants}
+                      initial="enter"
+                      animate="center"
+                      exit="exit"
+                      transition={{ duration: 0.2, ease: "easeInOut" }}
+                      className="space-y-4"
+                    >
+                      {/* Step 4 Requirements Gate Alert */}
+                      {getStep4Warnings().length > 0 ? (
+                        <div className="p-3.5 rounded-lg bg-[var(--ck-danger)]/10 border border-[var(--ck-danger)]/30 text-[var(--ck-danger)] space-y-1.5">
+                          <div className="flex items-center gap-2 font-mono font-bold text-xs">
+                            <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+                            <span className="uppercase tracking-wider">Step 4 Requirements Incomplete — Mandatory Details Required:</span>
+                          </div>
+                          <ul className="list-disc list-inside space-y-0.5 text-xs font-mono pl-1">
+                            {getStep4Warnings().map((warn, i) => (
+                              <li key={i}>{warn}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      ) : (
+                        <div className="p-3 rounded-lg bg-[var(--ck-primary)]/10 border border-[var(--ck-primary)]/30 flex items-center gap-2">
+                          <CheckCircle2 className="w-4 h-4 text-[var(--ck-primary)] flex-shrink-0" />
+                          <span className="text-xs font-mono font-bold text-[var(--ck-primary)] uppercase tracking-wider">
+                            Step 4 Verified: Event Poster, Rules, and Event Lead confirmed. Ready to create event!
+                          </span>
+                        </div>
+                      )}
+
+                      <div>
+                        <div className="flex justify-between items-center mb-1">
+                          <label className="ck-label mb-0">Rules & Guidelines * <span className="text-[10px] text-[var(--ck-text-muted)] font-mono">(Min 10 characters)</span></label>
+                          <span className="text-[10px] text-[var(--ck-text-muted)] font-mono">{form.rules.length} / 10000000 chars</span>
+                        </div>
+                        <textarea className="ck-input" rows={4} maxLength={10000000} value={form.rules} onChange={(e) => setForm({ ...form, rules: e.target.value })} placeholder="1. All participants must register before the deadline&#10;2. Team leader must be present at check-in&#10;3. ..." />
+                      </div>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="ck-label">Event Poster * <span className="text-[10px] text-[var(--ck-text-muted)] font-mono">(Upload Image)</span></label>
+                          <div 
+                            onDragOver={handlePosterDragOver}
+                            onDragLeave={handlePosterDragLeave}
+                            onDrop={handlePosterDrop}
+                            className={`border-2 border-dashed rounded-xl p-5 text-center transition-all duration-300 group cursor-pointer relative overflow-hidden ${
+                              isPosterDragging 
+                                ? "border-[var(--ck-primary)] bg-[var(--ck-primary)]/5 scale-[1.01] shadow-[0_0_15px_rgba(0,245,212,0.15)]" 
+                                : "border-[var(--ck-border)] bg-[var(--ck-bg-card)]/30 hover:border-[var(--ck-primary)]/40 hover:bg-[var(--ck-bg-card)]/50"
+                            }`}
+                            onClick={() => document.getElementById("poster-upload")?.click()}>
+                            {posterPreview ? (
+                              <div className="relative group/preview">
+                                /* eslint-disable-next-line @next/next/no-img-element */
+                                <img src={posterPreview} alt="Preview" className="max-h-40 mx-auto rounded-lg object-contain border border-[var(--ck-border)]" />
+                                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover/preview:opacity-100 transition-opacity flex items-center justify-center rounded-lg">
+                                  <p className="text-xs text-[var(--ck-text)] font-mono">Click to replace image</p>
+                                </div>
+                                <button type="button" onClick={(ev) => { ev.stopPropagation(); setPosterFile(null); setPosterPreview(null); }}
+                                  className="absolute top-2 right-2 p-1.5 rounded-full bg-black/80 transition shadow-[0_0_8px_rgba(0,0,0,0.5)] hover:text-[var(--ck-text)]" style={{ color: "var(--ck-primary)" }}><X className="w-4 h-4" /></button>
+                              </div>
+                            ) : (
+                              <div className="py-2">
+                                <UploadCloud className={`w-8 h-8 mx-auto mb-2 transition-all duration-300 ${isPosterDragging ? "scale-110 animate-pulse" : "text-zinc-650"}`} style={{ color: "var(--ck-primary)" }} />
+                                <p className="text-xs font-semibold font-mono text-[var(--ck-text)]">{isPosterDragging ? "Drop your image here!" : "Click or drag & drop event poster"}</p>
+                                <p className="text-[10px] text-[var(--ck-text-muted)] mt-1 font-mono">PNG, JPG up to 5MB</p>
+                              </div>
+                            )}
+                            <input type="file" accept="image/*" className="hidden" id="poster-upload" onChange={handlePosterChange} />
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="ck-label">Supporting Documents <span className="text-[var(--ck-text-muted)]">(Optional Template)</span></label>
+                          <div 
+                            onDragOver={handleDocDragOver}
+                            onDragLeave={handleDocDragLeave}
+                            onDrop={handleDocDrop}
+                            className={`border-2 border-dashed rounded-xl p-5 text-center transition-all duration-300 group cursor-pointer relative ${
+                              isDocDragging 
+                                ? "border-[var(--ck-accent)] bg-[var(--ck-accent)]/5 scale-[1.01] shadow-[0_0_15px_rgba(0,225,255,0.15)]" 
+                                : "border-[var(--ck-border)] bg-[var(--ck-bg-card)]/30 hover:border-[var(--ck-accent)]/40 hover:bg-[var(--ck-bg-card)]/50"
+                            }`}
+                            onClick={() => document.getElementById("doc-upload")?.click()}>
+                            <div className="py-2">
+                              <FileText className={`w-8 h-8 mx-auto mb-2 transition-all duration-300 ${isDocDragging ? "scale-110 animate-pulse" : "text-zinc-650"}`} style={{ color: "var(--ck-accent)" }} />
+                              <p className="text-xs font-semibold font-mono text-[var(--ck-text)]">
+                                {isDocDragging ? "Drop files here!" : "Click or drag & drop supporting files"}
+                              </p>
+                              <p className="text-[10px] text-[var(--ck-text-muted)] mt-1 font-mono">PDF, DOC, DOCX, TXT (Multiple allowed)</p>
+                            </div>
+                            <input type="file" accept=".pdf,.doc,.docx,.txt" multiple className="hidden" id="doc-upload"
+                              onChange={(e) => {
+                                const files = Array.from(e.target.files || []);
+                                if (files.length > 0) {
+                                  setDocumentFiles(prev => [...prev, ...files]);
+                                }
+                              }} />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* File Lists */}
+                      {(existingDocuments.length > 0 || documentFiles.length > 0) && (
+                        <div className="p-4 rounded-xl border border-zinc-850 bg-black/40 space-y-3">
+                          <p className="text-xs font-mono font-bold text-[var(--ck-primary)] uppercase tracking-wider">File Clearance List</p>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            {/* Existing Documents */}
+                            {existingDocuments.map((docUrl, idx) => (
+                              <div key={`existing-${idx}`} className="flex items-center justify-between p-2 rounded-lg bg-zinc-900/60 border border-[var(--ck-border)]">
+                                <div className="flex items-center gap-2 min-w-0">
+                                  <FileText className="w-3.5 h-3.5 text-[var(--ck-text-secondary)] shrink-0" />
+                                  <span className="text-xs text-[var(--ck-text)] truncate font-mono">{docUrl.split("/").pop()}</span>
+                                  <span className="text-[8px] font-bold font-mono px-1 rounded bg-[var(--ck-primary)]/10 border border-[var(--ck-primary)]/25 text-[var(--ck-primary)] shrink-0">SAVED</span>
+                                </div>
+                                <button type="button" onClick={() => setExistingDocuments(prev => prev.filter((_, i) => i !== idx))}
+                                  className="p-1 rounded hover:bg-white/5 text-[var(--ck-text-muted)] hover:text-[var(--ck-text)] transition"><X className="w-3.5 h-3.5" /></button>
+                              </div>
+                            ))}
+                            {/* Newly Selected Documents */}
+                            {documentFiles.map((file, idx) => (
+                              <div key={`new-${idx}`} className="flex items-center justify-between p-2 rounded-lg bg-zinc-900/60 border border-[var(--ck-border)]">
+                                <div className="flex items-center gap-2 min-w-0">
+                                  <FileText className="w-3.5 h-3.5 text-[var(--ck-accent)] shrink-0" />
+                                  <span className="text-xs text-[var(--ck-text)] truncate font-mono">{file.name}</span>
+                                  <span className="text-[8px] font-bold font-mono px-1 rounded bg-[var(--ck-accent)]/10 border border-[var(--ck-accent)]/25 text-[var(--ck-accent)] shrink-0">
+                                    {(file.size / (1024 * 1024)).toFixed(2)} MB
+                                  </span>
+                                </div>
+                                <button type="button" onClick={() => setDocumentFiles(prev => prev.filter((_, i) => i !== idx))}
+                                  className="p-1 rounded hover:bg-white/5 text-[var(--ck-text-muted)] hover:text-[var(--ck-text)] transition"><X className="w-3.5 h-3.5" /></button>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Organizing Team Section */}
+                      <div className="p-4 rounded-xl border border-zinc-850 bg-black/40 space-y-4">
+                        <div className="flex items-center gap-2 border-b border-[var(--ck-border)] pb-2">
+                          <Users className="w-4 h-4 text-[var(--ck-primary)]" />
+                          <h3 className="text-sm font-black font-mono text-zinc-350 uppercase tracking-widest">Event Lead Setup</h3>
+                        </div>
+
+                        {/* Add Organizer Form */}
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                          <div>
+                            <label className="ck-label text-[10px]">Lead Name *</label>
+                            <input className="ck-input text-xs py-1.5" placeholder="e.g. Alice" value={newOrganizer.name}
+                              onChange={(e) => setNewOrganizer({ ...newOrganizer, name: e.target.value, role: "Event Lead" })} />
+                          </div>
+                          <div>
+                            <label className="ck-label text-[10px]">Email *</label>
+                            <input className="ck-input text-xs py-1.5" type="email" placeholder="alice@example.com" value={newOrganizer.email}
+                              onChange={(e) => setNewOrganizer({ ...newOrganizer, email: e.target.value })} />
+                          </div>
+                          <div>
+                             <label className="ck-label text-[10px]">Phone (10 Digits) *</label>
+                             <input
+                               className="ck-input text-xs py-1.5"
+                               type="tel"
+                               inputMode="numeric"
+                               placeholder="e.g. 9876543210"
+                               value={newOrganizer.phone}
+                               onChange={(e) => setNewOrganizer({ ...newOrganizer, phone: e.target.value.replace(/\D/g, "").slice(0, 10) })}
+                               maxLength={10}
+                             />
+                          </div>
+                        </div>
+
+                        <div className="flex justify-end">
+                          <button type="button" 
+                            onClick={() => {
+                              if (!newOrganizer.name || !newOrganizer.email || !newOrganizer.phone) {
+                                showToast("Please fill all event lead fields.", "warning");
+                                return;
+                              }
+                              if (!/^\d{10}$/.test(newOrganizer.phone)) {
+                                showToast("Mobile number must contain exactly 10 numeric digits.", "warning");
+                                return;
+                              }
+                              setOrganizersList([...organizersList, { ...newOrganizer, role: "Event Lead" }]);
+                              setNewOrganizer({ name: "", role: "Event Lead", email: "", phone: "" });
+                            }}
+                            className="ck-btn-primary py-1.5 px-4 text-xs font-mono flex items-center gap-1.5"
+                          >
+                            <Plus className="w-3.5 h-3.5" /> ADD LEAD
+                          </button>
+                        </div>
+
+                        {/* Organizers List Cards */}
+                        {organizersList.length > 0 && (
+                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pt-2">
+                            {organizersList.map((org, idx) => (
+                              <div key={idx} className="p-3 rounded-lg border border-[var(--ck-border)] bg-zinc-950/80 relative group hover:border-[var(--ck-primary)]/30 transition-all">
+                                <button type="button" onClick={() => setOrganizersList(prev => prev.filter((_, i) => i !== idx))}
+                                  className="absolute top-2.5 right-2.5 p-1 rounded hover:bg-white/5 text-[var(--ck-text-muted)] hover:text-[var(--ck-text)] transition"><X className="w-3 h-3" /></button>
+                                <p className="text-xs font-bold text-[var(--ck-text)] pr-6 font-mono truncate">{org.name}</p>
+                                <p className="text-[9px] font-bold text-[var(--ck-primary)] uppercase font-mono tracking-wider mt-0.5">{org.role}</p>
+                                <div className="mt-2 space-y-1 text-[10px] text-zinc-450 font-mono">
+                                  <p className="truncate flex items-center gap-1.5"><Mail className="w-3 h-3 text-[var(--ck-primary)] shrink-0" />{org.email}</p>
+                                  <p className="flex items-center gap-1.5"><Phone className="w-3 h-3 text-[var(--ck-primary)] shrink-0" />{org.phone}</p>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+
+
+                      {/* Step 4 Mandatory Confirmation Checkbox */}
+                      <div className="p-4 rounded-xl border border-[var(--ck-border)] bg-zinc-950/80 space-y-2">
+                        <label className="flex items-start gap-3 cursor-pointer group">
+                          <input
+                            type="checkbox"
+                            checked={step4Confirmed || Boolean(editingEventId)}
+                            onChange={(e) => setStep4Confirmed(e.target.checked)}
+                            className="mt-0.5 w-4 h-4 rounded border-[var(--ck-border)] text-[var(--ck-primary)] focus:ring-[var(--ck-primary)]/40 focus:ring-offset-0 bg-zinc-900 cursor-pointer"
+                          />
+                          <div className="space-y-0.5">
+                            <span className="text-xs font-mono font-bold text-[var(--ck-text)] uppercase tracking-wider group-hover:text-[var(--ck-primary)] transition-colors">
+                              I have verified all event parameters, poster, rules, and event leads *
+                            </span>
+                            <p className="text-[10px] font-mono text-[var(--ck-text-muted)]">
+                              Enables final event creation. Prevents accidental or premature submission.
+                            </p>
+                          </div>
+                        </label>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {/* Navigation Buttons */}
+                <div className="flex items-center justify-between mt-8 pt-4 border-t border-[var(--ck-border)] sticky bottom-0 bg-[var(--ck-bg)] pb-1">
+                  <div>
+                    {step > 1 && (
+                      <button type="button" onClick={() => navigateToStep(step - 1)} className="ck-btn-secondary py-2 px-4 text-xs">
+                        <ChevronLeft className="w-3.5 h-3.5" /> Back
+                      </button>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-[10px] font-mono text-[var(--ck-text-muted)] uppercase tracking-wider">Step {step} of {STEPS.length}</span>
+                    {step < STEPS.length ? (
+                      <button 
+                        key={`btn-next-step-${step}`}
+                        type="button" 
+                        onClick={() => { if (canGoNext()) navigateToStep(step + 1); }}
+                        disabled={!canGoNext()}
+                        className="ck-btn-primary py-2 px-4 text-xs"
+                      >
+                        Next <ChevronRight className="w-3.5 h-3.5" />
+                      </button>
+                    ) : (
+                      <button 
+                        key="btn-submit-final"
+                        type="button" 
+                        onClick={(e) => {
+                          e.preventDefault();
+                          if (canGoNext() && !creating && (Date.now() - step4EnteredAt >= 600)) {
+                            handleCreate(e);
+                          }
+                        }} 
+                        disabled={creating || !canGoNext() || (Date.now() - step4EnteredAt < 600)} 
+                        className={`py-2 px-5 text-xs font-mono font-bold uppercase tracking-wider rounded-lg transition-all duration-200 ${
+                          !canGoNext() || creating || (Date.now() - step4EnteredAt < 600)
+                            ? "bg-zinc-800/60 border border-zinc-750 text-zinc-500 cursor-not-allowed opacity-50"
+                            : "ck-btn-primary shadow-[0_0_15px_rgba(0,245,212,0.3)] cursor-pointer"
+                        }`}
+                      >
+                        {creating ? "Saving..." : (editingEventId ? "Save Changes" : "Create Event (Draft)")}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </form>
+              <AnimatePresence>
+                {showSuccess && (
+                  <motion.div 
+                    initial={{ opacity: 0 }} 
+                    animate={{ opacity: 1 }} 
+                    exit={{ opacity: 0 }} 
+                    className="absolute inset-0 bg-zinc-950/95 backdrop-blur-md flex flex-col items-center justify-center z-50 p-6 text-center"
+                  >
+                    <div className="relative w-32 h-32 mb-6 flex items-center justify-center">
+                      <motion.div 
+                        animate={{ rotate: 360 }} 
+                        transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
+                        className="absolute inset-0 border-2 border-dashed rounded-full"
+                        style={{ borderColor: "rgba(0,245,212,0.3)" }}
+                      />
+                      <motion.div 
+                        animate={{ scale: [1, 1.15, 1], opacity: [0.3, 0.6, 0.3] }} 
+                        transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                        className="absolute inset-2 border rounded-full bg-black/20"
+                        style={{ borderColor: "rgba(0,225,255,0.3)" }}
+                      />
+                      <motion.div 
+                        initial={{ scale: 0.5, rotate: -180, opacity: 0 }}
+                        animate={{ scale: 1, rotate: 0, opacity: 1 }}
+                        transition={{ type: "spring", damping: 12, stiffness: 100 }}
+                        className="w-20 h-20 rounded-full bg-gradient-to-br from-[var(--ck-primary)] to-[var(--ck-accent)] flex items-center justify-center shadow-[0_0_30px_rgba(0,245,212,0.4)] z-10"
+                      >
+                        <Check className="w-10 h-10 text-black" strokeWidth={3} />
+                      </motion.div>
+                    </div>
+                    
+                    <motion.h3 
+                      initial={{ y: 20, opacity: 0 }}
+                      animate={{ y: 0, opacity: 1 }}
+                      transition={{ delay: 0.3 }}
+                      className="text-2xl font-bold font-mono tracking-wider mb-2 uppercase"
+                      style={{ color: "var(--ck-primary)" }}
+                    >
+                      Operation Logged
+                    </motion.h3>
+                    
+                    <motion.p 
+                      initial={{ y: 20, opacity: 0 }}
+                      animate={{ y: 0, opacity: 1 }}
+                      transition={{ delay: 0.5 }}
+                      className="text-xs font-mono tracking-widest uppercase max-w-md"
+                      style={{ color: "var(--ck-accent)" }}
+                    >
+                      Event telemetry synchronized with cosmic databases.
+                    </motion.p>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Event Grid */}
+      {loading ? <div className="flex justify-center py-20"><div className="ck-spinner" /></div> : filteredEvents.length === 0 ? (
+        <div className="text-center py-20">
+          <Calendar className="w-16 h-16 mx-auto mb-4" style={{ color: "var(--ck-text-muted)" }} />
+          <p className="text-lg" style={{ color: "var(--ck-text-secondary)" }}>No events found</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filteredEvents.map((event, i) => (
+            <motion.div key={event.id} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}
+              onClick={() => isCore ? router.push(`/dashboard/event/${event.id}`) : undefined}
+              className={`ck-card overflow-hidden hover:border-[rgba(0,245,212,0.3)] hover:shadow-[0_0_20px_rgba(0,245,212,0.08)] ${isCore ? "cursor-pointer" : ""} transition-all`}>
+              {/* Poster/Header */}
+              <div className="h-44 bg-gradient-to-br from-[#0D0F14]/50 to-black flex items-center justify-center relative overflow-hidden">
+                {event.posterUrl ? (
+                  /* eslint-disable-next-line @next/next/no-img-element */
+                  <img src={getFileUrl(event.posterUrl)} alt={event.title} className="w-full h-full object-cover" />
+                ) : (
+                  <Calendar className="w-12 h-12 opacity-20" style={{ color: "var(--ck-primary)" }} />
+                )}
+                
+                {/* Date Badge */}
+                {(() => {
+                  const dateObj = new Date(event.startDate);
+                  const dateDay = dateObj.getDate();
+                  const dateMonth = dateObj.toLocaleDateString("en-IN", { month: "short" }).toUpperCase();
+                  return (
+                    <div className="absolute top-3 left-3 bg-black/75 backdrop-blur-md border border-[var(--ck-primary)]/30 rounded-lg px-2 py-1 flex flex-col items-center justify-center min-w-[44px] shadow-[0_0_10px_rgba(0,245,212,0.15)] z-10">
+                      <span className="text-sm font-bold leading-none font-mono" style={{ color: "var(--ck-primary)" }}>{dateDay}</span>
+                      <span className="text-[9px] font-bold tracking-wider font-mono mt-0.5" style={{ color: "var(--ck-accent)" }}>{dateMonth}</span>
+                    </div>
+                  );
+                })()}
+
+                {/* Category Badge */}
+                {(() => {
+                  const typeObj = EVENT_TYPES.find(t => t.value === event.eventType);
+                  const TypeIcon = typeObj?.icon || Layers;
+                  return (
+                    <span className="absolute bottom-3 left-3 bg-black/75 backdrop-blur-md border text-[9px] px-2 py-0.5 rounded-md flex items-center gap-1 font-mono uppercase tracking-wider z-10" style={{ backgroundColor: "rgba(0,245,212,0.1)", borderColor: "rgba(0,245,212,0.25)", color: "var(--ck-primary)" }}>
+                      <TypeIcon className="w-2.5 h-2.5" style={{ color: "var(--ck-primary)" }} />
+                      {typeObj?.label || event.eventType}
+                    </span>
+                  );
+                })()}
+
+                <div className="absolute top-3 right-3 flex flex-col gap-1 items-end z-10">
+                  {!event.isApproved && (
+                    <span className="ck-badge bg-[var(--ck-accent)]/10 border-[var(--ck-accent)] text-[var(--ck-accent)] shadow-[0_0_8px_rgba(0,225,255,0.2)]">
+                      Awaiting Approval
+                    </span>
+                  )}
+                  {event.isApproved && event.isPublished && <span className="ck-badge ck-badge-success">Published</span>}
+                  {event.isApproved && !event.isPublished && <span className="ck-badge ck-badge-warning">Draft</span>}
+                </div>
+                {/* Capacity mini-bar */}
+                {event.maxCapacity && (
+                  <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-black/40 z-10">
+                    <div className="h-full bg-gradient-to-r from-[var(--ck-accent)] to-[var(--ck-primary)] shadow-[0_0_8px_rgba(0,245,212,0.3)]"
+                      style={{ width: `${Math.min(100, Math.round((event._count.registrations / event.maxCapacity) * 100))}%` }} />
+                  </div>
+                )}
+              </div>
+              <div className="p-5">
+                <h3 className="font-semibold text-lg mb-1" style={{ color: "var(--ck-text)" }}>{event.title}</h3>
+                {event.description && <p className="text-sm mb-3 line-clamp-2" style={{ color: "var(--ck-text-secondary)" }}>{event.description}</p>}
+                <div className="space-y-1.5 mb-4 font-mono">
+                  <p className="text-[10px] flex items-center gap-1.5" style={{ color: "var(--ck-text-muted)" }}>
+                    <Clock className="w-3.5 h-3.5" style={{ color: "var(--ck-primary)" }} /> {new Date(event.startDate).toLocaleDateString()} — {new Date(event.endDate).toLocaleDateString()}
+                  </p>
+                  {event.venue && <p className="text-[10px] flex items-center gap-1.5" style={{ color: "var(--ck-text-muted)" }}><MapPin className="w-3.5 h-3.5" style={{ color: "var(--ck-primary)" }} /> {event.venue}</p>}
+                  <p className="text-[10px] flex items-center gap-1.5" style={{ color: "var(--ck-text-muted)" }}>
+                    <Users className="w-3.5 h-3.5" style={{ color: "var(--ck-primary)" }} /> {event._count.registrations} / {event.maxCapacity || "∞"} registered
+                  </p>
+                  {event.registrationDeadline && (
+                    <p className="text-[10px] flex items-center gap-1.5" style={{ color: new Date(event.registrationDeadline) < now ? "var(--ck-danger)" : "var(--ck-text-muted)" }}>
+                      <Clock className="w-3.5 h-3.5" style={{ color: "var(--ck-primary)" }} /> Deadline: {new Date(event.registrationDeadline).toLocaleDateString()}
+                      {new Date(event.registrationDeadline) < now && " (Expired)"}
+                    </p>
+                  )}
+                  {event.documentUrl && (() => {
+                    let docs: string[] = [];
+                    if (event.documentUrl.startsWith("[")) {
+                      try { docs = JSON.parse(event.documentUrl); } catch { docs = [event.documentUrl]; }
+                    } else { docs = [event.documentUrl]; }
+                    return docs.length > 0 ? (
+                      <div className="flex flex-col gap-1.5 mt-2.5 pt-2 border-t border-zinc-900/40">
+                        <span className="text-[8px] font-mono uppercase text-[var(--ck-text-muted)] tracking-wider">Resources:</span>
+                        {docs.map((doc, idx) => (
+                          <a
+                            key={idx}
+                            href={getFileUrl(doc)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-1.5 text-[10px] font-mono text-zinc-450 hover:text-[var(--ck-primary)] transition truncate"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <FileText className="w-3.5 h-3.5 text-[var(--ck-accent)] shrink-0" />
+                            <span className="truncate">{doc.split("/").pop()}</span>
+                          </a>
+                        ))}
+                      </div>
+                    ) : null;
+                  })()}
+                </div>
+                {event.tags.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mb-4">
+                    {event.tags.map((tag) => <span key={tag} className="ck-badge ck-badge-primary text-[10px]">{tag}</span>)}
+                  </div>
+                )}
+                <div className="flex flex-wrap gap-2" onClick={(e) => e.stopPropagation()}>
+                  {event.isPublished && !isCoord && (
+                    registeredEventIds.has(event.id) ? (
+                      <span className="px-3 py-1.5 rounded-lg text-xs font-mono font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 flex items-center gap-1">
+                        <CheckCircle2 className="w-3.5 h-3.5" /> Registered
+                      </span>
+                    ) : !user ? (
+                      <button onClick={(e) => { e.stopPropagation(); router.push("/auth"); }} className="ck-btn-primary flex-1 text-xs py-2">Login to Register</button>
+                    ) : (
+                      <button onClick={(e) => handleRegister(event.id, e)} className="ck-btn-primary flex-1 text-xs py-2">Register</button>
+                    )
+                  )}
+                  {isCoord && (
+                    <button 
+                      onClick={(e) => handlePublish(event.id, e)} 
+                      disabled={user?.role === "STUDENT_COORDINATOR" && !event.isApproved}
+                      className="ck-btn-secondary text-xs py-2 disabled:opacity-40 disabled:cursor-not-allowed"
+                      title={user?.role === "STUDENT_COORDINATOR" && !event.isApproved ? "Requires Faculty Approval" : ""}
+                    >
+                      {event.isPublished ? <><EyeOff className="w-3 h-3" /> Unpublish</> : <><Eye className="w-3 h-3" /> Publish</>}
+                    </button>
+                  )}
+                  {user && ["FACULTY_COORDINATOR", "TECH_COORDINATOR"].includes(user.role) && !event.isApproved && (
+                    <button 
+                      onClick={(e) => handleQuickApprove(event.id, e)} 
+                      className="ck-btn-primary text-xs py-2 shadow-[0_0_10px_rgba(0,245,212,0.3)] border-none" style={{ backgroundColor: "var(--ck-primary)", color: "#00F5D4" }}
+                    >
+                      Approve
+                    </button>
+                  )}
+                  {isCoord && event.isApproved && event.isPublished && (
+                    <button 
+                      onClick={(e) => handleSendEmail(event.id, e)} 
+                      className="ck-btn-secondary text-xs py-2 hover:bg-[var(--ck-danger)]/10 hover:text-[var(--ck-danger)]"
+                      title="Send Email Broadcast"
+                    >
+                      <Mail className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                  {isCoord && (
+                    <button onClick={(e) => { e.stopPropagation(); handleStartEdit(event); }} className="ck-btn-secondary text-xs py-2">
+                      <Edit className="w-3.5 h-3.5" /> Edit
+                    </button>
+                  )}
+                  {isCoord && (
+                    <button onClick={(e) => handleDeleteEvent(event.id, event.title, e)} className="ck-btn-secondary text-xs py-2 hover:bg-red-950/40 hover:text-red-400 hover:border-red-800/50" title="Delete Event">
+                      <Trash2 className="w-3.5 h-3.5 text-red-400" />
+                    </button>
+                  )}
+                  {event.isPublished && (
+                    <a href={`/event/${event.slug}`} target="_blank" rel="noopener noreferrer" className="ck-btn-secondary text-xs py-2"
+                      onClick={(e) => e.stopPropagation()}>
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  )}
+                  {isCore && (
+                    <button onClick={(e) => { e.stopPropagation(); router.push(`/dashboard/event/${event.id}`); }}
+                      className="ck-btn-secondary text-xs py-2">
+                      <ChevronRight className="w-3 h-3" />
+                    </button>
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}

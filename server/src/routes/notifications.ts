@@ -29,14 +29,31 @@ router.get("/unread-count", authenticate, async (req: Request, res: Response) =>
 });
 
 // PATCH /api/notifications/:id/read
+// SEC-003 FIX: Enforce object-level authorization check. Ensure notification belongs
+// to the authenticated caller before marking as read to prevent IDOR/BOLA.
 router.patch("/:id/read", authenticate, async (req: Request, res: Response) => {
   try {
+    const { id } = req.params;
+    const userId = req.user!.userId;
+
+    const existing = await prisma.notification.findFirst({
+      where: { id, userId },
+    });
+
+    if (!existing) {
+      res.status(404).json({ error: "Notification not found" });
+      return;
+    }
+
     const notification = await prisma.notification.update({
-      where: { id: req.params.id },
+      where: { id },
       data: { isRead: true },
     });
     res.json({ notification });
-  } catch (err) { console.error("[Notifications] Read error:", err); res.status(500).json({ error: "Internal server error" }); }
+  } catch (err) {
+    console.error("[Notifications] Read error:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
 });
 
 // PATCH /api/notifications/read-all

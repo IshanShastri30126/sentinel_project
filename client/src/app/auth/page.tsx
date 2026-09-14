@@ -24,7 +24,7 @@ import {
 } from "lucide-react";
 import { GoogleLogin } from "@react-oauth/google";
 import PlexusBackground from "@/components/PlexusBackground";
-import { SentinalLogo } from "@/components/SentinalLogo";
+import { SentinelLogo } from "@/components/SentinelLogo";
 import { api } from "@/lib/api";
 import { CyberButton } from "@/components/ui/CyberButton";
 import { CyberCard } from "@/components/ui/CyberCard";
@@ -61,7 +61,6 @@ function LoginPageContent() {
   const redirectTarget = searchParams?.get("redirect") || "/dashboard";
 
   const [isLogin, setIsLogin] = useState(true);
-  const [roleType, setRoleType] = useState<"STUDENT" | "FACULTY">("STUDENT");
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -70,7 +69,6 @@ function LoginPageContent() {
   const [phone, setPhone] = useState("");
   const [department, setDepartment] = useState("");
   const [institute, setInstitute] = useState("");
-  const [semester, setSemester] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -110,17 +108,23 @@ function LoginPageContent() {
     }
   };
 
+  // Check IP block status on initial load or when switching to Sign In tab
   useEffect(() => {
-    if (!isLogin) return;
-
-    if (!email || !email.includes("@") || email.length < 5) {
+    if (isLogin) {
       checkBlockStatus();
-      return;
     }
+  }, [isLogin]);
+
+  // Debounced check only when user enters a valid email address
+  useEffect(() => {
+    if (!isLogin || !email) return;
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email.trim())) return;
 
     const debounceTimer = setTimeout(() => {
-      checkBlockStatus(email);
-    }, 600);
+      checkBlockStatus(email.trim());
+    }, 800);
 
     return () => clearTimeout(debounceTimer);
   }, [email, isLogin]);
@@ -151,7 +155,7 @@ function LoginPageContent() {
     return `${pad(mins)}:${pad(secs)}`;
   };
 
-  // Club namespace support
+  // Sentinel namespace support
   const [clubs, setClubs] = useState<Array<{ id: string; name: string; slug: string }>>([]);
   const [selectedClubId, setSelectedClubId] = useState("");
 
@@ -213,12 +217,9 @@ function LoginPageContent() {
 
         await register(name, email, password, {
           studentId: identifier,
-          employeeId: roleType === "FACULTY" ? identifier : undefined,
           phone,
           department,
           institute,
-          // Faculty role omits semester
-          semester: roleType === "FACULTY" ? "" : semester,
           ...(selectedClubId ? { clubId: selectedClubId } : {})
         });
         setRegisteredPending(true);
@@ -239,7 +240,6 @@ function LoginPageContent() {
     setPhone("");
     setDepartment("");
     setInstitute("");
-    setSemester("");
     setRegisteredPending(false);
   };
 
@@ -299,7 +299,7 @@ function LoginPageContent() {
               OPERATIVE REGISTRATION COMPLETE
             </h2>
             <p className="text-slate-300 text-xs mb-6 font-mono leading-relaxed">
-              Your credentials have been recorded. Account access is currently pending administrative clearance by the Chakravyuh security council.
+              Your credentials have been recorded. Account access is currently pending administrative clearance by the SENTINEL security council.
             </p>
             <CyberButton
               variant="primary"
@@ -317,7 +317,10 @@ function LoginPageContent() {
 
   return (
     <div className="min-h-screen flex flex-col justify-between p-4 sm:p-6 lg:p-10 relative overflow-hidden bg-[#02050B] text-slate-100 font-sans">
-      <PlexusBackground />
+      {/* Dimmed Background Canvas */}
+      <div className="fixed inset-0 pointer-events-none z-0 opacity-25">
+        <PlexusBackground />
+      </div>
 
       {/* Top Header Bar */}
       <div className="relative z-10 flex items-center justify-between max-w-6xl mx-auto w-full mb-6">
@@ -328,7 +331,7 @@ function LoginPageContent() {
           <ArrowLeft className="w-3.5 h-3.5" />
           <span>RETURN TO PORTAL</span>
         </Link>
-        <div className="hidden sm:flex items-center gap-2 text-xs font-mono text-[#00F5D4] bg-[#070D18]/80 px-3 py-1.5 rounded-full border border-cyan-500/30 backdrop-blur">
+        <div className="hidden sm:flex items-center gap-2 text-xs font-mono text-[#00F5D4] bg-[#070D18]/80 px-3 py-1.5 rounded border border-cyan-500/30 backdrop-blur">
           <Shield className="w-3.5 h-3.5 text-[#00F5D4]" />
           <span>SECURE AUTHENTICATION GATEWAY</span>
         </div>
@@ -342,13 +345,13 @@ function LoginPageContent() {
           transition={{ duration: 0.4 }}
           className={`w-full ${isLogin ? "max-w-md" : "max-w-xl"} transition-all duration-300`}
         >
-          <div className="relative rounded-xl bg-[#070D18]/95 backdrop-blur-2xl p-6 sm:p-8 border border-white/[0.12] shadow-[0_12px_40px_rgba(0,0,0,0.8),0_0_25px_rgba(0,245,212,0.08)] hud-brackets">
+          <div className="relative rounded-lg bg-[#070E1A] p-6 sm:p-8 border border-[#1E293B] shadow-[0_12px_40px_rgba(0,0,0,0.9),0_0_20px_rgba(0,245,212,0.06)] hud-brackets">
             <BorderBeam size={180} duration={12} />
 
             {/* Header Identity */}
             <div className="text-center mb-6">
               <div className="flex justify-center mb-3">
-                <SentinalLogo animateDrawing={false} />
+                <SentinelLogo animateDrawing={false} />
               </div>
               <SystemLabel prefix="[// AUTH.GATEWAY]" showDot={true}>
                 {isLogin ? "IDENTITY VERIFICATION" : "NEW OPERATIVE REGISTRATION"}
@@ -387,44 +390,6 @@ function LoginPageContent() {
               {/* Registration Fields */}
               {!isLogin && (
                 <div className="space-y-4">
-                  {/* Role Selection: Student vs Faculty */}
-                  <div className="space-y-1.5">
-                    <label className="block font-mono text-xs font-medium uppercase tracking-wider text-slate-300">
-                      OPERATIVE ROLE CLASSIFICATION
-                    </label>
-                    <div className="grid grid-cols-2 gap-2">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setRoleType("STUDENT");
-                          setSemester("1");
-                        }}
-                        className={`p-2.5 rounded-md border font-mono text-xs font-bold flex items-center justify-center gap-2 transition-all ${
-                          roleType === "STUDENT"
-                            ? "bg-[rgba(0,245,212,0.12)] border-[#00F5D4] text-[#00F5D4]"
-                            : "bg-[#050A14] border-white/10 text-slate-400 hover:text-white"
-                        }`}
-                      >
-                        <GraduationCap className="w-3.5 h-3.5" />
-                        <span>STUDENT</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setRoleType("FACULTY");
-                          setSemester(""); // Faculty omits semester per rule
-                        }}
-                        className={`p-2.5 rounded-md border font-mono text-xs font-bold flex items-center justify-center gap-2 transition-all ${
-                          roleType === "FACULTY"
-                            ? "bg-[rgba(0,245,212,0.12)] border-[#00F5D4] text-[#00F5D4]"
-                            : "bg-[#050A14] border-white/10 text-slate-400 hover:text-white"
-                        }`}
-                      >
-                        <Briefcase className="w-3.5 h-3.5" />
-                        <span>FACULTY</span>
-                      </button>
-                    </div>
-                  </div>
 
                   {/* Name and Identifier */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -447,17 +412,13 @@ function LoginPageContent() {
 
                     <div>
                       <label className="block font-mono text-xs font-medium uppercase tracking-wider text-slate-300 mb-1">
-                        {roleType === "FACULTY" ? "EMPLOYEE ID" : "STUDENT ID"}
+                        STUDENT ID
                       </label>
                       <div className="relative">
-                        {roleType === "FACULTY" ? (
-                          <Briefcase className="w-4 h-4 text-[#00F5D4] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                        ) : (
-                          <GraduationCap className="w-4 h-4 text-[#00F5D4] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                        )}
+                        <GraduationCap className="w-4 h-4 text-[#00F5D4] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                         <input
                           type="text"
-                          placeholder={roleType === "FACULTY" ? "e.g. EMP1024" : "e.g. 24DCS101"}
+                          placeholder="e.g. 24DCS101"
                           value={identifier}
                           onChange={(e) => setIdentifier(e.target.value)}
                           required={!isLogin}
@@ -523,31 +484,8 @@ function LoginPageContent() {
                     </div>
                   </div>
 
-                  {/* Semester (Students only) and Mobile Number */}
-                  <div className={`grid grid-cols-1 ${roleType === "STUDENT" ? "sm:grid-cols-2" : "sm:grid-cols-1"} gap-3`}>
-                    {roleType === "STUDENT" && (
-                      <div>
-                        <label className="block font-mono text-xs font-medium uppercase tracking-wider text-slate-300 mb-1">
-                          SEMESTER (1-8)
-                        </label>
-                        <div className="relative">
-                          <GraduationCap className="w-4 h-4 text-[#00F5D4] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                          <select
-                            value={semester}
-                            onChange={(e) => setSemester(e.target.value)}
-                            required={roleType === "STUDENT"}
-                            className="w-full h-10 rounded-md bg-[#050A14] border border-white/[0.12] pl-10 pr-3.5 font-mono text-xs text-white focus:outline-none focus:border-[#00F5D4] cursor-pointer"
-                          >
-                            <option value="" className="bg-[#050A14] text-slate-500">Select Semester...</option>
-                            {SEMESTERS.map((sem) => (
-                              <option key={sem} value={sem} className="bg-[#050A14] text-white">
-                                Semester {sem}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                      </div>
-                    )}
+                  {/* Mobile Number */}
+                  <div className="grid grid-cols-1 gap-3">
 
                     <div>
                       <label className="block font-mono text-xs font-medium uppercase tracking-wider text-slate-300 mb-1">
@@ -585,7 +523,7 @@ function LoginPageContent() {
                   <Mail className="w-4 h-4 text-[#00F5D4] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                   <input
                     type="email"
-                    placeholder="user@chakravyuh.edu"
+                    placeholder="operative@sentinel.defense"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
@@ -623,6 +561,7 @@ function LoginPageContent() {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
+                    aria-label={showPassword ? "Hide password" : "Show password"}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition cursor-pointer"
                   >
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -719,8 +658,8 @@ function LoginPageContent() {
       </div>
 
       {/* Footer watermark */}
-      <div className="relative z-10 text-center py-2 font-mono text-[10px] text-slate-600">
-        © {new Date().getFullYear()} Chakravyuh Club • Defense Network • TLS 1.3 Certified
+      <div className="relative z-10 text-center py-2 font-mono text-[10px] text-slate-500">
+        © {new Date().getFullYear()} SENTINEL Cyber Defense Operations Hub • Defense Network • TLS 1.3 Certified
       </div>
     </div>
   );

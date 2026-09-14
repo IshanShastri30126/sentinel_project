@@ -37,10 +37,7 @@ function RankIcon({ rank }: { rank: number }) {
     if (rank === 3)
         return <Medal className="size-5" style={{ color: "#CD7F32" }} />;
     return (
-        <span
-            className="text-sm font-bold w-5 text-center"
-            style={{ fontFamily: "var(--font-mono)", color: "#666" }}
-        >
+        <span className="text-xs font-bold w-5 text-center font-mono text-slate-400">
             {rank}
         </span>
     );
@@ -77,17 +74,17 @@ function LeaderboardContent() {
     return (
         <div className="space-y-6">
             {/* Header */}
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap sm:flex-nowrap items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
-                    <Trophy className="size-6 text-[var(--ctf-green)]" />
+                    <Trophy className="size-6 text-[var(--ctf-green)] shrink-0" />
                     <div>
                         <h1
-                            className="text-2xl font-bold tracking-tight"
+                            className="text-2xl font-bold tracking-tight text-white"
                             style={{ fontFamily: "var(--font-heading)" }}
                         >
                             Leaderboard
                         </h1>
-                        <p className="text-sm mt-0.5" style={{ color: "#666" }}>
+                        <p className="text-xs mt-0.5 text-slate-400 font-mono">
                             {entries.length} participant{entries.length !== 1 ? "s" : ""} ranked
                         </p>
                     </div>
@@ -96,10 +93,10 @@ function LeaderboardContent() {
                     variant="ghost"
                     size="sm"
                     onClick={fetchLeaderboard}
-                    className="text-[var(--muted-foreground)] hover:text-[var(--ctf-green)]"
+                    className="text-[var(--muted-foreground)] hover:text-[var(--ctf-green)] shrink-0"
                 >
                     <RefreshCw className="size-4 mr-1" />
-                    Refresh
+                    <span className="hidden min-[360px]:inline">Refresh</span>
                 </Button>
             </div>
 
@@ -112,8 +109,8 @@ function LeaderboardContent() {
                 </div>
             ) : entries.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-20 gap-4">
-                    <Award className="size-10" style={{ color: "#333" }} />
-                    <p className="text-sm" style={{ color: "#666" }}>
+                    <Award className="size-10 text-slate-600" />
+                    <p className="text-sm text-slate-400 font-mono">
                         No scores yet. Be the first to capture a flag!
                     </p>
                 </div>

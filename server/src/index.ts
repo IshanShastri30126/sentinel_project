@@ -5,7 +5,6 @@ import compression from "compression";
 import { createServer } from "http";
 import path from "path";
 import helmet from "helmet";
-import rateLimit from "express-rate-limit";
 import { config } from "./config";
 import { initSocket } from "./lib/socket";
 
@@ -68,7 +67,7 @@ const corsOptions: cors.CorsOptions = {
   allowedHeaders: [
     "Content-Type",
     "Authorization",
-    "X-Club-Slug",
+    "X-Sentinel-Slug",
     "X-Device-Fingerprint",
     "X-Device-ID",
     "X-Local-IP",
@@ -121,27 +120,10 @@ app.use(
   })
 );
 
-// 5. Rate limiting
-const apiLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 300,
-  standardHeaders: true,
-  legacyHeaders: false,
-  skip: (req) => req.method === "OPTIONS",
-  message: { error: "Too many requests, please try again later" },
-});
+// 5. Rate limiting: Global blanket rate limiters have been disabled per requirement.
+// Targeted rate limiting is applied exclusively to critical operations (login, signup, emails, event registration)
+// in their respective route controllers.
 
-const authLimiter = rateLimit({
-  windowMs: 60 * 60 * 1000, // 1 hour
-  max: 30,
-  standardHeaders: true,
-  legacyHeaders: false,
-  skip: (req) => req.method === "OPTIONS",
-  message: { error: "Too many requests, please try again later" },
-});
-
-app.use("/api/", apiLimiter);
-app.use("/api/auth", authLimiter);
 
 // 6. Body parsing — 1mb limit for non-upload routes (tightened from 10mb)
 //    Upload routes use multer and bypass this limit via multipart/form-data
@@ -244,7 +226,7 @@ httpServer.on("connection", (socket) => {
 });
 
 httpServer.listen(config.port, () => {
-  process.stdout.write(`\n[Server] Chakravyuh Club API Server running on http://localhost:${config.port}\n`);
+  process.stdout.write(`\n[Server] Sentinel API Server running on http://localhost:${config.port}\n`);
   process.stdout.write(`   Health: http://localhost:${config.port}/api/health\n`);
   process.stdout.write(`   Socket.io: ws://localhost:${config.port}\n`);
   process.stdout.write(`   Security: WAF + RequestID + ResponseSanitization + TCP Hardening ACTIVE\n\n`);

@@ -5,6 +5,7 @@ import { api, API_BASE } from "@/lib/api";
 import { motion, AnimatePresence } from "framer-motion";
 import { UsersRound, Plus, X, QrCode, Search, Calendar, Download, RefreshCw, Crown, ChevronDown, ChevronUp, ShieldAlert, Trash2, AlertTriangle, Edit2, Camera } from "lucide-react";
 import { QrScanner } from "@/components/QrScanner";
+import { useCyberDialog } from "@/components/ui/CyberDialogContext";
 
 interface TeamMember { id: string; name: string; email: string; studentId?: string; }
 interface Team {
@@ -17,10 +18,19 @@ interface Team {
   disqualifyReason?: string;
 }
 
-const MANAGEMENT_ROLES = ["FACULTY", "STUDENT_COORDINATOR", "TECH", "SOCIAL_MEDIA"];
+const MANAGEMENT_ROLES = [
+  "DEVELOPMENT_TEAM",
+  "FACULTY_COORDINATOR",
+  "TECH_TEAM",
+  "STUDENT_COORDINATOR",
+  "FACULTY",
+  "TECH",
+  "SOCIAL_MEDIA"
+];
 
 export default function TeamsPage() {
   const { user, token } = useAuth();
+  const { confirmModal } = useCyberDialog();
   const [teams, setTeams] = useState<Team[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
@@ -63,16 +73,30 @@ export default function TeamsPage() {
       const endpoint = (isManagement && activeTab === "all")
         ? (filterEventId ? `/teams/event/${filterEventId}` : "/teams")
         : "/teams/my";
-      const [t, e] = await Promise.all([
+      const [teamsRes, eventsRes] = await Promise.allSettled([
         api<{ teams: Team[] }>(endpoint, { token: token || undefined }),
         api<{ events: any[] }>("/events", { token: token || undefined }),
       ]);
-      setTeams(t.teams || []); setEvents(e.events || []);
+      if (teamsRes.status === "fulfilled") {
+        setTeams(teamsRes.value.teams || []);
+      }
+      let loadedEvents: any[] = [];
+      if (eventsRes.status === "fulfilled" && eventsRes.value.events && eventsRes.value.events.length > 0) {
+        loadedEvents = eventsRes.value.events;
+      } else if (isManagement) {
+        try {
+          const allEv = await api<{ events: any[] }>("/events/all", { token: token || undefined });
+          loadedEvents = allEv.events || [];
+        } catch {
+          // resilient fallback
+        }
+      }
+      setEvents(loadedEvents);
     } catch (err) { console.warn("[TeamsPage] Load data error:", err); }
     finally { setLoading(false); }
   };
 
-  useEffect(() => { if (token) loadData(); }, [token, activeTab, filterEventId]);
+  useEffect(() => { if (user) loadData(); }, [user, activeTab, filterEventId]);
 
   const searchMembers = async (q: string) => {
     setMemberSearch(q);
@@ -131,7 +155,13 @@ export default function TeamsPage() {
   };
 
   const handleRemoveTeam = async (teamId: string, teamName: string) => {
-    if (!confirm(`Remove team "${teamName}"? This action is irreversible.`)) return;
+    const confirmed = await confirmModal({
+      title: "Remove Team",
+      message: `Remove team "${teamName}"? This action is irreversible.`,
+      variant: "danger",
+      confirmText: "REMOVE TEAM"
+    });
+    if (!confirmed) return;
     try {
       await api(`/teams/${teamId}`, { method: "DELETE", token: token || undefined });
       showToast(`Team "${teamName}" removed`);
@@ -140,7 +170,13 @@ export default function TeamsPage() {
   };
 
   const handleRemoveMember = async (teamId: string, memberId: string, memberName: string) => {
-    if (!confirm(`Remove ${memberName} from this team?`)) return;
+    const confirmed = await confirmModal({
+      title: "Remove Member",
+      message: `Remove ${memberName} from this team?`,
+      variant: "warning",
+      confirmText: "REMOVE MEMBER"
+    });
+    if (!confirmed) return;
     try {
       await api(`/teams/${teamId}`, {
         method: "PATCH", token: token || undefined,

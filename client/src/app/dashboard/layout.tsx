@@ -10,10 +10,10 @@ import {
   Shield, LayoutDashboard, Calendar, Users, Award,
   FileCheck, BarChart3, CheckSquare, LogOut,
   ChevronLeft, ChevronRight, ClipboardList, Bell, Menu, X, UsersRound,
-  User, Settings, Check, CheckCheck, RotateCw, ShieldAlert, Terminal
+  User, Info, Check, CheckCheck, RotateCw, ShieldAlert, Terminal
 } from "lucide-react";
 import { DefaultAvatar } from "@/components/default-avatar";
-import { SentinalLogo } from "@/components/SentinalLogo";
+import { SentinelLogo } from "@/components/SentinelLogo";
 
 interface Notification {
   id: string;
@@ -28,32 +28,27 @@ interface NavItem { label: string; href: string; icon: React.ReactNode; roles?: 
 
 const NAV_ITEMS: NavItem[] = [
   { label: "Overview", href: "/dashboard", icon: <LayoutDashboard className="w-5 h-5" /> },
-  { label: "Events", href: "/dashboard/events", icon: <Calendar className="w-5 h-5" />, roles: ["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_TEAM", "FACULTY", "TECH"] },
+  { label: "Events", href: "/dashboard/event", icon: <Calendar className="w-5 h-5" />, roles: ["FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_COORDINATOR", "SOCIAL_MEDIA_COORDINATOR"] },
   { label: "Teams", href: "/dashboard/teams", icon: <UsersRound className="w-5 h-5" /> },
   { label: "Attendance", href: "/dashboard/attendance", icon: <CheckSquare className="w-5 h-5" /> },
-  { label: "Certificates", href: "/dashboard/certificates", icon: <FileCheck className="w-5 h-5" />, roles: ["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_TEAM", "FACULTY", "TECH"] },
-  { label: "Approvals", href: "/dashboard/approvals", icon: <ClipboardList className="w-5 h-5" />, roles: ["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "FACULTY"] },
+  { label: "Certificates", href: "/dashboard/certificates", icon: <FileCheck className="w-5 h-5" />, roles: ["FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_COORDINATOR"] },
+  { label: "Approvals", href: "/dashboard/approvals", icon: <ClipboardList className="w-5 h-5" />, roles: ["FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_COORDINATOR", "SOCIAL_MEDIA_COORDINATOR"] },
   { label: "Leaderboard", href: "/dashboard/leaderboard", icon: <Award className="w-5 h-5" /> },
-  { label: "Users", href: "/dashboard/users", icon: <Users className="w-5 h-5" />, roles: ["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_TEAM", "FACULTY", "TECH"] },
-  { label: "Analytics", href: "/dashboard/analytics", icon: <BarChart3 className="w-5 h-5" />, roles: ["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_TEAM", "FACULTY", "TECH"] },
-  { label: "Landing CMS", href: "/dashboard/landing-management", icon: <LayoutDashboard className="w-5 h-5" />, roles: ["DEVELOPMENT_TEAM"] },
-  { label: "Maintenance Logs", href: "/dashboard/maintenance", icon: <Terminal className="w-5 h-5" />, roles: ["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "TECH_TEAM"] },
+  { label: "Users", href: "/dashboard/users", icon: <Users className="w-5 h-5" />, roles: ["FACULTY_COORDINATOR", "TECH_COORDINATOR"] },
+  { label: "Analytics", href: "/dashboard/analytics", icon: <BarChart3 className="w-5 h-5" />, roles: ["FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_COORDINATOR", "SOCIAL_MEDIA_COORDINATOR"] },
+  { label: "Landing CMS", href: "/dashboard/landing-management", icon: <LayoutDashboard className="w-5 h-5" />, roles: ["FACULTY_COORDINATOR", "TECH_COORDINATOR", "SOCIAL_MEDIA_COORDINATOR"] },
+  { label: "Maintenance Logs", href: "/dashboard/maintenance", icon: <Terminal className="w-5 h-5" />, roles: ["FACULTY_COORDINATOR", "TECH_COORDINATOR"] },
   { label: "My Certificates", href: "/dashboard/my-certificates", icon: <Award className="w-5 h-5" /> },
   { label: "Profile", href: "/dashboard/profile", icon: <User className="w-5 h-5" /> },
-  { label: "Settings", href: "/dashboard/settings", icon: <Settings className="w-5 h-5" />, roles: ["DEVELOPMENT_TEAM"] },
-];
+  { label: "Info", href: "/dashboard/info", icon: <Info className="w-5 h-5" />, roles: ["FACULTY_COORDINATOR"] }];
 
 const ROLE_LABELS: Record<Role, string> = {
-  DEVELOPMENT_TEAM: "Development Team",
   FACULTY_COORDINATOR: "Faculty Coordinator",
   STUDENT_COORDINATOR: "Student Coordinator",
-  TECH_TEAM: "Tech Team",
+  TECH_COORDINATOR: "Tech Team",
+  SOCIAL_MEDIA_COORDINATOR: "Social Media Coordinator",
   MEMBER: "Member",
   GUEST: "Guest",
-  FACULTY: "Faculty Coordinator",
-  TECH: "Tech Team",
-  CONTENT: "Content Team",
-  SOCIAL_MEDIA: "Social Media",
 };
 
 const MODULE_CATEGORIES: Record<string, { label: string; color: string; dotColor: string }> = {
@@ -67,7 +62,7 @@ const getModuleCategoryKey = (label: string): string => {
   if (["Overview", "Analytics", "Profile"].includes(label)) return "core";
   if (["Events", "Teams", "Attendance"].includes(label)) return "tactical";
   if (["Certificates", "My Certificates", "Leaderboard"].includes(label)) return "credentials";
-  if (["Approvals", "Landing CMS", "Users", "Settings"].includes(label)) return "clearance";
+  if (["Approvals", "Landing CMS", "Users", "Info"].includes(label)) return "clearance";
   return "core";
 };
 
@@ -140,7 +135,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   };
 
   const handleToastRedirect = () => {
-    router.push("/dashboard/notifications");
+    router.push("/notifications");
     setActiveToast(null);
   };
 
@@ -161,11 +156,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   // Fetch unread notifications list & poll for real-time updates
   useEffect(() => {
-    if (!token) return;
+    if (!user) return;
     
     const fetchNotifications = async () => {
       try {
-        const data = await api<{ notifications: Notification[] }>("/notifications", { token });
+        const data = await api<{ notifications: Notification[] }>("/notifications", { token: token || undefined });
         const unread = data.notifications.filter((n) => !n.isRead);
         setUnreadNotifications(unread);
         setUnreadCount(unread.length);
@@ -186,7 +181,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     // Set up polling interval to get new ones
     const interval = setInterval(async () => {
       try {
-        const data = await api<{ notifications: Notification[] }>("/notifications", { token });
+        const data = await api<{ notifications: Notification[] }>("/notifications", { token: token || undefined });
         const unread = data.notifications.filter((n) => !n.isRead);
         setUnreadNotifications((prev) => {
           // If there are new unread notifications that were not in prev, trigger active toast!
@@ -265,8 +260,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     return (
       <div className="min-h-screen flex items-center justify-center p-4" style={{ background: "var(--ck-bg)" }}>
         <div className="ck-card p-8 max-w-md text-center">
-          <div className="w-16 h-16 rounded-full bg-amber-500/10 flex items-center justify-center mx-auto mb-4">
-            <ClipboardList className="w-8 h-8 text-amber-500" />
+          <div className="w-12 h-12 rounded border border-amber-500/40 bg-amber-500/10 flex items-center justify-center mx-auto mb-4">
+            <ClipboardList className="w-6 h-6 text-amber-500" />
           </div>
           <h2 className="text-xl font-bold mb-2" style={{ color: "var(--ck-text)" }}>Account Pending Approval</h2>
           <p className="text-sm mb-6" style={{ color: "var(--ck-text-secondary)" }}>
@@ -314,11 +309,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               {/* Drawer Top Header */}
               <div className="h-[52px] sm:h-[56px] px-4 border-b border-[#121F3D] flex items-center justify-between shrink-0 bg-[#050A18]/80">
                 <Link
-                  href="/dashboard"
+                  href="/"
                   onClick={() => setMobileOpen(false)}
                   className="flex items-center gap-2 hover:opacity-90 transition"
                 >
-                  <SentinalLogo collapsed={false} showText={true} animateDrawing={false} className="scale-90 origin-left" />
+                  <SentinelLogo collapsed={false} showText={true} animateDrawing={false} className="scale-90 origin-left" />
                 </Link>
 
                 <button
@@ -377,7 +372,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                                 key={item.href}
                                 href={item.href}
                                 onClick={() => setMobileOpen(false)}
-                                className={`group relative flex items-center justify-between px-3 py-2 rounded-xl border font-mono text-[11px] transition-all duration-200 ${
+                                className={`group relative flex items-center justify-between px-3 py-2 rounded border font-mono text-[11px] transition-all duration-200 ${
                                   isActive
                                     ? "bg-[#00F5D4]/10 border-[#00F5D4] text-[#00F5D4] font-bold shadow-[0_0_12px_rgba(0,245,212,0.15)]"
                                     : "bg-[#080E24]/60 border-[#121F3D]/80 text-slate-300 hover:border-[#00F5D4]/40 hover:text-white hover:bg-[#0A122A] hover:translate-x-1"
@@ -411,9 +406,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               {/* Bottom Pinned User Profile Card & Sign Out */}
               <div className="p-3 border-t border-[#121F3D] bg-[#050A18]/90 shrink-0 space-y-2.5">
                 <Link
-                  href="/dashboard/profile"
+                  href="/profile"
                   onClick={() => setMobileOpen(false)}
-                  className="flex items-center gap-3 bg-[#080E24] border border-[#121F3D] rounded-xl p-2.5 hover:border-[#00F5D4]/40 transition-all duration-200 group"
+                  className="flex items-center gap-3 bg-[#080E24] border border-[#121F3D] rounded p-2.5 hover:border-[#00F5D4]/40 transition-all duration-200 group"
                 >
                   <DefaultAvatar
                     src={user.avatarUrl ? getFileUrl(user.avatarUrl) : null}
@@ -433,7 +428,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 <button
                   type="button"
                   onClick={() => { setMobileOpen(false); logout(); router.push("/"); }}
-                  className="w-full py-2.5 px-4 rounded-xl bg-[#FF0055]/10 border border-[#FF0055]/30 text-[#FF0055] font-mono text-[10px] font-bold uppercase tracking-widest hover:bg-[#FF0055] hover:text-black hover:shadow-[0_0_18px_rgba(255,0,85,0.4)] transition-all duration-200 cursor-pointer min-h-[44px] flex items-center justify-center gap-2"
+                  className="w-full py-2.5 px-4 rounded bg-[#FF0055]/10 border border-[#FF0055]/30 text-[#FF0055] font-mono text-[10px] font-bold uppercase tracking-widest hover:bg-[#FF0055] hover:text-black hover:shadow-[0_0_18px_rgba(255,0,85,0.4)] transition-all duration-200 cursor-pointer min-h-[44px] flex items-center justify-center gap-2"
                 >
                   <LogOut className="w-4 h-4" /> TERMINATE SESSION
                 </button>
@@ -455,8 +450,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             />
 
             {/* Merged Logo Mark + Wordmark inside Sticky Top Bar */}
-            <Link href="/dashboard" className="flex items-center gap-2 min-w-0 shrink hover:opacity-90 transition">
-              <SentinalLogo collapsed={false} showText={true} animateDrawing={false} className="scale-90 origin-left shrink-0" />
+            <Link href="/" className="flex items-center gap-2 min-w-0 shrink hover:opacity-90 transition">
+              <SentinelLogo collapsed={false} showText={true} animateDrawing={false} className="scale-90 origin-left shrink-0" />
             </Link>
           </div>
 
@@ -557,7 +552,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                               exit={{ opacity: 0, x: 50, transition: { duration: 0.15 } }}
                               className="overflow-hidden"
                             >
-                              <div className="p-3 rounded-xl border border-[#1A1E26] hover:border-[rgba(0,245,212,0.15)] transition-all flex gap-3 relative group overflow-hidden bg-[var(--ck-bg-card)]">
+                              <div className="p-3 rounded border border-[#1A1E26] hover:border-[rgba(0,245,212,0.15)] transition-all flex gap-3 relative group overflow-hidden bg-[var(--ck-bg-card)]">
                                 <div className="absolute top-0 bottom-0 left-0 w-[2px]" style={{ background: "#00F5D4", boxShadow: "0 0 6px rgba(0,245,212,0.6)" }} />
 
                                 <div className="flex-1 min-w-0 pl-1">
@@ -577,7 +572,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                                 <div className="flex flex-col justify-center shrink-0">
                                   <button
                                     onClick={() => markNotificationRead(notif.id)}
-                                    className="p-1.5 rounded-lg border border-[#1A1E26] hover:border-[rgba(0,245,212,0.3)] transition-all cursor-pointer"
+                                    className="p-1.5 rounded border border-[#1A1E26] hover:border-[rgba(0,245,212,0.3)] transition-all cursor-pointer"
                                     style={{ color: "#00F5D4" }}
                                     title="Mark as read"
                                   >
@@ -596,9 +591,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                             className="py-8 flex flex-col items-center justify-center text-center px-4 select-none"
                           >
                             <div className="relative mb-3">
-                              <div className="absolute -inset-1.5 bg-cyan-500/10 rounded-full blur-lg animate-pulse" />
-                              <div className="relative w-12 h-12 rounded-full border border-cyan-500/30 bg-cyan-950/20 flex items-center justify-center text-cyan-550/70">
-                                <Shield className="w-6 h-6" />
+                              <div className="w-10 h-10 rounded border border-cyan-500/30 bg-cyan-950/20 flex items-center justify-center text-cyan-400">
+                                <Shield className="w-5 h-5" />
                               </div>
                             </div>
                             <h4 className="text-[9px] uppercase tracking-widest text-[var(--ck-text-secondary)] font-bold mb-1">
@@ -626,7 +620,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               animate={{ opacity: 1, y: 0, x: 0 }}
               exit={{ opacity: 0, y: 20, x: 20 }}
               transition={{ duration: 0.3, type: "spring", stiffness: 160, damping: 20 }}
-              className="fixed bottom-5 right-5 z-[60] w-72 sm:w-80 rounded-2xl overflow-hidden border shadow-2xl"
+              className="fixed bottom-5 right-5 z-[60] w-72 sm:w-80 rounded-lg overflow-hidden border shadow-2xl"
               style={{ background: "rgba(8,10,15,0.97)", borderColor: "rgba(0,245,212,0.25)", borderLeft: "3px solid #00F5D4" }}
             >
               {/* Top glow bar */}
@@ -655,7 +649,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 <div className="flex items-center justify-between border-t border-[#1A1E26] pt-3">
                   <button
                     onClick={() => handleMarkToastRead(activeToast.id)}
-                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-[#1A1E26] text-[9px] font-bold font-mono uppercase tracking-wider transition-all hover:border-[rgba(0,245,212,0.3)] cursor-pointer"
+                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded border border-[#1A1E26] text-[9px] font-bold font-mono uppercase tracking-wider transition-all hover:border-[rgba(0,245,212,0.3)] cursor-pointer"
                     style={{ color: "#00F5D4" }}
                   >
                     <Check className="w-3 h-3" /> MARK READ
@@ -683,7 +677,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           initial={{ opacity: 0, y: 10 }} 
           animate={{ opacity: 1, y: 0 }} 
           transition={{ duration: 0.3 }} 
-          className={pathname?.includes("/dashboard/certificates/builder") ? "p-1.5 sm:p-3" : "p-3 sm:p-6 lg:p-8"}
+          className={pathname?.includes("/certificates/builder") ? "p-1.5 sm:p-3" : "p-3 sm:p-6 lg:p-8"}
         >
           {children}
         </motion.div>

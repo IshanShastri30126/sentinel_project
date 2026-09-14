@@ -5,6 +5,7 @@ import { api, getFileUrl } from "@/lib/api";
 import { motion, AnimatePresence } from "framer-motion";
 import { Award, Trophy, Medal, Star, Search, Plus, Minus, Settings, X, Search as SearchIcon, Crown, Sparkles, Lock, Unlock, Eye, EyeOff, Shield, RefreshCw, Terminal, Users, CheckCircle } from "lucide-react";
 import { DefaultAvatar } from "@/components/default-avatar";
+import { useCyberDialog } from "@/components/ui/CyberDialogContext";
 
 interface LeaderboardEntry { rank: number; user: { id: string; name: string; role: string; avatarUrl?: string }; totalPoints: number; badges: { name: string; icon: string }[]; }
 
@@ -16,6 +17,7 @@ const RANK_STYLES = [
 
 export default function LeaderboardPage() {
   const { user, token } = useAuth();
+  const { showToast } = useCyberDialog();
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [period, setPeriod] = useState("");
@@ -42,9 +44,9 @@ export default function LeaderboardPage() {
   const [compLoading, setCompLoading] = useState(false);
   const [togglingVisibility, setTogglingVisibility] = useState(false);
 
-  const isCoord = user && ["FACULTY", "STUDENT_COORDINATOR", "FACULTY_COORDINATOR"].includes(user.role);
-  const isFaculty = user && ["FACULTY", "STUDENT_COORDINATOR", "FACULTY_COORDINATOR"].includes(user.role);
-  const isTechOrDev = user && ["DEVELOPMENT_TEAM", "TECH_TEAM", "ADMIN"].includes(user.role);
+  const isCoord = Boolean(user && ["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "TECH_TEAM", "STUDENT_COORDINATOR", "FACULTY", "TECH"].includes(user.role));
+  const isFaculty = Boolean(user && ["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "TECH_TEAM", "STUDENT_COORDINATOR", "FACULTY", "TECH"].includes(user.role));
+  const isTechOrDev = Boolean(user && ["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "TECH_TEAM", "STUDENT_COORDINATOR", "ADMIN", "FACULTY", "TECH"].includes(user.role));
 
   // Modals
   const [showGivePoints, setShowGivePoints] = useState(false);
@@ -146,9 +148,9 @@ export default function LeaderboardPage() {
       );
       setCompEvents(prev => prev.map(e => e.id === selectedCompEventId ? { ...e, isLeaderboardVisible: newVisibility } : e));
       await loadCompLeaderboard(selectedCompEventId);
-      alert(`Leaderboard ${newVisibility ? "unfrozen (visible to all)" : "paused (hidden from participants)"}`);
+      showToast(`Leaderboard ${newVisibility ? "unfrozen (visible to all)" : "paused (hidden from participants)"}`, "info");
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Failed to toggle visibility");
+      showToast(err instanceof Error ? err.message : "Failed to toggle visibility", "error");
     } finally {
       setTogglingVisibility(false);
     }
@@ -165,7 +167,7 @@ export default function LeaderboardPage() {
 
   const handleGivePoints = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedMember) return alert("Select a member");
+    if (!selectedMember) { showToast("Select a member first", "warning"); return; }
     try {
       await api("/appreciation", {
         method: "POST", token: token || undefined,
@@ -180,20 +182,21 @@ export default function LeaderboardPage() {
         setMemberSearch("");
         loadData();
       }, 2500);
-    } catch (err) { alert(err instanceof Error ? err.message : "Failed"); }
+    } catch (err) { showToast(err instanceof Error ? err.message : "Failed to award points", "error"); }
   };
 
   const handleDeductPoints = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedMember) return alert("Select a member");
+    if (!selectedMember) { showToast("Select a member first", "warning"); return; }
     try {
       await api("/appreciation/deduct", {
         method: "POST", token: token || undefined,
         body: JSON.stringify({ ...deductForm, points: parseInt(deductForm.points), receiverId: selectedMember.id })
       });
       setShowDeductPoints(false); setDeductForm({ receiverId: "", points: "", reason: "" }); setSelectedMember(null); setMemberSearch("");
-      loadData(); alert("Points deducted!");
-    } catch (err) { alert(err instanceof Error ? err.message : "Failed"); }
+      loadData();
+      showToast("Points deducted successfully", "success");
+    } catch (err) { showToast(err instanceof Error ? err.message : "Failed to deduct points", "error"); }
   };
 
   const handleCreateBadge = async (e: React.FormEvent) => {
@@ -204,8 +207,9 @@ export default function LeaderboardPage() {
         body: JSON.stringify({ ...badgeForm, pointThreshold: parseInt(badgeForm.pointThreshold) })
       });
       setBadgeForm({ name: "", description: "", icon: "AWARD", pointThreshold: "" });
+      showToast("Badge created successfully", "success");
       loadData();
-    } catch (err) { alert(err instanceof Error ? err.message : "Failed"); }
+    } catch (err) { showToast(err instanceof Error ? err.message : "Failed to create badge", "error"); }
   };
 
   const filtered = search ? entries.filter((e) => e.user?.name.toLowerCase().includes(search.toLowerCase())) : entries;
@@ -518,9 +522,9 @@ export default function LeaderboardPage() {
             </div>
           ) : compLeaderboard?.isBlockedForParticipant ? (
             /* Blocked Lock Notice for Participants when Leaderboard is Frozen */
-            <div className="p-12 rounded-2xl border border-red-500/30 bg-red-950/15 text-center space-y-4 max-w-xl mx-auto shadow-2xl">
-              <div className="w-16 h-16 rounded-full bg-red-950/40 border border-red-500/40 flex items-center justify-center mx-auto text-red-400 shadow-[0_0_25px_rgba(239,68,68,0.25)]">
-                <Lock className="w-8 h-8 text-red-500" />
+            <div className="p-8 sm:p-10 rounded-lg border border-red-500/40 bg-[#070E1A] text-center space-y-4 max-w-xl mx-auto shadow-2xl">
+              <div className="w-12 h-12 rounded border border-red-500/40 bg-red-950/40 flex items-center justify-center mx-auto text-red-400 shadow-[0_0_20px_rgba(239,68,68,0.25)]">
+                <Lock className="w-6 h-6 text-red-500" />
               </div>
               <div>
                 <h3 className="text-xl font-bold font-mono text-white uppercase tracking-tight">
@@ -530,15 +534,15 @@ export default function LeaderboardPage() {
                   The real-time leaderboard for this operation has been temporarily frozen by command staff. Live scores and submissions are actively tracked in background nodes and will be unveiled upon operation conclusion.
                 </p>
               </div>
-              <div className="inline-block p-3 rounded-lg border border-red-900/30 bg-black/60 font-mono text-[10px] text-red-400 uppercase tracking-widest">
+              <div className="inline-block p-2.5 rounded border border-red-900/40 bg-black/60 font-mono text-[10px] text-red-400 uppercase tracking-widest">
                 STATUS: PAUSED BY COMMAND // BG EVALUATION ACTIVE
               </div>
             </div>
           ) : !compLeaderboard?.leaderboard || compLeaderboard.leaderboard.length === 0 ? (
-            <div className="text-center py-24 border border-white/[0.06] rounded-2xl bg-black/20">
-              <Trophy className="w-16 h-16 mx-auto mb-4 text-zinc-700" />
-              <p className="text-lg text-[var(--ck-text-muted)] font-mono">No submissions logged for this operation yet</p>
-              <p className="text-xs text-slate-500 mt-1">Teams will appear as challenge flags are submitted.</p>
+            <div className="text-center py-20 border border-white/[0.08] rounded-lg bg-[#070E1A]">
+              <Trophy className="w-12 h-12 mx-auto mb-3 text-slate-600" />
+              <p className="text-base text-slate-300 font-mono">No submissions logged for this operation yet</p>
+              <p className="text-xs text-slate-500 font-mono mt-1">Teams will appear as challenge flags are submitted.</p>
             </div>
           ) : (
             <>
@@ -553,7 +557,7 @@ export default function LeaderboardPage() {
                     return (
                       <div key={idx} className="text-center relative font-mono">
                         <div
-                          className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-black/80 border border-white/20 flex flex-col items-center justify-center mx-auto mb-3 relative"
+                          className="w-16 h-16 sm:w-20 sm:h-20 rounded bg-[#070E1A] border border-white/20 flex flex-col items-center justify-center mx-auto mb-3 relative"
                           style={{ boxShadow: `0 0 20px ${style.shadowColor}` }}
                         >
                           <span className="text-sm font-bold text-white uppercase">{entry.team.teamCode}</span>
@@ -561,7 +565,7 @@ export default function LeaderboardPage() {
                             {entry.totalPoints} PTS
                           </span>
                           <div
-                            className="absolute -bottom-1.5 -right-1.5 w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black border border-black/50"
+                            className="absolute -bottom-1.5 -right-1.5 w-5 h-5 rounded flex items-center justify-center text-[10px] font-black border border-black/50"
                             style={{ background: style.color, color: idx === 0 ? "#000" : "#fff" }}
                           >
                             {idx === 0 ? <Crown className="w-3.5 h-3.5 text-black fill-black" /> : idx === 1 ? "2" : "3"}
@@ -722,7 +726,7 @@ export default function LeaderboardPage() {
                     )}
 
                     <motion.div 
-                      className={`${sizes} rounded-2xl bg-gradient-to-br ${style.bg} flex items-center justify-center mx-auto mb-3 border border-white/20 relative p-1`}
+                      className={`${sizes} rounded bg-[#070E1A] flex items-center justify-center mx-auto mb-3 border border-white/20 relative p-0.5`}
                       style={{ boxShadow: `0 0 24px ${style.shadowColor}` }}
                       animate={{ y: isFirst ? [0, -8, 0] : idx === 1 ? [0, -4, 0] : [0, -3, 0] }}
                       transition={{ duration: 3.5 + idx, repeat: Infinity, ease: "easeInOut" }}
@@ -730,12 +734,12 @@ export default function LeaderboardPage() {
                       <DefaultAvatar
                         src={entry.user?.avatarUrl ? getFileUrl(entry.user.avatarUrl) : null}
                         alt={entry.user?.name}
-                        className="w-full h-full rounded-xl"
+                        className="w-full h-full rounded"
                       />
 
                       {/* Rank Crown/Badge Badge Overlay */}
                       <div 
-                        className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black border border-black/40 shadow-lg"
+                        className="absolute -bottom-1 -right-1 w-5 h-5 rounded flex items-center justify-center text-[10px] font-black border border-black/40 shadow-lg"
                         style={{ background: style.color, color: idx === 0 ? "#000" : "#fff", boxShadow: `0 0 10px ${style.shadowColor}` }}
                       >
                         {idx === 0 ? <Crown className="w-3.5 h-3.5 text-black fill-black" /> : idx === 1 ? "2" : "3"}
@@ -743,10 +747,10 @@ export default function LeaderboardPage() {
 
                       {isFirst && <Sparkles className="w-4 h-4 text-[#00F5D4] absolute -top-2 -right-2 animate-bounce" style={{ filter: "drop-shadow(0 0 6px #00F5D4)" }} />}
                     </motion.div>
-                    <p className="text-xs sm:text-sm font-bold mb-0.5 tracking-tight text-[var(--ck-text)] uppercase truncate max-w-[90px] sm:max-w-none">{entry.user?.name}</p>
+                    <p className="text-xs sm:text-sm font-bold mb-0.5 tracking-tight text-white uppercase truncate max-w-[90px] sm:max-w-none">{entry.user?.name}</p>
                     <p className="text-[10px] sm:text-xs mb-3 font-bold" style={{ color: style.color }}>{entry.totalPoints} PTS</p>
                     <div
-                      className={`${heights[idx]} w-[88px] min-[380px]:w-28 sm:w-32 rounded-t-xl relative overflow-hidden border-x border-t border-white/[0.04]`}
+                      className={`${heights[idx]} w-[88px] min-[380px]:w-28 sm:w-32 rounded-t relative overflow-hidden border-x border-t border-white/[0.08]`}
                       style={{ background: `linear-gradient(180deg, ${style.color}15, transparent)` }}
                     >
                       {/* Rank number inside podium */}

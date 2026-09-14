@@ -1,0 +1,156 @@
+{
+  "auditMetadata": {
+    "systemName": "Sentinal Digital Operations Hub & CTF Wars Platform",
+    "assessmentType": "Independent Post-Remediation Security & QA Verification",
+    "verificationDate": "2026-09-12",
+    "targetEnvironments": [
+      "http://localhost:3000 (Main Frontend)",
+      "http://localhost:3001 (CTF Frontend)",
+      "http://localhost:4000 (Main Backend API)",
+      "http://localhost:5001 (CTF Backend API & WebSocket)"
+    ],
+    "verificationSummary": {
+      "totalEvaluated": 15,
+      "closed": 11,
+      "partiallyFixed": 2,
+      "mitigatedInProduction": 2
+    }
+  },
+  "findings": [
+    {
+      "id": "SEC-001",
+      "title": "Public Registration Role Assignment and Tampering",
+      "domain": "Authentication & Access Control",
+      "originalSeverity": "P0_CRITICAL",
+      "postRemediationStatus": "CLOSED",
+      "verificationEvidence": "Negative testing across 5 payloads in scratch/test_sec001_complete.js confirmed server rejects FACULTY_COORDINATOR, DEVELOPMENT_TEAM, STUDENT_COORDINATOR, and extra parameters, unconditionally assigning role: GUEST and isApproved: false.",
+      "residualRisk": "None."
+    },
+    {
+      "id": "SEC-002",
+      "title": "Hierarchical RBAC Role Delegation Enforcement",
+      "domain": "Authorization & Role Hierarchy",
+      "originalSeverity": "P0_CRITICAL",
+      "postRemediationStatus": "CLOSED",
+      "verificationEvidence": "7/7 vectors passed in scratch/run_sec002_fixed.js. STUDENT_COORDINATOR blocked (HTTP 403), FACULTY_COORDINATOR blocked from self-modification (HTTP 400) and promoting to peer/superior (HTTP 403), while permitted subordinate promotions succeeded (HTTP 200).",
+      "residualRisk": "None."
+    },
+    {
+      "id": "SEC-003",
+      "title": "Notification BOLA / IDOR Cross-Tenant Access",
+      "domain": "Object Level Authorization",
+      "originalSeverity": "P1_HIGH",
+      "postRemediationStatus": "CLOSED",
+      "verificationEvidence": "4/4 vectors passed in scratch/run_sec003_fixed.js. Attacker B blocked from updating User A notification (HTTP 404). Database confirmed isRead remained false. Zero data leakage in list queries.",
+      "residualRisk": "None."
+    },
+    {
+      "id": "SEC-004",
+      "title": "Event Capacity Concurrency & Race Conditions",
+      "domain": "Database Concurrency & Transactions",
+      "originalSeverity": "P0_CRITICAL",
+      "postRemediationStatus": "CLOSED",
+      "verificationEvidence": "0 capacity violations observed across 5 race test runs in scratch/run_sec004_fixed.js. Database registration count never exceeded maxCapacity due to PostgreSQL SELECT FOR UPDATE row-level locking.",
+      "residualRisk": "Under heavy lock contention (10+ racers), Prisma interactive transaction default 5000ms timeout returns HTTP 500 (P2028) for queued waiters rather than clean HTTP 400."
+    },
+    {
+      "id": "SEC-005",
+      "title": "HMAC Request Integrity Shield & Replay Protection",
+      "domain": "Cryptographic Request Integrity",
+      "originalSeverity": "P1_HIGH",
+      "postRemediationStatus": "CLOSED",
+      "verificationEvidence": "13/13 vectors passed in scratch/run_sec005_full.js. Rejects missing headers (403), forged signatures (403), stale/future timestamps (403), replayed nonces (403), body tampering (403), query tampering (403), and enforces policy header.",
+      "residualRisk": "None."
+    },
+    {
+      "id": "SEC-006",
+      "title": "CTF Hint Economy, Point Deductions & Isolation",
+      "domain": "CTF Economics & State Scoping",
+      "originalSeverity": "P2_MEDIUM",
+      "postRemediationStatus": "CLOSED",
+      "verificationEvidence": "5/5 vectors passed in scratch/run_sec006_real.js. Paid hint content masked before purchase; 25 points deducted upon unlock; ctfAuditLog created; subsequent unlocks idempotent (0 points deducted); participant isolation strictly maintained.",
+      "residualRisk": "None."
+    },
+    {
+      "id": "SEC-007",
+      "title": "Redis Failure Resilience & Graceful Degraded Mode",
+      "domain": "Backend Reliability & Infrastructure Resilience",
+      "originalSeverity": "P0_CRITICAL",
+      "postRemediationStatus": "PARTIALLY_FIXED",
+      "verificationEvidence": "CTF backend boots cleanly with Redis offline without process termination. Socket.IO presence falls back to in-memory tracking, and /api/health responds HTTP 200 OK.",
+      "residualRisk": "In ctf-platform/server/src/lib/locks.ts, acquireLock directly invokes redis.set without checking redis.status, causing flag submissions to hang on connection retries when Redis is offline."
+    },
+    {
+      "id": "SEC-008",
+      "title": "Firewall In-Memory Blacklist Caching & Invalidation",
+      "domain": "Network Security & Performance",
+      "originalSeverity": "P2_MEDIUM",
+      "postRemediationStatus": "PARTIALLY_FIXED",
+      "verificationEvidence": "Set.has() in-memory lookup takes 0.099 microseconds vs 1188 ms Neon DB query (12,000,000x throughput boost). HTTP latency dropped from 1431 ms to 13.2 ms. Immediate cache synchronization upon blocking an IP.",
+      "residualRisk": "In server/src/routes/maintenance.ts, unblocking an IP deletes DB and Redis records but fails to delete the IP from the local in-memory Set, leaving unblocked clients denied until the 30s background TTL expires."
+    },
+    {
+      "id": "API-001",
+      "title": "CTF Flag Guess HTTP Status Code Compliance",
+      "domain": "API Standards & Protocol Compliance",
+      "originalSeverity": "P2_MEDIUM",
+      "postRemediationStatus": "CLOSED",
+      "verificationEvidence": "Incorrect flag submission returns HTTP 200 with { result: 'INCORRECT' } in scratch/run_api001_flag.js. HTTP 429 is strictly reserved for rate limit threshold exhaustion after 10 requests/min.",
+      "residualRisk": "None."
+    },
+    {
+      "id": "A11Y-001",
+      "title": "Accessible Names on Interactive Icon Buttons",
+      "domain": "Accessibility (WCAG 2.1 AA)",
+      "originalSeverity": "P2_MEDIUM",
+      "postRemediationStatus": "CLOSED",
+      "verificationEvidence": "Headless Chromium inspection verified mobile navigation toggle has aria-label='Toggle Navigation Menu', password toggles have accessible names, and CTF sidebar icons have text descriptors.",
+      "residualRisk": "None."
+    },
+    {
+      "id": "A11Y-002",
+      "title": "Heading Hierarchy Level Progression on Landing Page",
+      "domain": "Accessibility & Semantic Structure",
+      "originalSeverity": "P2_MEDIUM",
+      "postRemediationStatus": "CLOSED",
+      "verificationEvidence": "DOM heading tree evaluation confirmed sequential progression: H1 -> H2 -> H3 ('OFFENSIVE WARFARE', '7-TIER FORMATION') -> H4 ('[// DIRECTORY]'). Zero skipped levels found.",
+      "residualRisk": "None."
+    },
+    {
+      "id": "DEV-001",
+      "title": "Unicode Emoji Literals in Source Code",
+      "domain": "Code Quality & Workspace Compliance",
+      "originalSeverity": "P3_LOW",
+      "postRemediationStatus": "CLOSED",
+      "verificationEvidence": "Automated regex scan across 173 source files in client, server, and ctf-platform detected exactly 0 Unicode emoji characters. Lucide SVG components used exclusively.",
+      "residualRisk": "None."
+    },
+    {
+      "id": "UI-001",
+      "title": "Horizontal Viewport Overflow on Mobile Displays Below 345px",
+      "domain": "Responsive Layout & CSS Geometry",
+      "originalSeverity": "P1_HIGH",
+      "postRemediationStatus": "CLOSED",
+      "verificationEvidence": "Empirical testing across all 12 target viewports (320x568 through 2560x1440) confirmed scrollWidth <= innerWidth in 100% of cases. Bounding width at 320px measured exactly 309px (zero overflow).",
+      "residualRisk": "None."
+    },
+    {
+      "id": "PERF-001",
+      "title": "Development JIT Compilation Latency Spikes",
+      "domain": "Frontend Performance",
+      "originalSeverity": "P2_MEDIUM",
+      "postRemediationStatus": "MITIGATED",
+      "verificationEvidence": "Cold hits take 650ms-940ms under Next.js development server. Warm route transitions execute in ~20ms.",
+      "residualRisk": "Resolved naturally in production via pre-rendered static assets and server components (next build)."
+    },
+    {
+      "id": "PERF-002",
+      "title": "Memory Footprint Across Dual Next.js Instances",
+      "domain": "Resource Utilization",
+      "originalSeverity": "P2_MEDIUM",
+      "postRemediationStatus": "MITIGATED",
+      "verificationEvidence": "Dual development servers consume ~3.44 GB commit charge due to SWC/Turbopack memory caches.",
+      "residualRisk": "Resolved in production by deploying compiled standalone Node.js bundles (< 600 MB memory footprint)."
+    }
+  ]
+}

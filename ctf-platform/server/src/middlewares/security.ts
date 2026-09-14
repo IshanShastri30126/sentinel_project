@@ -36,8 +36,8 @@ export const globalLimiter = rateLimit({
     success: false,
     message: "Too many requests from this IP. Please try again in 15 minutes.",
   },
-  // Skip rate limiting for health check endpoint
-  skip: (req) => req.path === "/api/health",
+  // Skip rate limiting for basic read requests and health check endpoint
+  skip: (req) => req.method === "GET" || req.method === "OPTIONS" || req.path === "/api/health",
 });
 
 /**

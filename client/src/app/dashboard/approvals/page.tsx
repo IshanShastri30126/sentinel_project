@@ -59,7 +59,7 @@ export default function ApprovalsPage() {
   const [filter, setFilter] = useState("ALL");
   const [decisionComment, setDecisionComment] = useState("");
 
-  const canApprove = user && ["FACULTY", "STUDENT_COORDINATOR"].includes(user.role);
+  const canApprove = Boolean(user && ["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "TECH_TEAM", "STUDENT_COORDINATOR", "FACULTY", "TECH"].includes(user.role));
 
   const load = async () => {
     try {
@@ -121,7 +121,7 @@ export default function ApprovalsPage() {
           </p>
         </div>
         <button onClick={() => setShowCreate(true)}
-          className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-600/80 to-amber-500/80 border border-amber-500/40 text-[var(--ck-text)] text-xs font-black uppercase tracking-widest hover:from-amber-500 hover:to-amber-400 transition-all shadow-[0_4px_20px_rgba(245,158,11,0.25)] hover:shadow-[0_4px_30px_rgba(245,158,11,0.4)]"
+          className="flex items-center gap-2 px-5 py-2.5 rounded bg-gradient-to-r from-amber-600/80 to-amber-500/80 border border-amber-500/40 text-[var(--ck-text)] text-xs font-black uppercase tracking-widest hover:from-amber-500 hover:to-amber-400 transition-all shadow-[0_4px_20px_rgba(245,158,11,0.25)] hover:shadow-[0_4px_30px_rgba(245,158,11,0.4)] cursor-pointer"
         >
           <Plus className="w-4 h-4" /> NEW REQUEST
         </button>
@@ -129,7 +129,7 @@ export default function ApprovalsPage() {
 
       {/* Status Filter Tabs */}
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
-        className="flex gap-1.5 p-1.5 rounded-2xl bg-white/3 border border-white/5 w-fit flex-wrap"
+        className="flex gap-1.5 p-1 rounded bg-[#070E1A] border border-white/10 w-fit flex-wrap"
       >
         {statusFilters.map(f => {
           const cfg = STATUS_CONFIG[f];
@@ -190,18 +190,18 @@ export default function ApprovalsPage() {
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.05 }}
-                className="rounded-2xl border overflow-hidden transition-all"
-                style={{ borderColor: isExpanded ? cfg.border : "rgba(255,255,255,0.06)", background: isExpanded ? cfg.bg : "rgba(255,255,255,0.02)" }}
+                className="rounded-lg border overflow-hidden transition-all bg-[#070E1A]"
+                style={{ borderColor: isExpanded ? cfg.border : "rgba(255,255,255,0.08)", background: isExpanded ? cfg.bg : "#070E1A" }}
               >
                 {/* Card Header */}
                 <button onClick={() => setExpanded(isExpanded ? null : ap.id)}
-                  className="w-full p-6 flex items-center gap-6 text-left hover:bg-white/3 transition-colors"
+                  className="w-full p-5 flex items-center gap-4 text-left hover:bg-white/[0.02] transition-colors cursor-pointer"
                 >
-                  {/* Icon */}
-                  <div className="shrink-0 w-14 h-14 rounded-2xl flex items-center justify-center border border-white/5 bg-white/3 text-amber-400">
+                  {/* Icon - technical rectangular frame */}
+                  <div className="shrink-0 w-10 h-10 rounded border border-amber-500/40 bg-amber-500/10 flex items-center justify-center text-amber-400">
                     {(() => {
                       const TypeIcon = typeInfo?.icon || ClipboardList;
-                      return <TypeIcon className="w-6 h-6" />;
+                      return <TypeIcon className="w-5 h-5" strokeWidth={1.75} />;
                     })()}
                   </div>
 
@@ -236,7 +236,7 @@ export default function ApprovalsPage() {
                     >
                       <div className="px-6 pb-6 space-y-5 border-t border-white/5 pt-6">
                         {ap.description && (
-                          <p className="text-base text-[var(--ck-text-secondary)] leading-relaxed bg-white/3 rounded-xl p-4 border border-white/5">{ap.description}</p>
+                          <p className="text-base text-slate-300 leading-relaxed bg-[#050A14] rounded p-4 border border-white/[0.08]">{ap.description}</p>
                         )}
 
                         {/* Steps Timeline */}
@@ -379,10 +379,10 @@ export default function ApprovalsPage() {
 
                   {/* Attachment */}
                   <div>
-                    <label className="block text-[10px] font-bold uppercase tracking-widest text-[var(--ck-text-muted)] mb-2 font-mono">ATTACHMENT (OPTIONAL)</label>
-                    <label className={`flex items-center gap-3 px-4 py-3 rounded-xl border cursor-pointer transition-all ${attachment ? "border-amber-500/30 bg-amber-950/15" : "border-white/10 bg-white/3 hover:border-white/15"}`}>
-                      <Paperclip className={`w-4 h-4 ${attachment ? "text-amber-400" : "text-[var(--ck-text-muted)]"}`} />
-                      <span className="text-xs text-[var(--ck-text-secondary)] flex-1 truncate">{attachment ? attachment.name : "Attach supporting document..."}</span>
+                    <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2 font-mono">ATTACHMENT (OPTIONAL)</label>
+                    <label className={`flex items-center gap-3 px-4 py-3 rounded border cursor-pointer transition-all ${attachment ? "border-amber-500/30 bg-amber-950/15" : "border-white/10 bg-[#050A14] hover:border-white/15"}`}>
+                      <Paperclip className={`w-4 h-4 ${attachment ? "text-amber-400" : "text-slate-400"}`} />
+                      <span className="text-xs text-slate-300 flex-1 truncate">{attachment ? attachment.name : "Attach supporting document..."}</span>
                       <input type="file" className="hidden" onChange={e => setAttachment(e.target.files?.[0] || null)} />
                     </label>
                   </div>
@@ -390,12 +390,12 @@ export default function ApprovalsPage() {
                   {/* Submit */}
                   <div className="flex gap-3 pt-2">
                     <button type="button" onClick={() => setShowCreate(false)}
-                      className="flex-1 py-3 rounded-xl border border-white/10 text-[var(--ck-text-muted)] text-sm font-bold hover:border-white/20 hover:text-[var(--ck-text)] transition-all"
+                      className="flex-1 py-2.5 rounded border border-white/10 text-slate-400 text-xs font-mono font-bold hover:border-white/20 hover:text-white transition-all cursor-pointer"
                     >
                       CANCEL
                     </button>
                     <button type="submit" disabled={creating}
-                      className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-gradient-to-r from-amber-600 to-amber-500 text-[var(--ck-text)] text-sm font-black uppercase tracking-wider hover:from-amber-500 hover:to-amber-400 transition-all shadow-[0_4px_20px_rgba(245,158,11,0.3)] disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded bg-gradient-to-r from-amber-600 to-amber-500 text-white text-xs font-mono font-black uppercase tracking-wider hover:from-amber-500 hover:to-amber-400 transition-all shadow-[0_4px_20px_rgba(245,158,11,0.3)] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                     >
                       {creating ? (
                         <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />

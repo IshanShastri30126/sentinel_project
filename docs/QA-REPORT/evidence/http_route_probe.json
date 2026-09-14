@@ -1,0 +1,415 @@
+{
+  "timestamp": "2026-09-12T15:41:15.448Z",
+  "main": [
+    {
+      "route": "/",
+      "status": 200,
+      "durationMs": 129,
+      "contentLength": 71147,
+      "title": "Chakravyuh Club — Digital Operations &amp; Cyber Defense Hub",
+      "headers": {
+        "content-type": "text/html; charset=utf-8",
+        "cache-control": "no-cache, must-revalidate",
+        "content-security-policy": "present",
+        "x-frame-options": "DENY"
+      }
+    },
+    {
+      "route": "/about",
+      "status": 200,
+      "durationMs": 654,
+      "contentLength": 63787,
+      "title": "Chakravyuh Club — Digital Operations &amp; Cyber Defense Hub",
+      "headers": {
+        "content-type": "text/html; charset=utf-8",
+        "cache-control": "no-cache, must-revalidate",
+        "content-security-policy": "present",
+        "x-frame-options": "DENY"
+      }
+    },
+    {
+      "route": "/team",
+      "status": 200,
+      "durationMs": 940,
+      "contentLength": 54431,
+      "title": "Chakravyuh Club — Digital Operations &amp; Cyber Defense Hub",
+      "headers": {
+        "content-type": "text/html; charset=utf-8",
+        "cache-control": "no-cache, must-revalidate",
+        "content-security-policy": "present",
+        "x-frame-options": "DENY"
+      }
+    },
+    {
+      "route": "/events",
+      "status": 200,
+      "durationMs": 554,
+      "contentLength": 56920,
+      "title": "Chakravyuh Club — Digital Operations &amp; Cyber Defense Hub",
+      "headers": {
+        "content-type": "text/html; charset=utf-8",
+        "cache-control": "no-cache, must-revalidate",
+        "content-security-policy": "present",
+        "x-frame-options": "DENY"
+      }
+    },
+    {
+      "route": "/auth",
+      "status": 200,
+      "durationMs": 87,
+      "contentLength": 31255,
+      "title": "Chakravyuh Club — Digital Operations &amp; Cyber Defense Hub",
+      "headers": {
+        "content-type": "text/html; charset=utf-8",
+        "cache-control": "no-cache, must-revalidate",
+        "content-security-policy": "present",
+        "x-frame-options": "DENY"
+      }
+    },
+    {
+      "route": "/auth/forgot-password",
+      "status": 200,
+      "durationMs": 349,
+      "contentLength": 28249,
+      "title": "Chakravyuh Club — Digital Operations &amp; Cyber Defense Hub",
+      "headers": {
+        "content-type": "text/html; charset=utf-8",
+        "cache-control": "no-cache, must-revalidate",
+        "content-security-policy": "present",
+        "x-frame-options": "DENY"
+      }
+    },
+    {
+      "route": "/auth/reset-password",
+      "status": "TIMEOUT",
+      "durationMs": 10011
+    },
+    {
+      "route": "/dashboard",
+      "status": 200,
+      "durationMs": 205,
+      "contentLength": 31312,
+      "title": "Chakravyuh Club — Digital Operations &amp; Cyber Defense Hub",
+      "headers": {
+        "content-type": "text/html; charset=utf-8",
+        "cache-control": "no-cache, must-revalidate",
+        "content-security-policy": "present",
+        "x-frame-options": "DENY"
+      }
+    },
+    {
+      "route": "/dashboard/analytics",
+      "status": 200,
+      "durationMs": 460,
+      "contentLength": 33874,
+      "title": "Chakravyuh Club — Digital Operations &amp; Cyber Defense Hub",
+      "headers": {
+        "content-type": "text/html; charset=utf-8",
+        "cache-control": "no-cache, must-revalidate",
+        "content-security-policy": "present",
+        "x-frame-options": "DENY"
+      }
+    },
+    {
+      "route": "/dashboard/approvals",
+      "status": 200,
+      "durationMs": 8673,
+      "contentLength": 33404,
+      "title": "Chakravyuh Club — Digital Operations &amp; Cyber Defense Hub",
+      "headers": {
+        "content-type": "text/html; charset=utf-8",
+        "cache-control": "no-cache, must-revalidate",
+        "content-security-policy": "present",
+        "x-frame-options": "DENY"
+      }
+    },
+    {
+      "route": "/dashboard/attendance",
+      "status": 200,
+      "durationMs": 623,
+      "contentLength": 34524,
+      "title": "Chakravyuh Club — Digital Operations &amp; Cyber Defense Hub",
+      "headers": {
+        "content-type": "text/html; charset=utf-8",
+        "cache-control": "no-cache, must-revalidate",
+        "content-security-policy": "present",
+        "x-frame-options": "DENY"
+      }
+    },
+    {
+      "route": "/dashboard/certificates",
+      "status": 200,
+      "durationMs": 360,
+      "contentLength": 33931,
+      "title": "Chakravyuh Club — Digital Operations &amp; Cyber Defense Hub",
+      "headers": {
+        "content-type": "text/html; charset=utf-8",
+        "cache-control": "no-cache, must-revalidate",
+        "content-security-policy": "present",
+        "x-frame-options": "DENY"
+      }
+    },
+    {
+      "route": "/dashboard/certificates/builder",
+      "status": 200,
+      "durationMs": 314,
+      "contentLength": 34734,
+      "title": "Chakravyuh Club — Digital Operations &amp; Cyber Defense Hub",
+      "headers": {
+        "content-type": "text/html; charset=utf-8",
+        "cache-control": "no-cache, must-revalidate",
+        "content-security-policy": "present",
+        "x-frame-options": "DENY"
+      }
+    },
+    {
+      "route": "/dashboard/my-certificates",
+      "status": 200,
+      "durationMs": 2218,
+      "contentLength": 31777,
+      "title": "Chakravyuh Club — Digital Operations &amp; Cyber Defense Hub",
+      "headers": {
+        "content-type": "text/html; charset=utf-8",
+        "cache-control": "no-cache, must-revalidate",
+        "content-security-policy": "present",
+        "x-frame-options": "DENY"
+      }
+    },
+    {
+      "route": "/dashboard/events",
+      "status": 200,
+      "durationMs": 458,
+      "contentLength": 40969,
+      "title": "Chakravyuh Club — Digital Operations &amp; Cyber Defense Hub",
+      "headers": {
+        "content-type": "text/html; charset=utf-8",
+        "cache-control": "no-cache, must-revalidate",
+        "content-security-policy": "present",
+        "x-frame-options": "DENY"
+      }
+    },
+    {
+      "route": "/dashboard/landing-management",
+      "status": 200,
+      "durationMs": 1605,
+      "contentLength": 32169,
+      "title": "Chakravyuh Club — Digital Operations &amp; Cyber Defense Hub",
+      "headers": {
+        "content-type": "text/html; charset=utf-8",
+        "cache-control": "no-cache, must-revalidate",
+        "content-security-policy": "present",
+        "x-frame-options": "DENY"
+      }
+    },
+    {
+      "route": "/dashboard/leaderboard",
+      "status": 200,
+      "durationMs": 974,
+      "contentLength": 33912,
+      "title": "Chakravyuh Club — Digital Operations &amp; Cyber Defense Hub",
+      "headers": {
+        "content-type": "text/html; charset=utf-8",
+        "cache-control": "no-cache, must-revalidate",
+        "content-security-policy": "present",
+        "x-frame-options": "DENY"
+      }
+    },
+    {
+      "route": "/dashboard/maintenance",
+      "status": 200,
+      "durationMs": 675,
+      "contentLength": 32225,
+      "title": "Chakravyuh Club — Digital Operations &amp; Cyber Defense Hub",
+      "headers": {
+        "content-type": "text/html; charset=utf-8",
+        "cache-control": "no-cache, must-revalidate",
+        "content-security-policy": "present",
+        "x-frame-options": "DENY"
+      }
+    },
+    {
+      "route": "/dashboard/notifications",
+      "status": 200,
+      "durationMs": 1452,
+      "contentLength": 31763,
+      "title": "Chakravyuh Club — Digital Operations &amp; Cyber Defense Hub",
+      "headers": {
+        "content-type": "text/html; charset=utf-8",
+        "cache-control": "no-cache, must-revalidate",
+        "content-security-policy": "present",
+        "x-frame-options": "DENY"
+      }
+    },
+    {
+      "route": "/dashboard/profile",
+      "status": 200,
+      "durationMs": 481,
+      "contentLength": 33659,
+      "title": "Chakravyuh Club — Digital Operations &amp; Cyber Defense Hub",
+      "headers": {
+        "content-type": "text/html; charset=utf-8",
+        "cache-control": "no-cache, must-revalidate",
+        "content-security-policy": "present",
+        "x-frame-options": "DENY"
+      }
+    },
+    {
+      "route": "/dashboard/settings",
+      "status": 200,
+      "durationMs": 320,
+      "contentLength": 33388,
+      "title": "Chakravyuh Club — Digital Operations &amp; Cyber Defense Hub",
+      "headers": {
+        "content-type": "text/html; charset=utf-8",
+        "cache-control": "no-cache, must-revalidate",
+        "content-security-policy": "present",
+        "x-frame-options": "DENY"
+      }
+    },
+    {
+      "route": "/dashboard/teams",
+      "status": 200,
+      "durationMs": 1822,
+      "contentLength": 34426,
+      "title": "Chakravyuh Club — Digital Operations &amp; Cyber Defense Hub",
+      "headers": {
+        "content-type": "text/html; charset=utf-8",
+        "cache-control": "no-cache, must-revalidate",
+        "content-security-policy": "present",
+        "x-frame-options": "DENY"
+      }
+    },
+    {
+      "route": "/dashboard/users",
+      "status": 200,
+      "durationMs": 490,
+      "contentLength": 33340,
+      "title": "Chakravyuh Club — Digital Operations &amp; Cyber Defense Hub",
+      "headers": {
+        "content-type": "text/html; charset=utf-8",
+        "cache-control": "no-cache, must-revalidate",
+        "content-security-policy": "present",
+        "x-frame-options": "DENY"
+      }
+    },
+    {
+      "route": "/verify/test-code-123",
+      "status": 200,
+      "durationMs": 3290,
+      "contentLength": 22260,
+      "title": "Chakravyuh Club — Digital Operations &amp; Cyber Defense Hub",
+      "headers": {
+        "content-type": "text/html; charset=utf-8",
+        "cache-control": "no-cache, must-revalidate",
+        "content-security-policy": "present",
+        "x-frame-options": "DENY"
+      }
+    }
+  ],
+  "ctf": [
+    {
+      "route": "/",
+      "status": 200,
+      "durationMs": 101,
+      "contentLength": 22397,
+      "title": "CTF Wars — Capture The Flag",
+      "headers": {
+        "content-type": "text/html; charset=utf-8",
+        "cache-control": "no-cache, must-revalidate",
+        "content-security-policy": "present",
+        "x-frame-options": "DENY"
+      }
+    },
+    {
+      "route": "/lobby",
+      "status": 200,
+      "durationMs": 116,
+      "contentLength": 22603,
+      "title": "CTF Wars — Capture The Flag",
+      "headers": {
+        "content-type": "text/html; charset=utf-8",
+        "cache-control": "no-cache, must-revalidate",
+        "content-security-policy": "present",
+        "x-frame-options": "DENY"
+      }
+    },
+    {
+      "route": "/challenges",
+      "status": 200,
+      "durationMs": 280,
+      "contentLength": 26161,
+      "title": "CTF Wars — Capture The Flag",
+      "headers": {
+        "content-type": "text/html; charset=utf-8",
+        "cache-control": "no-cache, must-revalidate",
+        "content-security-policy": "present",
+        "x-frame-options": "DENY"
+      }
+    },
+    {
+      "route": "/leaderboard",
+      "status": 200,
+      "durationMs": 302,
+      "contentLength": 25133,
+      "title": "CTF Wars — Capture The Flag",
+      "headers": {
+        "content-type": "text/html; charset=utf-8",
+        "cache-control": "no-cache, must-revalidate",
+        "content-security-policy": "present",
+        "x-frame-options": "DENY"
+      }
+    },
+    {
+      "route": "/my-scores",
+      "status": 200,
+      "durationMs": 1344,
+      "contentLength": 24366,
+      "title": "CTF Wars — Capture The Flag",
+      "headers": {
+        "content-type": "text/html; charset=utf-8",
+        "cache-control": "no-cache, must-revalidate",
+        "content-security-policy": "present",
+        "x-frame-options": "DENY"
+      }
+    },
+    {
+      "route": "/admin",
+      "status": 200,
+      "durationMs": 8282,
+      "contentLength": 22834,
+      "title": "CTF Wars — Capture The Flag",
+      "headers": {
+        "content-type": "text/html; charset=utf-8",
+        "cache-control": "no-cache, must-revalidate",
+        "content-security-policy": "present",
+        "x-frame-options": "DENY"
+      }
+    },
+    {
+      "route": "/admin/heatmap",
+      "status": 200,
+      "durationMs": 1412,
+      "contentLength": 22687,
+      "title": "CTF Wars — Capture The Flag",
+      "headers": {
+        "content-type": "text/html; charset=utf-8",
+        "cache-control": "no-cache, must-revalidate",
+        "content-security-policy": "present",
+        "x-frame-options": "DENY"
+      }
+    },
+    {
+      "route": "/admin/submissions",
+      "status": 200,
+      "durationMs": 1042,
+      "contentLength": 25494,
+      "title": "CTF Wars — Capture The Flag",
+      "headers": {
+        "content-type": "text/html; charset=utf-8",
+        "cache-control": "no-cache, must-revalidate",
+        "content-security-policy": "present",
+        "x-frame-options": "DENY"
+      }
+    }
+  ]
+}

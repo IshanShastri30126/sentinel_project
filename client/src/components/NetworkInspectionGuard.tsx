@@ -150,7 +150,7 @@ export function NetworkInspectionGuard() {
       </h2>
       <p style={{ fontSize: "14px", color: "#9ca3af", maxWidth: "480px", lineHeight: "1.6" }}>
         Network inspection, DevTools debugger, and unauthorized traffic interception tools are restricted
-        under Chakravyuh Security Policy. Please close external inspector windows to continue.
+        under Sentinel Security Policy. Please close external inspector windows to continue.
       </p>
     </div>
   );

@@ -170,7 +170,7 @@ router.get(
           competitionId: true,
           createdAt: true,
           updatedAt: true,
-          // Include hints (ordered, content visible here)
+          // Include hints (ordered)
           hints: {
             select: {
               id: true,
@@ -221,15 +221,167 @@ router.get(
         });
       }
 
+      // Privilege check: Admins and Faculty can inspect unmasked hint content
+      const privilegedRoles = ["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "SUPER_ADMIN", "ADMIN", "FACULTY"];
+      const isPrivileged = privilegedRoles.includes(req.user?.role || "");
+
+      // Fetch unlocked hints for this user
+      const unlockedHintIds = new Set<string>();
+      if (!isPrivileged) {
+        const unlockLogs = await db.ctfAuditLog.findMany({
+          where: {
+            userId: req.user!.id,
+            action: "HINT_UNLOCK",
+          },
+          select: { metadata: true },
+        });
+
+        for (const log of unlockLogs) {
+          const meta = log.metadata as { challengeId?: string; hintId?: string } | null;
+          if (meta?.hintId && (!meta.challengeId || meta.challengeId === challenge.id)) {
+            unlockedHintIds.add(meta.hintId);
+          }
+        }
+      }
+
+      // Sanitize hints: free hints (0 pts) or unlocked hints include content; locked paid hints omit content
+      const sanitizedHints = challenge.hints.map((hint) => {
+        const isUnlocked = hint.pointCost === 0 || isPrivileged || unlockedHintIds.has(hint.id);
+        return {
+          id: hint.id,
+          pointCost: hint.pointCost,
+          orderIndex: hint.orderIndex,
+          content: isUnlocked ? hint.content : undefined,
+          isUnlocked,
+        };
+      });
+
       res.json({
         success: true,
-        data: challenge,
+        data: {
+          ...challenge,
+          hints: sanitizedHints,
+        },
       });
     } catch (error) {
       console.error("[ERROR] [Challenges] Error fetching single:", error);
       res.status(500).json({
         success: false,
         message: "Failed to fetch challenge.",
+      });
+    }
+  }
+);
+
+// ─── POST /api/challenges/:id/hints/:hintId/unlock ──────────
+// Participant: Unlock a challenge hint by paying the point cost.
+// Deducts points from totalScore, logs unlock in CtfAuditLog,
+// and returns revealed hint content.
+// ─────────────────────────────────────────────────────────────
+router.post(
+  "/:id/hints/:hintId/unlock",
+  authMiddleware,
+  async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { id: challengeId, hintId } = req.params;
+
+      const challenge = await db.ctfChallenge.findUnique({
+        where: { id: challengeId },
+        include: { hints: true },
+      });
+
+      if (!challenge) {
+        res.status(404).json({
+          success: false,
+          message: "Challenge not found.",
+        });
+        return;
+      }
+
+      const hint = challenge.hints.find((h) => h.id === hintId);
+      if (!hint) {
+        res.status(404).json({
+          success: false,
+          message: "Hint not found for this challenge.",
+        });
+        return;
+      }
+
+      const participant = await db.ctfParticipant.findUnique({
+        where: {
+          userId_competitionId: {
+            userId: req.user!.id,
+            competitionId: challenge.competitionId,
+          },
+        },
+      });
+
+      if (!participant) {
+        res.status(400).json({
+          success: false,
+          message: "You must join this competition first.",
+        });
+        return;
+      }
+
+      // Check if already unlocked
+      let alreadyUnlocked = false;
+      const unlockLogs = await db.ctfAuditLog.findMany({
+        where: {
+          userId: req.user!.id,
+          action: "HINT_UNLOCK",
+        },
+        select: { metadata: true },
+      });
+
+      for (const log of unlockLogs) {
+        const meta = log.metadata as { hintId?: string } | null;
+        if (meta?.hintId === hint.id) {
+          alreadyUnlocked = true;
+          break;
+        }
+      }
+
+      if (!alreadyUnlocked && hint.pointCost > 0) {
+        // Deduct points from participant's score
+        await db.ctfParticipant.update({
+          where: { id: participant.id },
+          data: {
+            totalScore: Math.max(0, participant.totalScore - hint.pointCost),
+          },
+        });
+
+        // Record unlock transaction
+        await db.ctfAuditLog.create({
+          data: {
+            action: "HINT_UNLOCK",
+            severity: "INFO",
+            outcome: "SUCCESS",
+            userId: req.user!.id,
+            metadata: {
+              challengeId,
+              hintId: hint.id,
+              pointCost: hint.pointCost,
+            },
+          },
+        });
+      }
+
+      res.json({
+        success: true,
+        message: "Hint unlocked successfully.",
+        data: {
+          hintId: hint.id,
+          content: hint.content,
+          pointCost: hint.pointCost,
+          isUnlocked: true,
+        },
+      });
+    } catch (error) {
+      console.error("[ERROR] [Challenges] Error unlocking hint:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to unlock hint.",
       });
     }
   }
