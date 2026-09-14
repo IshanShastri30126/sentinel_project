@@ -1,5 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
+import { SentinalLoader } from "@/components/ui/SentinalLoader";
 import { useAuth } from "@/lib/auth-context";
 import { api, getFileUrl } from "@/lib/api";
 import { motion, AnimatePresence } from "framer-motion";
@@ -516,9 +517,8 @@ export default function LeaderboardPage() {
 
           {/* Loading State */}
           {compLoading ? (
-            <div className="flex flex-col items-center justify-center py-24 gap-3">
-              <div className="w-10 h-10 border-2 border-red-500/30 border-t-cyan-400 rounded-full animate-spin" />
-              <p className="text-[10px] font-mono uppercase tracking-widest text-[var(--ck-text-muted)]">FETCHING TELEMETRY SCORES...</p>
+            <div className="flex items-center justify-center py-24">
+              <SentinalLoader variant="card" size="md" text="FETCHING TELEMETRY SCORES..." />
             </div>
           ) : compLeaderboard?.isBlockedForParticipant ? (
             /* Blocked Lock Notice for Participants when Leaderboard is Frozen */
@@ -686,9 +686,8 @@ export default function LeaderboardPage() {
       </motion.div>
 
       {loading ? (
-        <div className="flex flex-col items-center justify-center py-24 gap-3">
-          <div className="w-10 h-10 border-2 border-violet-500/30 border-t-cyan-400 rounded-full animate-spin" />
-          <p className="text-[10px] font-mono uppercase tracking-widest text-[var(--ck-text-muted)]">LOADING RANKINGS...</p>
+        <div className="flex items-center justify-center py-24">
+          <SentinalLoader variant="card" size="md" text="LOADING RANKINGS..." />
         </div>
       ) : filtered.length === 0 ? (
         <div className="text-center py-24">

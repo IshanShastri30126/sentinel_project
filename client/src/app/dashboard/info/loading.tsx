@@ -1,22 +1,17 @@
-"use client";
+﻿"use client";
 import React from "react";
+import { SentinalLoader } from "@/components/ui/SentinalLoader";
 
+/**
+ * Loading boundary for the info route segment.
+ * Displayed by Next.js during server-component data fetching transitions.
+ * Uses the canonical SentinalLoader (fullscreen variant) for visual consistency
+ * across all SENTINAL dashboard sections.
+ */
 export default function Loading() {
   return (
-    <div className="flex flex-col items-center justify-center min-h-[50vh] gap-4 w-full h-full font-mono select-none">
-      <div className="relative flex items-center justify-center w-16 h-16">
-        <div className="absolute inset-0 rounded-full border border-neutral-500/10 border-t-neutral-500 animate-spin" />
-        <div className="absolute inset-2 rounded-full border border-amber-500/10 border-b-amber-500 animate-spin [animation-duration:0.8s] [animation-direction:reverse]" />
-        <div className="w-2.5 h-2.5 rounded-full bg-neutral-400 animate-pulse shadow-[0_0_8px_rgba(163,163,163,0.8)]" />
-      </div>
-      <div className="flex flex-col items-center gap-1">
-        <span className="text-[10px] text-zinc-500 tracking-[0.25em] uppercase font-bold animate-pulse">
-          CONFIGURING CONSOLE PREFERENCES
-        </span>
-        <span className="text-[9px] text-neutral-500/60 uppercase tracking-widest">
-          Polling local config matrices...
-        </span>
-      </div>
+    <div className="flex items-center justify-center min-h-[50vh] w-full">
+      <SentinalLoader variant="card" size="lg" text="LOADING SYSTEM INFO..." />
     </div>
   );
 }

@@ -1,5 +1,6 @@
 "use client";
 import React, { useEffect, useState, useMemo } from "react";
+import { SentinalLoader } from "@/components/ui/SentinalLoader";
 import { useAuth } from "@/lib/auth-context";
 import { api, getFileUrl } from "@/lib/api";
 import { DefaultAvatar } from "@/components/default-avatar";
@@ -296,12 +297,8 @@ export default function AnalyticsPage() {
   }, [eventsAnalysis, eventSearch, eventSortField, eventSortOrder]);
 
   if (loading) return (
-    <div className="flex flex-col items-center justify-center py-32 gap-4">
-      <div className="relative">
-        <div className="w-16 h-16 rounded-full border-2 border-cyan-500/20 border-t-cyan-500 animate-spin" />
-        <div className="absolute inset-2 rounded-full border-2 border-violet-500/20 border-b-violet-500 animate-spin" style={{ animationDirection: "reverse", animationDuration: "0.8s" }} />
-      </div>
-      <p className="text-xs font-mono uppercase tracking-widest text-[var(--ck-text-muted)] animate-pulse">LOADING ANALYTICS ENGINE...</p>
+    <div className="flex items-center justify-center py-32">
+      <SentinalLoader variant="card" size="lg" text="LOADING ANALYTICS ENGINE..." />
     </div>
   );
 

@@ -1,5 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
+import { SentinalLoader } from "@/components/ui/SentinalLoader";
 import { useAuth } from "@/lib/auth-context";
 import { api, apiUpload } from "@/lib/api";
 import { motion, AnimatePresence } from "framer-motion";
@@ -166,9 +167,8 @@ export default function ApprovalsPage() {
 
       {/* List */}
       {loading ? (
-        <div className="flex flex-col items-center justify-center py-24 gap-4">
-          <div className="w-12 h-12 rounded-full border-2 border-amber-500/20 border-t-amber-500 animate-spin" />
-          <p className="text-xs font-mono text-[var(--ck-text-muted)] animate-pulse uppercase tracking-widest">LOADING PIPELINE...</p>
+        <div className="flex items-center justify-center py-24">
+          <SentinalLoader variant="card" size="md" text="LOADING APPROVAL PIPELINE..." />
         </div>
       ) : approvals.length === 0 ? (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center justify-center py-24 gap-4">

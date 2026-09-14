@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
+import { SentinalLoader } from "@/components/ui/SentinalLoader";
 import { useAuth } from "@/lib/auth-context";
 import { api, apiUpload, getFileUrl } from "@/lib/api";
 import { FALLBACK_TEAM_CADRE } from "@/lib/fallbackTeam";
@@ -166,7 +167,7 @@ export default function LandingManagementPage() {
   if (loading) {
     return (
       <div className="flex justify-center py-20">
-        <div className="w-8 h-8 border-2 border-[var(--ck-border)] border-t-[#00F5D4] rounded-full animate-spin" />
+        <SentinalLoader variant="card" size="md" text="LOADING LANDING CONFIGURATION..." />
       </div>
     );
   }

@@ -1,5 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
+import { SentinalLoader } from "@/components/ui/SentinalLoader";
 import { useAuth } from "@/lib/auth-context";
 import { api, API_BASE } from "@/lib/api";
 import { motion, AnimatePresence } from "framer-motion";
@@ -560,7 +561,9 @@ export default function TeamsPage() {
 
       {/* Team Grid */}
       {loading ? (
-        <div className="flex justify-center py-20"><div className="w-8 h-8 border-3 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin" /></div>
+        <div className="flex justify-center py-20">
+          <SentinalLoader variant="card" size="md" text="LOADING TEAM REGISTRY..." />
+        </div>
       ) : displayedTeams.length === 0 ? (
         <div className="text-center py-20">
           <UsersRound className="w-16 h-16 mx-auto mb-4" style={{ color: "var(--ck-text-muted)" }} />

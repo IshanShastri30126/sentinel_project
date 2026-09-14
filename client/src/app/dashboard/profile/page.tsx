@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { SentinalLoader } from "@/components/ui/SentinalLoader";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import { api, API_BASE, getFileUrl } from "@/lib/api";
@@ -74,9 +75,8 @@ export default function ProfilePage() {
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 space-y-4">
-        <div className="w-8 h-8 border-3 border-violet-500/30 border-t-cyan-400 rounded-full animate-spin" />
-        <p className="text-xs uppercase font-mono text-[var(--ck-text-secondary)] tracking-widest">Loading Operative Dossier...</p>
+      <div className="flex items-center justify-center py-20">
+        <SentinalLoader variant="card" size="md" text="LOADING OPERATIVE DOSSIER..." />
       </div>
     );
   }

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useRef } from "react";
+import { SentinalLoader } from "@/components/ui/SentinalLoader";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { useAuth, Role } from "@/lib/auth-context";
@@ -249,9 +250,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   if (isLoading || !user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[var(--ck-bg)]">
-        <div className="w-10 h-10 border-3 border-red-500/30 border-t-red-500 rounded-full animate-spin shadow-[0_0_15px_rgba(220,38,38,0.3)]" />
-      </div>
+      <SentinalLoader
+        variant="fullscreen"
+        size="xl"
+        text="AUTHENTICATING OPERATIVE..."
+        accessibleLabel="Verifying your session credentials"
+      />
     );
   }
 

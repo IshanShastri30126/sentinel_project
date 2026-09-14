@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, Suspense } from "react";
+import { SentinalLoader } from "@/components/ui/SentinalLoader";
 import { motion } from "framer-motion";
 import { Lock, ArrowRight, ArrowLeft, CheckCircle, AlertCircle, Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
@@ -206,8 +207,8 @@ export default function ResetPasswordPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen flex items-center justify-center bg-[#02050B] text-[#00F5D4] font-mono text-xs">
-          <div className="w-8 h-8 border-2 border-cyan-500/30 border-t-[#00F5D4] rounded-full animate-spin" />
+        <div className="min-h-screen flex items-center justify-center bg-[#02050B]">
+          <SentinalLoader variant="card" size="lg" text="LOADING SECURITY GATEWAY..." />
         </div>
       }
     >

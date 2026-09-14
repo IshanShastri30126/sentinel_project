@@ -918,8 +918,8 @@ export default function EventsPage() {
               setDocumentFiles([]); 
               setStep4Confirmed(false);
               setStep4EnteredAt(0);
-              // Always auto-add all Faculty Coordinators in every new event
-              const defaultFaculty = availableFaculty.length > 0 ? availableFaculty : [
+              // Pre-seed faculty coordinators for every new event
+              const defaultFaculty = [
                 { name: "Dr. Parag Shah", role: "Faculty Coordinator", email: "paragshah.ce@charusat.ac.in", phone: "9876543210" },
                 { name: "Prof. Martin Parmar", role: "Faculty Coordinator", email: "martinparmar.ce@charusat.ac.in", phone: "9876543210" }
               ];
