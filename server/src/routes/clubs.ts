@@ -1,6 +1,6 @@
 import { Router, Request, Response } from "express";
 import prisma from "../lib/prisma";
-import { authenticate, requireMinRole } from "../middlewares/auth";
+import { authenticate, requireRole } from "../middlewares/auth";
 import { redisGet, redisSet, redisDel } from "../lib/redis";
 
 const router = Router();
@@ -58,8 +58,8 @@ router.get("/:slug", async (req: Request, res: Response) => {
   }
 });
 
-// PATCH /api/clubs/:clubId/branding — Update branding (SC/Faculty only)
-router.patch("/:clubId/branding", authenticate, requireMinRole("STUDENT_COORDINATOR"), async (req: Request, res: Response) => {
+// PATCH /api/clubs/:clubId/branding — Update branding
+router.patch("/:clubId/branding", authenticate, requireRole("SOCIAL_MEDIA_COORDINATOR", "TECH_COORDINATOR", "FACULTY_COORDINATOR"), async (req: Request, res: Response) => {
   try {
     const clubId = req.params.clubId;
     const { primaryColor, secondaryColor, themeMode, fontFamily, logoUrl } = req.body;

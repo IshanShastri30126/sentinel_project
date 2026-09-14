@@ -155,7 +155,7 @@ export default function MemberProfilePage() {
   }
 
   const skillLines = member.about ? member.about.split("\n").filter((l: string) => l.trim().length > 0) : [];
-  const isFaculty = member.role === "FACULTY";
+  const isFaculty = member.role === "FACULTY_COORDINATOR";
   const identifierCode = isFaculty ? (member.employeeId || member.studentId) : member.studentId;
   const sanitizedPhone = formatPhoneNumber(member.phone);
 

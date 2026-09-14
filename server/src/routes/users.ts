@@ -1,6 +1,6 @@
 import { Router, Request, Response } from "express";
 import prisma from "../lib/prisma";
-import { authenticate, requireRole, requireMinRole, ROLE_HIERARCHY } from "../middlewares/auth";
+import { authenticate, requireRole } from "../middlewares/auth";
 import { auditLog } from "../middlewares/auditLog";
 import { sendNotification } from "../lib/notificationService";
 import { sendAccountApprovedEmail, sendRoleUpdatedEmail } from "../lib/emailService";
@@ -29,8 +29,8 @@ async function clearUsersCache() {
 
 const router = Router();
 
-// GET /api/users — List all users (SMC+)
-router.get("/", authenticate, requireMinRole("SOCIAL_MEDIA_COORDINATOR"), async (req: Request, res: Response) => {
+// GET /api/users — List all users (Tech, Faculty)
+router.get("/", authenticate, requireRole("TECH_COORDINATOR", "FACULTY_COORDINATOR"), async (req: Request, res: Response) => {
   try {
     const { search, role, approved, page, limit } = req.query;
     
@@ -127,8 +127,8 @@ router.get("/search", authenticate, async (req: Request, res: Response) => {
   }
 });
 
-// PATCH /api/users/:id/approve — Approve user access (Tech+)
-router.patch("/:id/approve", authenticate, requireMinRole("TECH_COORDINATOR"), auditLog("USER_APPROVED"), async (req: Request, res: Response) => {
+// PATCH /api/users/:id/approve — Approve user access (Tech, Faculty)
+router.patch("/:id/approve", authenticate, requireRole("TECH_COORDINATOR", "FACULTY_COORDINATOR"), auditLog("USER_APPROVED"), async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const user = await prisma.user.findUnique({ where: { id } });
@@ -190,8 +190,8 @@ async function deleteUserCascade(userId: string) {
   ]);
 }
 
-// PATCH /api/users/:id/reject — Reject & permanently remove candidate from portal (Tech+)
-router.patch("/:id/reject", authenticate, requireMinRole("TECH_COORDINATOR"), auditLog("USER_REJECTED"), async (req: Request, res: Response) => {
+// PATCH /api/users/:id/reject — Reject & permanently remove candidate from portal (Tech, Faculty)
+router.patch("/:id/reject", authenticate, requireRole("TECH_COORDINATOR", "FACULTY_COORDINATOR"), auditLog("USER_REJECTED"), async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const user = await prisma.user.findUnique({ where: { id } });
@@ -215,8 +215,8 @@ router.patch("/:id/reject", authenticate, requireMinRole("TECH_COORDINATOR"), au
   }
 });
 
-// DELETE /api/users/:id — Delete user and remove all associated data (Tech+)
-router.delete("/:id", authenticate, requireMinRole("TECH_COORDINATOR"), auditLog("USER_DELETED"), async (req: Request, res: Response) => {
+// DELETE /api/users/:id — Delete user and remove all associated data (Tech, Faculty)
+router.delete("/:id", authenticate, requireRole("TECH_COORDINATOR", "FACULTY_COORDINATOR"), auditLog("USER_DELETED"), async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const user = await prisma.user.findUnique({ where: { id } });
@@ -307,11 +307,11 @@ router.patch(
   }
 );
 
-// PATCH /api/users/:id/deactivate — Deactivate user (Tech+)
+// PATCH /api/users/:id/deactivate — Deactivate user (Tech, Faculty)
 router.patch(
   "/:id/deactivate",
   authenticate,
-  requireMinRole("TECH_COORDINATOR"),
+  requireRole("TECH_COORDINATOR", "FACULTY_COORDINATOR"),
   auditLog("USER_DEACTIVATED"),
   async (req: Request, res: Response) => {
     try {
@@ -338,11 +338,11 @@ router.patch(
   }
 );
 
-// PATCH /api/users/:id/activate — Re-activate user (Tech+)
+// PATCH /api/users/:id/activate — Re-activate user (Tech, Faculty)
 router.patch(
   "/:id/activate",
   authenticate,
-  requireMinRole("TECH_COORDINATOR"),
+  requireRole("TECH_COORDINATOR", "FACULTY_COORDINATOR"),
   auditLog("USER_ACTIVATED"),
   async (req: Request, res: Response) => {
   try {
@@ -409,12 +409,15 @@ router.patch("/profile", authenticate, upload.single("avatar"), async (req: Requ
       }
     }
     if (phone !== undefined) {
-      const sanitizedPhone = phone ? String(phone).replace(/\D/g, "") : "";
-      if (sanitizedPhone && !/^\d{10}$/.test(sanitizedPhone)) {
-        res.status(400).json({ error: "Mobile number must be exactly 10 numeric digits" });
-        return;
+      if (phone !== null && phone !== "") {
+        if (!/^\d{10}$/.test(String(phone))) {
+          res.status(400).json({ error: "Mobile number must be exactly 10 digits with no string or character." });
+          return;
+        }
+        updateData.phone = String(phone);
+      } else {
+        updateData.phone = null;
       }
-      updateData.phone = sanitizedPhone || null;
     }
     if (department !== undefined) updateData.department = department || null;
     if (institute !== undefined) updateData.institute = institute || null;

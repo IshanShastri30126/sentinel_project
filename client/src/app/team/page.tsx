@@ -187,14 +187,14 @@ function TeamBackground3D() {
 
 const getClearanceLevel = (role: string) => {
   switch (role) {
-    case "FACULTY":
+    case "FACULTY_COORDINATOR":
       return "LVL_5 // FACULTY_ADMIN";
     case "STUDENT_COORDINATOR":
       return "LVL_4 // STUDENT_DIRECTOR";
-    case "TECH":
+    case "FACULTY_COORDINATOR":
       return "LVL_3 // CORE_TECH_SYS";
-    case "SOCIAL_MEDIA":
-    case "CONTENT":
+    case "FACULTY_COORDINATOR":
+    case "FACULTY_COORDINATOR":
       return "LVL_2 // CREATIVE_INTEL";
     default:
       return "LVL_1 // SEC_MEMBER";
@@ -377,13 +377,13 @@ export default function TeamPage() {
     loadTeam();
   }, []);
 
-  const facultyList = team.filter((m) => m.role === "FACULTY");
+  const facultyList = team.filter((m) => m.role === "FACULTY_COORDINATOR");
   const coordinatorsList = team.filter((m) => m.role === "STUDENT_COORDINATOR");
-  const techList = team.filter((m) => m.role === "TECH");
-  const creativeList = team.filter((m) => m.role === "SOCIAL_MEDIA" || m.role === "CONTENT");
+  const techList = team.filter((m) => m.role === "TECH_COORDINATOR");
+  const creativeList = team.filter((m) => m.role === "SOCIAL_MEDIA_COORDINATOR");
   const generalList = team.filter(
     (m) =>
-      !["FACULTY", "STUDENT_COORDINATOR", "TECH", "SOCIAL_MEDIA", "CONTENT"].includes(m.role)
+      !["FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_COORDINATOR", "SOCIAL_MEDIA_COORDINATOR"].includes(m.role)
   );
 
   return (

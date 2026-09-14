@@ -296,8 +296,7 @@ function MiniCalendar({
                         { label: "Same Day (15m before)", offsetMs: -15 * 60 * 1000 },
                         { label: "Same Day (30m before)", offsetMs: -30 * 60 * 1000 },
                         { label: "Same Day (1h before)", offsetMs: -60 * 60 * 1000 },
-                        { label: "Same Day (At Start)", offsetMs: 0 },
-                      ].map((rel) => {
+                        { label: "Same Day (At Start)", offsetMs: 0 }].map((rel) => {
                         const targetD = new Date(new Date(rangeStart).getTime() + rel.offsetMs);
                         const isoStr = `${targetD.getFullYear()}-${String(targetD.getMonth() + 1).padStart(2, "0")}-${String(targetD.getDate()).padStart(2, "0")}T${String(targetD.getHours()).padStart(2, "0")}:${String(targetD.getMinutes()).padStart(2, "0")}`;
                         const isSelectedRel = selectedDate && Math.abs(new Date(selectedDate).getTime() - targetD.getTime()) < 60000;
@@ -330,8 +329,7 @@ function MiniCalendar({
                       { label: "02:00 PM", h: 14, m: 0 },
                       { label: "06:00 PM", h: 18, m: 0 },
                       { label: "08:00 PM", h: 20, m: 0 },
-                      { label: "11:59 PM", h: 23, m: 59 },
-                    ].map((preset) => (
+                      { label: "11:59 PM", h: 23, m: 59 }].map((preset) => (
                       <button
                         key={preset.label}
                         type="button"
@@ -372,8 +370,7 @@ const STEPS = [
   { id: 1, label: "Basic Info", icon: Info },
   { id: 2, label: "Schedule", icon: Calendar },
   { id: 3, label: "Participants", icon: UserPlus },
-  { id: 4, label: "Details & Media", icon: Image },
-];
+  { id: 4, label: "Details & Media", icon: Image }];
 
 const EVENT_TYPES = [
   { value: "general", label: "General", icon: Layers, desc: "Standard events and social gatherings" },
@@ -381,8 +378,7 @@ const EVENT_TYPES = [
   { value: "hackathon", label: "Hackathon", icon: Terminal, desc: "Intense coding and building sprints" },
   { value: "seminar", label: "Seminar", icon: Presentation, desc: "Educational talks and presentations" },
   { value: "competition", label: "Competition", icon: Award, desc: "Cybersecurity contests and challenges" },
-  { value: "meetup", label: "Meetup", icon: Users, desc: "Networking and community meetups" },
-];
+  { value: "meetup", label: "Meetup", icon: Users, desc: "Networking and community meetups" }];
 
 export default function EventsPage() {
   const handleFormKeyDown = (e: React.KeyboardEvent<HTMLFormElement>) => {
@@ -453,7 +449,7 @@ export default function EventsPage() {
         const data = await api<{ team: Array<{ id: string; name: string; role: string; email?: string; phone?: string; designation?: string }> }>("/settings/landing-team");
         if (data.team && data.team.length > 0) {
           const facs: Organizer[] = data.team
-            .filter((m) => m.role === "FACULTY" || m.designation?.toLowerCase().includes("faculty"))
+            .filter((m) => m.role === "FACULTY_COORDINATOR" || m.designation?.toLowerCase().includes("faculty"))
             .map((m) => ({
               name: m.name,
               role: "Faculty Coordinator",
@@ -1683,7 +1679,7 @@ export default function EventsPage() {
                       {event.isPublished ? <><EyeOff className="w-3 h-3" /> Unpublish</> : <><Eye className="w-3 h-3" /> Publish</>}
                     </button>
                   )}
-                  {user && ["FACULTY_COORDINATOR", "TECH_COORDINATOR", "FACULTY", "TECH"].includes(user.role) && !event.isApproved && (
+                  {user && ["FACULTY_COORDINATOR", "TECH_COORDINATOR"].includes(user.role) && !event.isApproved && (
                     <button 
                       onClick={(e) => handleQuickApprove(event.id, e)} 
                       className="ck-btn-primary text-xs py-2 shadow-[0_0_10px_rgba(0,245,212,0.3)] border-none" style={{ backgroundColor: "var(--ck-primary)", color: "#00F5D4" }}

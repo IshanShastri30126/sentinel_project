@@ -1,6 +1,6 @@
 import { Router, Request, Response } from "express";
 import prisma from "../lib/prisma";
-import { authenticate, requireRole, requireMinRole } from "../middlewares/auth";
+import { authenticate, requireRole } from "../middlewares/auth";
 import { auditLog } from "../middlewares/auditLog";
 import { upload, getUploadedFileUrl } from "../middlewares/upload";
 
@@ -43,7 +43,7 @@ router.get("/landing-team", async (req: Request, res: Response) => {
 });
 
 // POST /api/settings/landing-team — Update public landing page team members
-router.post("/landing-team", authenticate, requireRole("FACULTY_COORDINATOR", "TECH_COORDINATOR"), auditLog("LANDING_PAGE_TEAM_UPDATED"), async (req: Request, res: Response) => {
+router.post("/landing-team", authenticate, requireRole("FACULTY_COORDINATOR", "TECH_COORDINATOR", "SOCIAL_MEDIA_COORDINATOR"), auditLog("LANDING_PAGE_TEAM_UPDATED"), async (req: Request, res: Response) => {
   try {
     const { team } = req.body;
     
@@ -69,7 +69,7 @@ router.post("/landing-team", authenticate, requireRole("FACULTY_COORDINATOR", "T
 });
 
 // POST /api/settings/upload — Upload media asset for landing page settings
-router.post("/upload", authenticate, requireRole("FACULTY_COORDINATOR", "TECH_COORDINATOR"), upload.single("file"), async (req: Request, res: Response) => {
+router.post("/upload", authenticate, requireRole("FACULTY_COORDINATOR", "TECH_COORDINATOR", "SOCIAL_MEDIA_COORDINATOR"), upload.single("file"), async (req: Request, res: Response) => {
   try {
     if (!req.file) {
       res.status(400).json({ error: "No file uploaded" });

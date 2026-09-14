@@ -3,7 +3,7 @@ import { z } from "zod";
 import QRCode from "qrcode";
 import { v4 as uuidv4 } from "uuid";
 import prisma from "../lib/prisma";
-import { authenticate, requireMinRole } from "../middlewares/auth";
+import { authenticate, requireRole } from "../middlewares/auth";
 import { validate } from "../middlewares/validate";
 import { auditLog } from "../middlewares/auditLog";
 import { sendNotification } from "../lib/notificationService";
@@ -159,10 +159,21 @@ router.get("/my", authenticate, async (req: Request, res: Response) => {
 });
 
 // GET /api/teams/event/:eventId — All teams for a specific event
-router.get("/event/:eventId", authenticate, requireMinRole("TECH_COORDINATOR"), async (req: Request, res: Response) => {
+router.get("/event/:eventId", authenticate, requireRole("TECH_COORDINATOR", "FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "SOCIAL_MEDIA_COORDINATOR", "MEMBER"), async (req: Request, res: Response) => {
   try {
+    const eventId = req.params.eventId;
+    const eventData = await prisma.event.findUnique({ where: { id: eventId }, select: { creatorId: true } });
+    if (!eventData) { res.status(404).json({ error: "Event not found" }); return; }
+
+    // [MIGRATION]: Enforce own_events_only
+    const isElevated = ["TECH_COORDINATOR", "FACULTY_COORDINATOR"].includes(req.user!.role);
+    if (!isElevated && eventData.creatorId !== req.user!.userId) {
+      res.status(403).json({ error: "Unauthorized: You can only view teams for your own events" });
+      return;
+    }
+
     const teams = await prisma.team.findMany({
-      where: { eventId: req.params.eventId },
+      where: { eventId },
       include: {
         members: { include: { user: { select: { id: true, name: true, email: true, studentId: true } } } },
         leader: { select: { id: true, name: true, email: true } },
@@ -428,7 +439,7 @@ router.post("/join", authenticate, async (req: Request, res: Response) => {
 });
 
 // GET /api/teams — All teams (Management only)
-router.get("/", authenticate, requireMinRole("TECH_COORDINATOR"), async (_req: Request, res: Response) => {
+router.get("/", authenticate, requireRole("TECH_COORDINATOR", "FACULTY_COORDINATOR"), async (_req: Request, res: Response) => {
   try {
     const teams = await prisma.team.findMany({
       include: {
@@ -472,10 +483,17 @@ router.delete("/:id", authenticate, auditLog("TEAM_DELETED"), async (req: Reques
 });
 
 // PATCH /api/teams/:id/disqualify — Disqualify a team (Management only)
-router.patch("/:id/disqualify", authenticate, requireMinRole("TECH_COORDINATOR"), auditLog("TEAM_DISQUALIFIED"), async (req: Request, res: Response) => {
+router.patch("/:id/disqualify", authenticate, requireRole("TECH_COORDINATOR", "FACULTY_COORDINATOR", "STUDENT_COORDINATOR"), auditLog("TEAM_DISQUALIFIED"), async (req: Request, res: Response) => {
   try {
-    const team = await prisma.team.findUnique({ where: { id: req.params.id } });
+    const team = await prisma.team.findUnique({ where: { id: req.params.id }, include: { event: { select: { creatorId: true } } } });
     if (!team) { res.status(404).json({ error: "Team not found" }); return; }
+
+    // [MIGRATION]: Enforce own_events_only
+    const isElevated = ["TECH_COORDINATOR", "FACULTY_COORDINATOR"].includes(req.user!.role);
+    if (!isElevated && team.event.creatorId !== req.user!.userId) {
+      res.status(403).json({ error: "Unauthorized: You can only disqualify teams from your own events" });
+      return;
+    }
 
     const { reason } = req.body;
     await sendNotification({

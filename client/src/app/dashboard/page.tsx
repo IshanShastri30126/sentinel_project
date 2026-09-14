@@ -114,8 +114,7 @@ const STAT_ACCENTS = [
   { text: "#F59E0B", border: "border-[#F59E0B]/40", bg: "bg-[#F59E0B]/10", iconColor: "text-[#F59E0B]" },
   { text: "#10B981", border: "border-[#10B981]/40", bg: "bg-[#10B981]/10", iconColor: "text-[#10B981]" },
   { text: "#00E1FF", border: "border-[#00E1FF]/40", bg: "bg-[#00E1FF]/10", iconColor: "text-[#00E1FF]" },
-  { text: "#94A3B8", border: "border-[#94A3B8]/40", bg: "bg-[#94A3B8]/10", iconColor: "text-[#94A3B8]" },
-];
+  { text: "#94A3B8", border: "border-[#94A3B8]/40", bg: "bg-[#94A3B8]/10", iconColor: "text-[#94A3B8]" }];
 
 // Unique Badge Visuals (Lucide icon themed per badge - ZERO emojis)
 interface BadgeTheme {
@@ -271,7 +270,7 @@ const DEFAULT_OPS_DATA: OpsData = {
     if (!user) return;
     const load = async () => {
       try {
-        if (["FACULTY_COORDINATOR", "TECH_COORDINATOR", "STUDENT_COORDINATOR", "FACULTY", "TECH"].includes(user.role)) {
+        if (["FACULTY_COORDINATOR", "TECH_COORDINATOR", "STUDENT_COORDINATOR"].includes(user.role)) {
           const [clubRes, opsRes, usersRes] = await Promise.all([
             api<ClubAnalytics>("/analytics/sentinel", { token: token || undefined }).catch((err) => {
               console.warn("Sentinel analytics notice:", err);
@@ -470,7 +469,7 @@ const DEFAULT_OPS_DATA: OpsData = {
     );
   }
 
-  const isCoordinator = ["FACULTY_COORDINATOR", "TECH_COORDINATOR", "STUDENT_COORDINATOR", "FACULTY", "TECH"].includes(user?.role || "");
+  const isCoordinator = ["FACULTY_COORDINATOR", "TECH_COORDINATOR", "STUDENT_COORDINATOR"].includes(user?.role || "");
 
   return (
     <div className="space-y-6">
@@ -943,8 +942,7 @@ const DEFAULT_OPS_DATA: OpsData = {
             {[
               { value: memberHistory?.totalPoints ?? 0, label: "Contribution Points", icon: <Star className="w-4 h-4" strokeWidth={1.75} />, accent: STAT_ACCENTS[0] },
               { value: memberHistory?.badges?.length ?? 0, label: "Badges Earned", icon: <Award className="w-4 h-4" strokeWidth={1.75} />, accent: STAT_ACCENTS[1] },
-              { value: memberHistory?.eventParticipation ?? 0, label: "Events Participated", icon: <Calendar className="w-4 h-4" strokeWidth={1.75} />, accent: STAT_ACCENTS[2] },
-            ].map((stat) => (
+              { value: memberHistory?.eventParticipation ?? 0, label: "Events Participated", icon: <Calendar className="w-4 h-4" strokeWidth={1.75} />, accent: STAT_ACCENTS[2] }].map((stat) => (
               <motion.div
                 key={stat.label}
                 whileHover={{ scale: 1.02, y: -2 }}
@@ -987,7 +985,7 @@ const DEFAULT_OPS_DATA: OpsData = {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
                     {registeredEvents.map((event) => {
                       const status = getRegEventStatus(event);
-                      const isCoordinator = Boolean(user?.role && ["FACULTY_COORDINATOR", "TECH_COORDINATOR", "STUDENT_COORDINATOR", "FACULTY", "TECH"].includes(user.role));
+                      const isCoordinator = Boolean(user?.role && ["FACULTY_COORDINATOR", "TECH_COORDINATOR", "STUDENT_COORDINATOR"].includes(user.role));
                       return (
                         <motion.div
                           key={event.id}
@@ -1141,7 +1139,7 @@ const DEFAULT_OPS_DATA: OpsData = {
                 ) : (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
                     {memberEvents.map((event) => {
-                      const isFacultyOrCoord = Boolean(user?.role && ["FACULTY_COORDINATOR", "TECH_COORDINATOR", "STUDENT_COORDINATOR", "FACULTY", "TECH"].includes(user.role));
+                      const isFacultyOrCoord = Boolean(user?.role && ["FACULTY_COORDINATOR", "TECH_COORDINATOR", "STUDENT_COORDINATOR"].includes(user.role));
                       const isAlreadyRegistered = registeredEvents.some((r) => r.id === event.id);
 
                       return (
@@ -1365,8 +1363,7 @@ const DEFAULT_OPS_DATA: OpsData = {
                   {[
                     { label: "BROWSE ALL EVENTS", href: "/events" },
                     { label: "LEADERBOARD SCORES", href: "/leaderboard" },
-                    { label: "EDIT OPERATIVE PROFILE", href: "/profile" },
-                  ].map((action) => (
+                    { label: "EDIT OPERATIVE PROFILE", href: "/profile" }].map((action) => (
                     <button
                       key={action.href}
                       onClick={() => router.push(action.href)}

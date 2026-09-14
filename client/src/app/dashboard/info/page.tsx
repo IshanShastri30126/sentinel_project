@@ -16,7 +16,6 @@ interface SettingSection {
   id: string;
   title: string;
   icon: React.ReactNode;
-  color: string;
   fields: SettingField[];
 }
 
@@ -25,48 +24,44 @@ const SECTIONS: SettingSection[] = [
     id: "system",
     title: "SYSTEM CONFIGURATION",
     icon: <Cpu className="w-4 h-4" />,
-    color: "#7c3aed",
+    
     fields: [
       { label: "Platform Version", value: "Sentinel v2.0", disabled: true, description: "Current platform build version" },
       { label: "Academic Year", value: "2025-2026", disabled: true, description: "Active academic session" },
-      { label: "Environment", value: "PRODUCTION", disabled: true, description: "Deployment environment" },
-    ]
+      { label: "Environment", value: "PRODUCTION", disabled: true, description: "Deployment environment" }]
   },
   {
     id: "escalation",
     title: "ESCALATION POLICY",
     icon: <Bell className="w-4 h-4" />,
-    color: "#f59e0b",
+    
     fields: [
       { label: "Escalation Threshold", value: 48, type: "number", unit: "hours", disabled: true, description: "Hours before auto-escalation triggers" },
-      { label: "Max Approval Levels", value: 3, type: "number", disabled: true, description: "Maximum approval chain depth" },
-    ]
+      { label: "Max Approval Levels", value: 3, type: "number", disabled: true, description: "Maximum approval chain depth" }]
   },
   {
     id: "security",
     title: "SECURITY SETTINGS",
     icon: <Lock className="w-4 h-4" />,
-    color: "#06b6d4",
+    
     fields: [
       { label: "Session Timeout", value: "24 hours", disabled: true, description: "Automatic session expiration" },
-      { label: "Auth Method", value: "JWT + Cookie", disabled: true, description: "Active authentication protocol" },
-    ]
+      { label: "Auth Method", value: "JWT + Cookie", disabled: true, description: "Active authentication protocol" }]
   },
   {
     id: "data",
     title: "DATA & STORAGE",
     icon: <Database className="w-4 h-4" />,
-    color: "#10b981",
+    
     fields: [
       { label: "Database", value: "PostgreSQL 15", disabled: true, description: "Primary data store" },
-      { label: "File Storage", value: "Local / S3 Compatible", disabled: true, description: "Asset storage backend" },
-    ]
+      { label: "File Storage", value: "Local / S3 Compatible", disabled: true, description: "Asset storage backend" }]
   },
   {
     id: "branding",
     title: "SENTINEL BRANDING & THEME",
     icon: <Globe className="w-4 h-4" />,
-    color: "#00F5D4",
+    
     fields: []
   }
 ];
@@ -154,17 +149,13 @@ export default function InfoPage() {
         >
           {SECTIONS.map(s => (
             <button key={s.id} onClick={() => setActiveSection(s.id)}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all cursor-pointer ${activeSection === s.id
-                ? "border shadow-[0_0_15px_rgba(0,0,0,0.4)]"
-                : "border border-transparent text-[var(--ck-text-muted)] hover:text-[var(--ck-text)] hover:bg-white/3"
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all cursor-pointer ${
+                activeSection === s.id
+                  ? "border border-[var(--ck-primary)] bg-[var(--ck-primary)]/10 shadow-[0_0_15px_rgba(0,245,212,0.15)] text-[var(--ck-primary)]"
+                  : "border border-transparent text-[var(--ck-text-muted)] hover:text-[var(--ck-text)] hover:bg-white/5"
               }`}
-              style={activeSection === s.id ? {
-                background: s.id === "branding" ? "rgba(0,245,212,0.08)" : `${s.color}10`,
-                borderColor: s.id === "branding" ? "var(--ck-primary)" : `${s.color}25`,
-                color: s.id === "branding" ? "var(--ck-primary)" : s.color
-              } : {}}
             >
-              <span style={activeSection === s.id ? { color: s.id === "branding" ? "var(--ck-primary)" : s.color } : { color: "#52525b" }}>{s.icon}</span>
+              <span className={activeSection === s.id ? "text-[var(--ck-primary)]" : "text-slate-500"}>{s.icon}</span>
               <span className="text-[11px] font-black uppercase tracking-wider">{s.title.split(" ")[0]}</span>
               <ChevronRight className="w-3.5 h-3.5 ml-auto opacity-50" />
             </button>
@@ -178,22 +169,15 @@ export default function InfoPage() {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -15 }}
             transition={{ duration: 0.2 }}
-            className="rounded-2xl border overflow-hidden"
-            style={{
-              borderColor: activeSection === "branding" ? "rgba(0,245,212,0.2)" : `${section.color}20`,
-              background: activeSection === "branding" ? "rgba(0,245,212,0.02)" : `${section.color}05`
-            }}
+            className="ck-glass-card overflow-hidden"
           >
             {/* Panel header */}
-            <div className="px-6 py-4 border-b flex items-center gap-3" style={{ borderColor: activeSection === "branding" ? "rgba(0,245,212,0.15)" : `${section.color}15` }}>
-              <div className="w-9 h-9 rounded-xl flex items-center justify-center border" style={{
-                background: activeSection === "branding" ? "rgba(0,245,212,0.1)" : `${section.color}15`,
-                borderColor: activeSection === "branding" ? "rgba(0,245,212,0.2)" : `${section.color}30`
-              }}>
-                <span style={{ color: activeSection === "branding" ? "var(--ck-primary)" : section.color }}>{section.icon}</span>
+            <div className="px-6 py-4 border-b border-white/[0.08] flex items-center gap-3 bg-black/20">
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center border border-[var(--ck-primary)]/30 bg-[var(--ck-primary)]/10">
+                <span className="text-[var(--ck-primary)]">{section.icon}</span>
               </div>
               <div>
-                <h2 className="text-sm font-black uppercase tracking-widest" style={{ color: activeSection === "branding" ? "var(--ck-primary)" : section.color }}>{section.title}</h2>
+                <h2 className="text-sm font-black uppercase tracking-widest text-[var(--ck-primary)]">{section.title}</h2>
                 <p className="text-[10px] text-zinc-650 font-mono mt-0.5">PLATFORM CONFIGURATION PARAMETERS</p>
               </div>
             </div>
@@ -311,7 +295,7 @@ export default function InfoPage() {
                     transition={{ delay: i * 0.07 }}
                     className="space-y-1.5"
                   >
-                    <label className="block text-[10px] font-bold uppercase tracking-widest font-mono" style={{ color: section.color }}>
+                    <label className="block text-[10px] font-bold uppercase tracking-widest font-mono text-[var(--ck-primary)]">
                       {field.label}
                     </label>
                     {field.description && (
@@ -363,14 +347,11 @@ export default function InfoPage() {
                 </button>
               ) : (
                 <button onClick={handleSaveDefault}
-                  className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer"
-                  style={{
-                    background: saved ? "rgba(16,185,129,0.15)" : `${section.color}15`,
-                    borderWidth: 1,
-                    borderStyle: "solid",
-                    borderColor: saved ? "rgba(16,185,129,0.3)" : `${section.color}30`,
-                    color: saved ? "#10b981" : section.color,
-                  }}
+                  className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${
+                    saved 
+                      ? "bg-emerald-500/15 border border-emerald-500/30 text-emerald-400" 
+                      : "ck-btn-primary"
+                  }`}
                 >
                   {saved ? <><Check className="w-4 h-4" /> SAVED</> : <><Save className="w-4 h-4" /> SAVE</>}
                 </button>
@@ -388,8 +369,7 @@ export default function InfoPage() {
           { label: "UPTIME",      value: "99.97%",  color: "#10b981" },
           { label: "API VERSION", value: "v2.0.0",  color: "#7c3aed" },
           { label: "DB STATUS",   value: "ONLINE",  color: "#06b6d4" },
-          { label: "ENV",         value: "PROD",    color: "#f59e0b" },
-        ].map((s, i) => (
+          { label: "ENV",         value: "PROD",    color: "#f59e0b" }].map((s, i) => (
           <motion.div key={s.label} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 + i * 0.07 }}
             className="p-3 rounded-xl border border-white/5 bg-white/2 text-center"
           >

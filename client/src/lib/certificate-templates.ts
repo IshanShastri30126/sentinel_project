@@ -33,8 +33,7 @@ export const CERTIFICATE_TEMPLATES: CertificateTemplate[] = [
       { id: "t1-presented", type: "text", x: 400, y: 220, rotation: 0, scaleX: 1, scaleY: 1, text: "This is proudly presented to", fontSize: 14, fontFamily: "sans-serif", fill: "#555555", align: "center", width: 300 },
       { id: "t1-name", type: "text", x: 400, y: 260, rotation: 0, scaleX: 1, scaleY: 1, text: "[Recipient Name]", fontSize: 42, fontFamily: "serif", fontStyle: "italic", fill: "#333333", align: "center", width: 600, isPlaceholder: true, placeholderType: "recipientName" },
       { id: "t1-line", type: "shape", x: 200, y: 310, rotation: 0, scaleX: 1, scaleY: 1, width: 400, height: 2, fill: "#DAA520" },
-      { id: "t1-desc", type: "text", x: 400, y: 340, rotation: 0, scaleX: 1, scaleY: 1, text: "For outstanding participation in [Event Title] held on [Event Date].", fontSize: 16, fontFamily: "sans-serif", fill: "#333333", align: "center", width: 600, isPlaceholder: true },
-    ]
+      { id: "t1-desc", type: "text", x: 400, y: 340, rotation: 0, scaleX: 1, scaleY: 1, text: "For outstanding participation in [Event Title] held on [Event Date].", fontSize: 16, fontFamily: "sans-serif", fill: "#333333", align: "center", width: 600, isPlaceholder: true }]
   },
   {
     id: "navy-silver",
@@ -51,8 +50,7 @@ export const CERTIFICATE_TEMPLATES: CertificateTemplate[] = [
       { id: "t2-title", type: "text", x: 400, y: 100, rotation: 0, scaleX: 1, scaleY: 1, text: "CERTIFICATE OF ACHIEVEMENT", fontSize: 36, fontFamily: "sans-serif", fontStyle: "bold", fill: "#1A237E", align: "center", width: 600 },
       { id: "t2-presented", type: "text", x: 400, y: 180, rotation: 0, scaleX: 1, scaleY: 1, text: "PRESENTED TO", fontSize: 12, fontFamily: "sans-serif", fill: "#B0BEC5", align: "center", width: 300 },
       { id: "t2-name", type: "text", x: 400, y: 220, rotation: 0, scaleX: 1, scaleY: 1, text: "[Recipient Name]", fontSize: 40, fontFamily: "serif", fill: "#111111", align: "center", width: 600, isPlaceholder: true, placeholderType: "recipientName" },
-      { id: "t2-desc", type: "text", x: 400, y: 300, rotation: 0, scaleX: 1, scaleY: 1, text: "In recognition of successful completion of [Event Title] on [Event Date].", fontSize: 14, fontFamily: "sans-serif", fill: "#111111", align: "center", width: 500, isPlaceholder: true },
-    ]
+      { id: "t2-desc", type: "text", x: 400, y: 300, rotation: 0, scaleX: 1, scaleY: 1, text: "In recognition of successful completion of [Event Title] on [Event Date].", fontSize: 14, fontFamily: "sans-serif", fill: "#111111", align: "center", width: 500, isPlaceholder: true }]
   },
   {
     id: "maroon-gold",
@@ -69,8 +67,7 @@ export const CERTIFICATE_TEMPLATES: CertificateTemplate[] = [
       { id: "t3-name", type: "text", x: 400, y: 200, rotation: 0, scaleX: 1, scaleY: 1, text: "[Recipient Name]", fontSize: 48, fontFamily: "serif", fontStyle: "italic", fill: "#000000", align: "center", width: 600, isPlaceholder: true, placeholderType: "recipientName" },
       { id: "t3-line", type: "shape", x: 150, y: 270, rotation: 0, scaleX: 1, scaleY: 1, width: 500, height: 3, fill: "#FFD700" },
       { id: "t3-desc", type: "text", x: 400, y: 310, rotation: 0, scaleX: 1, scaleY: 1, text: "For outstanding performance during [Event Title]", fontSize: 18, fontFamily: "sans-serif", fill: "#000000", align: "center", width: 600 },
-      { id: "t3-date", type: "text", x: 400, y: 360, rotation: 0, scaleX: 1, scaleY: 1, text: "Date: [Event Date]", fontSize: 14, fontFamily: "sans-serif", fill: "#000000", align: "center", width: 300, isPlaceholder: true },
-    ]
+      { id: "t3-date", type: "text", x: 400, y: 360, rotation: 0, scaleX: 1, scaleY: 1, text: "Date: [Event Date]", fontSize: 14, fontFamily: "sans-serif", fill: "#000000", align: "center", width: 300, isPlaceholder: true }]
   },
   {
     id: "teal-white",
@@ -87,8 +84,7 @@ export const CERTIFICATE_TEMPLATES: CertificateTemplate[] = [
       { id: "t4-subtitle", type: "text", x: 450, y: 150, rotation: 0, scaleX: 1, scaleY: 1, text: "OF COMPLETION", fontSize: 20, fontFamily: "sans-serif", fill: "#008080", align: "left", width: 300 },
       { id: "t4-presented", type: "text", x: 450, y: 230, rotation: 0, scaleX: 1, scaleY: 1, text: "Presented to", fontSize: 14, fontFamily: "sans-serif", fill: "#555555", align: "left", width: 200 },
       { id: "t4-name", type: "text", x: 450, y: 260, rotation: 0, scaleX: 1, scaleY: 1, text: "[Recipient Name]", fontSize: 36, fontFamily: "serif", fill: "#333333", align: "left", width: 500, isPlaceholder: true, placeholderType: "recipientName" },
-      { id: "t4-desc", type: "text", x: 450, y: 340, rotation: 0, scaleX: 1, scaleY: 1, text: "For successfully completing [Event Title] on [Event Date].", fontSize: 14, fontFamily: "sans-serif", fill: "#333333", align: "left", width: 400, isPlaceholder: true },
-    ]
+      { id: "t4-desc", type: "text", x: 450, y: 340, rotation: 0, scaleX: 1, scaleY: 1, text: "For successfully completing [Event Title] on [Event Date].", fontSize: 14, fontFamily: "sans-serif", fill: "#333333", align: "left", width: 400, isPlaceholder: true }]
   },
   {
     id: "dark-neon",
@@ -103,8 +99,7 @@ export const CERTIFICATE_TEMPLATES: CertificateTemplate[] = [
       { id: "t5-border", type: "shape", x: 15, y: 15, width: 770, height: 530, rotation: 0, scaleX: 1, scaleY: 1, stroke: "#00FF41", strokeWidth: 2 },
       { id: "t5-title", type: "text", x: 400, y: 100, rotation: 0, scaleX: 1, scaleY: 1, text: "CERTIFICATE", fontSize: 44, fontFamily: "mono", fontStyle: "bold", fill: "#FFFFFF", align: "center", width: 500 },
       { id: "t5-name", type: "text", x: 400, y: 220, rotation: 0, scaleX: 1, scaleY: 1, text: "[Recipient Name]", fontSize: 38, fontFamily: "sans-serif", fontStyle: "bold", fill: "#00FF41", align: "center", width: 600, isPlaceholder: true, placeholderType: "recipientName" },
-      { id: "t5-desc", type: "text", x: 400, y: 320, rotation: 0, scaleX: 1, scaleY: 1, text: "System participation confirmed for [Event Title] at [Event Date].", fontSize: 14, fontFamily: "mono", fill: "#AAAAAA", align: "center", width: 600, isPlaceholder: true },
-    ]
+      { id: "t5-desc", type: "text", x: 400, y: 320, rotation: 0, scaleX: 1, scaleY: 1, text: "System participation confirmed for [Event Title] at [Event Date].", fontSize: 14, fontFamily: "mono", fill: "#AAAAAA", align: "center", width: 600, isPlaceholder: true }]
   },
   {
     id: "pastel",
@@ -120,8 +115,7 @@ export const CERTIFICATE_TEMPLATES: CertificateTemplate[] = [
       { id: "t6-circle2", type: "shape", x: 800, y: 560, width: 300, height: 300, rotation: 0, scaleX: 1, scaleY: 1, fill: "#E2F0CB", radius: 150 },
       { id: "t6-title", type: "text", x: 400, y: 120, rotation: 0, scaleX: 1, scaleY: 1, text: "Certificate of Appreciation", fontSize: 40, fontFamily: "serif", fill: "#2C3E50", align: "center", width: 600 },
       { id: "t6-name", type: "text", x: 400, y: 240, rotation: 0, scaleX: 1, scaleY: 1, text: "[Recipient Name]", fontSize: 45, fontFamily: "serif", fontStyle: "italic", fill: "#2C3E50", align: "center", width: 600, isPlaceholder: true, placeholderType: "recipientName" },
-      { id: "t6-desc", type: "text", x: 400, y: 340, rotation: 0, scaleX: 1, scaleY: 1, text: "Gratefully presented for participation in [Event Title] on [Event Date].", fontSize: 16, fontFamily: "sans-serif", fill: "#2C3E50", align: "center", width: 500, isPlaceholder: true },
-    ]
+      { id: "t6-desc", type: "text", x: 400, y: 340, rotation: 0, scaleX: 1, scaleY: 1, text: "Gratefully presented for participation in [Event Title] on [Event Date].", fontSize: 16, fontFamily: "sans-serif", fill: "#2C3E50", align: "center", width: 500, isPlaceholder: true }]
   },
   {
     id: "monochrome",
@@ -137,7 +131,6 @@ export const CERTIFICATE_TEMPLATES: CertificateTemplate[] = [
       { id: "t7-bottom", type: "shape", x: 40, y: 510, width: 720, height: 10, rotation: 0, scaleX: 1, scaleY: 1, fill: "#000000" },
       { id: "t7-title", type: "text", x: 400, y: 90, rotation: 0, scaleX: 1, scaleY: 1, text: "CERTIFICATE", fontSize: 48, fontFamily: "sans-serif", fontStyle: "bold", fill: "#000000", align: "center", width: 400, tracking: 10 },
       { id: "t7-name", type: "text", x: 400, y: 240, rotation: 0, scaleX: 1, scaleY: 1, text: "[Recipient Name]", fontSize: 36, fontFamily: "sans-serif", fill: "#000000", align: "center", width: 600, isPlaceholder: true, placeholderType: "recipientName" },
-      { id: "t7-desc", type: "text", x: 400, y: 320, rotation: 0, scaleX: 1, scaleY: 1, text: "This certifies the participation in [Event Title] as of [Event Date].", fontSize: 14, fontFamily: "sans-serif", fill: "#888888", align: "center", width: 500, isPlaceholder: true },
-    ]
+      { id: "t7-desc", type: "text", x: 400, y: 320, rotation: 0, scaleX: 1, scaleY: 1, text: "This certifies the participation in [Event Title] as of [Event Date].", fontSize: 14, fontFamily: "sans-serif", fill: "#888888", align: "center", width: 500, isPlaceholder: true }]
   }
 ];

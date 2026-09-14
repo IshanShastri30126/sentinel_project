@@ -3,7 +3,7 @@ import { z } from "zod";
 import jwt from "jsonwebtoken";
 import prisma from "../lib/prisma";
 import { config } from "../config";
-import { authenticate, requireRole, requireMinRole, AuthPayload } from "../middlewares/auth";
+import { authenticate, requireRole, AuthPayload } from "../middlewares/auth";
 import { validate } from "../middlewares/validate";
 import { auditLog } from "../middlewares/auditLog";
 import { upload, getUploadedFileUrl } from "../middlewares/upload";
@@ -94,7 +94,7 @@ async function validateEventLeads(organizersStr: string | null): Promise<string 
   return null;
 }
 
-router.post("/", authenticate, requireRole("FACULTY_COORDINATOR", "STUDENT_COORDINATOR"), validate(createEventSchema), auditLog("EVENT_CREATED"), async (req: Request, res: Response) => {
+router.post("/", authenticate, requireRole("FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_COORDINATOR"), validate(createEventSchema), auditLog("EVENT_CREATED"), async (req: Request, res: Response) => {
   try {
     const data = req.body;
     const startDateObj = new Date(data.startDate);
@@ -184,13 +184,14 @@ router.post("/", authenticate, requireRole("FACULTY_COORDINATOR", "STUDENT_COORD
 });
 
 // POST /api/events/:id/poster — Upload poster
-router.post("/:id/poster", authenticate, requireRole("FACULTY_COORDINATOR", "STUDENT_COORDINATOR"), upload.single("poster"), async (req: Request, res: Response) => {
+router.post("/:id/poster", authenticate, requireRole("FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_COORDINATOR", "SOCIAL_MEDIA_COORDINATOR"), upload.single("poster"), async (req: Request, res: Response) => {
   try {
     if (!req.file) { res.status(400).json({ error: "No file uploaded" }); return; }
     const existing = await prisma.event.findUnique({ where: { id: req.params.id } });
     if (!existing) { res.status(404).json({ error: "Event not found" }); return; }
 
-    const isElevated = ["FACULTY_COORDINATOR", "TECH_COORDINATOR"].includes(req.user!.role);
+    // [MIGRATION]: SOCIAL_MEDIA_COORDINATOR can upload posters for any event
+    const isElevated = ["FACULTY_COORDINATOR", "TECH_COORDINATOR", "SOCIAL_MEDIA_COORDINATOR"].includes(req.user!.role);
     if (!isElevated && existing.creatorId !== req.user!.userId) {
       res.status(403).json({ error: "Unauthorized: You can only modify events you created" });
       return;
@@ -203,7 +204,7 @@ router.post("/:id/poster", authenticate, requireRole("FACULTY_COORDINATOR", "STU
 });
 
 // POST /api/events/:id/document — Upload document
-router.post("/:id/document", authenticate, requireRole("FACULTY_COORDINATOR", "STUDENT_COORDINATOR"), upload.single("document"), async (req: Request, res: Response) => {
+router.post("/:id/document", authenticate, requireRole("FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_COORDINATOR"), upload.single("document"), async (req: Request, res: Response) => {
   try {
     if (!req.file) { res.status(400).json({ error: "No file uploaded" }); return; }
     const existing = await prisma.event.findUnique({ where: { id: req.params.id } });
@@ -245,7 +246,6 @@ router.get("/", async (req: Request, res: Response) => {
     const where: any = {
       isPublished: true,
       isApproved: true,
-      endDate: { gte: new Date() }
     };
     if (search) {
       where.OR = [
@@ -286,7 +286,7 @@ router.get("/", async (req: Request, res: Response) => {
 });
 
 // GET /api/events/all — All events for coordinators with search/filter
-router.get("/all", authenticate, requireRole("FACULTY_COORDINATOR", "TECH_COORDINATOR", "SOCIAL_MEDIA_COORDINATOR", "STUDENT_COORDINATOR"), async (req: Request, res: Response) => {
+router.get("/all", authenticate, requireRole("FACULTY_COORDINATOR", "TECH_COORDINATOR", "SOCIAL_MEDIA_COORDINATOR", "STUDENT_COORDINATOR", "MEMBER"), async (req: Request, res: Response) => {
   try {
     const { search, status, tag } = req.query;
     
@@ -298,6 +298,10 @@ router.get("/all", authenticate, requireRole("FACULTY_COORDINATOR", "TECH_COORDI
     }
 
     const where: any = {};
+    // [MIGRATION]: Enforce own_events_only for non-super roles
+    if (["STUDENT_COORDINATOR", "SOCIAL_MEDIA_COORDINATOR", "MEMBER"].includes(req.user!.role)) {
+      where.creatorId = req.user!.userId;
+    }
     if (search) {
       where.OR = [
         { title: { contains: search as string, mode: "insensitive" } },
@@ -409,7 +413,7 @@ router.get("/:id", async (req: Request, res: Response) => {
 });
 
 // GET /api/events/:id/analytics — Registration timeline, team stats, attendance
-router.get("/:id/analytics", authenticate, requireMinRole("TECH_COORDINATOR"), async (req: Request, res: Response) => {
+router.get("/:id/analytics", authenticate, requireRole("TECH_COORDINATOR"), async (req: Request, res: Response) => {
   try {
     const eventId = req.params.id;
     const event = await prisma.event.findUnique({ where: { id: eventId } });
@@ -447,7 +451,7 @@ router.get("/:id/analytics", authenticate, requireMinRole("TECH_COORDINATOR"), a
 });
 
 // PATCH /api/events/:id — Update event
-router.patch("/:id", authenticate, requireRole("FACULTY_COORDINATOR", "STUDENT_COORDINATOR"), auditLog("EVENT_UPDATED"), async (req: Request, res: Response) => {
+router.patch("/:id", authenticate, requireRole("FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_COORDINATOR", "SOCIAL_MEDIA_COORDINATOR"), auditLog("EVENT_UPDATED"), async (req: Request, res: Response) => {
   try {
     const existingEvent = await prisma.event.findUnique({ where: { id: req.params.id } });
     if (!existingEvent) {
@@ -455,11 +459,21 @@ router.patch("/:id", authenticate, requireRole("FACULTY_COORDINATOR", "STUDENT_C
       return;
     }
 
-    // Access Control: Non-faculty coordinators can only edit their own created events
+    // [MIGRATION]: Access Control
     const isElevated = ["FACULTY_COORDINATOR", "TECH_COORDINATOR"].includes(req.user!.role);
     if (!isElevated && existingEvent.creatorId !== req.user!.userId) {
-      res.status(403).json({ error: "Unauthorized: You can only edit events you created" });
-      return;
+      if (req.user!.role === "SOCIAL_MEDIA_COORDINATOR") {
+        const allowedFields = ["description", "socialLinks"];
+        const keys = Object.keys(req.body);
+        const unauthorized = keys.filter(k => !allowedFields.includes(k));
+        if (unauthorized.length > 0) {
+          res.status(403).json({ error: "Social Media Coordinators can only edit marketing details (description, socialLinks)" });
+          return;
+        }
+      } else {
+        res.status(403).json({ error: "Unauthorized: You can only edit events you created" });
+        return;
+      }
     }
 
     const d = req.body; const u: any = {};
@@ -548,7 +562,7 @@ router.patch("/:id", authenticate, requireRole("FACULTY_COORDINATOR", "STUDENT_C
 });
 
 // PATCH /api/events/:id/publish — Toggle publish
-router.patch("/:id/publish", authenticate, requireRole("FACULTY_COORDINATOR", "STUDENT_COORDINATOR"), auditLog("EVENT_PUBLISH_TOGGLED"), async (req: Request, res: Response) => {
+router.patch("/:id/publish", authenticate, requireRole("FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_COORDINATOR"), auditLog("EVENT_PUBLISH_TOGGLED"), async (req: Request, res: Response) => {
   try {
     const event = await prisma.event.findUnique({
       where: { id: req.params.id },
@@ -579,16 +593,11 @@ router.patch("/:id/publish", authenticate, requireRole("FACULTY_COORDINATOR", "S
 });
 
 // DELETE /api/events/:id — Permanent delete event
-router.delete("/:id", authenticate, requireRole("FACULTY_COORDINATOR", "STUDENT_COORDINATOR"), auditLog("EVENT_DELETED"), async (req: Request, res: Response) => {
+// [MIGRATION]: Removed STUDENT_COORDINATOR, they cannot delete events
+router.delete("/:id", authenticate, requireRole("FACULTY_COORDINATOR", "TECH_COORDINATOR"), auditLog("EVENT_DELETED"), async (req: Request, res: Response) => {
   try {
     const event = await prisma.event.findUnique({ where: { id: req.params.id } });
     if (!event) { res.status(404).json({ error: "Event not found" }); return; }
-
-    const isElevated = ["FACULTY_COORDINATOR", "TECH_COORDINATOR"].includes(req.user!.role);
-    if (!isElevated && event.creatorId !== req.user!.userId) {
-      res.status(403).json({ error: "Unauthorized: You can only delete events you created" });
-      return;
-    }
     
     await prisma.$transaction([
       prisma.attendance.deleteMany({ where: { eventId: req.params.id } }),
@@ -616,7 +625,7 @@ router.post("/:id/register", eventRegistrationLimiter, authenticate, auditLog("E
       return;
     }
 
-    const { teamName, teamMembers, name, studentId, employeeId, phone, department, semester, institute } = req.body;
+    const { teamName, teamMembers, name, studentId, employeeId, phone, department, institute } = req.body;
 
     // Update user details if provided
     const userUpdateData: any = {};
@@ -626,20 +635,19 @@ router.post("/:id/register", eventRegistrationLimiter, authenticate, auditLog("E
     if (targetStudentId !== undefined) userUpdateData.studentId = targetStudentId || null;
 
     if (phone !== undefined) {
-      const sanitizedPhone = phone ? String(phone).replace(/\D/g, "") : "";
-      if (sanitizedPhone && !/^\d{10}$/.test(sanitizedPhone)) {
-        res.status(400).json({ error: "Mobile number must contain exactly 10 numeric digits." });
-        return;
+      if (phone !== null && phone !== "") {
+        if (!/^\d{10}$/.test(String(phone))) {
+          res.status(400).json({ error: "Mobile number must be exactly 10 digits with no string or character." });
+          return;
+        }
+        userUpdateData.phone = String(phone);
+      } else {
+        userUpdateData.phone = null;
       }
-      userUpdateData.phone = sanitizedPhone || null;
     }
 
     if (department !== undefined) userUpdateData.department = department || null;
     if (institute !== undefined) userUpdateData.institute = institute || null;
-
-    if (semester !== undefined) {
-      userUpdateData.semester = semester || null;
-    }
 
     if (Object.keys(userUpdateData).length > 0) {
       await prisma.user.update({
@@ -797,7 +805,7 @@ router.post("/:id/register", eventRegistrationLimiter, authenticate, auditLog("E
 });
 
 // GET /api/events/:id/registrations — List registrations with search (paginated)
-router.get("/:id/registrations", authenticate, requireMinRole("TECH_COORDINATOR"), async (req: Request, res: Response) => {
+router.get("/:id/registrations", authenticate, requireRole("TECH_COORDINATOR"), async (req: Request, res: Response) => {
   try {
     const { search } = req.query;
     const page = parseInt(req.query.page as string) || 1;
@@ -840,7 +848,7 @@ router.get("/:id/registrations", authenticate, requireMinRole("TECH_COORDINATOR"
 });
 
 // GET /api/events/:id/registrations/export — CSV export
-router.get("/:id/registrations/export", authenticate, requireMinRole("TECH_COORDINATOR"), async (req: Request, res: Response) => {
+router.get("/:id/registrations/export", authenticate, requireRole("TECH_COORDINATOR"), async (req: Request, res: Response) => {
   try {
     const regs = await prisma.eventRegistration.findMany({
       where: { eventId: req.params.id },
