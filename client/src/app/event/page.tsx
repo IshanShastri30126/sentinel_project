@@ -193,7 +193,7 @@ export default function PublicEventsPage() {
                 const isUpcoming = new Date(event.startDate).getTime() >= now.getTime();
                 return (
                   <SectionReveal key={event.id} delay={i * 0.05}>
-                    <Link href={`/events/${event.slug}`} className="block h-full">
+                    <Link href={`/event/${event.slug}`} className="block h-full">
                       <CyberCard
                         variant="interactive"
                         showAccentTop={true}

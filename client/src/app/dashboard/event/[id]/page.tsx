@@ -60,6 +60,13 @@ export default function EventDetailPage() {
   const params = useParams();
   const router = useRouter();
   const { token, user, isLoading } = useAuth();
+
+  useEffect(() => {
+    if (!isLoading && user?.role === "MEMBER") {
+      router.push("/dashboard");
+    }
+  }, [user, isLoading, router]);
+
   const { showToast, confirmModal } = useCyberDialog();
   const eventId = params.id as string;
 
@@ -70,8 +77,8 @@ export default function EventDetailPage() {
   const [search, setSearch] = useState("");
   const [tab, setTab] = useState<"overview" | "registrations" | "teams">("overview");
 
-  const isCoord = Boolean(user && ["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "TECH_TEAM", "STUDENT_COORDINATOR", "FACULTY", "TECH"].includes(user.role));
-  const isCore = Boolean(user && ["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "TECH_TEAM", "STUDENT_COORDINATOR", "FACULTY", "TECH", "CONTENT", "SOCIAL_MEDIA"].includes(user.role));
+  const isCoord = Boolean(user && ["ADMIN", "FACULTY_COORDINATOR", "STUDENT_COORDINATOR"].includes(user.role));
+  const isCore = Boolean(user && ["ADMIN", "FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_COORDINATOR", "SOCIAL_MEDIA_COORDINATOR"].includes(user.role));
 
   // Google Calendar Sync states
   const [syncLoading, setSyncLoading] = useState(false);
@@ -144,7 +151,7 @@ export default function EventDetailPage() {
     try {
       await api(`/events/${eventId}`, { method: "DELETE", token: token || undefined });
       showToast("Event archived successfully", "success");
-      router.push("/events");
+      router.push("/event");
     } catch (err) { showToast(err instanceof Error ? err.message : "Failed", "error"); }
   };
 
@@ -178,7 +185,7 @@ export default function EventDetailPage() {
     <div>
       {/* Back + Header */}
       <div className="flex items-center gap-3 mb-6">
-        <button onClick={() => router.push("/events")} className="p-2 rounded-lg hover:bg-[#1A1E26] transition">
+        <button onClick={() => router.push("/event")} className="p-2 rounded-lg hover:bg-[#1A1E26] transition">
           <ArrowLeft className="w-5 h-5" style={{ color: "var(--ck-text-secondary)" }} />
         </button>
         <div className="flex-1">
@@ -201,7 +208,7 @@ export default function EventDetailPage() {
         <div className="flex flex-wrap gap-2">
           {event.isPublished && (
             <>
-              <a href={`/events/${event.slug}`} target="_blank" rel="noopener noreferrer" className="ck-btn-secondary text-xs">
+              <a href={`/event/${event.slug}`} target="_blank" rel="noopener noreferrer" className="ck-btn-secondary text-xs">
                 <ExternalLink className="w-4 h-4" /> Public Page
               </a>
               <button 

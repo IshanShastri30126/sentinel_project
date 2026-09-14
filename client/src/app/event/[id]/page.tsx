@@ -164,7 +164,6 @@ function PublicEventPageContent() {
           studentId: authStudentId,
           phone: authPhone,
           department: authDept,
-          semester: authSem,
           institute: authInst,
           clubId: selectedClubId || undefined
         });
@@ -194,7 +193,7 @@ function PublicEventPageContent() {
   const params = useParams();
   const router = useRouter();
   const { user, token } = useAuth();
-  const slug = params.slug as string;
+  const slug = params.id as string;
 
   const [event, setEvent] = useState<EventDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -273,7 +272,6 @@ function PublicEventPageContent() {
     email: user?.email || "",
     phone: user?.phone || "",
     department: user?.department || "",
-    semester: user?.semester || "",
     institute: user?.institute || "",
     teammateCount: "0",
     teamName: ""
@@ -345,7 +343,6 @@ function PublicEventPageContent() {
         email: "",
         phone: "",
         department: "",
-        semester: "",
         institute: "",
         teammateCount: "0",
         teamName: ""
@@ -363,7 +360,6 @@ function PublicEventPageContent() {
       email: user?.email || "",
       phone: user?.phone || "",
       department: user?.department || "",
-      semester: user?.semester || "",
       institute: user?.institute || "",
       teammateCount: "0",
       teamName: ""
@@ -376,7 +372,7 @@ function PublicEventPageContent() {
   };
 
   const handleGoogleFormRegisterClick = () => {
-    if (!token) { router.push(`/auth?redirect=/events/${slug}`); return; }
+    if (!token) { router.push(`/auth?redirect=/event/${slug}`); return; }
     handleGoogleFormRegister();
   };
 
@@ -411,7 +407,6 @@ function PublicEventPageContent() {
         studentId: formData.studentId,
         phone: formData.phone,
         department: formData.department,
-        semester: user?.role === "FACULTY" ? "" : formData.semester,
         institute: formData.institute
       };
       if (event.maxTeamSize && event.maxTeamSize > 1) {

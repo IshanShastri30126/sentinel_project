@@ -660,7 +660,8 @@ router.get("/me", authenticate, async (req: Request, res: Response) => {
         isActive: true,
         createdAt: true,
         institute: true,
-        semester: true,
+employeeId: true,
+        
     
       },
     });

@@ -6,7 +6,7 @@ import { api, getFileUrl } from "@/lib/api";
 import { motion } from "framer-motion";
 import { 
   Users, UserCheck, UserX, Search, Shield, ChevronDown, 
-  ChevronLeft, ChevronRight, GraduationCap, Mail, Phone, AlertTriangle 
+  ChevronLeft, ChevronRight, GraduationCap, Mail, Phone 
 } from "lucide-react";
 import { DefaultAvatar } from "@/components/default-avatar";
 import { useCyberDialog } from "@/components/ui/CyberDialogContext";
@@ -20,7 +20,6 @@ interface UserEntry {
   employeeId?: string; 
   department?: string; 
   phone?: string; 
-  semester?: string; 
   institute?: string; 
   isActive: boolean; 
   isApproved: boolean; 
@@ -29,24 +28,28 @@ interface UserEntry {
 }
 
 const CANONICAL_ROLES = [
-  { value: "ADMIN", label: "Admin" },
+  { value: "DEVELOPMENT_TEAM", label: "Development Team" },
   { value: "FACULTY_COORDINATOR", label: "Faculty Coordinator" },
-  { value: "TECH_COORDINATOR", label: "Tech Coordinator" },
+  { value: "TECH_TEAM", label: "Tech Team" },
   { value: "STUDENT_COORDINATOR", label: "Student Coordinator" },
-  { value: "SOCIAL_MEDIA_COORDINATOR", label: "Social Media Coordinator" },
   { value: "MEMBER", label: "Member" },
+  { value: "GUEST", label: "Guest" },
 ];
 
 const ROLE_DISPLAY_NAMES: Record<string, string> = {
-  ADMIN: "Admin",
+  DEVELOPMENT_TEAM: "Development Team",
   FACULTY_COORDINATOR: "Faculty Coordinator",
-  TECH_COORDINATOR: "Tech Coordinator",
+  TECH_TEAM: "Tech Team",
   STUDENT_COORDINATOR: "Student Coordinator",
-  SOCIAL_MEDIA_COORDINATOR: "Social Media Coordinator",
   MEMBER: "Member",
+  GUEST: "Guest",
+  FACULTY: "Faculty Coordinator",
+  TECH: "Tech Team",
+  CONTENT: "Content Team",
+  SOCIAL_MEDIA: "Social Media",
 };
 
-const isFaculty = (role?: string): boolean => role === "FACULTY_COORDINATOR";
+const isFaculty = (role?: string): boolean => role === "FACULTY" || role === "FACULTY_COORDINATOR";
 
 export default function UsersPage() {
   const { user, token } = useAuth();
@@ -107,16 +110,6 @@ export default function UsersPage() {
   };
 
   useEffect(() => { if (user) load(); }, [user, search, roleFilter, currentPage]);
-
-  if (!user || user.role === "MEMBER" || user.role === "GUEST") {
-    return (
-      <div className="flex flex-col items-center justify-center h-[70vh]">
-        <AlertTriangle className="w-16 h-16 text-red-500 mb-4" />
-        <h2 className="text-2xl font-mono text-white mb-2">ACCESS DENIED</h2>
-        <p className="text-slate-400 font-mono text-sm">You do not have clearance to view this sector.</p>
-      </div>
-    );
-  }
 
   // Reset pagination when search queries or filters change
   useEffect(() => {
@@ -201,7 +194,7 @@ export default function UsersPage() {
                     )}
                   </div>
                   <p className="text-[10px] font-mono mt-1 text-[var(--ck-text-muted)] uppercase">
-                    {u.email.toLowerCase()} {u.phone ? `// TEL: ${u.phone}` : ""} {u.department ? `// DEPT: ${u.department}` : ""} {!isFaculty(u.role) && u.semester ? `// SEM: ${u.semester}` : ""}
+                    {u.email.toLowerCase()} {u.phone ? `// TEL: ${u.phone}` : ""} {u.department ? `// DEPT: ${u.department}` : ""} 
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
@@ -302,7 +295,7 @@ export default function UsersPage() {
                           <GraduationCap className="w-3.5 h-3.5 text-[var(--ck-accent)]/60" /> {u.department || "N/A"}
                         </p>
                         <p className="text-[10px] text-[var(--ck-text-muted)] font-mono uppercase pl-5">
-                          {isFaculty(u.role) ? (u.institute || "FACULTY") : `${u.semester ? `SEM: ${u.semester}` : "SEM: —"} / ${u.institute || "GUEST"}`}
+                          {isFaculty(u.role) ? (u.institute || "FACULTY") : `${u.institute || "GUEST"}`}
                         </p>
                       </div>
                     </td>

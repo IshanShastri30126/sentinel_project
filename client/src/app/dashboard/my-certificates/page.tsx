@@ -238,7 +238,7 @@ export default function MyCertificatesPage() {
             <p className="text-sm font-black uppercase tracking-widest text-slate-300 font-mono">VAULT EMPTY</p>
             <p className="text-xs text-slate-400 mt-1 max-w-xs font-mono">No achievements yet. Participate in events to earn verified certificates.</p>
           </div>
-          <Link href="/events"
+          <Link href="/dashboard/event"
             className="flex items-center gap-2 px-6 py-3 rounded bg-gradient-to-r from-[#00F5D4] to-[#00D2FF] text-black text-xs font-black uppercase tracking-wider hover:scale-[1.02] active:scale-[0.98] transition-all shadow-[0_0_15px_rgba(0,245,212,0.3)] cursor-pointer"
           >
             EXPLORE EVENTS

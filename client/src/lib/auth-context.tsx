@@ -28,7 +28,6 @@ export interface User {
   phone?: string;
   department?: string;
   institute?: string;
-  semester?: string;
   isApproved: boolean;
   clubId?: string;
 }
@@ -39,7 +38,7 @@ interface AuthContextType {
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
   loginWithGoogle: (credential: string) => Promise<void>;
-  register: (name: string, email: string, password: string, extra?: { studentId?: string; employeeId?: string; phone?: string; department?: string; institute?: string; semester?: string; clubId?: string; newClubName?: string; newClubSlug?: string }) => Promise<void>;
+  register: (name: string, email: string, password: string, extra?: { studentId?: string; employeeId?: string; phone?: string; department?: string; institute?: string; clubId?: string; newClubName?: string; newClubSlug?: string }) => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -147,7 +146,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setToken(data.accessToken);
   };
 
-  const register = async (name: string, email: string, password: string, extra?: { studentId?: string; employeeId?: string; phone?: string; department?: string; institute?: string; semester?: string; clubId?: string; newClubName?: string; newClubSlug?: string }) => {
+  const register = async (name: string, email: string, password: string, extra?: { studentId?: string; employeeId?: string; phone?: string; department?: string; institute?: string; clubId?: string; newClubName?: string; newClubSlug?: string }) => {
     try {
       sessionStorage.removeItem("sentinal_session_terminated");
     } catch { /* ignore */ }

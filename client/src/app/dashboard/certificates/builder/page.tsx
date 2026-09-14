@@ -672,7 +672,7 @@ function CertificateBuilderContent() {
       }
       
       setTimeout(() => {
-        router.push("/certificates");
+        router.push("/dashboard/certificates");
       }, 1000);
     } catch (err) {
       showToast(err instanceof Error ? err.message : "Failed to save template", "error");

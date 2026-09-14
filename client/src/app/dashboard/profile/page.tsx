@@ -150,7 +150,7 @@ export default function ProfilePage() {
             if (typeof window !== "undefined" && window.history.length > 1) {
               router.back();
             } else {
-              router.push("/");
+              router.push("/dashboard");
             }
           }}
           className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-black/50 hover:bg-[var(--ck-bg-card)] border border-[var(--ck-border)] hover:border-[#00F5D4]/40 text-xs font-mono uppercase tracking-wider text-[var(--ck-text-secondary)] hover:text-[#00F5D4] transition-all duration-200 shadow-sm group cursor-pointer"

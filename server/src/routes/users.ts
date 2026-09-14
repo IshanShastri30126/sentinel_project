@@ -367,7 +367,7 @@ router.patch(
 // PATCH /api/users/profile — Update current user's profile
 router.patch("/profile", authenticate, upload.single("avatar"), async (req: Request, res: Response) => {
   try {
-    const { name, password, studentId, phone, department, institute } = req.body;
+    const { name, password, studentId, employeeId, phone, department, institute } = req.body;
     const userId = req.user!.userId;
     const updateData: any = {};
 
@@ -382,21 +382,34 @@ router.patch("/profile", authenticate, upload.single("avatar"), async (req: Requ
     const currentUser = await prisma.user.findUnique({ where: { id: userId }, select: { role: true } });
     const isFaculty = currentUser?.role === "FACULTY_COORDINATOR" || (currentUser?.role as string) === "FACULTY";
 
-    const targetId = studentId;
-    if (targetId !== undefined) {
-      if (targetId) {
-        const existingStudent = await prisma.user.findFirst({
-          where: { studentId: targetId, NOT: { id: userId } }
-        });
-        if (existingStudent) {
-          res.status(409).json({ error: "Student ID is already in use" });
-          return;
+    if (isFaculty) {
+      if (employeeId !== undefined) {
+        if (employeeId) {
+          const existing = await prisma.user.findFirst({ where: { employeeId, NOT: { id: userId } } });
+          if (existing) {
+            res.status(409).json({ error: "Employee ID is already in use" });
+            return;
+          }
+          updateData.employeeId = employeeId;
+        } else {
+          updateData.employeeId = null;
         }
-        updateData.studentId = targetId;
-      } else {
-        updateData.studentId = null;
+      }
+    } else {
+      if (studentId !== undefined) {
+        if (studentId) {
+          const existing = await prisma.user.findFirst({ where: { studentId, NOT: { id: userId } } });
+          if (existing) {
+            res.status(409).json({ error: "Student ID is already in use" });
+            return;
+          }
+          updateData.studentId = studentId;
+        } else {
+          updateData.studentId = null;
+        }
       }
     }
+    if (phone !== undefined) {
     if (phone !== undefined) {
       const sanitizedPhone = phone ? String(phone).replace(/\D/g, "") : "";
       if (sanitizedPhone && !/^\d{10}$/.test(sanitizedPhone)) {

@@ -391,7 +391,8 @@ export default function EventsPage() {
     }
   };
 
-  const { user, token } = useAuth();
+  const { user, token, isLoading } = useAuth();
+  useEffect(() => { if (!isLoading && user?.role === 'MEMBER') router.push('/dashboard'); }, [user, isLoading, router]);
   const router = useRouter();
   const { showToast, confirmModal } = useCyberDialog();
   const [events, setEvents] = useState<Event[]>([]);
@@ -406,8 +407,8 @@ export default function EventsPage() {
   const [direction, setDirection] = useState(1); // 1 = forward, -1 = backward
   const [editingEventId, setEditingEventId] = useState<string | null>(null);
 
-  const isCoord = Boolean(user && ["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "TECH_TEAM", "STUDENT_COORDINATOR", "FACULTY", "TECH"].includes(user.role));
-  const isCore = Boolean(user && ["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "TECH_TEAM", "STUDENT_COORDINATOR", "FACULTY", "TECH", "CONTENT", "SOCIAL_MEDIA"].includes(user.role));
+  const isCoord = Boolean(user && ["ADMIN", "FACULTY_COORDINATOR", "STUDENT_COORDINATOR"].includes(user.role));
+  const isCore = Boolean(user && ["ADMIN", "FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_COORDINATOR", "SOCIAL_MEDIA_COORDINATOR"].includes(user.role));
 
   interface Organizer {
     name: string;
@@ -1560,7 +1561,7 @@ export default function EventsPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredEvents.map((event, i) => (
             <motion.div key={event.id} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}
-              onClick={() => isCore ? router.push(`/events/${event.id}`) : undefined}
+              onClick={() => isCore ? router.push(`/event/${event.id}`) : undefined}
               className={`ck-card overflow-hidden hover:border-[rgba(0,245,212,0.3)] hover:shadow-[0_0_20px_rgba(0,245,212,0.08)] ${isCore ? "cursor-pointer" : ""} transition-all`}>
               {/* Poster/Header */}
               <div className="h-44 bg-gradient-to-br from-[#0D0F14]/50 to-black flex items-center justify-center relative overflow-hidden">
@@ -1710,13 +1711,13 @@ export default function EventsPage() {
                     </button>
                   )}
                   {event.isPublished && (
-                    <a href={`/events/${event.slug}`} target="_blank" rel="noopener noreferrer" className="ck-btn-secondary text-xs py-2"
+                    <a href={`/event/${event.slug}`} target="_blank" rel="noopener noreferrer" className="ck-btn-secondary text-xs py-2"
                       onClick={(e) => e.stopPropagation()}>
                       <ExternalLink className="w-3 h-3" />
                     </a>
                   )}
                   {isCore && (
-                    <button onClick={(e) => { e.stopPropagation(); router.push(`/events/${event.id}`); }}
+                    <button onClick={(e) => { e.stopPropagation(); router.push(`/event/${event.id}`); }}
                       className="ck-btn-secondary text-xs py-2">
                       <ChevronRight className="w-3 h-3" />
                     </button>

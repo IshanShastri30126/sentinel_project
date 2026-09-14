@@ -163,7 +163,7 @@ function EventCardItem({ ev, index }: { ev: EventItem; index: number }) {
             <span className="font-mono text-[10px] text-slate-500">
               CHAKRAVYUH.FORMATION
             </span>
-            <Link href={`/events/${ev.slug}`}>
+            <Link href={`/event/${ev.slug}`}>
               <CyberButton
                 variant="secondary"
                 size="sm"
@@ -318,7 +318,7 @@ export default function LandingPage() {
                   Summits, competitive hackathons, zero-day research sessions, and certifications.
                 </p>
               </div>
-              <Link href="/events" className="mt-4 md:mt-0">
+              <Link href="/event" className="mt-4 md:mt-0">
                 <CyberButton variant="outline" size="sm" rightIcon={<ArrowRight className="w-3.5 h-3.5" />}>
                   VIEW ALL EVENTS
                 </CyberButton>

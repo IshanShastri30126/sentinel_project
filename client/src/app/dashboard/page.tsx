@@ -603,7 +603,7 @@ const DEFAULT_OPS_DATA: OpsData = {
                             initial={{ opacity: 0, x: -10 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: idx * 0.06 }}
-                            onClick={() => router.push(`/events/${event.id}`)}
+                            onClick={() => router.push(`/event/${event.id}`)}
                             className="flex items-center justify-between p-3.5 rounded-xl border border-white/[0.04] hover:border-[rgba(0,245,212,0.2)] bg-white/[0.02] hover:bg-white/[0.04] transition-all duration-300 group cursor-pointer"
                           >
                             <div className="flex items-center gap-3.5 sm:gap-4 min-w-0">
@@ -1090,14 +1090,14 @@ const DEFAULT_OPS_DATA: OpsData = {
 
                             <div className="flex gap-2 mt-4 sm:mt-5">
                               <button
-                                onClick={() => router.push(`/events/${event.slug}`)}
+                                onClick={() => router.push(`/event/${event.slug}`)}
                                 className="flex-1 ck-btn-secondary py-2 text-xs font-bold font-mono tracking-wider uppercase text-center cursor-pointer"
                               >
                                 Details
                               </button>
                               {status.label === "LIVE" ? (
                                 <button
-                                  onClick={() => router.push(`/events/${event.slug}?openGateway=true`)}
+                                  onClick={() => router.push(`/event/${event.slug}?openGateway=true`)}
                                   className="flex-1 py-2 text-xs font-black font-mono tracking-wider uppercase text-center rounded-lg bg-gradient-to-r from-[#00F5D4] via-[#00E1FF] to-[#00F5D4] text-black shadow-[0_0_20px_rgba(0,245,212,0.5)] hover:shadow-[0_0_30px_rgba(0,245,212,0.8)] animate-pulse transition cursor-pointer"
                                 >
                                   ENTER TERMINAL →
@@ -1111,7 +1111,7 @@ const DEFAULT_OPS_DATA: OpsData = {
                                 </button>
                               ) : (
                                 <button
-                                  onClick={() => router.push(`/events/${event.slug}`)}
+                                  onClick={() => router.push(`/event/${event.slug}`)}
                                   className="flex-1 py-2 text-xs font-bold font-mono tracking-wider uppercase text-center rounded-lg border border-red-500/30 bg-red-950/20 text-red-400 hover:bg-red-950/40 transition cursor-pointer"
                                 >
                                   LOCKED
@@ -1232,7 +1232,7 @@ const DEFAULT_OPS_DATA: OpsData = {
 
                             {isFacultyOrCoord ? (
                               <button
-                                onClick={() => router.push(`/events/${event.slug}`)}
+                                onClick={() => router.push(`/event/${event.slug}`)}
                                 className="w-full ck-btn-secondary py-2.5 text-xs mt-4 sm:mt-5 flex items-center justify-center gap-1.5 font-bold font-mono tracking-wider uppercase"
                               >
                                 <Eye className="w-3.5 h-3.5 text-[#00F5D4]" /> View Event
@@ -1246,7 +1246,7 @@ const DEFAULT_OPS_DATA: OpsData = {
                               </button>
                             ) : isAlreadyRegistered ? (
                               <button
-                                onClick={() => router.push(`/events/${event.slug}`)}
+                                onClick={() => router.push(`/event/${event.slug}`)}
                                 className="w-full py-2.5 text-xs mt-4 sm:mt-5 flex items-center justify-center gap-1.5 font-bold font-mono tracking-wider uppercase border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 transition-all rounded-xl cursor-pointer"
                               >
                                 <CheckCircle className="w-3.5 h-3.5" /> Registered · View Details

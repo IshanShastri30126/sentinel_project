@@ -73,12 +73,39 @@ const createEventSchema = z.object({
 });
 
 // POST /api/events — Create event
-router.post("/", authenticate, requireMinRole("STUDENT_COORDINATOR"), validate(createEventSchema), auditLog("EVENT_CREATED"), async (req: Request, res: Response) => {
+
+async function validateEventLeads(organizersStr: string | null): Promise<string | null> {
+  if (!organizersStr) return null;
+  try {
+    const organizers = JSON.parse(organizersStr);
+    if (!Array.isArray(organizers)) return null;
+    
+    for (const org of organizers) {
+      if (org.role === "Event Lead" && org.email) {
+        const user = await prisma.user.findUnique({ where: { email: org.email } });
+        if (!user) {
+          return `User with email ${org.email} does not exist. All Event Leads must be registered users.`;
+        }
+      }
+    }
+  } catch (e) {
+    // invalid JSON, ignore
+  }
+  return null;
+}
+
+router.post("/", authenticate, requireRole("ADMIN", "FACULTY_COORDINATOR", "STUDENT_COORDINATOR"), validate(createEventSchema), auditLog("EVENT_CREATED"), async (req: Request, res: Response) => {
   try {
     const data = req.body;
     const startDateObj = new Date(data.startDate);
     const endDateObj = new Date(data.endDate);
 
+    
+    const leadError = await validateEventLeads(data.organizers);
+    if (leadError) {
+      res.status(400).json({ error: leadError });
+      return;
+    }
     if (isNaN(startDateObj.getTime()) || isNaN(endDateObj.getTime())) {
       res.status(400).json({ error: "Invalid start or end date format." });
       return;
@@ -157,7 +184,7 @@ router.post("/", authenticate, requireMinRole("STUDENT_COORDINATOR"), validate(c
 });
 
 // POST /api/events/:id/poster — Upload poster
-router.post("/:id/poster", authenticate, requireMinRole("STUDENT_COORDINATOR"), upload.single("poster"), async (req: Request, res: Response) => {
+router.post("/:id/poster", authenticate, requireRole("ADMIN", "FACULTY_COORDINATOR", "STUDENT_COORDINATOR"), upload.single("poster"), async (req: Request, res: Response) => {
   try {
     if (!req.file) { res.status(400).json({ error: "No file uploaded" }); return; }
     const existing = await prisma.event.findUnique({ where: { id: req.params.id } });
@@ -176,7 +203,7 @@ router.post("/:id/poster", authenticate, requireMinRole("STUDENT_COORDINATOR"), 
 });
 
 // POST /api/events/:id/document — Upload document
-router.post("/:id/document", authenticate, requireMinRole("STUDENT_COORDINATOR"), upload.single("document"), async (req: Request, res: Response) => {
+router.post("/:id/document", authenticate, requireRole("ADMIN", "FACULTY_COORDINATOR", "STUDENT_COORDINATOR"), upload.single("document"), async (req: Request, res: Response) => {
   try {
     if (!req.file) { res.status(400).json({ error: "No file uploaded" }); return; }
     const existing = await prisma.event.findUnique({ where: { id: req.params.id } });
@@ -259,7 +286,7 @@ router.get("/", async (req: Request, res: Response) => {
 });
 
 // GET /api/events/all — All events for coordinators with search/filter
-router.get("/all", authenticate, requireMinRole("STUDENT_COORDINATOR"), async (req: Request, res: Response) => {
+router.get("/all", authenticate, requireRole("ADMIN", "FACULTY_COORDINATOR", "STUDENT_COORDINATOR"), async (req: Request, res: Response) => {
   try {
     const { search, status, tag } = req.query;
     
@@ -420,7 +447,7 @@ router.get("/:id/analytics", authenticate, requireMinRole("TECH_TEAM"), async (r
 });
 
 // PATCH /api/events/:id — Update event
-router.patch("/:id", authenticate, requireMinRole("STUDENT_COORDINATOR"), auditLog("EVENT_UPDATED"), async (req: Request, res: Response) => {
+router.patch("/:id", authenticate, requireRole("ADMIN", "FACULTY_COORDINATOR", "STUDENT_COORDINATOR"), auditLog("EVENT_UPDATED"), async (req: Request, res: Response) => {
   try {
     const existingEvent = await prisma.event.findUnique({ where: { id: req.params.id } });
     if (!existingEvent) {
@@ -521,7 +548,7 @@ router.patch("/:id", authenticate, requireMinRole("STUDENT_COORDINATOR"), auditL
 });
 
 // PATCH /api/events/:id/publish — Toggle publish
-router.patch("/:id/publish", authenticate, requireMinRole("STUDENT_COORDINATOR"), auditLog("EVENT_PUBLISH_TOGGLED"), async (req: Request, res: Response) => {
+router.patch("/:id/publish", authenticate, requireRole("ADMIN", "FACULTY_COORDINATOR", "STUDENT_COORDINATOR"), auditLog("EVENT_PUBLISH_TOGGLED"), async (req: Request, res: Response) => {
   try {
     const event = await prisma.event.findUnique({
       where: { id: req.params.id },
@@ -552,7 +579,7 @@ router.patch("/:id/publish", authenticate, requireMinRole("STUDENT_COORDINATOR")
 });
 
 // DELETE /api/events/:id — Permanent delete event
-router.delete("/:id", authenticate, requireMinRole("STUDENT_COORDINATOR"), auditLog("EVENT_DELETED"), async (req: Request, res: Response) => {
+router.delete("/:id", authenticate, requireRole("ADMIN", "FACULTY_COORDINATOR", "STUDENT_COORDINATOR"), auditLog("EVENT_DELETED"), async (req: Request, res: Response) => {
   try {
     const event = await prisma.event.findUnique({ where: { id: req.params.id } });
     if (!event) { res.status(404).json({ error: "Event not found" }); return; }
@@ -839,7 +866,7 @@ router.get("/:id/registrations/export", authenticate, requireMinRole("TECH_TEAM"
 });
 
 // POST /api/events/:id/send-email — Manually trigger email/notification broadcast to all members
-router.post("/:id/send-email", mailLimiter, authenticate, requireMinRole("STUDENT_COORDINATOR"), auditLog("EVENT_NOTIFICATIONS_SENT"), async (req: Request, res: Response) => {
+router.post("/:id/send-email", mailLimiter, authenticate, requireRole("ADMIN", "FACULTY_COORDINATOR", "STUDENT_COORDINATOR"), auditLog("EVENT_NOTIFICATIONS_SENT"), async (req: Request, res: Response) => {
   try {
     const event = await prisma.event.findUnique({
       where: { id: req.params.id },

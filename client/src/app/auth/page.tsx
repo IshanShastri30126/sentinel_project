@@ -58,7 +58,7 @@ function LoginPageContent() {
   const { login, loginWithGoogle, register, user } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirectTarget = searchParams?.get("redirect") || "/";
+  const redirectTarget = searchParams?.get("redirect") || "/dashboard";
 
   const [isLogin, setIsLogin] = useState(true);
 
