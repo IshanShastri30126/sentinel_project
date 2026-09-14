@@ -164,7 +164,7 @@ export default function VerifyPage() {
 
     const verifyUrl = window.location.href;
     const name = `${cert.eventTitle} Certification`;
-    const org = cert.issuingAuthority || "Chakravyuh Club";
+    const org = cert.issuingAuthority || "Sentinel";
 
     return `https://www.linkedin.com/profile/add?startTask=CERTIFICATION&name=${encodeURIComponent(name)}&organizationName=${encodeURIComponent(org)}&issueYear=${year}&issueMonth=${month}&certUrl=${encodeURIComponent(verifyUrl)}&certId=${encodeURIComponent(cert.uniqueCode)}`;
   };
@@ -191,7 +191,7 @@ export default function VerifyPage() {
           <div className="inline-flex items-center gap-2 bg-[#070D18] border border-cyan-500/30 px-3.5 py-1.5 rounded-full">
             <Shield className="w-4 h-4 text-[#00F5D4] animate-pulse" />
             <span className="text-xs font-mono font-bold tracking-widest text-[#00F5D4] uppercase">
-              CHAKRAVYUH TRUST VERIFICATION UNIT
+              SENTINEL TRUST VERIFICATION UNIT
             </span>
           </div>
           <p className="text-[10px] font-mono text-slate-500 uppercase tracking-widest">
@@ -293,14 +293,14 @@ export default function VerifyPage() {
                     <span>CRYPTOGRAPHIC SIGNATURE VALIDATED</span>
                   </div>
                   <p className="text-xs text-slate-400 font-mono mt-1">
-                    This credential has been digitally signed and validated against the Chakravyuh vault.
+                    This credential has been digitally signed and validated against the Sentinel vault.
                   </p>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3 text-xs font-mono bg-[#050A14] p-3.5 rounded-lg border border-white/[0.06]">
                   <div>
                     <span className="text-slate-500 text-[10px] block">ISSUING AUTHORITY:</span>
-                    <p className="text-slate-200 font-bold">{result.certificate.issuingAuthority || "Chakravyuh Council"}</p>
+                    <p className="text-slate-200 font-bold">{result.certificate.issuingAuthority || "Sentinel Council"}</p>
                   </div>
                   <div>
                     <span className="text-slate-500 text-[10px] block">TIMESTAMP:</span>

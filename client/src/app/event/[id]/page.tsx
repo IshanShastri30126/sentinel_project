@@ -604,7 +604,7 @@ function PublicEventPageContent() {
             <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
               <div className="flex items-center gap-2 mb-3">
                 <Shield className="w-5 h-5 shadow-[0_0_8px_rgba(239,68,68,0.5)]" style={{ color: themeAccent }} />
-                <span className="text-sm font-semibold font-mono tracking-wider uppercase" style={{ color: themeAccent }}>Chakravyuh Club</span>
+                <span className="text-sm font-semibold font-mono tracking-wider uppercase" style={{ color: themeAccent }}>Sentinel</span>
               </div>
               <MatrixTitle title={event.title} accent={themeAccent} />
               <div className="flex flex-wrap items-center gap-3">
@@ -997,15 +997,10 @@ function PublicEventPageContent() {
                 </p>
               )}
 
-              {/* Organizer */}
-              <div className="mt-6 pt-6 border-t border-red-950">
-                <p className="text-[10px] uppercase font-semibold font-mono text-slate-500" style={{ color: "var(--ck-text-muted)" }}>Organized by</p>
-                <p className="text-sm font-bold text-white mt-1">{event.creator.name}</p>
-                <p className="text-xs text-red-400 font-mono mt-0.5 uppercase tracking-wider">{event.creator.role.replace(/_/g, " ")}</p>
-              </div>
+
             </motion.div>
 
-            {/* Chakravyuh Community Links Card — with event socialLinks */}
+            {/* Sentinel Community Links Card — with event socialLinks */}
             {(() => {
               let socialLinks: Record<string, string> = {};
               if (event.socialLinks) {
@@ -1016,7 +1011,7 @@ function PublicEventPageContent() {
               return (
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
                   className="ck-card p-6 mt-4">
-                  <h3 className="text-sm font-bold font-mono tracking-tighter uppercase mb-4 text-white border-b border-red-950 pb-2">Chakravyuh Network</h3>
+                  <h3 className="text-sm font-bold font-mono tracking-tighter uppercase mb-4 text-white border-b border-red-950 pb-2">Sentinel Network</h3>
                   <div className="space-y-2.5">
                     <a href={linkedinUrl} target="_blank" rel="noopener noreferrer"
                       className="flex items-center gap-3 p-2.5 rounded-lg border border-zinc-800 bg-[#0D0F14]/30 hover:border-blue-500/40 hover:bg-blue-950/10 transition-all font-mono text-xs text-slate-350 group">
@@ -1398,7 +1393,7 @@ function PublicEventPageContent() {
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-red-400 font-bold">×</span>
-                    <span><strong>Prohibitions:</strong> Denial of service attacks against scoring servers, automated credential brute forcing on club auth, and cross-team collusion will result in permanent disqualification.</span>
+                    <span><strong>Prohibitions:</strong> Denial of service attacks against scoring servers, automated credential brute forcing on sentinel auth, and cross-team collusion will result in permanent disqualification.</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-[#00F5D4] font-bold">→</span>
@@ -1619,7 +1614,7 @@ function PublicEventPageContent() {
               )}
 
               {/* Staff / Coordinator Direct Spectator Link */}
-              {user && ["ADMIN", "TECH_COORDINATOR", "FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "ADMIN", "FACULTY"].includes(user.role) && (
+              {user && ["TECH_COORDINATOR", "FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "FACULTY"].includes(user.role) && (
                 <div className="pt-4 border-t border-white/[0.08] flex items-center justify-between flex-wrap gap-2 text-xs">
                   <span className="text-sky-400 uppercase tracking-wider font-bold">
                     Staff Supervisor Mode

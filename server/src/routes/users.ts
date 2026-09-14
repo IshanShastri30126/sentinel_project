@@ -19,7 +19,7 @@ async function clearUsersCache() {
       }
     }
     await redisDel("analytics:operations");
-    await redisDel("analytics:club");
+    await redisDel("analytics:sentinel");
     await redisDel("analytics:top3");
     await redisDel("analytics:coordinator-activity");
   } catch (err) {
@@ -147,7 +147,7 @@ router.patch("/:id/approve", authenticate, requireMinRole("TECH_COORDINATOR"), a
       userId: user.id,
       type: "ACCOUNT_APPROVED",
       title: "Account Approved",
-      message: "Your Chakravyuh Club account has been approved. You can now access all member features.",
+      message: "Your Sentinel account has been approved. You can now access all member features.",
     });
 
     // Send account approved email (fire and forget)
@@ -244,14 +244,14 @@ router.delete("/:id", authenticate, requireMinRole("TECH_COORDINATOR"), auditLog
 router.patch(
   "/:id/role",
   authenticate,
-  requireRole("ADMIN", "FACULTY_COORDINATOR", "TECH_COORDINATOR"),
+  requireRole("FACULTY_COORDINATOR", "TECH_COORDINATOR"),
   auditLog("USER_ROLE_UPDATED"),
   async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
       let { role } = req.body;
 
-      const validRoles: Role[] = ["ADMIN", "FACULTY_COORDINATOR", "TECH_COORDINATOR", "STUDENT_COORDINATOR", "SOCIAL_MEDIA_COORDINATOR", "MEMBER"];
+      const validRoles: Role[] = ["FACULTY_COORDINATOR", "TECH_COORDINATOR", "STUDENT_COORDINATOR", "SOCIAL_MEDIA_COORDINATOR", "MEMBER"];
       if (!validRoles.includes(role)) {
         res.status(400).json({ error: "Invalid role" });
         return;
@@ -265,7 +265,6 @@ router.patch(
 
       // Verify that caller is either Admin, Tech Coordinator, or Faculty Coordinator
       const isAuthorizedManager = [
-        "ADMIN",
         "FACULTY_COORDINATOR",
         "TECH_COORDINATOR",
       ].includes(req.user!.role);
@@ -457,7 +456,7 @@ router.patch("/profile", authenticate, upload.single("avatar"), async (req: Requ
 });
 
 // GET /api/users/audit-logs — List system audit logs (Dev Team, Faculty, Tech Team)
-router.get("/audit-logs", authenticate, requireRole("ADMIN", "FACULTY_COORDINATOR", "TECH_COORDINATOR"), async (req: Request, res: Response) => {
+router.get("/audit-logs", authenticate, requireRole("FACULTY_COORDINATOR", "TECH_COORDINATOR"), async (req: Request, res: Response) => {
   try {
     const { action, outcome, page, limit } = req.query;
     const pageNum = page ? parseInt(page as string) : 1;

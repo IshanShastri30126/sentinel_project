@@ -161,7 +161,7 @@ function EventCardItem({ ev, index }: { ev: EventItem; index: number }) {
           {/* Action Trigger */}
           <div className="pt-3 border-t border-white/[0.06] flex items-center justify-between">
             <span className="font-mono text-[10px] text-slate-500">
-              CHAKRAVYUH.FORMATION
+              SENTINEL.FORMATION
             </span>
             <Link href={`/event/${ev.slug}`}>
               <CyberButton
@@ -182,7 +182,7 @@ function EventCardItem({ ev, index }: { ev: EventItem; index: number }) {
 /**
  * LandingPage
  *
- * Master landing page for Chakravyuh Club transformed into a modern
+ * Master landing page for Sentinel transformed into a modern
  * cybersecurity command-center and tactical event discovery interface.
  *
  * @returns {JSX.Element} Rendered landing page.
@@ -274,33 +274,7 @@ export default function LandingPage() {
             </div>
           </SectionReveal>
 
-          {/* Telemetry Statistics HUD */}
-          <SectionReveal delay={0.4} className="mt-16 sm:mt-24 w-full">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 max-w-4xl mx-auto">
-              {[
-                { label: "TACTICAL OPERATIVES", value: 500, suffix: "+", icon: Activity },
-                { label: "EVENTS EXECUTED", value: 24, suffix: "+", icon: Zap },
-                { label: "DEFENSE TIERS", value: 7, suffix: " TIER", icon: Shield },
-                { label: "SECURITY AUDIT SCORE", value: 100, suffix: "%", icon: Award },
-              ].map((stat, idx) => {
-                const Icon = stat.icon;
-                return (
-                  <div
-                    key={idx}
-                    className="p-4 rounded-lg bg-[#070D18]/90 border border-white/[0.08] backdrop-blur-md text-center space-y-1 relative overflow-hidden"
-                  >
-                    <div className="flex items-center justify-center gap-1.5 text-slate-400 font-mono text-[10px] tracking-wider uppercase mb-1">
-                      <Icon className="w-3 h-3 text-[#00F5D4]" />
-                      <span>{stat.label}</span>
-                    </div>
-                    <div className="font-mono text-2xl sm:text-3xl font-black text-[#00F5D4] tracking-tight drop-shadow-[0_0_10px_rgba(0,245,212,0.3)]">
-                      <CountUp end={stat.value} suffix={stat.suffix} />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </SectionReveal>
+
         </section>
 
         {/* Tactical Operations Showcase */}
@@ -335,7 +309,7 @@ export default function LandingPage() {
           ) : events.length === 0 ? (
             <EmptyState
               title="NO ACTIVE OPERATIONS SCHEDULED"
-              description="New strategic defense summits and hackathon deployments will appear here once scheduled by the Chakravyuh council."
+              description="New strategic defense summits and hackathon deployments will appear here once scheduled by the Sentinel council."
               actionLabel="BROWSE ARCHIVES"
               onAction={() => {}}
             />
@@ -348,85 +322,7 @@ export default function LandingPage() {
           )}
         </section>
 
-        {/* Security Command Pillars Section */}
-        <section className="px-4 sm:px-6 max-w-7xl mx-auto mb-28">
-          <SectionReveal>
-            <div className="text-center max-w-2xl mx-auto mb-12 space-y-2">
-              <SystemLabel prefix="[// ARCHITECTURE]" showDot={true}>
-                TACTICAL DEFENSE ARSENAL
-              </SystemLabel>
-              <h2 className="text-2xl sm:text-3xl font-black uppercase font-mono tracking-tight text-white">
-                CORE DEFENSE ARCHITECTURE OF <span className="text-[#00F5D4]">SENTINEL</span>
-              </h2>
-              <p className="font-mono text-xs text-slate-400">
-                Engineered from the ground up for maximum resilience, hands-on vulnerability analysis, and zero compromise.
-              </p>
-            </div>
-          </SectionReveal>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-            {[
-              {
-                id: "01",
-                title: "OFFENSIVE WARFARE",
-                description: "Ethical hacking drills, penetration testing methodologies, and real-world vulnerability identification.",
-                icon: Terminal,
-                accent: "#00F5D4",
-              },
-              {
-                id: "02",
-                title: "7-TIER FORMATION",
-                description: "Multilayered security perimeter ensuring defense in depth across network, endpoint, application, and cloud.",
-                icon: Shield,
-                accent: "#00E1FF",
-              },
-              {
-                id: "03",
-                title: "EVENT LEADERBOARD",
-                description: "Real-time telemetry, competitive scores, operative rankings, and event performance analytics.",
-                icon: Award,
-                accent: "#FFB800",
-              },
-              {
-                id: "04",
-                title: "CRYPTOGRAPHIC PROOF",
-                description: "Verifiable digital credentialing, signed attendance receipts, and immutable skill verification.",
-                icon: Lock,
-                accent: "#00F5D4",
-              },
-            ].map((pillar, index) => {
-              const Icon = pillar.icon;
-              return (
-                <SectionReveal key={pillar.id} delay={index * 0.08}>
-                  <HoloCard className="h-full p-6 flex flex-col justify-between space-y-4 border-white/[0.08]">
-                    <BorderBeam size={160} duration={12} delay={index * 3} />
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <span className="font-mono text-xs font-bold text-slate-500">
-                          {pillar.id}
-                        </span>
-                        <div className="p-2 rounded bg-cyan-500/10 text-[#00F5D4] border border-cyan-500/20">
-                          <Icon className="w-4 h-4" />
-                        </div>
-                      </div>
-                      <h3 className="font-mono text-sm font-bold tracking-wider text-slate-100 uppercase">
-                        {pillar.title}
-                      </h3>
-                      <p className="font-mono text-xs text-slate-400 leading-relaxed">
-                        {pillar.description}
-                      </p>
-                    </div>
-
-                    <div className="pt-3 border-t border-white/[0.05] flex items-center gap-1.5 text-[10px] font-mono text-cyan-400">
-                      <span>TACTICAL READY</span>
-                      <span>→</span>
-                    </div>
-                  </HoloCard>
-                </SectionReveal>
-              );
-            })}
-          </div>
-        </section>
 
         {/* Operative Enlistment Call to Action */}
         <section className="px-4 sm:px-6 max-w-5xl mx-auto mb-24">
@@ -452,7 +348,7 @@ export default function LandingPage() {
                   </Link>
                   <Link href="/about">
                     <CyberButton variant="outline" size="md">
-                      LEARN CLUB CHARTER
+                      LEARN SENTINEL CHARTER
                     </CyberButton>
                   </Link>
                 </div>

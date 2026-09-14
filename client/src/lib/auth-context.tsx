@@ -6,7 +6,7 @@ import { getDeviceFingerprint } from "@/lib/deviceFingerprint";
 import Cookies from "js-cookie";
 
 export type Role =
-  | "ADMIN"
+  
   | "FACULTY_COORDINATOR"
   | "STUDENT_COORDINATOR"
   | "TECH_COORDINATOR"

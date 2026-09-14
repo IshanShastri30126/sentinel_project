@@ -1,7 +1,7 @@
 import { Router, Request, Response } from "express";
 import { z } from "zod";
 import prisma from "../lib/prisma";
-import { authenticate, requireRole, requireMinRole } from "../middlewares/auth";
+import { authenticate, requireRole } from "../middlewares/auth";
 import { validate } from "../middlewares/validate";
 import { auditLog } from "../middlewares/auditLog";
 import { emitToEvent } from "../lib/socket";
@@ -72,6 +72,15 @@ router.post(
 
       // ── TEAM BULK CHECK-IN via QR teamCode ──────────────────────────────
       if (teamCode) {
+        // [MIGRATION]: Enforce own_events for STUDENT_COORDINATOR
+        if (req.user!.role === "STUDENT_COORDINATOR") {
+          const eventData = await prisma.event.findUnique({ where: { id: eventId }, select: { creatorId: true } });
+          if (eventData?.creatorId !== req.user!.userId) {
+            res.status(403).json({ error: "Student Coordinators can only scan attendance for their own events" });
+            return;
+          }
+        }
+        
         const team = await prisma.team.findFirst({
           where: { teamCode, eventId }, // validate team belongs to this event
           include: { members: { include: { user: { select: USER_SELECT } } } },
@@ -144,10 +153,19 @@ router.post(
       const userId = targetUserId || req.user!.userId;
 
       // Coordinators can check in anyone; members can only check in themselves
-      const isCoord = ["FACULTY", "STUDENT_COORDINATOR", "TECH"].includes(req.user!.role);
+      // [MIGRATION]: Remove legacy strings, use canonical enum
+      const isCoord = ["FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_COORDINATOR"].includes(req.user!.role);
       if (targetUserId && !isCoord) {
         res.status(403).json({ error: "Insufficient permissions" });
         return;
+      }
+      // [MIGRATION]: Enforce own_events for STUDENT_COORDINATOR
+      if (targetUserId && req.user!.role === "STUDENT_COORDINATOR") {
+        const eventData = await prisma.event.findUnique({ where: { id: eventId }, select: { creatorId: true } });
+        if (eventData?.creatorId !== req.user!.userId) {
+          res.status(403).json({ error: "Student Coordinators can only scan attendance for their own events" });
+          return;
+        }
       }
 
       const [reg, event] = await Promise.all([
@@ -197,12 +215,21 @@ router.post(
 router.post(
   "/manual",
   authenticate,
-  requireRole("ADMIN", "FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_COORDINATOR"),
+  requireRole("FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_COORDINATOR"),
   validate(manualCheckInSchema),
   auditLog("ATTENDANCE_MANUAL_OVERRIDE"),
   async (req: Request, res: Response) => {
     try {
       const { eventId, userId, type, note } = req.body;
+      
+      // [MIGRATION]: Enforce own_events for STUDENT_COORDINATOR
+      if (req.user!.role === "STUDENT_COORDINATOR") {
+        const eventData = await prisma.event.findUnique({ where: { id: eventId }, select: { creatorId: true } });
+        if (eventData?.creatorId !== req.user!.userId) {
+          res.status(403).json({ error: "Student Coordinators can only override attendance for their own events" });
+          return;
+        }
+      }
 
       const [reg, event] = await Promise.all([
         prisma.eventRegistration.findUnique({
@@ -261,7 +288,7 @@ router.post(
 router.delete(
   "/:id",
   authenticate,
-  requireRole("ADMIN", "FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_COORDINATOR"),
+  requireRole("FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_COORDINATOR"),
   auditLog("ATTENDANCE_VOIDED"),
   async (req: Request, res: Response) => {
     try {
@@ -275,6 +302,15 @@ router.delete(
       if (!record) {
         res.status(404).json({ error: "Attendance record not found" });
         return;
+      }
+      
+      // [MIGRATION]: Enforce own_events for STUDENT_COORDINATOR
+      if (req.user!.role === "STUDENT_COORDINATOR") {
+        const eventData = await prisma.event.findUnique({ where: { id: record.eventId }, select: { creatorId: true } });
+        if (eventData?.creatorId !== req.user!.userId) {
+          res.status(403).json({ error: "Student Coordinators can only void attendance for their own events" });
+          return;
+        }
       }
 
       await prisma.attendance.delete({ where: { id } });
@@ -294,7 +330,8 @@ router.delete(
 router.get(
   "/event/:eventId",
   authenticate,
-  requireMinRole("TECH_COORDINATOR"),
+  // [MIGRATION]: requireMinRole -> explicit requireRole
+  requireRole("TECH_COORDINATOR", "FACULTY_COORDINATOR"),
   async (req: Request, res: Response) => {
     try {
       const eventId = req.params.eventId;
@@ -390,7 +427,8 @@ router.get(
 router.get(
   "/presence/:eventId",
   authenticate,
-  requireMinRole("TECH_COORDINATOR"),
+  // [MIGRATION]: requireMinRole -> explicit requireRole
+  requireRole("TECH_COORDINATOR", "FACULTY_COORDINATOR"),
   async (req: Request, res: Response) => {
     try {
       const eventId = req.params.eventId;
@@ -453,11 +491,20 @@ router.get(
 router.get(
   "/search-registered/:eventId",
   authenticate,
-  requireRole("ADMIN", "FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_COORDINATOR"),
+  requireRole("FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_COORDINATOR"),
   async (req: Request, res: Response) => {
     try {
       const eventId = req.params.eventId;
       const q = String(req.query.q || "").trim().slice(0, 100);
+
+      // [MIGRATION]: Enforce own_events for STUDENT_COORDINATOR
+      if (req.user!.role === "STUDENT_COORDINATOR") {
+        const eventData = await prisma.event.findUnique({ where: { id: eventId }, select: { creatorId: true } });
+        if (eventData?.creatorId !== req.user!.userId) {
+          res.status(403).json({ error: "Student Coordinators can only search attendees for their own events" });
+          return;
+        }
+      }
 
       if (!z.string().uuid().safeParse(eventId).success) {
         res.status(400).json({ error: "Invalid event ID" });

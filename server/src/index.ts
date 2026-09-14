@@ -67,7 +67,7 @@ const corsOptions: cors.CorsOptions = {
   allowedHeaders: [
     "Content-Type",
     "Authorization",
-    "X-Club-Slug",
+    "X-Sentinel-Slug",
     "X-Device-Fingerprint",
     "X-Device-ID",
     "X-Local-IP",
@@ -226,7 +226,7 @@ httpServer.on("connection", (socket) => {
 });
 
 httpServer.listen(config.port, () => {
-  process.stdout.write(`\n[Server] Chakravyuh Club API Server running on http://localhost:${config.port}\n`);
+  process.stdout.write(`\n[Server] Sentinel API Server running on http://localhost:${config.port}\n`);
   process.stdout.write(`   Health: http://localhost:${config.port}/api/health\n`);
   process.stdout.write(`   Socket.io: ws://localhost:${config.port}\n`);
   process.stdout.write(`   Security: WAF + RequestID + ResponseSanitization + TCP Hardening ACTIVE\n\n`);

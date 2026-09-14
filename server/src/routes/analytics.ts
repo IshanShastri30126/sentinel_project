@@ -1,14 +1,15 @@
 import { Router, Request, Response } from "express";
 import prisma from "../lib/prisma";
-import { authenticate, requireMinRole } from "../middlewares/auth";
+import { authenticate, requireRole } from "../middlewares/auth";
 import { redisGet, redisSet } from "../lib/redis";
 
 const router = Router();
 
-// GET /api/analytics/club — Faculty/SC/Tech: full club-wide analytics
-router.get("/club", authenticate, requireMinRole("TECH_COORDINATOR"), async (_req: Request, res: Response) => {
+// GET /api/analytics/sentinel — Faculty/SC/Tech: full sentinel-wide analytics
+// [MIGRATION]: requireMinRole -> requireRole("TECH_COORDINATOR", "FACULTY_COORDINATOR") based on RBAC refactor map
+router.get("/sentinel", authenticate, requireRole("TECH_COORDINATOR", "FACULTY_COORDINATOR"), async (_req: Request, res: Response) => {
   try {
-    const cacheKey = "analytics:club";
+    const cacheKey = "analytics:sentinel";
     const cached = await redisGet(cacheKey);
     if (cached) {
       res.json(JSON.parse(cached));
@@ -64,13 +65,14 @@ router.get("/club", authenticate, requireMinRole("TECH_COORDINATOR"), async (_re
     await redisSet(cacheKey, JSON.stringify(data), 300); // 5 minutes TTL
     res.json(data);
   } catch (err) { 
-    console.error("[Analytics] Club error:", err); 
+    console.error("[Analytics] Sentinel error:", err); 
     res.status(500).json({ error: "Internal server error" }); 
   }
 });
 
 // GET /api/analytics/operations — SC+/Tech: operational metrics
-router.get("/operations", authenticate, requireMinRole("TECH_COORDINATOR"), async (_req: Request, res: Response) => {
+// [MIGRATION]: requireMinRole -> requireRole("TECH_COORDINATOR", "FACULTY_COORDINATOR") based on RBAC refactor map
+router.get("/operations", authenticate, requireRole("TECH_COORDINATOR", "FACULTY_COORDINATOR"), async (_req: Request, res: Response) => {
   try {
     const cacheKey = "analytics:operations";
     const cached = await redisGet(cacheKey);
@@ -115,7 +117,8 @@ router.get("/operations", authenticate, requireMinRole("TECH_COORDINATOR"), asyn
 });
 
 // GET /api/analytics/top3 — Top 3 items across key domains (registrations, points, team sizes)
-router.get("/top3", authenticate, requireMinRole("STUDENT_COORDINATOR"), async (_req: Request, res: Response) => {
+// [MIGRATION]: requireMinRole -> requireRole for all coordinators based on RBAC refactor map
+router.get("/top3", authenticate, requireRole("STUDENT_COORDINATOR", "SOCIAL_MEDIA_COORDINATOR", "TECH_COORDINATOR", "FACULTY_COORDINATOR"), async (_req: Request, res: Response) => {
   try {
     const cacheKey = "analytics:top3";
     const cached = await redisGet(cacheKey);
@@ -216,7 +219,8 @@ router.get("/top3", authenticate, requireMinRole("STUDENT_COORDINATOR"), async (
 });
 
 // GET /api/analytics/events-analysis — Event-wise metrics, capacity, registration timelines
-router.get("/events-analysis", authenticate, requireMinRole("STUDENT_COORDINATOR"), async (_req: Request, res: Response) => {
+// [MIGRATION]: requireMinRole -> requireRole for all coordinators based on RBAC refactor map
+router.get("/events-analysis", authenticate, requireRole("STUDENT_COORDINATOR", "SOCIAL_MEDIA_COORDINATOR", "TECH_COORDINATOR", "FACULTY_COORDINATOR"), async (_req: Request, res: Response) => {
   try {
     const cacheKey = "analytics:events-analysis";
     const cached = await redisGet(cacheKey);
@@ -285,7 +289,8 @@ router.get("/events-analysis", authenticate, requireMinRole("STUDENT_COORDINATOR
 });
 
 // GET /api/analytics/coordinator-activity — Productivity, events, points, approvals marked
-router.get("/coordinator-activity", authenticate, requireMinRole("STUDENT_COORDINATOR"), async (_req: Request, res: Response) => {
+// [MIGRATION]: requireMinRole -> requireRole for all coordinators based on RBAC refactor map
+router.get("/coordinator-activity", authenticate, requireRole("STUDENT_COORDINATOR", "SOCIAL_MEDIA_COORDINATOR", "TECH_COORDINATOR", "FACULTY_COORDINATOR"), async (_req: Request, res: Response) => {
   try {
     const cacheKey = "analytics:coordinator-activity";
     const cached = await redisGet(cacheKey);
@@ -297,7 +302,7 @@ router.get("/coordinator-activity", authenticate, requireMinRole("STUDENT_COORDI
     const coordinators = await prisma.user.findMany({
       where: {
         role: {
-          in: ["FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "ADMIN"]
+          in: ["FACULTY_COORDINATOR", "STUDENT_COORDINATOR"]
         }
       },
       select: {

@@ -32,8 +32,8 @@ const PlexusBackground = dynamic(() => import("@/components/PlexusBackground"), 
 /**
  * AboutPage
  *
- * Official club charter, mission briefing, history, and strategic operational pillars
- * of the Chakravyuh Cybersecurity Society at CSPIT Computer Engineering.
+ * Official sentinel charter, mission briefing, history, and strategic operational pillars
+ * of the Sentinel Cybersecurity Society at CSPIT Computer Engineering.
  *
  * @returns {JSX.Element} Rendered about view.
  */
@@ -68,11 +68,11 @@ export default function AboutPage() {
         {/* Hero Title */}
         <SectionReveal>
           <div className="space-y-3 text-center max-w-3xl mx-auto">
-            <SystemLabel prefix="[// CLUB.CHARTER]" showDot={true}>
+            <SystemLabel prefix="[// SENTINEL.CHARTER]" showDot={true}>
               STRATEGIC FORMATION & MISSION
             </SystemLabel>
             <h1 className="text-3xl sm:text-5xl font-black uppercase font-mono tracking-tight text-white">
-              ABOUT <span className="text-[#00F5D4]">CHAKRAVYUH CLUB</span>
+              ABOUT <span className="text-[#00F5D4]">SENTINEL</span>
             </h1>
             <p className="font-mono text-xs sm:text-sm text-slate-300 leading-relaxed">
               The Official Cybersecurity Society of the Computer Engineering Department, CSPIT.
@@ -91,7 +91,7 @@ export default function AboutPage() {
               </h2>
             </div>
             <p className="text-slate-300 text-sm leading-relaxed">
-              Chakravyuh Club was established within the <strong>Department of Computer Engineering at CSPIT</strong> as a specialized hub for offensive defense, reverse engineering, and threat intelligence. It provides students with an arena to push beyond textbook theory and tackle active defense challenges.
+              Sentinel was established within the <strong>Department of Computer Engineering at CSPIT</strong> as a specialized hub for offensive defense, reverse engineering, and threat intelligence. It provides students with an arena to push beyond textbook theory and tackle active defense challenges.
             </p>
             <p className="text-slate-300 text-sm leading-relaxed">
               A foundational cornerstone of the organization is our <strong>Working Saturday peer-learning sessions</strong>. Every working Saturday, senior operatives, research leads, and invited industry practitioners deliver immersive workshops for all members and juniors. No prior cybersecurity certifications are needed — curiosity, discipline, and passion are the only prerequisites.
@@ -219,7 +219,7 @@ export default function AboutPage() {
           <div className="relative rounded-lg bg-[#070E1A] border border-[#1E293B] p-8 text-center space-y-4 hud-brackets">
             <BorderBeam size={200} duration={12} />
             <h3 className="text-xl sm:text-2xl font-black uppercase font-mono tracking-tight text-white">
-              JOIN THE CHAKRAVYUH CADRE
+              JOIN THE SENTINEL CADRE
             </h3>
             <p className="font-mono text-xs text-slate-300 max-w-xl mx-auto">
               All students across departments and semesters are welcome to attend peer sessions,

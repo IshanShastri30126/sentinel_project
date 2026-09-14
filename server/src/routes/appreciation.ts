@@ -41,10 +41,20 @@ router.get("/categories", (_req, res) => {
 });
 
 // POST /api/appreciation — Give points
-router.post("/", authenticate, requireRole("ADMIN", "FACULTY_COORDINATOR", "TECH_COORDINATOR", "STUDENT_COORDINATOR"), validate(givePointsSchema), auditLog("APPRECIATION_POINTS_GIVEN"), async (req: Request, res: Response) => {
+router.post("/", authenticate, requireRole("FACULTY_COORDINATOR", "TECH_COORDINATOR", "STUDENT_COORDINATOR"), validate(givePointsSchema), auditLog("APPRECIATION_POINTS_GIVEN"), async (req: Request, res: Response) => {
   try {
     const { receiverId, points, category, reason, eventId } = req.body;
     if (receiverId === req.user!.userId) { res.status(400).json({ error: "Cannot give points to yourself" }); return; }
+    
+    // [MIGRATION]: Scoping for STUDENT_COORDINATOR points
+    if (req.user!.role === "STUDENT_COORDINATOR") {
+      const allowedCategories = ["Best Volunteer", "Community Builder", "Event Management Excellence"];
+      if (!allowedCategories.includes(category)) {
+        res.status(403).json({ error: "Student Coordinators can only award limited categories: " + allowedCategories.join(", ") });
+        return;
+      }
+    }
+    
     const receiver = await prisma.user.findUnique({ where: { id: receiverId } });
     if (!receiver) { res.status(404).json({ error: "Receiver not found" }); return; }
 
@@ -68,7 +78,8 @@ router.post("/", authenticate, requireRole("ADMIN", "FACULTY_COORDINATOR", "TECH
 });
 
 // POST /api/appreciation/deduct — Deduct points
-router.post("/deduct", authenticate, requireRole("ADMIN", "FACULTY_COORDINATOR", "TECH_COORDINATOR", "STUDENT_COORDINATOR"), validate(deductPointsSchema), auditLog("APPRECIATION_POINTS_DEDUCTED"), async (req: Request, res: Response) => {
+// [MIGRATION]: STUDENT_COORDINATOR only allowed to award points, not deduct
+router.post("/deduct", authenticate, requireRole("FACULTY_COORDINATOR", "TECH_COORDINATOR"), validate(deductPointsSchema), auditLog("APPRECIATION_POINTS_DEDUCTED"), async (req: Request, res: Response) => {
   try {
     const { receiverId, points, reason } = req.body;
     const record = await prisma.appreciationPoint.create({
@@ -167,7 +178,8 @@ router.get("/badges", async (_req: Request, res: Response) => {
 });
 
 // POST /api/appreciation/badges
-router.post("/badges", authenticate, requireRole("ADMIN", "FACULTY_COORDINATOR", "TECH_COORDINATOR", "STUDENT_COORDINATOR"), validate(createBadgeSchema), async (req: Request, res: Response) => {
+// [MIGRATION]: Badge creation restricted to FACULTY and TECH
+router.post("/badges", authenticate, requireRole("FACULTY_COORDINATOR", "TECH_COORDINATOR"), validate(createBadgeSchema), async (req: Request, res: Response) => {
   try {
     const { name, description, icon, pointThreshold } = req.body;
     const badge = await prisma.badge.create({

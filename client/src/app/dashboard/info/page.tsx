@@ -27,7 +27,7 @@ const SECTIONS: SettingSection[] = [
     icon: <Cpu className="w-4 h-4" />,
     color: "#7c3aed",
     fields: [
-      { label: "Platform Version", value: "Chakravyuh Club v2.0", disabled: true, description: "Current platform build version" },
+      { label: "Platform Version", value: "Sentinel v2.0", disabled: true, description: "Current platform build version" },
       { label: "Academic Year", value: "2025-2026", disabled: true, description: "Active academic session" },
       { label: "Environment", value: "PRODUCTION", disabled: true, description: "Deployment environment" },
     ]
@@ -64,16 +64,16 @@ const SECTIONS: SettingSection[] = [
   },
   {
     id: "branding",
-    title: "CLUB BRANDING & THEME",
+    title: "SENTINEL BRANDING & THEME",
     icon: <Globe className="w-4 h-4" />,
     color: "#00F5D4",
     fields: []
   }
 ];
 
-export default function SettingsPage() {
+export default function InfoPage() {
   const { user, token } = useAuth();
-  const { club, refreshBranding } = useThemeBranding();
+  const { sentinel, refreshBranding } = useThemeBranding();
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
   const [activeSection, setActiveSection] = useState("system");
@@ -86,14 +86,14 @@ export default function SettingsPage() {
   const [logoUrl, setLogoUrl] = useState("");
 
   useEffect(() => {
-    if (club) {
-      setPrimaryColor(club.primaryColor);
-      setSecondaryColor(club.secondaryColor);
-      setThemeMode(club.themeMode);
-      setFontFamily(club.fontFamily);
-      setLogoUrl(club.logoUrl || "");
+    if (sentinel) {
+      setPrimaryColor(sentinel.primaryColor);
+      setSecondaryColor(sentinel.secondaryColor);
+      setThemeMode(sentinel.themeMode);
+      setFontFamily(sentinel.fontFamily);
+      setLogoUrl(sentinel.logoUrl || "");
     }
-  }, [club]);
+  }, [sentinel]);
 
   const handleSaveDefault = () => {
     setSaved(true);
@@ -101,7 +101,7 @@ export default function SettingsPage() {
   };
 
   const handleSaveBranding = async () => {
-    const activeClubSlug = typeof window !== "undefined" ? localStorage.getItem("ck_active_club_slug") || "chakravyuh" : "chakravyuh";
+    const activeClubSlug = typeof window !== "undefined" ? localStorage.getItem("ck_active_club_slug") || "sentinel" : "sentinel";
     try {
       setSaving(true);
       await api(`/clubs/${activeClubSlug}/branding`, {
@@ -318,13 +318,12 @@ export default function SettingsPage() {
                       <p className="text-[11px] text-zinc-650">{field.description}</p>
                     )}
                     <div className="flex items-center gap-2">
-                      <input
-                        type={field.type || "text"}
-                        defaultValue={field.value}
-                        disabled={field.disabled}
-                        className="flex-1 px-4 py-2.5 rounded-xl text-sm border font-mono bg-black/40 focus:outline-none transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+                      <div
+                        className="flex-1 px-4 py-2.5 rounded-xl text-sm border font-mono bg-black/40 opacity-60 flex items-center"
                         style={{ borderColor: "rgba(255,255,255,0.08)", color: "var(--ck-text)" }}
-                      />
+                      >
+                        {field.value}
+                      </div>
                       {field.unit && <span className="text-xs text-[var(--ck-text-muted)] font-mono shrink-0">{field.unit}</span>}
                       {field.disabled && (
                         <div className="shrink-0 w-7 h-7 rounded-lg flex items-center justify-center border border-white/5 bg-white/3">

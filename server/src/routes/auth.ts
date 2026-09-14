@@ -167,7 +167,7 @@ router.post("/register", signupLimiter, validate(registerSchema), async (req: Re
 
     // Notify coordinators about new registration
     const coordinators = await prisma.user.findMany({
-      where: { role: { in: ["STUDENT_COORDINATOR", "FACULTY_COORDINATOR", "ADMIN"] }, isActive: true },
+      where: { role: { in: ["STUDENT_COORDINATOR", "FACULTY_COORDINATOR"] }, isActive: true },
       select: { id: true },
     });
     for (const coord of coordinators) {

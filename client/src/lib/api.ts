@@ -55,7 +55,7 @@ async function executeApiRequest<T>(endpoint: string, options: FetchOptions = {}
 
   const cookieToken = Cookies.get("accessToken");
   const activeToken = cookieToken || token;
-  const activeClubSlug = typeof window !== "undefined" ? localStorage.getItem("ck_active_club_slug") || "chakravyuh" : "chakravyuh";
+  const activeClubSlug = typeof window !== "undefined" ? localStorage.getItem("ck_active_club_slug") || "sentinel" : "sentinel";
   const deviceFingerprint = typeof window !== "undefined" ? getDeviceFingerprint() : "";
   const localIp = typeof window !== "undefined" ? getPrivateIpAddress() : "192.168.1.100";
   const requestMethod = (options.method || "GET").toUpperCase();
@@ -68,7 +68,7 @@ async function executeApiRequest<T>(endpoint: string, options: FetchOptions = {}
     headers: {
       "Content-Type": "application/json",
       ...(activeToken ? { Authorization: `Bearer ${activeToken}` } : {}),
-      "X-Club-Slug": activeClubSlug,
+      "X-Sentinel-Slug": activeClubSlug,
       ...(deviceFingerprint ? { "X-Device-Fingerprint": deviceFingerprint } : {}),
       "X-Local-IP": localIp,
       "X-Private-IP": localIp,
@@ -109,7 +109,7 @@ async function executeApiRequest<T>(endpoint: string, options: FetchOptions = {}
             headers: {
               "Content-Type": "application/json",
               Authorization: `Bearer ${newAccessToken}`,
-              "X-Club-Slug": activeClubSlug,
+              "X-Sentinel-Slug": activeClubSlug,
               ...(deviceFingerprint ? { "X-Device-Fingerprint": deviceFingerprint } : {}),
               ...retryInspectionHeaders,
               ...headers,
@@ -175,7 +175,7 @@ export async function api<T = unknown>(endpoint: string, options: FetchOptions =
 export async function apiUpload<T = unknown>(endpoint: string, formData: FormData, token?: string, method = "POST"): Promise<T> {
   const cookieToken = Cookies.get("accessToken");
   const activeToken = cookieToken || token;
-  const activeClubSlug = typeof window !== "undefined" ? localStorage.getItem("ck_active_club_slug") || "chakravyuh" : "chakravyuh";
+  const activeClubSlug = typeof window !== "undefined" ? localStorage.getItem("ck_active_club_slug") || "sentinel" : "sentinel";
   const deviceFingerprint = typeof window !== "undefined" ? getDeviceFingerprint() : "";
   const uploadMethod = method.toUpperCase();
 
@@ -189,7 +189,7 @@ export async function apiUpload<T = unknown>(endpoint: string, formData: FormDat
       credentials: "include",
       headers: {
         ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
-        "X-Club-Slug": activeClubSlug,
+        "X-Sentinel-Slug": activeClubSlug,
         ...(deviceFingerprint ? { "X-Device-Fingerprint": deviceFingerprint } : {}),
         ...uploadInspectionHeaders,
       },

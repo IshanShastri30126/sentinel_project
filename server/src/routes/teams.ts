@@ -238,7 +238,7 @@ router.post("/:id/reuse", authenticate, auditLog("TEAM_REUSED"), async (req: Req
 
     // Check requester is the leader or a coordinator
     const { role, userId } = req.user!;
-    const isCoord = ["ADMIN", "FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_COORDINATOR"].includes(role);
+    const isCoord = ["FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_COORDINATOR"].includes(role);
     if (original.leaderId !== userId && !isCoord) {
       res.status(403).json({ error: "Only the team leader or a coordinator can reuse this team" }); return;
     }
@@ -281,7 +281,7 @@ router.patch("/:id", authenticate, auditLog("TEAM_UPDATED"), async (req: Request
     if (!team) { res.status(404).json({ error: "Team not found" }); return; }
 
     const { role, userId } = req.user!;
-    const isCoord = ["ADMIN", "FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_COORDINATOR"].includes(role);
+    const isCoord = ["FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_COORDINATOR"].includes(role);
     if (team.leaderId !== userId && !isCoord) {
       res.status(403).json({ error: "Only the team leader or a coordinator can edit this team" }); return;
     }
@@ -453,7 +453,7 @@ router.delete("/:id", authenticate, auditLog("TEAM_DELETED"), async (req: Reques
     if (!team) { res.status(404).json({ error: "Team not found" }); return; }
 
     const { role, userId } = req.user!;
-    const isCoord = ["ADMIN", "FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_COORDINATOR"].includes(role);
+    const isCoord = ["FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_COORDINATOR"].includes(role);
     if (team.leaderId !== userId && !isCoord) {
       res.status(403).json({ error: "Only the team leader or an administrator can delete this team" });
       return;

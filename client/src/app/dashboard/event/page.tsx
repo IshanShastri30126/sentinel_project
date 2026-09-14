@@ -407,8 +407,8 @@ export default function EventsPage() {
   const [direction, setDirection] = useState(1); // 1 = forward, -1 = backward
   const [editingEventId, setEditingEventId] = useState<string | null>(null);
 
-  const isCoord = Boolean(user && ["ADMIN", "FACULTY_COORDINATOR", "STUDENT_COORDINATOR"].includes(user.role));
-  const isCore = Boolean(user && ["ADMIN", "FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_COORDINATOR", "SOCIAL_MEDIA_COORDINATOR"].includes(user.role));
+  const isCoord = Boolean(user && ["FACULTY_COORDINATOR", "STUDENT_COORDINATOR"].includes(user.role));
+  const isCore = Boolean(user && ["FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_COORDINATOR", "SOCIAL_MEDIA_COORDINATOR"].includes(user.role));
 
   interface Organizer {
     name: string;
@@ -431,7 +431,7 @@ export default function EventsPage() {
   const [documentFiles, setDocumentFiles] = useState<File[]>([]);
   const [existingDocuments, setExistingDocuments] = useState<string[]>([]);
   const [organizersList, setOrganizersList] = useState<Organizer[]>([]);
-  const [newOrganizer, setNewOrganizer] = useState<Organizer>({ name: "", role: "Student Coordinator", email: "", phone: "" });
+  const [newOrganizer, setNewOrganizer] = useState<Organizer>({ name: "", role: "Event Lead", email: "", phone: "" });
   const [availableFaculty, setAvailableFaculty] = useState<Organizer[]>([]);
   const [availableStudentCoords, setAvailableStudentCoords] = useState<Organizer[]>([]);
   const [step4Confirmed, setStep4Confirmed] = useState(false);
@@ -457,15 +457,15 @@ export default function EventsPage() {
             .map((m) => ({
               name: m.name,
               role: "Faculty Coordinator",
-              email: m.email || "faculty@chakravyuhclub.com",
+              email: m.email || "faculty@sentinelclub.com",
               phone: m.phone || "9876543210",
             }));
           const coords: Organizer[] = data.team
             .filter((m) => m.role === "STUDENT_COORDINATOR" || m.designation?.toLowerCase().includes("coordinator"))
             .map((m) => ({
               name: m.name,
-              role: "Student Coordinator",
-              email: m.email || "coordinator@chakravyuhclub.com",
+              role: "Event Lead",
+              email: m.email || "coordinator@sentinelclub.com",
               phone: m.phone || "9876543210",
             }));
           setAvailableFaculty(facs);
@@ -705,7 +705,7 @@ export default function EventsPage() {
     e.stopPropagation();
     const confirmed = await confirmModal({
       title: "Broadcast Event Email",
-      message: "Are you sure you want to broadcast this event via email to all club members?",
+      message: "Are you sure you want to broadcast this event via email to all sentinel members?",
       variant: "primary",
       confirmText: "SEND BROADCAST",
     });
@@ -915,7 +915,7 @@ export default function EventsPage() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-3xl font-bold tracking-tight" style={{ color: "var(--ck-text)" }}>Events</h1>
-          <p className="mt-1 text-sm" style={{ color: "var(--ck-text-secondary)" }}>Manage and browse club events</p>
+          <p className="mt-1 text-sm" style={{ color: "var(--ck-text-secondary)" }}>Manage and browse sentinel events</p>
         </div>
         {isCoord && (
           <button 
@@ -1561,7 +1561,7 @@ export default function EventsPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredEvents.map((event, i) => (
             <motion.div key={event.id} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}
-              onClick={() => isCore ? router.push(`/event/${event.id}`) : undefined}
+              onClick={() => isCore ? router.push(`/dashboard/event/${event.id}`) : undefined}
               className={`ck-card overflow-hidden hover:border-[rgba(0,245,212,0.3)] hover:shadow-[0_0_20px_rgba(0,245,212,0.08)] ${isCore ? "cursor-pointer" : ""} transition-all`}>
               {/* Poster/Header */}
               <div className="h-44 bg-gradient-to-br from-[#0D0F14]/50 to-black flex items-center justify-center relative overflow-hidden">
@@ -1683,7 +1683,7 @@ export default function EventsPage() {
                       {event.isPublished ? <><EyeOff className="w-3 h-3" /> Unpublish</> : <><Eye className="w-3 h-3" /> Publish</>}
                     </button>
                   )}
-                  {user && ["ADMIN", "FACULTY_COORDINATOR", "TECH_COORDINATOR", "FACULTY", "TECH"].includes(user.role) && !event.isApproved && (
+                  {user && ["FACULTY_COORDINATOR", "TECH_COORDINATOR", "FACULTY", "TECH"].includes(user.role) && !event.isApproved && (
                     <button 
                       onClick={(e) => handleQuickApprove(event.id, e)} 
                       className="ck-btn-primary text-xs py-2 shadow-[0_0_10px_rgba(0,245,212,0.3)] border-none" style={{ backgroundColor: "var(--ck-primary)", color: "#00F5D4" }}
@@ -1717,7 +1717,7 @@ export default function EventsPage() {
                     </a>
                   )}
                   {isCore && (
-                    <button onClick={(e) => { e.stopPropagation(); router.push(`/event/${event.id}`); }}
+                    <button onClick={(e) => { e.stopPropagation(); router.push(`/dashboard/event/${event.id}`); }}
                       className="ck-btn-secondary text-xs py-2">
                       <ChevronRight className="w-3 h-3" />
                     </button>

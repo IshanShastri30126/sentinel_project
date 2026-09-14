@@ -8,7 +8,7 @@ import { ShieldCheck, ArrowUpRight } from "lucide-react";
 /**
  * Footer
  *
- * Operational cybersecurity platform footer containing club identity,
+ * Operational cybersecurity platform footer containing sentinel identity,
  * quick navigation links, compliance telemetry marks, and social channels.
  *
  * @returns {JSX.Element} Rendered footer element.
@@ -37,20 +37,20 @@ export function Footer() {
           </h4>
           <ul className="space-y-2">
             <li>
-              <Link href="/events" className="hover:text-white transition-colors flex items-center gap-1">
+              <Link href="/event" className="hover:text-white transition-colors flex items-center gap-1">
                 <span>Events & Summits</span>
                 <ArrowUpRight className="w-3 h-3 text-slate-500" />
               </Link>
             </li>
             <li>
-              <Link href="/leaderboard" className="hover:text-white transition-colors flex items-center gap-1">
+              <Link href="/dashboard/leaderboard" className="hover:text-white transition-colors flex items-center gap-1">
                 <span>Leaderboard</span>
                 <ArrowUpRight className="w-3 h-3 text-slate-500" />
               </Link>
             </li>
             <li>
               <Link href="/about" className="hover:text-white transition-colors flex items-center gap-1">
-                <span>About Chakravyuh</span>
+                <span>About Sentinel</span>
                 <ArrowUpRight className="w-3 h-3 text-slate-500" />
               </Link>
             </li>
@@ -93,7 +93,7 @@ export function Footer() {
 
       {/* Bottom Bar */}
       <div className="max-w-7xl mx-auto pt-6 border-t border-white/[0.06] flex flex-col sm:flex-row items-center justify-between gap-4 font-mono text-[11px] text-slate-500">
-        <p>© {new Date().getFullYear()} Chakravyuh Club. All systems operational.</p>
+        <p>© {new Date().getFullYear()} Sentinel. All systems operational.</p>
         <p className="text-slate-600 tracking-wide">
           SECURITY PROTOCOL: STRICT TLS 1.3 • AES-256 ENCRYPTION
         </p>

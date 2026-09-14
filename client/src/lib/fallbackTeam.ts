@@ -1,7 +1,7 @@
 /**
  * Fallback Team Cadre Dataset
  *
- * Provides a resilient, pre-compiled team directory for Chakravyuh Club.
+ * Provides a resilient, pre-compiled team directory for Sentinel.
  * Utilized when API requests are rejected by firewall policies (e.g. IP block list),
  * offline network states, or cold-start conditions.
  */

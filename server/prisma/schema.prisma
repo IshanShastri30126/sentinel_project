@@ -16,12 +16,12 @@ datasource db {
 // ─── Enums ──────────────────────────────────────────────────
 
 enum Role {
-  ADMIN
   FACULTY_COORDINATOR
   TECH_COORDINATOR
   SOCIAL_MEDIA_COORDINATOR
   STUDENT_COORDINATOR
   MEMBER
+  GUEST
 }
 
 enum ApprovalStatus {
@@ -39,6 +39,7 @@ enum ApprovalType {
   CONTENT_PUBLISH
   CERTIFICATE_AUTH
   EXTERNAL_COLLAB
+  CONFIG_CHANGE
 }
 
 enum AttendanceType {

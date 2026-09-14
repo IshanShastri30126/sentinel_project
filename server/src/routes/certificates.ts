@@ -293,7 +293,7 @@ router.get("/verify/:code", async (req: Request, res: Response) => {
       certificate: {
         recipientName: cert.recipientName, eventTitle: cert.event.title,
         eventDate: cert.event.startDate, uniqueCode: cert.uniqueCode,
-        generatedAt: cert.generatedAt, issuingAuthority: "Chakravyuh Club",
+        generatedAt: cert.generatedAt, issuingAuthority: "Sentinel",
       },
     });
   } catch (err) { console.error("[Certs] Verify error:", err); res.status(500).json({ error: "Internal server error" }); }
@@ -326,7 +326,7 @@ router.get("/:id/download", authenticate, async (req: Request, res: Response) =>
     const user = await prisma.user.findUnique({ where: { id: req.user!.userId }, select: { name: true, email: true, role: true } });
     const isOwner = user && (cert.recipientEmail === user.email || cert.recipientName === user.name);
     const isEventCreator = cert.event.creatorId === req.user!.userId;
-    const isCoord = ["ADMIN", "FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_COORDINATOR"].includes(req.user!.role);
+    const isCoord = ["FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_COORDINATOR"].includes(req.user!.role);
 
     if (!isOwner && !isEventCreator && !isCoord) {
       res.status(403).json({ error: "Unauthorized to download this certificate" });
@@ -386,7 +386,7 @@ router.get("/:id/view", authenticate, async (req: Request, res: Response) => {
     const user = await prisma.user.findUnique({ where: { id: req.user!.userId }, select: { name: true, email: true, role: true } });
     const isOwner = user && (cert.recipientEmail === user.email || cert.recipientName === user.name);
     const isEventCreator = cert.event.creatorId === req.user!.userId;
-    const isCoord = ["ADMIN", "FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_COORDINATOR"].includes(req.user!.role);
+    const isCoord = ["FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_COORDINATOR"].includes(req.user!.role);
 
     if (!isOwner && !isEventCreator && !isCoord) {
       res.status(403).json({ error: "Unauthorized to view this certificate" });
@@ -746,7 +746,7 @@ ${patternCSS}
     <div class="footer">
       <div>
         <div class="authority-label">Issuing Authority</div>
-        <div class="authority-value">Chakravyuh Club</div>
+        <div class="authority-value">Sentinel</div>
       </div>
       <div>
         <div class="code-label">Certificate ID</div>

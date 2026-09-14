@@ -31,7 +31,7 @@ export const SentinelLogo: React.FC<SentinelLogoProps> = ({
 
   return (
     <div className={`flex items-center gap-3 select-none ${className}`}>
-      {/* Chakravyuh Concentric Ring Emblem */}
+      {/* Sentinel Concentric Ring Emblem */}
       <motion.div
         className="relative shrink-0 flex items-center justify-center w-12 h-12"
         initial="initial"
@@ -73,7 +73,7 @@ export const SentinelLogo: React.FC<SentinelLogoProps> = ({
             </filter>
           </defs>
 
-          {/* Outer Chakravyuh Tier 1 (Golden Ring with notch breaks) */}
+          {/* Outer Sentinel Tier 1 (Golden Ring with notch breaks) */}
           <motion.circle
             cx="16"
             cy="16"
@@ -164,7 +164,7 @@ export const SentinelLogo: React.FC<SentinelLogoProps> = ({
               transition={{ duration: 0.5, delay: 0.3 }}
               style={{ textShadow: "0 0 12px rgba(0,255,102,0.6)" }}
             >
-              NAL
+              NEL
             </motion.span>
           </div>
           <motion.span
@@ -173,7 +173,7 @@ export const SentinelLogo: React.FC<SentinelLogoProps> = ({
             animate={{ opacity: 0.9, y: 0 }}
             transition={{ duration: 0.5, delay: 0.5 }}
           >
-            Club • Strategic Defense
+            Sentinel • Strategic Defense
           </motion.span>
         </div>
       )}

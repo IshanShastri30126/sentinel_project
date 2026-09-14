@@ -107,7 +107,7 @@ export async function suspiciousPayload(req: Request, res: Response, next: NextF
   if (!violation.malicious && (req as any).rawBody) violation = checkValueMalicious((req as any).rawBody);
 
   if (!violation.malicious) {
-    const checkHeaders = ["user-agent", "x-forwarded-for", "referer", "x-club-slug"];
+    const checkHeaders = ["user-agent", "x-forwarded-for", "referer", "x-sentinel-slug"];
     for (const h of checkHeaders) {
       if (req.headers[h]) {
         violation = checkValueMalicious(req.headers[h]);

@@ -271,10 +271,10 @@ const DEFAULT_OPS_DATA: OpsData = {
     if (!user) return;
     const load = async () => {
       try {
-        if (["ADMIN", "FACULTY_COORDINATOR", "TECH_COORDINATOR", "STUDENT_COORDINATOR", "FACULTY", "TECH"].includes(user.role)) {
+        if (["FACULTY_COORDINATOR", "TECH_COORDINATOR", "STUDENT_COORDINATOR", "FACULTY", "TECH"].includes(user.role)) {
           const [clubRes, opsRes, usersRes] = await Promise.all([
-            api<ClubAnalytics>("/analytics/club", { token: token || undefined }).catch((err) => {
-              console.warn("Club analytics notice:", err);
+            api<ClubAnalytics>("/analytics/sentinel", { token: token || undefined }).catch((err) => {
+              console.warn("Sentinel analytics notice:", err);
               return null;
             }),
             api<OpsData>("/analytics/operations", { token: token || undefined }).catch((err) => {
@@ -470,7 +470,7 @@ const DEFAULT_OPS_DATA: OpsData = {
     );
   }
 
-  const isCoordinator = ["ADMIN", "FACULTY_COORDINATOR", "TECH_COORDINATOR", "STUDENT_COORDINATOR", "FACULTY", "TECH"].includes(user?.role || "");
+  const isCoordinator = ["FACULTY_COORDINATOR", "TECH_COORDINATOR", "STUDENT_COORDINATOR", "FACULTY", "TECH"].includes(user?.role || "");
 
   return (
     <div className="space-y-6">
@@ -987,7 +987,7 @@ const DEFAULT_OPS_DATA: OpsData = {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
                     {registeredEvents.map((event) => {
                       const status = getRegEventStatus(event);
-                      const isCoordinator = Boolean(user?.role && ["ADMIN", "FACULTY_COORDINATOR", "TECH_COORDINATOR", "STUDENT_COORDINATOR", "FACULTY", "TECH"].includes(user.role));
+                      const isCoordinator = Boolean(user?.role && ["FACULTY_COORDINATOR", "TECH_COORDINATOR", "STUDENT_COORDINATOR", "FACULTY", "TECH"].includes(user.role));
                       return (
                         <motion.div
                           key={event.id}
@@ -1141,7 +1141,7 @@ const DEFAULT_OPS_DATA: OpsData = {
                 ) : (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
                     {memberEvents.map((event) => {
-                      const isFacultyOrCoord = Boolean(user?.role && ["ADMIN", "FACULTY_COORDINATOR", "TECH_COORDINATOR", "STUDENT_COORDINATOR", "FACULTY", "TECH"].includes(user.role));
+                      const isFacultyOrCoord = Boolean(user?.role && ["FACULTY_COORDINATOR", "TECH_COORDINATOR", "STUDENT_COORDINATOR", "FACULTY", "TECH"].includes(user.role));
                       const isAlreadyRegistered = registeredEvents.some((r) => r.id === event.id);
 
                       return (

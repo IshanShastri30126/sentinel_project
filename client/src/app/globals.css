@@ -86,7 +86,7 @@
   --ck-radius-xl:  16px;
 }
 
-/* Custom Chakravyuh & Hacker Glow Utilities */
+/* Custom Sentinel & Hacker Glow Utilities */
 .golden-text-glow {
   color: #00FF66;
   text-shadow: 0 0 15px rgba(0, 255, 102, 0.6), 0 0 30px rgba(0, 255, 102, 0.3);

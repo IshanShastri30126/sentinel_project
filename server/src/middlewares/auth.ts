@@ -63,7 +63,7 @@ export async function authenticate(req: Request, res: Response, next: NextFuncti
       // Allow access only when active AND (approved OR is a high-trust role that
       // was created directly by an admin, e.g. FACULTY_COORDINATOR/DEVELOPMENT_TEAM).
       // GUEST and MEMBER must be explicitly approved.
-      const highTrustRoles = ["ADMIN", "FACULTY_COORDINATOR", "TECH_COORDINATOR", "STUDENT_COORDINATOR", "SOCIAL_MEDIA_COORDINATOR"];
+      const highTrustRoles = ["FACULTY_COORDINATOR", "TECH_COORDINATOR", "STUDENT_COORDINATOR", "SOCIAL_MEDIA_COORDINATOR"];
       const approvalRequired = dbUser && !highTrustRoles.includes(dbUser.role);
 
       if (!dbUser || !dbUser.isActive || (approvalRequired && !dbUser.isApproved)) {
@@ -87,19 +87,6 @@ export async function authenticate(req: Request, res: Response, next: NextFuncti
   }
 }
 
-
-/**
- * Role hierarchy levels — lower number = higher authority.
- */
-export const ROLE_HIERARCHY: Record<Role, number> = {
-  ADMIN: 1,
-  FACULTY_COORDINATOR: 1,
-  TECH_COORDINATOR: 1,
-  STUDENT_COORDINATOR: 2,
-  SOCIAL_MEDIA_COORDINATOR: 2,
-  MEMBER: 3,
-};
-
 /**
  * Middleware factory: Require that the authenticated user has one of the allowed roles.
  */
@@ -111,28 +98,6 @@ export function requireRole(...allowedRoles: Role[]) {
     }
 
     if (!allowedRoles.includes(req.user.role)) {
-      res.status(403).json({ error: "Insufficient permissions" });
-      return;
-    }
-
-    next();
-  };
-}
-
-/**
- * Middleware: Require minimum role level (hierarchy-based).
- */
-export function requireMinRole(minRole: Role) {
-  return (req: Request, res: Response, next: NextFunction): void => {
-    if (!req.user) {
-      res.status(401).json({ error: "Authentication required" });
-      return;
-    }
-
-    const userLevel = ROLE_HIERARCHY[req.user.role];
-    const requiredLevel = ROLE_HIERARCHY[minRole];
-
-    if (userLevel > requiredLevel) {
       res.status(403).json({ error: "Insufficient permissions" });
       return;
     }

@@ -155,7 +155,7 @@ function LoginPageContent() {
     return `${pad(mins)}:${pad(secs)}`;
   };
 
-  // Club namespace support
+  // Sentinel namespace support
   const [clubs, setClubs] = useState<Array<{ id: string; name: string; slug: string }>>([]);
   const [selectedClubId, setSelectedClubId] = useState("");
 

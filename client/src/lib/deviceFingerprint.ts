@@ -26,9 +26,9 @@ function getCanvasFingerprint(): string {
     ctx.fillStyle = "#f60";
     ctx.fillRect(125, 1, 62, 20);
     ctx.fillStyle = "#069";
-    ctx.fillText("ChakravyuhShield,123", 2, 15);
+    ctx.fillText("SentinelShield,123", 2, 15);
     ctx.fillStyle = "rgba(102, 204, 0, 0.7)";
-    ctx.fillText("ChakravyuhShield,123", 4, 17);
+    ctx.fillText("SentinelShield,123", 4, 17);
 
     return canvas.toDataURL();
   } catch {

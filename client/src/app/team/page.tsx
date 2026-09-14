@@ -223,7 +223,7 @@ const TeamMemberCard = ({ member, idx }: { member: TeamMemberItem; idx: number }
 
   const linkedInUrl = formatSocialUrl("linkedin", member.linkedin);
   const instagramUrl = formatSocialUrl("instagram", member.instagram);
-  const emailUrl = member.email ? `mailto:${member.email.trim()}` : `mailto:support@chakravyuhclub.com`;
+  const emailUrl = member.email ? `mailto:${member.email.trim()}` : `mailto:support@sentinelclub.com`;
 
   const rawImg = member.imageUrl || member.avatarUrl || member.cyberAvatarUrl || member.coverPosterUrl;
   const avatarSrc = rawImg ? getFileUrl(rawImg) : null;
@@ -349,7 +349,7 @@ const TeamGrid = ({ list, title, tag }: { list: TeamMemberItem[]; title: string;
 /**
  * TeamPage
  *
- * Operational directory showcasing the Chakravyuh Executive Council,
+ * Operational directory showcasing the Sentinel Executive Council,
  * Faculty Mentors, Technical Division, and Creative Intel Leads.
  *
  * @returns {JSX.Element} Rendered team directory.
@@ -404,7 +404,7 @@ export default function TeamPage() {
               EXECUTIVE COMMAND
             </SystemLabel>
             <h1 className="text-3xl sm:text-5xl font-black uppercase font-mono tracking-tight text-white">
-              CHAKRAVYUH <span className="text-[#00F5D4]">CADRE</span>
+              SENTINEL <span className="text-[#00F5D4]">CADRE</span>
             </h1>
             <p className="font-mono text-xs sm:text-sm text-slate-400">
               The engineers, student coordinators, research leads, and faculty mentors
