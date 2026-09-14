@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { api, apiUpload, getFileUrl } from "@/lib/api";
 import { useRouter } from "next/navigation";
@@ -428,10 +428,18 @@ export default function EventsPage() {
   const [existingDocuments, setExistingDocuments] = useState<string[]>([]);
   const [organizersList, setOrganizersList] = useState<Organizer[]>([]);
   const [newOrganizer, setNewOrganizer] = useState<Organizer>({ name: "", role: "Event Lead", email: "", phone: "" });
-  const [availableFaculty, setAvailableFaculty] = useState<Organizer[]>([]);
-  const [availableStudentCoords, setAvailableStudentCoords] = useState<Organizer[]>([]);
   const [step4Confirmed, setStep4Confirmed] = useState(false);
   const [step4EnteredAt, setStep4EnteredAt] = useState<number>(0);
+
+  // Coordinator autofill state (Phase 42.8)
+  interface CoordinatorEntry { id: string; name: string; email: string; phone?: string; role: string; studentId?: string; employeeId?: string; }
+  const [coordinators, setCoordinators] = useState<CoordinatorEntry[]>([]);
+  const [coordSearch, setCoordSearch] = useState("");
+  const [coordDropdownOpen, setCoordDropdownOpen] = useState(false);
+  const coordSearchRef = useRef<HTMLDivElement>(null);
+
+  // Schedule accordion open state (Phase 42.7)
+  const [scheduleOpen, setScheduleOpen] = useState<"start" | "end" | "deadline" | null>("start");
 
   useEffect(() => {
     if (step === 4) {
@@ -442,36 +450,23 @@ export default function EventsPage() {
     }
   }, [step, editingEventId]);
 
-  // Auto-fetch Faculty & Student Coordinators from landing team roster
+  // Fetch approved coordinators from dedicated endpoint (Phase 42.8)
   useEffect(() => {
-    async function fetchRoster() {
-      try {
-        const data = await api<{ team: Array<{ id: string; name: string; role: string; email?: string; phone?: string; designation?: string }> }>("/settings/landing-team");
-        if (data.team && data.team.length > 0) {
-          const facs: Organizer[] = data.team
-            .filter((m) => m.role === "FACULTY_COORDINATOR" || m.designation?.toLowerCase().includes("faculty"))
-            .map((m) => ({
-              name: m.name,
-              role: "Faculty Coordinator",
-              email: m.email || "faculty@sentinelclub.com",
-              phone: m.phone || "9876543210",
-            }));
-          const coords: Organizer[] = data.team
-            .filter((m) => m.role === "STUDENT_COORDINATOR" || m.designation?.toLowerCase().includes("coordinator"))
-            .map((m) => ({
-              name: m.name,
-              role: "Event Lead",
-              email: m.email || "coordinator@sentinelclub.com",
-              phone: m.phone || "9876543210",
-            }));
-          setAvailableFaculty(facs);
-          setAvailableStudentCoords(coords);
-        }
-      } catch (err) {
-        console.warn("Roster fetch notice:", err);
+    if (!token) return;
+    api<{ coordinators: CoordinatorEntry[] }>("/users/coordinators", { token })
+      .then((data) => setCoordinators(data.coordinators || []))
+      .catch(() => {});
+  }, [token]);
+
+  // Close coordinator dropdown on outside click
+  useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      if (coordSearchRef.current && !coordSearchRef.current.contains(e.target as Node)) {
+        setCoordDropdownOpen(false);
       }
-    }
-    fetchRoster();
+    };
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
   }, []);
 
   // Drag & Drop state
@@ -1092,50 +1087,120 @@ export default function EventsPage() {
                       transition={{ duration: 0.2, ease: "easeInOut" }}
                       className="space-y-4"
                     >
-                      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                        <MiniCalendar 
-                          label="Start Date & Time *" 
-                          selectedDate={form.startDate}
-                          onSelect={(v) => {
-                            setForm(prev => {
-                              const updated = { ...prev, startDate: v };
-                              if (prev.endDate && new Date(prev.endDate) <= new Date(v)) {
-                                const nextDay = new Date(new Date(v).getTime() + 24 * 60 * 60 * 1000);
-                                updated.endDate = nextDay.toISOString().slice(0, 16);
-                              }
-                              if (!prev.registrationDeadline) {
-                                const defaultDeadline = new Date(new Date(v).getTime() - 24 * 60 * 60 * 1000);
-                                updated.registrationDeadline = defaultDeadline.toISOString().slice(0, 16);
-                              } else if (new Date(prev.registrationDeadline) >= new Date(v)) {
-                                updated.registrationDeadline = "";
-                              }
-                              return updated;
-                            });
-                          }}
-                          minDate={new Date()}
-                          rangeStart={form.startDate} 
-                          rangeEnd={form.endDate} 
-                        />
-                        <MiniCalendar 
-                          label="End Date & Time *" 
-                          selectedDate={form.endDate}
-                          onSelect={(v) => setForm({ ...form, endDate: v })}
-                          minDate={form.startDate ? new Date(form.startDate) : new Date()}
-                          rangeStart={form.startDate} 
-                          rangeEnd={form.endDate}
-                          disabledNotice={!form.startDate ? "Please set Start Date first" : undefined}
-                        />
-                        <MiniCalendar 
-                          label="Registration Deadline *" 
-                          selectedDate={form.registrationDeadline}
-                          onSelect={(v) => setForm({ ...form, registrationDeadline: v })}
-                          minDate={new Date()}
-                          maxDate={form.startDate ? new Date(form.startDate) : null}
-                          rangeStart={form.startDate} 
-                          rangeEnd={form.endDate}
-                          onClear={() => setForm({ ...form, registrationDeadline: "" })}
-                          disabledNotice={!form.startDate ? "Select Start Date first to enable deadline" : undefined}
-                        />
+                      {/* Phase 42.7: Unified cyber date-time accordion replacing 3 bulky side-by-side MiniCalendar panels */}
+                      <div className="space-y-3">
+                        {([
+                          {
+                            key: "start" as const,
+                            label: "START DATE & TIME",
+                            required: true,
+                            value: form.startDate,
+                            accentColor: "#00F5D4",
+                            accentBg: "rgba(0,245,212,0.08)",
+                            minDate: new Date(),
+                            maxDate: null as Date | null,
+                            onSelect: (v: string) => {
+                              setForm(prev => {
+                                const updated = { ...prev, startDate: v };
+                                if (prev.endDate && new Date(prev.endDate) <= new Date(v)) {
+                                  const nextDay = new Date(new Date(v).getTime() + 24 * 60 * 60 * 1000);
+                                  updated.endDate = nextDay.toISOString().slice(0, 16);
+                                }
+                                if (!prev.registrationDeadline) {
+                                  const defaultDeadline = new Date(new Date(v).getTime() - 24 * 60 * 60 * 1000);
+                                  updated.registrationDeadline = defaultDeadline.toISOString().slice(0, 16);
+                                } else if (new Date(prev.registrationDeadline) >= new Date(v)) {
+                                  updated.registrationDeadline = "";
+                                }
+                                return updated;
+                              });
+                            },
+                          },
+                          {
+                            key: "end" as const,
+                            label: "END DATE & TIME",
+                            required: true,
+                            value: form.endDate,
+                            accentColor: "#7C3AED",
+                            accentBg: "rgba(124,58,237,0.08)",
+                            minDate: form.startDate ? new Date(form.startDate) : new Date(),
+                            maxDate: null as Date | null,
+                            onSelect: (v: string) => setForm(prev => ({ ...prev, endDate: v })),
+                            disabled: !form.startDate,
+                            disabledNotice: "Set Start Date & Time first",
+                          },
+                          {
+                            key: "deadline" as const,
+                            label: "REGISTRATION DEADLINE",
+                            required: true,
+                            value: form.registrationDeadline,
+                            accentColor: "#FF4D00",
+                            accentBg: "rgba(255,77,0,0.08)",
+                            minDate: new Date(),
+                            maxDate: form.startDate ? new Date(form.startDate) : null,
+                            onSelect: (v: string) => setForm(prev => ({ ...prev, registrationDeadline: v })),
+                            onClear: () => setForm(prev => ({ ...prev, registrationDeadline: "" })),
+                            disabled: !form.startDate,
+                            disabledNotice: "Set Start Date first",
+                          },
+                        ] as const).map((panel) => {
+                          const isOpen = scheduleOpen === panel.key;
+                          const selDate = panel.value ? new Date(panel.value) : null;
+                          const displayLabel = selDate && !isNaN(selDate.getTime())
+                            ? `${selDate.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })} ${selDate.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}`
+                            : "NOT SET";
+                          return (
+                            <div key={panel.key} className="rounded-xl border overflow-hidden transition-all duration-200" style={{ borderColor: isOpen ? panel.accentColor + "66" : "var(--ck-border)", background: isOpen ? panel.accentBg : "var(--ck-bg-card)" }}>
+                              {/* Accordion header — click to expand */}
+                              <button
+                                type="button"
+                                onClick={() => setScheduleOpen(isOpen ? null : panel.key)}
+                                className="w-full flex items-center justify-between px-4 py-3 text-left"
+                              >
+                                <div className="flex items-center gap-2.5">
+                                  <Clock className="w-3.5 h-3.5 shrink-0" style={{ color: panel.accentColor }} />
+                                  <div>
+                                    <span className="text-[10px] font-black font-mono tracking-widest uppercase" style={{ color: panel.accentColor }}>
+                                      {panel.label} {panel.required && <span className="text-rose-400">*</span>}
+                                    </span>
+                                    <p className={`text-xs font-mono font-bold mt-0.5 ${ selDate && !isNaN(selDate.getTime()) ? "text-[var(--ck-text)]" : "text-zinc-600 italic" }`}>
+                                      {(panel as { disabled?: boolean }).disabled ? <span className="text-zinc-700">{(panel as { disabledNotice?: string }).disabledNotice}</span> : displayLabel}
+                                    </p>
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  {selDate && !isNaN(selDate.getTime()) && (
+                                    <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded" style={{ color: panel.accentColor, background: panel.accentBg, border: `1px solid ${panel.accentColor}44` }}>
+                                      SET
+                                    </span>
+                                  )}
+                                  <ChevronRight className={`w-3.5 h-3.5 transition-transform duration-200 ${isOpen ? "rotate-90" : ""}`} style={{ color: panel.accentColor }} />
+                                </div>
+                              </button>
+
+                              {/* Accordion body — MiniCalendar rendered inline when open */}
+                              {isOpen && !(panel as { disabled?: boolean }).disabled && (
+                                <div className="border-t px-3 pb-3" style={{ borderColor: panel.accentColor + "33" }}>
+                                  <MiniCalendar
+                                    label={panel.label}
+                                    selectedDate={panel.value}
+                                    onSelect={panel.onSelect as (v: string) => void}
+                                    minDate={panel.minDate}
+                                    maxDate={panel.maxDate}
+                                    rangeStart={form.startDate}
+                                    rangeEnd={form.endDate}
+                                    onClear={(panel as { onClear?: () => void }).onClear}
+                                  />
+                                </div>
+                              )}
+                              {isOpen && (panel as { disabled?: boolean }).disabled && (
+                                <div className="border-t px-4 py-6 text-center" style={{ borderColor: panel.accentColor + "33" }}>
+                                  <p className="text-xs font-mono text-zinc-600">{(panel as { disabledNotice?: string }).disabledNotice}</p>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
                       </div>
                       
                       {/* Date Validation Warnings */}
@@ -1371,50 +1436,122 @@ export default function EventsPage() {
                           <h3 className="text-sm font-black font-mono text-zinc-350 uppercase tracking-widest">Event Lead Setup</h3>
                         </div>
 
-                        {/* Add Organizer Form */}
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                          <div>
-                            <label className="ck-label text-[10px]">Lead Name *</label>
-                            <input className="ck-input text-xs py-1.5" placeholder="e.g. Alice" value={newOrganizer.name}
-                              onChange={(e) => setNewOrganizer({ ...newOrganizer, name: e.target.value, role: "Event Lead" })} />
+                        {/* Phase 42.8: Coordinator searchable combobox autofill */}
+                        <div className="space-y-3">
+                          {/* Coordinator lookup combobox */}
+                          <div ref={coordSearchRef} className="relative">
+                            <label className="ck-label text-[10px]">Search & Autofill Coordinator</label>
+                            <div className="relative">
+                              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--ck-primary)]/60 pointer-events-none" />
+                              <input
+                                className="ck-input text-xs py-1.5 pl-8 w-full"
+                                placeholder="Search by name or email..."
+                                value={coordSearch}
+                                onFocus={() => setCoordDropdownOpen(true)}
+                                onChange={(e) => { setCoordSearch(e.target.value); setCoordDropdownOpen(true); }}
+                              />
+                            </div>
+                            {coordDropdownOpen && (
+                              <div className="absolute z-50 mt-1 w-full rounded-xl border border-[var(--ck-border)] bg-zinc-950 shadow-[0_4px_24px_rgba(0,0,0,0.6)] max-h-52 overflow-y-auto">
+                                {coordinators
+                                  .filter((c) => {
+                                    const q = coordSearch.toLowerCase();
+                                    return !q || c.name.toLowerCase().includes(q) || c.email.toLowerCase().includes(q);
+                                  })
+                                  .map((coord) => (
+                                    <button
+                                      key={coord.id}
+                                      type="button"
+                                      onMouseDown={(e) => e.preventDefault()}
+                                      onClick={() => {
+                                        // Autofill fields from authoritative profile data
+                                        setNewOrganizer({
+                                          name: coord.name,
+                                          role: "Event Lead",
+                                          email: coord.email,
+                                          phone: coord.phone || "",
+                                        });
+                                        setCoordSearch(coord.name);
+                                        setCoordDropdownOpen(false);
+                                      }}
+                                      className="w-full text-left px-4 py-2.5 hover:bg-[var(--ck-primary)]/10 border-b border-zinc-900 last:border-b-0 transition-colors"
+                                    >
+                                      <p className="text-xs font-bold font-mono text-[var(--ck-text)]">{coord.name}</p>
+                                      <p className="text-[10px] font-mono text-[var(--ck-text-muted)] mt-0.5">
+                                        {coord.email} &bull; {coord.role.replace(/_/g, " ")}
+                                        {coord.studentId && ` · ST: ${coord.studentId}`}
+                                        {coord.employeeId && ` · EMP: ${coord.employeeId}`}
+                                      </p>
+                                    </button>
+                                  ))}
+                                {coordinators.filter((c) => {
+                                  const q = coordSearch.toLowerCase();
+                                  return !q || c.name.toLowerCase().includes(q) || c.email.toLowerCase().includes(q);
+                                }).length === 0 && (
+                                  <div className="px-4 py-3 text-[10px] font-mono text-zinc-600 text-center">
+                                    NO COORDINATORS FOUND
+                                  </div>
+                                )}
+                              </div>
+                            )}
                           </div>
-                          <div>
-                            <label className="ck-label text-[10px]">Email *</label>
-                            <input className="ck-input text-xs py-1.5" type="email" placeholder="alice@example.com" value={newOrganizer.email}
-                              onChange={(e) => setNewOrganizer({ ...newOrganizer, email: e.target.value })} />
-                          </div>
-                          <div>
-                             <label className="ck-label text-[10px]">Phone (10 Digits) *</label>
-                             <input
-                               className="ck-input text-xs py-1.5"
-                               type="tel"
-                               inputMode="numeric"
-                               placeholder="e.g. 9876543210"
-                               value={newOrganizer.phone}
-                               onChange={(e) => setNewOrganizer({ ...newOrganizer, phone: e.target.value.replace(/\D/g, "").slice(0, 10) })}
-                               maxLength={10}
-                             />
-                          </div>
-                        </div>
 
-                        <div className="flex justify-end">
-                          <button type="button" 
-                            onClick={() => {
-                              if (!newOrganizer.name || !newOrganizer.email || !newOrganizer.phone) {
-                                showToast("Please fill all event lead fields.", "warning");
-                                return;
-                              }
-                              if (!/^\d{10}$/.test(newOrganizer.phone)) {
-                                showToast("Mobile number must contain exactly 10 numeric digits.", "warning");
-                                return;
-                              }
-                              setOrganizersList([...organizersList, { ...newOrganizer, role: "Event Lead" }]);
-                              setNewOrganizer({ name: "", role: "Event Lead", email: "", phone: "" });
-                            }}
-                            className="ck-btn-primary py-1.5 px-4 text-xs font-mono flex items-center gap-1.5"
-                          >
-                            <Plus className="w-3.5 h-3.5" /> ADD LEAD
-                          </button>
+                          {/* Manual fields — pre-filled by combobox selection or editable manually */}
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <div>
+                              <label className="ck-label text-[10px]">Lead Name *</label>
+                              <input className="ck-input text-xs py-1.5" placeholder="e.g. Alice" value={newOrganizer.name}
+                                onChange={(e) => setNewOrganizer({ ...newOrganizer, name: e.target.value })} />
+                            </div>
+                            <div>
+                              <label className="ck-label text-[10px]">Email *</label>
+                              <input className="ck-input text-xs py-1.5" type="email" placeholder="alice@example.com" value={newOrganizer.email}
+                                onChange={(e) => setNewOrganizer({ ...newOrganizer, email: e.target.value })} />
+                            </div>
+                            <div>
+                              <label className="ck-label text-[10px]">Phone (10 Digits) *</label>
+                              <input
+                                className="ck-input text-xs py-1.5"
+                                type="tel"
+                                inputMode="numeric"
+                                placeholder="e.g. 9876543210"
+                                value={newOrganizer.phone}
+                                onChange={(e) => setNewOrganizer({ ...newOrganizer, phone: e.target.value.replace(/\D/g, "").slice(0, 10) })}
+                                maxLength={10}
+                              />
+                            </div>
+                          </div>
+
+                          <div className="flex justify-end gap-2">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setNewOrganizer({ name: "", role: "Event Lead", email: "", phone: "" });
+                                setCoordSearch("");
+                              }}
+                              className="ck-btn-secondary py-1.5 px-3 text-xs font-mono"
+                            >
+                              CLEAR
+                            </button>
+                            <button type="button" 
+                              onClick={() => {
+                                if (!newOrganizer.name || !newOrganizer.email || !newOrganizer.phone) {
+                                  showToast("Please fill all event lead fields.", "warning");
+                                  return;
+                                }
+                                if (!/^\d{10}$/.test(newOrganizer.phone)) {
+                                  showToast("Mobile number must contain exactly 10 numeric digits.", "warning");
+                                  return;
+                                }
+                                setOrganizersList([...organizersList, { ...newOrganizer, role: "Event Lead" }]);
+                                setNewOrganizer({ name: "", role: "Event Lead", email: "", phone: "" });
+                                setCoordSearch("");
+                              }}
+                              className="ck-btn-primary py-1.5 px-4 text-xs font-mono flex items-center gap-1.5"
+                            >
+                              <Plus className="w-3.5 h-3.5" /> ADD LEAD
+                            </button>
+                          </div>
                         </div>
 
                         {/* Organizers List Cards */}

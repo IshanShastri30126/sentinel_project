@@ -97,14 +97,14 @@ async function validateEventLeads(organizersStr: string | null): Promise<string 
 
     const leadEmails: string[] = [];
     for (const org of organizers) {
-      if (org && org.role === "Event Lead" && org.email && typeof org.email === "string") {
+      if (org && (org.role === "Event Lead" || org.role === "STUDENT_COORDINATOR") && org.email && typeof org.email === "string") {
         leadEmails.push(org.email.trim());
       }
     }
 
     if (leadEmails.length === 0) return null;
 
-    // Fetch all lead emails in a single database round trip
+    // Fetch all lead emails and verify active, approved coordinator status
     const foundUsers = await prisma.user.findMany({
       where: {
         email: {
@@ -112,14 +112,21 @@ async function validateEventLeads(organizersStr: string | null): Promise<string 
           mode: "insensitive",
         },
       },
-      select: { email: true },
+      select: { email: true, role: true, isActive: true, isApproved: true },
     });
 
-    const foundEmailSet = new Set(foundUsers.map((u) => u.email.toLowerCase()));
+    const userMap = new Map(foundUsers.map((u) => [u.email.toLowerCase(), u]));
 
     for (const email of leadEmails) {
-      if (!foundEmailSet.has(email.toLowerCase())) {
+      const user = userMap.get(email.toLowerCase());
+      if (!user) {
         return `User with email ${email} does not exist. All Event Leads must be registered users.`;
+      }
+      if (!user.isActive || !user.isApproved) {
+        return `User ${email} is inactive or unapproved and cannot be assigned as Event Lead.`;
+      }
+      if (!["STUDENT_COORDINATOR", "FACULTY_COORDINATOR", "DEVELOPMENT_TEAM"].includes(user.role)) {
+        return `User ${email} does not hold an authorized Coordinator role.`;
       }
     }
   } catch (e) {

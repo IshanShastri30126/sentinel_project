@@ -956,3 +956,15 @@ body.drawer-open { overflow: hidden; touch-action: none; }
   border-radius: var(--ck-radius-md);
 }
 
+/* ─── SENTINAL Canonical Three-Dot Pulse ─── */
+@keyframes sentinalPulse {
+  0%, 80%, 100% {
+    transform: scale(0.6);
+    opacity: 0.35;
+  }
+  40% {
+    transform: scale(1.15);
+    opacity: 1;
+  }
+}
+

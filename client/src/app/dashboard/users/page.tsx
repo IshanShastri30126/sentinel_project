@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { api, getFileUrl } from "@/lib/api";
 import { motion } from "framer-motion";
@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { DefaultAvatar } from "@/components/default-avatar";
 import { useCyberDialog } from "@/components/ui/CyberDialogContext";
+import { SentinalLoader } from "@/components/ui/SentinalLoader";
 
 interface UserEntry { 
   id: string; 
@@ -51,6 +52,8 @@ export default function UsersPage() {
   const [approvedUsers, setApprovedUsers] = useState<UserEntry[]>([]);
   const [pendingUsers, setPendingUsers] = useState<UserEntry[]>([]);
   const [loading, setLoading] = useState(true);
+  const [pageLoading, setPageLoading] = useState(false);
+  const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("");
   
@@ -74,32 +77,54 @@ export default function UsersPage() {
   const [totalItems, setTotalItems] = useState(0);
   const itemsPerPage = 10;
 
-  const load = async () => {
+  // Decoupled fetchers to avoid unnecessary dual requests
+  const loadPending = useCallback(async () => {
     try {
       let pendingParams = "?approved=false";
-      if (search) pendingParams += `&search=${search}`;
-
-      let approvedParams = `?approved=true&page=${currentPage}&limit=${itemsPerPage}`;
-      if (search) approvedParams += `&search=${search}`;
-      if (roleFilter) approvedParams += `&role=${roleFilter}`;
-
-      const [pendingData, approvedData] = await Promise.all([
-        api<{ users: UserEntry[] }>(`/users${pendingParams}`, { token: token || undefined }),
-        api<{ users: UserEntry[]; total: number; pages: number }>(`/users${approvedParams}`, { token: token || undefined })
-      ]);
-
-      setPendingUsers(pendingData.users);
-      setApprovedUsers(approvedData.users);
-      setTotalItems(approvedData.total);
-      setTotalPages(approvedData.pages);
-    } catch (err) { 
-      console.warn("Users load warning:", err); 
-    } finally { 
-      setLoading(false); 
+      if (search) pendingParams += `&search=${encodeURIComponent(search)}`;
+      const pendingData = await api<{ users: UserEntry[] }>(`/users${pendingParams}`, { token: token || undefined });
+      setPendingUsers(pendingData.users || []);
+    } catch (err) {
+      console.warn("Pending users load warning:", err);
     }
-  };
+  }, [search, token]);
 
-  useEffect(() => { if (user) load(); }, [user, search, roleFilter, currentPage]);
+  const loadApproved = useCallback(async (pageToLoad: number, showPageLoader = false) => {
+    if (showPageLoader) setPageLoading(true);
+    try {
+      let approvedParams = `?approved=true&page=${pageToLoad}&limit=${itemsPerPage}`;
+      if (search) approvedParams += `&search=${encodeURIComponent(search)}`;
+      if (roleFilter) approvedParams += `&role=${encodeURIComponent(roleFilter)}`;
+
+      const approvedData = await api<{ users: UserEntry[]; total: number; pages: number }>(
+        `/users${approvedParams}`,
+        { token: token || undefined }
+      );
+
+      setApprovedUsers(approvedData.users || []);
+      setTotalItems(approvedData.total || 0);
+      setTotalPages(approvedData.pages || 1);
+    } catch (err) {
+      console.warn("Approved users load warning:", err);
+    } finally {
+      setPageLoading(false);
+      setLoading(false);
+    }
+  }, [search, roleFilter, itemsPerPage, token]);
+
+  // Initial load
+  useEffect(() => {
+    if (user) {
+      Promise.all([loadPending(), loadApproved(1)]).finally(() => setLoading(false));
+    }
+  }, [user, loadPending, loadApproved]);
+
+  // Handle pagination changes separately without re-querying pending table
+  const handlePageChange = (newPage: number) => {
+    if (newPage === currentPage || pageLoading) return;
+    setCurrentPage(newPage);
+    loadApproved(newPage, true);
+  };
 
   // Reset pagination when search queries or filters change
   useEffect(() => {
@@ -107,16 +132,31 @@ export default function UsersPage() {
   }, [search, roleFilter]);
 
   const handleApprove = async (id: string) => {
+    if (actionLoadingId) return;
+    setActionLoadingId(id);
     try {
-      await api(`/users/${id}/approve`, { method: "PATCH", token: token || undefined });
+      const res = await api<{ user?: UserEntry }>(`/users/${id}/approve`, { method: "PATCH", token: token || undefined });
       showToast("Candidate access approved successfully", "success");
-      load();
+      
+      // Authoritative local state reconciliation
+      const approvedCandidate = pendingUsers.find(u => u.id === id);
+      setPendingUsers(prev => prev.filter(u => u.id !== id));
+      
+      if (approvedCandidate) {
+        const newUser: UserEntry = res.user ? { ...approvedCandidate, ...res.user } : { ...approvedCandidate, isApproved: true, role: "MEMBER" };
+        setApprovedUsers(prev => [newUser, ...prev]);
+        setTotalItems(prev => prev + 1);
+      }
     } catch (err) {
       showToast(err instanceof Error ? err.message : "Approval failed", "error");
+      loadPending();
+    } finally {
+      setActionLoadingId(null);
     }
   };
 
   const handleReject = async (id: string) => {
+    if (actionLoadingId) return;
     const confirmed = await confirmModal({
       title: "Reject Candidate Access",
       message: "Are you sure you want to reject access and permanently remove this candidate and all their data from the portal?",
@@ -124,32 +164,55 @@ export default function UsersPage() {
       confirmText: "REJECT CANDIDATE"
     });
     if (!confirmed) return;
+    
+    setActionLoadingId(id);
     try {
       await api(`/users/${id}/reject`, { method: "PATCH", token: token || undefined });
       showToast("Candidate rejected and removed", "success");
-      load();
+      
+      // Authoritative local state reconciliation
+      setPendingUsers(prev => prev.filter(u => u.id !== id));
+      setApprovedUsers(prev => prev.filter(u => u.id !== id));
+      setTotalItems(prev => Math.max(prev - 1, 0));
     } catch (err) {
       showToast(err instanceof Error ? err.message : "Rejection failed", "error");
+      loadPending();
+    } finally {
+      setActionLoadingId(null);
     }
   };
 
   const handleRoleChange = async (id: string, role: string) => {
+    if (actionLoadingId) return;
+    setActionLoadingId(id);
     try {
       await api(`/users/${id}/role`, { method: "PATCH", token: token || undefined, body: JSON.stringify({ role }) });
       showToast(`User role updated to ${role.replace(/_/g, " ")}`, "success");
-      load();
+      
+      // Immediate local state update
+      setApprovedUsers(prev => prev.map(u => u.id === id ? { ...u, role } : u));
     } catch (err) {
       showToast(err instanceof Error ? err.message : "Role update failed", "error");
+      loadApproved(currentPage);
+    } finally {
+      setActionLoadingId(null);
     }
   };
 
   const handleToggleActive = async (id: string, isActive: boolean) => {
+    if (actionLoadingId) return;
+    setActionLoadingId(id);
     try {
       await api(`/users/${id}/${isActive ? "deactivate" : "activate"}`, { method: "PATCH", token: token || undefined });
       showToast(`User ${isActive ? "deactivated" : "activated"} successfully`, "success");
-      load();
+      
+      // Immediate local state update
+      setApprovedUsers(prev => prev.map(u => u.id === id ? { ...u, isActive: !isActive } : u));
     } catch (err) {
       showToast(err instanceof Error ? err.message : "Status update failed", "error");
+      loadApproved(currentPage);
+    } finally {
+      setActionLoadingId(null);
     }
   };
 
@@ -188,14 +251,31 @@ export default function UsersPage() {
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <button onClick={() => handleApprove(u.id)} className="ck-btn-primary text-[10px] py-1.5 px-3 font-mono flex items-center gap-1">
-                    <UserCheck className="w-3.5 h-3.5" /> GRANT ACCESS
+                  <button 
+                    onClick={() => handleApprove(u.id)} 
+                    disabled={actionLoadingId === u.id}
+                    className="ck-btn-primary text-[10px] py-1.5 px-3 font-mono flex items-center gap-1 disabled:opacity-50"
+                  >
+                    {actionLoadingId === u.id ? (
+                      <SentinalLoader variant="inline" size="sm" />
+                    ) : (
+                      <>
+                        <UserCheck className="w-3.5 h-3.5" /> GRANT ACCESS
+                      </>
+                    )}
                   </button>
                   <button 
                     onClick={() => handleReject(u.id)} 
-                    className="px-3 py-1.5 rounded-lg border border-rose-500/40 bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 text-[10px] font-mono font-bold uppercase transition flex items-center gap-1 cursor-pointer"
+                    disabled={actionLoadingId === u.id}
+                    className="px-3 py-1.5 rounded-lg border border-rose-500/40 bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 text-[10px] font-mono font-bold uppercase transition flex items-center gap-1 cursor-pointer disabled:opacity-50"
                   >
-                    <UserX className="w-3.5 h-3.5" /> REJECT ACCESS
+                    {actionLoadingId === u.id ? (
+                      <SentinalLoader variant="inline" size="sm" />
+                    ) : (
+                      <>
+                        <UserX className="w-3.5 h-3.5" /> REJECT ACCESS
+                      </>
+                    )}
                   </button>
                 </div>
               </div>
@@ -218,7 +298,7 @@ export default function UsersPage() {
 
       {loading ? (
         <div className="flex justify-center py-20">
-          <div className="w-8 h-8 border-3 border-violet-500/30 border-t-cyan-400 rounded-full animate-spin" />
+          <SentinalLoader variant="card" size="md" text="INITIALIZING OPERATIVE REGISTRY..." />
         </div>
       ) : approvedUsers.length === 0 ? (
         <div className="ck-card p-12 text-center">
@@ -240,102 +320,130 @@ export default function UsersPage() {
                   <th>Actions</th>
                 </tr>
               </thead>
-              <tbody>
-                {paginatedUsers.map((u) => (
-                  <tr key={u.id} className="group hover:bg-violet-500/[0.02]">
-                    {/* Profile & ID */}
-                    <td data-label="Profile & ID">
-                      <div className="flex items-center gap-2.5">
-                        <DefaultAvatar
-                          src={u.avatarUrl ? getFileUrl(u.avatarUrl) : null}
-                          alt={u.name}
-                          className="w-9 h-9 border border-[#00F5D4]/25"
-                        />
-                        <div>
-                          <p className="text-sm font-semibold text-[var(--ck-text)] tracking-wide">{u.name}</p>
-                          <p className="text-[10px] font-mono mt-0.5 text-[var(--ck-text-muted)] uppercase">
-                            {isFaculty(u.role) 
-                              ? (u.employeeId || u.studentId ? `EMPID: ${u.employeeId || u.studentId}` : "FACULTY / NO ID")
-                              : (u.studentId ? `STID: ${u.studentId}` : "GUEST / NO ID")}
-                          </p>
-                        </div>
-                      </div>
-                    </td>
-
-                    {/* Contact Details */}
-                    <td data-label="Contact Details">
-                      <div className="space-y-0.5 font-mono">
-                        <p className="text-xs text-[var(--ck-text)] lowercase flex items-center gap-1.5">
-                          <Mail className="w-3.5 h-3.5 text-[var(--ck-primary)]/60" /> {u.email}
-                        </p>
-                        {u.phone ? (
-                          <p className="text-[10px] text-[var(--ck-text-muted)] flex items-center gap-1.5">
-                            <Phone className="w-3 h-3 text-zinc-650" /> {u.phone}
-                          </p>
-                        ) : (
-                          <p className="text-[10px] text-zinc-650 italic pl-5">No phone number</p>
-                        )}
-                      </div>
-                    </td>
-
-                    {/* Academic Details */}
-                    <td data-label="Academic Info">
-                      <div className="space-y-0.5">
-                        <p className="text-xs font-semibold text-[var(--ck-text)] font-mono uppercase flex items-center gap-1.5">
-                          <GraduationCap className="w-3.5 h-3.5 text-[var(--ck-accent)]/60" /> {u.department || "N/A"}
-                        </p>
-                        <p className="text-[10px] text-[var(--ck-text-muted)] font-mono uppercase pl-5">
-                          {isFaculty(u.role) ? (u.institute || "FACULTY") : `${u.institute || "MEMBER"}`}
-                        </p>
-                      </div>
-                    </td>
-
-                    {/* Security Role */}
-                    <td data-label="Security Role">
-                      {canAssignRoles && u.id !== user?.id ? (
-                        <select className="ck-input text-[10px] py-1 px-2.5 w-auto font-mono border-[var(--ck-border)] focus:border-cyan-500/40" value={u.role} onChange={(e) => handleRoleChange(u.id, e.target.value)}>
-                          {CANONICAL_ROLES.map((r) => <option key={r.value} value={r.value}>{r.label}</option>)}
-                        </select>
-                      ) : (
-                        <span className="ck-badge ck-badge-primary text-[10px]">{ROLE_DISPLAY_NAMES[u.role] || u.role.replace(/_/g, " ")}</span>
-                      )}
-                    </td>
-
-                    {/* Operational Status */}
-                    <td data-label="Operational Status">
-                      {u.isActive ? (
-                        <span className="ck-badge ck-badge-success text-[10px] tracking-wider">ACTIVE</span>
-                      ) : (
-                        <span className="ck-badge bg-rose-950/40 border border-rose-500/30 text-rose-400 text-[10px] tracking-wider">INACTIVE</span>
-                      )}
-                    </td>
-
-                    {/* Actions */}
-                    <td data-label="Actions">
-                      {canManageUsers && u.id !== user?.id && (
-                        <div className="flex items-center gap-2">
-                          <button 
-                            onClick={() => handleToggleActive(u.id, u.isActive)} 
-                            className={`text-[10px] uppercase font-mono tracking-wider px-2.5 py-1 rounded border transition-all duration-300 ${
-                              u.isActive 
-                              ? "text-amber-400 border-amber-900/30 hover:bg-amber-500/10 hover:border-amber-500/50" 
-                              : "text-emerald-400 border-emerald-900/30 hover:bg-emerald-500/10 hover:border-emerald-500/50"
-                            }`}
-                          >
-                            {u.isActive ? "Deactivate" : "Activate"}
-                          </button>
-                          <button
-                            onClick={() => handleReject(u.id)}
-                            className="text-[10px] uppercase font-mono tracking-wider px-2.5 py-1 rounded border text-rose-400 border-rose-900/30 hover:bg-rose-500/10 hover:border-rose-500/50 transition-all duration-300 flex items-center gap-1 cursor-pointer"
-                            title="Reject or Revoke Access"
-                          >
-                            <UserX className="w-3 h-3" /> Reject Access
-                          </button>
-                        </div>
-                      )}
+              <tbody className="relative">
+                {pageLoading ? (
+                  <tr>
+                    <td colSpan={6} className="py-12 text-center">
+                      <SentinalLoader variant="card" size="md" text="FETCHING OPERATIVE PAGE..." className="min-h-0 border-0 bg-transparent" />
                     </td>
                   </tr>
-                ))}
+                ) : (
+                  paginatedUsers.map((u) => (
+                    <tr key={u.id} className="group hover:bg-violet-500/[0.02]">
+                      {/* Profile & ID */}
+                      <td data-label="Profile & ID">
+                        <div className="flex items-center gap-2.5">
+                          <DefaultAvatar
+                            src={u.avatarUrl ? getFileUrl(u.avatarUrl) : null}
+                            alt={u.name}
+                            className="w-9 h-9 border border-[#00F5D4]/25"
+                          />
+                          <div>
+                            <p className="text-sm font-semibold text-[var(--ck-text)] tracking-wide">{u.name}</p>
+                            <p className="text-[10px] font-mono mt-0.5 text-[var(--ck-text-muted)] uppercase">
+                              {isFaculty(u.role) 
+                                ? (u.employeeId || u.studentId ? `EMPID: ${u.employeeId || u.studentId}` : "FACULTY / NO ID")
+                                : (u.studentId ? `STID: ${u.studentId}` : "GUEST / NO ID")}
+                            </p>
+                          </div>
+                        </div>
+                      </td>
+
+                      {/* Contact Details */}
+                      <td data-label="Contact Details">
+                        <div className="space-y-0.5 font-mono">
+                          <p className="text-xs text-[var(--ck-text)] lowercase flex items-center gap-1.5">
+                            <Mail className="w-3.5 h-3.5 text-[var(--ck-primary)]/60" /> {u.email}
+                          </p>
+                          {u.phone ? (
+                            <p className="text-[10px] text-[var(--ck-text-muted)] flex items-center gap-1.5">
+                              <Phone className="w-3 h-3 text-zinc-650" /> {u.phone}
+                            </p>
+                          ) : (
+                            <p className="text-[10px] text-zinc-650 italic pl-5">No phone number</p>
+                          )}
+                        </div>
+                      </td>
+
+                      {/* Academic Details */}
+                      <td data-label="Academic Info">
+                        <div className="space-y-0.5">
+                          <p className="text-xs font-semibold text-[var(--ck-text)] font-mono uppercase flex items-center gap-1.5">
+                            <GraduationCap className="w-3.5 h-3.5 text-[var(--ck-accent)]/60" /> {u.department || "N/A"}
+                          </p>
+                          <p className="text-[10px] text-[var(--ck-text-muted)] font-mono uppercase pl-5">
+                            {isFaculty(u.role) ? (u.institute || "FACULTY") : `${u.institute || "MEMBER"}`}
+                          </p>
+                        </div>
+                      </td>
+
+                      {/* Security Role */}
+                      <td data-label="Security Role">
+                        {canAssignRoles && u.id !== user?.id ? (
+                          <div className="flex items-center gap-1.5">
+                            <select 
+                              disabled={actionLoadingId === u.id}
+                              className="ck-input text-[10px] py-1 px-2.5 w-auto font-mono border-[var(--ck-border)] focus:border-cyan-500/40 disabled:opacity-50" 
+                              value={u.role} 
+                              onChange={(e) => handleRoleChange(u.id, e.target.value)}
+                            >
+                              {CANONICAL_ROLES.map((r) => <option key={r.value} value={r.value}>{r.label}</option>)}
+                            </select>
+                            {actionLoadingId === u.id && <SentinalLoader variant="inline" size="sm" />}
+                          </div>
+                        ) : (
+                          <span className="ck-badge ck-badge-primary text-[10px]">{ROLE_DISPLAY_NAMES[u.role] || u.role.replace(/_/g, " ")}</span>
+                        )}
+                      </td>
+
+                      {/* Operational Status */}
+                      <td data-label="Operational Status">
+                        {u.isActive ? (
+                          <span className="ck-badge ck-badge-success text-[10px] tracking-wider">ACTIVE</span>
+                        ) : (
+                          <span className="ck-badge bg-rose-950/40 border border-rose-500/30 text-rose-400 text-[10px] tracking-wider">INACTIVE</span>
+                        )}
+                      </td>
+
+                      {/* Actions */}
+                      <td data-label="Actions">
+                        {canManageUsers && u.id !== user?.id && (
+                          <div className="flex items-center gap-2">
+                            <button 
+                              onClick={() => handleToggleActive(u.id, u.isActive)} 
+                              disabled={actionLoadingId === u.id}
+                              className={`text-[10px] uppercase font-mono tracking-wider px-2.5 py-1 rounded border transition-all duration-300 disabled:opacity-50 ${
+                                u.isActive 
+                                ? "text-amber-400 border-amber-900/30 hover:bg-amber-500/10 hover:border-amber-500/50" 
+                                : "text-emerald-400 border-emerald-900/30 hover:bg-emerald-500/10 hover:border-emerald-500/50"
+                              }`}
+                            >
+                              {actionLoadingId === u.id ? (
+                                <SentinalLoader variant="inline" size="sm" />
+                              ) : (
+                                u.isActive ? "Deactivate" : "Activate"
+                              )}
+                            </button>
+                            <button
+                              onClick={() => handleReject(u.id)}
+                              disabled={actionLoadingId === u.id}
+                              className="text-[10px] uppercase font-mono tracking-wider px-2.5 py-1 rounded border text-rose-400 border-rose-900/30 hover:bg-rose-500/10 hover:border-rose-500/50 transition-all duration-300 flex items-center gap-1 cursor-pointer disabled:opacity-50"
+                              title="Reject or Revoke Access"
+                            >
+                              {actionLoadingId === u.id ? (
+                                <SentinalLoader variant="inline" size="sm" />
+                              ) : (
+                                <>
+                                  <UserX className="w-3 h-3" /> Reject Access
+                                </>
+                              )}
+                            </button>
+                          </div>
+                        )}
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
             </div>
@@ -350,8 +458,8 @@ export default function UsersPage() {
               <div className="flex items-center gap-1.5">
                 <button
                   type="button"
-                  disabled={currentPage === 1}
-                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1 || pageLoading}
+                  onClick={() => handlePageChange(Math.max(currentPage - 1, 1))}
                   className="ck-btn-secondary py-1 px-3 text-[10px] font-mono disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   <ChevronLeft className="w-3.5 h-3.5 inline mr-0.5" /> PREV
@@ -364,8 +472,9 @@ export default function UsersPage() {
                     <button
                       key={pageNum}
                       type="button"
-                      onClick={() => setCurrentPage(pageNum)}
-                      className={`w-7 h-7 rounded-lg border text-[10px] font-bold font-mono transition-all duration-200 ${
+                      disabled={pageLoading}
+                      onClick={() => handlePageChange(pageNum)}
+                      className={`w-7 h-7 rounded-lg border text-[10px] font-bold font-mono transition-all duration-200 disabled:opacity-50 ${
                         isCurrent
                           ? "bg-[#00F5D4] border-[#00F5D4] text-black shadow-[0_0_8px_rgba(0,245,212,0.3)]"
                           : "border-[var(--ck-border)] bg-zinc-900/40 hover:border-[var(--ck-border)] text-[var(--ck-text-secondary)] hover:text-[var(--ck-text)]"
@@ -378,8 +487,8 @@ export default function UsersPage() {
 
                 <button
                   type="button"
-                  disabled={currentPage === totalPages}
-                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                  disabled={currentPage === totalPages || pageLoading}
+                  onClick={() => handlePageChange(Math.min(currentPage + 1, totalPages))}
                   className="ck-btn-secondary py-1 px-3 text-[10px] font-mono disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   NEXT <ChevronRight className="w-3.5 h-3.5 inline ml-0.5" />

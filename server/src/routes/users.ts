@@ -12,22 +12,77 @@ import redis, { redisGet, redisSet, redisDel } from "../lib/redis";
 async function clearUsersCache() {
   try {
     const redisClient = redis;
+    const tasks: Promise<any>[] = [
+      redisDel("analytics:operations"),
+      redisDel("analytics:sentinel"),
+      redisDel("analytics:top3"),
+      redisDel("analytics:coordinator-activity"),
+      redisDel("users:coordinators:list:all"),
+    ];
     if (redisClient) {
-      const keys = await redisClient.keys("users:list:*");
+      const keys = await redisClient.keys("users:*");
       if (keys && keys.length > 0) {
-        await Promise.all(keys.map(key => redisClient.del(key)));
+        keys.forEach(k => tasks.push(redisClient.del(k)));
       }
     }
-    await redisDel("analytics:operations");
-    await redisDel("analytics:sentinel");
-    await redisDel("analytics:top3");
-    await redisDel("analytics:coordinator-activity");
+    await Promise.all(tasks);
   } catch (err) {
     console.warn("Failed to clear users cache:", err);
   }
 }
 
 const router = Router();
+
+// GET /api/users/coordinators — Retrieve eligible Coordinators for event lead assignment
+router.get("/coordinators", authenticate, async (req: Request, res: Response) => {
+  try {
+    const { q } = req.query;
+    const cacheKey = `users:coordinators:list:${q ? String(q).toLowerCase() : "all"}`;
+    const cached = await redisGet(cacheKey);
+    if (cached) {
+      res.json(JSON.parse(cached));
+      return;
+    }
+
+    const where: any = {
+      role: { in: ["STUDENT_COORDINATOR", "FACULTY_COORDINATOR"] },
+      isActive: true,
+      isApproved: true,
+    };
+
+    if (q && typeof q === "string" && q.trim().length > 0) {
+      const searchTerm = q.trim();
+      where.OR = [
+        { name: { contains: searchTerm, mode: "insensitive" } },
+        { email: { contains: searchTerm, mode: "insensitive" } },
+        { studentId: { contains: searchTerm, mode: "insensitive" } },
+      ];
+    }
+
+    const coordinators = await prisma.user.findMany({
+      where,
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        phone: true,
+        studentId: true,
+        department: true,
+        institute: true,
+      },
+      orderBy: { name: "asc" },
+      take: 50,
+    });
+
+    const payload = { coordinators };
+    await redisSet(cacheKey, JSON.stringify(payload), 120);
+    res.json(payload);
+  } catch (err) {
+    console.error("[Users] Coordinators lookup error:", err);
+    res.status(500).json({ error: "Failed to fetch student coordinators" });
+  }
+});
 
 // GET /api/users — List all users (Tech, Faculty)
 router.get("/", authenticate, requireRole("FACULTY_COORDINATOR"), async (req: Request, res: Response) => {
@@ -62,27 +117,28 @@ router.get("/", authenticate, requireRole("FACULTY_COORDINATOR"), async (req: Re
     }
     if (approved !== undefined) where.isApproved = approved === "true";
 
-    const total = await prisma.user.count({ where });
-
-    const users = await prisma.user.findMany({
-      where,
-      select: {
-        id: true, name: true, email: true, role: true,
-        studentId: true, department: true, phone: true,
-        avatarUrl: true, isActive: true, isApproved: true, createdAt: true,
-        institute: true, 
-      },
-      orderBy: { createdAt: "desc" },
-      ...(pageVal && limitVal ? {
-        skip: (pageVal - 1) * limitVal,
-        take: limitVal,
-      } : {}),
-    });
+    // Concurrently execute count and findMany queries to cut DB holding time in half
+    const [total, users] = await Promise.all([
+      prisma.user.count({ where }),
+      prisma.user.findMany({
+        where,
+        select: {
+          id: true, name: true, email: true, role: true,
+          studentId: true, department: true, phone: true,
+          avatarUrl: true, isActive: true, isApproved: true, createdAt: true,
+          institute: true, 
+        },
+        orderBy: { createdAt: "desc" },
+        ...(pageVal && limitVal ? {
+          skip: (pageVal - 1) * limitVal,
+          take: limitVal,
+        } : {}),
+      }),
+    ]);
     
     const mappedUsers = users.map((u) => ({
       ...u,
       employeeId: (u.role === "FACULTY_COORDINATOR" || (u.role as string) === "FACULTY") ? u.studentId : undefined,
-      
     }));
 
     const responsePayload = {

@@ -31,6 +31,7 @@ import { CyberCard } from "@/components/ui/CyberCard";
 import { CyberBadge } from "@/components/ui/CyberBadge";
 import { SystemLabel } from "@/components/ui/SystemLabel";
 import { BorderBeam } from "@/components/effects/BorderBeam";
+import { SentinalLoader } from "@/components/ui/SentinalLoader";
 
 export const INSTITUTES = ["CSPIT", "DEPSTAR", "PDPIAS", "CMPICA", "IIIM"] as const;
 
@@ -72,6 +73,7 @@ function LoginPageContent() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [registeredPending, setRegisteredPending] = useState(false);
 
   // Rate Limiting Block State
@@ -245,12 +247,12 @@ function LoginPageContent() {
 
   // Loading Screen to prevent login screen flash during session hydration
   if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden bg-[#02050B] text-slate-100 font-mono">
-        <PlexusBackground />
-        <div className="w-10 h-10 border-3 border-cyan-500/30 border-t-[#00F5D4] rounded-full animate-spin shadow-[0_0_15px_rgba(0,245,212,0.3)] relative z-10" />
-      </div>
-    );
+    return <SentinalLoader variant="fullscreen" size="xl" text="VERIFYING OPERATIVE CLEARANCE..." />;
+  }
+
+  // Google OAuth Loading Screen
+  if (isGoogleLoading) {
+    return <SentinalLoader variant="fullscreen" size="xl" text="AUTHENTICATING WITH GOOGLE IDENTITY..." />;
   }
 
   // Lockout Screen
@@ -642,22 +644,25 @@ function LoginPageContent() {
                 </div>
               </div>
 
-              <div className="mt-4 flex justify-center">
+              <div className={`mt-4 flex justify-center ${isGoogleLoading || loading ? "pointer-events-none opacity-50" : ""}`}>
                 <GoogleLogin
                   onSuccess={async (credentialResponse) => {
                     if (credentialResponse.credential) {
-                      setLoading(true);
+                      setIsGoogleLoading(true);
+                      setError("");
                       try {
                         await loginWithGoogle(credentialResponse.credential);
                         router.push(redirectTarget);
                       } catch (err: unknown) {
                         setError(err instanceof Error ? err.message : "Federated authentication failed.");
-                      } finally {
-                        setLoading(false);
+                        setIsGoogleLoading(false);
                       }
                     }
                   }}
-                  onError={() => setError("Federated authentication failed.")}
+                  onError={() => {
+                    setIsGoogleLoading(false);
+                    setError("Federated authentication failed or was cancelled.");
+                  }}
                   theme="filled_black"
                   shape="pill"
                 />
@@ -679,9 +684,7 @@ export default function LoginPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen flex items-center justify-center bg-[#02050B] text-[#00F5D4] font-mono text-xs">
-          <div className="w-8 h-8 border-2 border-cyan-500/30 border-t-[#00F5D4] rounded-full animate-spin" />
-        </div>
+        <SentinalLoader variant="fullscreen" size="xl" text="INITIALIZING DEFENSE GATEWAY..." />
       }
     >
       <LoginPageContent />

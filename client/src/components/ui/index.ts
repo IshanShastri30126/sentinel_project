@@ -14,3 +14,4 @@ export * from "./SectionReveal";
 export * from "./TerminalText";
 export * from "./Countdown";
 export * from "./PageTransition";
+export * from "./SentinalLoader";

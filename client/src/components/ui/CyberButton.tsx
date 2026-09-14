@@ -3,7 +3,7 @@
 import React, { forwardRef } from "react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
-import { Loader2 } from "lucide-react";
+import { SentinalLoader } from "./SentinalLoader";
 
 const buttonVariants = cva(
   "relative inline-flex items-center justify-center gap-2 font-mono text-xs font-bold uppercase tracking-wider transition-all duration-200 select-none disabled:opacity-50 disabled:pointer-events-none active:translate-y-px",
@@ -93,7 +93,7 @@ export const CyberButton = forwardRef<HTMLButtonElement, CyberButtonProps>(
         {...props}
       >
         {isLoading ? (
-          <Loader2 className="h-4 w-4 animate-spin text-current" />
+          <SentinalLoader variant="inline" size="sm" />
         ) : (
           leftIcon
         )}
