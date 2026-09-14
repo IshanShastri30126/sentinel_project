@@ -44,9 +44,9 @@ export default function LeaderboardPage() {
   const [compLoading, setCompLoading] = useState(false);
   const [togglingVisibility, setTogglingVisibility] = useState(false);
 
-  const isCoord = Boolean(user && ["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "TECH_TEAM", "STUDENT_COORDINATOR", "FACULTY", "TECH"].includes(user.role));
-  const isFaculty = Boolean(user && ["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "TECH_TEAM", "STUDENT_COORDINATOR", "FACULTY", "TECH"].includes(user.role));
-  const isTechOrDev = Boolean(user && ["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "TECH_TEAM", "STUDENT_COORDINATOR", "ADMIN", "FACULTY", "TECH"].includes(user.role));
+  const isCoord = Boolean(user && ["FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "DEVELOPMENT_TEAM"].includes(user.role));
+  const isFaculty = Boolean(user && ["FACULTY_COORDINATOR", "DEVELOPMENT_TEAM"].includes(user.role));
+  const canManageCompLeaderboard = Boolean(user && ["FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "DEVELOPMENT_TEAM"].includes(user.role));
 
   // Modals
   const [showGivePoints, setShowGivePoints] = useState(false);
@@ -478,8 +478,8 @@ export default function LeaderboardPage() {
               </button>
             </div>
 
-            {/* Staff Controller Toggle: DEVELOPMENT_TEAM & TECH_TEAM */}
-            {isTechOrDev && selectedCompEventId && (
+            {/* Staff Controller Toggle: FACULTY_COORDINATOR, STUDENT_COORDINATOR & DEVELOPMENT_TEAM */}
+            {canManageCompLeaderboard && selectedCompEventId && (
               <div className="flex items-center gap-3 p-2 rounded-lg border border-cyan-500/30 bg-cyan-950/20">
                 <div className="flex items-center gap-2">
                   {compEvents.find(e => e.id === selectedCompEventId)?.isLeaderboardVisible ?? true ? (

@@ -1614,7 +1614,7 @@ function PublicEventPageContent() {
               )}
 
               {/* Staff / Coordinator Direct Spectator Link */}
-              {user && ["TECH_COORDINATOR", "FACULTY_COORDINATOR", "STUDENT_COORDINATOR"].includes(user.role) && (
+              {user && ["FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "DEVELOPMENT_TEAM"].includes(user.role) && (
                 <div className="pt-4 border-t border-white/[0.08] flex items-center justify-between flex-wrap gap-2 text-xs">
                   <span className="text-sky-400 uppercase tracking-wider font-bold">
                     Staff Supervisor Mode

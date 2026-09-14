@@ -29,28 +29,21 @@ interface UserEntry {
 
 const CANONICAL_ROLES = [
   { value: "FACULTY_COORDINATOR", label: "Faculty Coordinator" },
-  { value: "TECH_COORDINATOR", label: "Tech Team" },
   { value: "STUDENT_COORDINATOR", label: "Student Coordinator" },
+  { value: "DEVELOPMENT_TEAM", label: "Development Team" },
   { value: "SOCIAL_MEDIA_COORDINATOR", label: "Social Media Coordinator" },
   { value: "MEMBER", label: "Member" },
 ];
 
 const ROLE_DISPLAY_NAMES: Record<string, string> = {
   FACULTY_COORDINATOR: "Faculty Coordinator",
-  TECH_COORDINATOR: "Tech Team",
   STUDENT_COORDINATOR: "Student Coordinator",
+  DEVELOPMENT_TEAM: "Development Team",
   SOCIAL_MEDIA_COORDINATOR: "Social Media Coordinator",
   MEMBER: "Member",
-  GUEST: "Guest",
-  DEVELOPMENT_TEAM: "Development Team",
-  TECH_TEAM: "Tech Team",
-  FACULTY: "Faculty Coordinator",
-  TECH: "Tech Team",
-  CONTENT: "Content Team",
-  SOCIAL_MEDIA: "Social Media",
 };
 
-const isFaculty = (role?: string): boolean => role === "FACULTY" || role === "FACULTY_COORDINATOR";
+const isFaculty = (role?: string): boolean => role === "FACULTY_COORDINATOR";
 
 export default function UsersPage() {
   const { user, token } = useAuth();
@@ -64,18 +57,14 @@ export default function UsersPage() {
   const canAssignRoles = Boolean(
     user?.role &&
     [
-      "ADMIN",
-      "FACULTY_COORDINATOR",
-      "TECH_COORDINATOR"
+      "FACULTY_COORDINATOR"
     ].includes(user.role)
   );
 
   const canManageUsers = Boolean(
     user?.role &&
     [
-      "ADMIN",
-      "FACULTY_COORDINATOR",
-      "TECH_COORDINATOR"
+      "FACULTY_COORDINATOR"
     ].includes(user.role)
   );
 
@@ -296,7 +285,7 @@ export default function UsersPage() {
                           <GraduationCap className="w-3.5 h-3.5 text-[var(--ck-accent)]/60" /> {u.department || "N/A"}
                         </p>
                         <p className="text-[10px] text-[var(--ck-text-muted)] font-mono uppercase pl-5">
-                          {isFaculty(u.role) ? (u.institute || "FACULTY") : `${u.institute || "GUEST"}`}
+                          {isFaculty(u.role) ? (u.institute || "FACULTY") : `${u.institute || "MEMBER"}`}
                         </p>
                       </div>
                     </td>

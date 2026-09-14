@@ -330,11 +330,6 @@ export default function ProfilePage() {
             </div>
           </div>
 
-<<<<<<< HEAD
-
-=======
->>>>>>> sentinel_project/dev
-
           {/* Contact info */}
           <div className="p-3.5 rounded border border-slate-800 bg-[#070E1A]/80 flex items-center gap-4 hover:border-[#00F5D4]/40 transition duration-200 sm:col-span-2">
             <div className="w-8 h-8 rounded border border-slate-700/60 bg-slate-800/30 flex items-center justify-center text-[#00F5D4] shrink-0">
@@ -471,11 +466,6 @@ export default function ProfilePage() {
                     </select>
                   </div>
                 </div>
-
-<<<<<<< HEAD
-
-=======
->>>>>>> sentinel_project/dev
 
                 <div>
                   <label className="ck-label">New Password (Optional)</label>

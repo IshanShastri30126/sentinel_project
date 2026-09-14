@@ -62,14 +62,13 @@ router.post(
   "/",
   authenticate,
 // [MIGRATION]: requireMinRole -> explicit requireRole, MEMBER removed
-  requireRole("STUDENT_COORDINATOR", "SOCIAL_MEDIA_COORDINATOR", "TECH_COORDINATOR"),
+  requireRole("STUDENT_COORDINATOR", "SOCIAL_MEDIA_COORDINATOR", "DEVELOPMENT_TEAM"),
   validate(createApprovalSchema),
   auditLog("APPROVAL_REQUEST_CREATED"),
   async (req: Request, res: Response) => {
     try {
       const { title, description, type, metadata } = req.body;
 
-      // [MIGRATION]: Type scoping based on role
       const role = req.user!.role;
       if (role === "STUDENT_COORDINATOR" && !["EVENT_PERMISSION", "BUDGET", "RESOURCE_VENUE"].includes(type)) {
         res.status(403).json({ error: "Student Coordinators can only submit EVENT_PERMISSION, BUDGET, or RESOURCE_VENUE approvals" }); return;
@@ -77,8 +76,8 @@ router.post(
       if (role === "SOCIAL_MEDIA_COORDINATOR" && !["SOCIAL_MEDIA_POST", "CONTENT_PUBLISH"].includes(type)) {
         res.status(403).json({ error: "Social Media Coordinators can only submit SOCIAL_MEDIA_POST or CONTENT_PUBLISH approvals" }); return;
       }
-      if (role === "TECH_COORDINATOR" && type !== "CONFIG_CHANGE") {
-        res.status(403).json({ error: "Tech Coordinators can only submit CONFIG_CHANGE approvals" }); return;
+      if (role === "DEVELOPMENT_TEAM" && type !== "CONFIG_CHANGE") {
+        res.status(403).json({ error: "Development Team can only submit CONFIG_CHANGE approvals" }); return;
       }
 
       const request = await prisma.approvalRequest.create({
@@ -169,8 +168,7 @@ router.get("/", authenticate, async (req: Request, res: Response) => {
     if (type) where.type = type;
 
     let requests;
-    // [MIGRATION]: Remove STUDENT_COORDINATOR from viewing all, enforce own_submissions_only
-    if (role === "FACULTY_COORDINATOR" || role === "TECH_COORDINATOR") {
+    if (role === "FACULTY_COORDINATOR" || role === "DEVELOPMENT_TEAM") {
       requests = await prisma.approvalRequest.findMany({ where, include: includeOpts, orderBy: { createdAt: "desc" } });
     } else {
       requests = await prisma.approvalRequest.findMany({
@@ -233,9 +231,8 @@ router.get("/:id", authenticate, async (req: Request, res: Response) => {
       return;
     }
 
-    // [MIGRATION]: Remove STUDENT_COORDINATOR and legacy strings from elevated view
     const { role, userId } = req.user!;
-    const isElevated = ["FACULTY_COORDINATOR", "TECH_COORDINATOR"].includes(role);
+    const isElevated = ["FACULTY_COORDINATOR", "DEVELOPMENT_TEAM"].includes(role);
     if (request.requesterId !== userId && !isElevated) {
       res.status(403).json({ error: "You do not have access to this request" });
       return;
@@ -252,8 +249,7 @@ router.get("/:id", authenticate, async (req: Request, res: Response) => {
 router.post(
   "/:id/decide",
   authenticate,
-  // [MIGRATION]: Removed STUDENT_COORDINATOR from approvals_decide
-  requireRole("FACULTY_COORDINATOR", "TECH_COORDINATOR"),
+  requireRole("FACULTY_COORDINATOR", "DEVELOPMENT_TEAM"),
   validate(decisionSchema),
   async (req: Request, res: Response) => {
     try {
@@ -271,9 +267,8 @@ router.post(
         return;
       }
       
-      // [MIGRATION]: Tech Coordinator only for CONFIG_CHANGE
-      if (role === "TECH_COORDINATOR" && request.type !== "CONFIG_CHANGE") {
-        res.status(403).json({ error: "Tech Coordinators can only decide on CONFIG_CHANGE approvals" }); return;
+      if (role === "DEVELOPMENT_TEAM" && request.type !== "CONFIG_CHANGE") {
+        res.status(403).json({ error: "Development Team can only decide on CONFIG_CHANGE approvals" }); return;
       }
       if (request.status === "APPROVED" || request.status === "REJECTED") {
         res
@@ -293,7 +288,7 @@ router.post(
           .json({ error: "No pending step at the current level" });
         return;
       }
-      const isSuperUser = role === "FACULTY_COORDINATOR" || role === "TECH_COORDINATOR";
+      const isSuperUser = role === "FACULTY_COORDINATOR" || role === "DEVELOPMENT_TEAM";
       if (currentStep.role !== role && !isSuperUser) {
         res.status(403).json({
           error: `This step requires approval from ${currentStep.role}, not ${role}`,

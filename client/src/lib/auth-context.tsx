@@ -6,13 +6,11 @@ import { getDeviceFingerprint } from "@/lib/deviceFingerprint";
 import Cookies from "js-cookie";
 
 export type Role =
-  
   | "FACULTY_COORDINATOR"
   | "STUDENT_COORDINATOR"
-  | "TECH_COORDINATOR"
+  | "DEVELOPMENT_TEAM"
   | "SOCIAL_MEDIA_COORDINATOR"
-  | "MEMBER"
-  | "GUEST";
+  | "MEMBER";
 
 export interface User {
   id: string;
@@ -42,6 +40,19 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 const INACTIVITY_TIMEOUT_MS = 15 * 60 * 1000; // 15 Minutes Inactivity Timeout (Point 9)
 
+const isPageReload = (): boolean => {
+  if (typeof window === "undefined") return false;
+  try {
+    const navEntries = window.performance?.getEntriesByType?.("navigation");
+    if (navEntries && navEntries.length > 0) {
+      return (navEntries[0] as PerformanceNavigationTiming).type === "reload";
+    }
+    return window.performance?.navigation?.type === 1;
+  } catch {
+    return false;
+  }
+};
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
@@ -56,7 +67,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     Cookies.remove("deviceFingerprint", { path: "/" });
     try {
       localStorage.removeItem("token");
-      sessionStorage.clear();
+      sessionStorage.removeItem("sentinel_active_session");
       sessionStorage.setItem("sentinel_session_terminated", "true");
     } catch { /* ignore */ }
     
@@ -107,19 +118,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    try {
-      if (typeof window !== "undefined" && sessionStorage.getItem("sentinel_session_terminated") === "true") {
-        setUser(null);
-        setToken(null);
-        setIsLoading(false);
-        return;
-      }
-    } catch { /* ignore */ }
-    fetchMe().finally(() => setIsLoading(false));
-  }, [fetchMe]);
+    const handleInitialAuth = async () => {
+      try {
+        const reloaded = isPageReload();
+        const terminated = typeof window !== "undefined" && sessionStorage.getItem("sentinel_session_terminated") === "true";
+        const hasActiveSession = typeof window !== "undefined" && sessionStorage.getItem("sentinel_active_session") === "true";
+
+        // Deterministic session lifecycle:
+        // 1. If page was refreshed/reloaded -> fully invalidate session, user must log in again
+        // 2. If browser was closed and reopened -> sentinel_active_session is missing -> require login
+        // 3. If session was terminated -> require login
+        if (reloaded || terminated || !hasActiveSession) {
+          await logout();
+          setIsLoading(false);
+          return;
+        }
+      } catch { /* ignore */ }
+
+      fetchMe().finally(() => setIsLoading(false));
+    };
+
+    handleInitialAuth();
+  }, [fetchMe, logout]);
 
   const login = async (email: string, password: string) => {
     try {
+      sessionStorage.setItem("sentinel_active_session", "true");
       sessionStorage.removeItem("sentinel_session_terminated");
     } catch { /* ignore */ }
     const deviceFingerprint = getDeviceFingerprint();
@@ -133,6 +157,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const loginWithGoogle = async (credential: string) => {
     try {
+      sessionStorage.setItem("sentinel_active_session", "true");
       sessionStorage.removeItem("sentinel_session_terminated");
     } catch { /* ignore */ }
     const deviceFingerprint = getDeviceFingerprint();

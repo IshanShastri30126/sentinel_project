@@ -159,14 +159,13 @@ router.get("/my", authenticate, async (req: Request, res: Response) => {
 });
 
 // GET /api/teams/event/:eventId — All teams for a specific event
-router.get("/event/:eventId", authenticate, requireRole("TECH_COORDINATOR", "FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "SOCIAL_MEDIA_COORDINATOR", "MEMBER"), async (req: Request, res: Response) => {
+router.get("/event/:eventId", authenticate, requireRole("FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "DEVELOPMENT_TEAM", "SOCIAL_MEDIA_COORDINATOR", "MEMBER"), async (req: Request, res: Response) => {
   try {
     const eventId = req.params.eventId;
     const eventData = await prisma.event.findUnique({ where: { id: eventId }, select: { creatorId: true } });
     if (!eventData) { res.status(404).json({ error: "Event not found" }); return; }
 
-    // [MIGRATION]: Enforce own_events_only
-    const isElevated = ["TECH_COORDINATOR", "FACULTY_COORDINATOR"].includes(req.user!.role);
+    const isElevated = ["FACULTY_COORDINATOR", "DEVELOPMENT_TEAM"].includes(req.user!.role);
     if (!isElevated && eventData.creatorId !== req.user!.userId) {
       res.status(403).json({ error: "Unauthorized: You can only view teams for your own events" });
       return;
@@ -249,7 +248,7 @@ router.post("/:id/reuse", authenticate, auditLog("TEAM_REUSED"), async (req: Req
 
     // Check requester is the leader or a coordinator
     const { role, userId } = req.user!;
-    const isCoord = ["FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_COORDINATOR"].includes(role);
+    const isCoord = ["FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "DEVELOPMENT_TEAM"].includes(role);
     if (original.leaderId !== userId && !isCoord) {
       res.status(403).json({ error: "Only the team leader or a coordinator can reuse this team" }); return;
     }
@@ -292,7 +291,7 @@ router.patch("/:id", authenticate, auditLog("TEAM_UPDATED"), async (req: Request
     if (!team) { res.status(404).json({ error: "Team not found" }); return; }
 
     const { role, userId } = req.user!;
-    const isCoord = ["FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_COORDINATOR"].includes(role);
+    const isCoord = ["FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "DEVELOPMENT_TEAM"].includes(role);
     if (team.leaderId !== userId && !isCoord) {
       res.status(403).json({ error: "Only the team leader or a coordinator can edit this team" }); return;
     }
@@ -439,7 +438,7 @@ router.post("/join", authenticate, async (req: Request, res: Response) => {
 });
 
 // GET /api/teams — All teams (Management only)
-router.get("/", authenticate, requireRole("TECH_COORDINATOR", "FACULTY_COORDINATOR"), async (_req: Request, res: Response) => {
+router.get("/", authenticate, requireRole("FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "DEVELOPMENT_TEAM"), async (_req: Request, res: Response) => {
   try {
     const teams = await prisma.team.findMany({
       include: {
@@ -464,7 +463,7 @@ router.delete("/:id", authenticate, auditLog("TEAM_DELETED"), async (req: Reques
     if (!team) { res.status(404).json({ error: "Team not found" }); return; }
 
     const { role, userId } = req.user!;
-    const isCoord = ["FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_COORDINATOR"].includes(role);
+    const isCoord = ["FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "DEVELOPMENT_TEAM"].includes(role);
     if (team.leaderId !== userId && !isCoord) {
       res.status(403).json({ error: "Only the team leader or an administrator can delete this team" });
       return;
@@ -483,13 +482,12 @@ router.delete("/:id", authenticate, auditLog("TEAM_DELETED"), async (req: Reques
 });
 
 // PATCH /api/teams/:id/disqualify — Disqualify a team (Management only)
-router.patch("/:id/disqualify", authenticate, requireRole("TECH_COORDINATOR", "FACULTY_COORDINATOR", "STUDENT_COORDINATOR"), auditLog("TEAM_DISQUALIFIED"), async (req: Request, res: Response) => {
+router.patch("/:id/disqualify", authenticate, requireRole("FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "DEVELOPMENT_TEAM"), auditLog("TEAM_DISQUALIFIED"), async (req: Request, res: Response) => {
   try {
     const team = await prisma.team.findUnique({ where: { id: req.params.id }, include: { event: { select: { creatorId: true } } } });
     if (!team) { res.status(404).json({ error: "Team not found" }); return; }
 
-    // [MIGRATION]: Enforce own_events_only
-    const isElevated = ["TECH_COORDINATOR", "FACULTY_COORDINATOR"].includes(req.user!.role);
+    const isElevated = ["FACULTY_COORDINATOR", "DEVELOPMENT_TEAM"].includes(req.user!.role);
     if (!isElevated && team.event.creatorId !== req.user!.userId) {
       res.status(403).json({ error: "Unauthorized: You can only disqualify teams from your own events" });
       return;

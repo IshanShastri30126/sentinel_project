@@ -18,6 +18,30 @@ router.get(
       const { competitionId } = req.params;
       const limit = parseInt(req.query.limit as string) || 100;
 
+      // 0. Check competition and leaderboard visibility
+      const comp = await db.ctfCompetition.findUnique({
+        where: { id: competitionId },
+        select: { id: true, title: true, isLeaderboardVisible: true },
+      });
+
+      if (!comp) {
+        res.status(404).json({ success: false, message: "Competition not found" });
+        return;
+      }
+
+      const userRole = req.user?.role;
+      const isStaff = Boolean(userRole && ["FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "DEVELOPMENT_TEAM"].includes(userRole));
+
+      if (!comp.isLeaderboardVisible && !isStaff) {
+        res.status(403).json({
+          success: false,
+          isFrozen: true,
+          message: "Leaderboard visibility is paused by coordinators. Live score calculation continues in the background.",
+          data: [],
+        });
+        return;
+      }
+
       // 1. Get the sorted participant IDs from Redis (O(log(N) + M))
       const topPlayers = await getTopLeaderboard(competitionId, limit);
 

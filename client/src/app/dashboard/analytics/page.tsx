@@ -12,17 +12,10 @@ import {
 
 const ROLE_COLORS: Record<string, string> = {
   FACULTY_COORDINATOR: "#9333ea",
-  TECH_COORDINATOR: "#00D2FF",
   STUDENT_COORDINATOR: "#00F5D4",
+  DEVELOPMENT_TEAM: "#00E1FF",
   SOCIAL_MEDIA_COORDINATOR: "#f43f5e",
   MEMBER: "#38bdf8",
-  GUEST: "#64748b",
-  DEVELOPMENT_TEAM: "#00E1FF",
-  TECH_TEAM: "#00D2FF",
-  FACULTY: "#9333ea",
-  TECH: "#00D2FF",
-  CONTENT: "#FFD700",
-  SOCIAL_MEDIA: "#f43f5e",
 };
 
 function RankBadge({ rank }: { rank: number }) {
@@ -221,13 +214,9 @@ export default function AnalyticsPage() {
     user?.role &&
       [
         "FACULTY_COORDINATOR",
-        "TECH_COORDINATOR",
         "STUDENT_COORDINATOR",
-        "SOCIAL_MEDIA_COORDINATOR",
         "DEVELOPMENT_TEAM",
-        "TECH_TEAM",
-        "FACULTY",
-        "TECH",
+        "SOCIAL_MEDIA_COORDINATOR",
       ].includes(user.role)
   );
 

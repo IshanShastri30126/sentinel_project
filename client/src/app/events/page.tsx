@@ -62,7 +62,7 @@ export default function PublicEventsPage() {
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const [timeFilter, setTimeFilter] = useState<"all" | "upcoming" | "past">("upcoming");
+  const [timeFilter, setTimeFilter] = useState<"upcoming" | "ongoing" | "past" | "all">("upcoming");
 
   useEffect(() => {
     const load = async () => {
@@ -83,8 +83,13 @@ export default function PublicEventsPage() {
 
   const now = new Date();
   const filteredEvents = events.filter((ev) => {
-    if (timeFilter === "upcoming") return new Date(ev.startDate) >= now;
-    if (timeFilter === "past") return new Date(ev.endDate) < now;
+    const start = new Date(ev.startDate).getTime();
+    const end = new Date(ev.endDate).getTime();
+    const current = now.getTime();
+
+    if (timeFilter === "upcoming") return start > current;
+    if (timeFilter === "ongoing") return start <= current && end >= current;
+    if (timeFilter === "past") return end < current;
     return true;
   });
 
@@ -154,7 +159,7 @@ export default function PublicEventsPage() {
 
             {/* Timeframe Filter Tabs */}
             <div className="flex p-1 rounded-lg bg-[#040810] border border-white/[0.08] w-full md:w-auto">
-              {(["upcoming", "past", "all"] as const).map((t) => (
+              {(["upcoming", "ongoing", "past", "all"] as const).map((t) => (
                 <button
                   key={t}
                   onClick={() => setTimeFilter(t)}

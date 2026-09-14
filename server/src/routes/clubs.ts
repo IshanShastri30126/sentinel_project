@@ -70,7 +70,7 @@ router.get("/:slug", async (req: Request, res: Response) => {
 });
 
 // PATCH /api/clubs/:clubId/branding — Update branding
-router.patch("/:clubId/branding", authenticate, requireRole("SOCIAL_MEDIA_COORDINATOR", "TECH_COORDINATOR", "FACULTY_COORDINATOR"), async (req: Request, res: Response) => {
+router.patch("/:clubId/branding", authenticate, requireRole("SOCIAL_MEDIA_COORDINATOR", "DEVELOPMENT_TEAM", "FACULTY_COORDINATOR"), async (req: Request, res: Response) => {
   try {
     const clubId = req.params.clubId;
     const { primaryColor, secondaryColor, themeMode, fontFamily, logoUrl } = req.body;

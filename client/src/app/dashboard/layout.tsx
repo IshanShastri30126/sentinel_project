@@ -28,16 +28,16 @@ interface NavItem { label: string; href: string; icon: React.ReactNode; roles?: 
 
 const NAV_ITEMS: NavItem[] = [
   { label: "Overview", href: "/dashboard", icon: <LayoutDashboard className="w-5 h-5" /> },
-  { label: "Events", href: "/dashboard/event", icon: <Calendar className="w-5 h-5" />, roles: ["FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_COORDINATOR", "SOCIAL_MEDIA_COORDINATOR"] },
+  { label: "Events", href: "/dashboard/event", icon: <Calendar className="w-5 h-5" />, roles: ["FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "DEVELOPMENT_TEAM"] },
   { label: "Teams", href: "/dashboard/teams", icon: <UsersRound className="w-5 h-5" /> },
-  { label: "Attendance", href: "/dashboard/attendance", icon: <CheckSquare className="w-5 h-5" /> },
-  { label: "Certificates", href: "/dashboard/certificates", icon: <FileCheck className="w-5 h-5" />, roles: ["FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_COORDINATOR"] },
-  { label: "Approvals", href: "/dashboard/approvals", icon: <ClipboardList className="w-5 h-5" />, roles: ["FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_COORDINATOR", "SOCIAL_MEDIA_COORDINATOR"] },
+  { label: "Attendance", href: "/dashboard/attendance", icon: <CheckSquare className="w-5 h-5" />, roles: ["FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "DEVELOPMENT_TEAM"] },
+  { label: "Certificates", href: "/dashboard/certificates", icon: <FileCheck className="w-5 h-5" />, roles: ["FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "DEVELOPMENT_TEAM", "SOCIAL_MEDIA_COORDINATOR"] },
+  { label: "Approvals", href: "/dashboard/approvals", icon: <ClipboardList className="w-5 h-5" />, roles: ["FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "DEVELOPMENT_TEAM"] },
   { label: "Leaderboard", href: "/dashboard/leaderboard", icon: <Award className="w-5 h-5" /> },
-  { label: "Users", href: "/dashboard/users", icon: <Users className="w-5 h-5" />, roles: ["FACULTY_COORDINATOR", "TECH_COORDINATOR"] },
-  { label: "Analytics", href: "/dashboard/analytics", icon: <BarChart3 className="w-5 h-5" />, roles: ["FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_COORDINATOR", "SOCIAL_MEDIA_COORDINATOR"] },
-  { label: "Landing CMS", href: "/dashboard/landing-management", icon: <LayoutDashboard className="w-5 h-5" />, roles: ["FACULTY_COORDINATOR", "TECH_COORDINATOR", "SOCIAL_MEDIA_COORDINATOR"] },
-  { label: "Maintenance Logs", href: "/dashboard/maintenance", icon: <Terminal className="w-5 h-5" />, roles: ["FACULTY_COORDINATOR", "TECH_COORDINATOR"] },
+  { label: "Users", href: "/dashboard/users", icon: <Users className="w-5 h-5" />, roles: ["FACULTY_COORDINATOR"] },
+  { label: "Analytics", href: "/dashboard/analytics", icon: <BarChart3 className="w-5 h-5" />, roles: ["FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "DEVELOPMENT_TEAM"] },
+  { label: "Landing CMS", href: "/dashboard/landing-management", icon: <LayoutDashboard className="w-5 h-5" />, roles: ["FACULTY_COORDINATOR", "DEVELOPMENT_TEAM"] },
+  { label: "Maintenance Logs", href: "/dashboard/maintenance", icon: <Terminal className="w-5 h-5" />, roles: ["FACULTY_COORDINATOR", "DEVELOPMENT_TEAM"] },
   { label: "My Certificates", href: "/dashboard/my-certificates", icon: <Award className="w-5 h-5" /> },
   { label: "Profile", href: "/dashboard/profile", icon: <User className="w-5 h-5" /> },
   { label: "Info", href: "/dashboard/info", icon: <Info className="w-5 h-5" />, roles: ["FACULTY_COORDINATOR"] }];
@@ -45,10 +45,9 @@ const NAV_ITEMS: NavItem[] = [
 const ROLE_LABELS: Record<Role, string> = {
   FACULTY_COORDINATOR: "Faculty Coordinator",
   STUDENT_COORDINATOR: "Student Coordinator",
-  TECH_COORDINATOR: "Tech Team",
+  DEVELOPMENT_TEAM: "Development Team",
   SOCIAL_MEDIA_COORDINATOR: "Social Media Coordinator",
   MEMBER: "Member",
-  GUEST: "Guest",
 };
 
 const MODULE_CATEGORIES: Record<string, { label: string; color: string; dotColor: string }> = {
@@ -151,7 +150,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   };
 
   useEffect(() => {
-    if (!isLoading && !user) router.push("/");
+    if (!isLoading && !user) router.push("/auth");
   }, [user, isLoading, router]);
 
   // Fetch unread notifications list & poll for real-time updates
@@ -256,7 +255,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     );
   }
 
-  if (!user.isApproved && user.role !== "GUEST") {
+  if (!user.isApproved) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4" style={{ background: "var(--ck-bg)" }}>
         <div className="ck-card p-8 max-w-md text-center">

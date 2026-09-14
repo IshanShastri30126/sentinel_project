@@ -404,7 +404,7 @@ export default function EventsPage() {
   const [editingEventId, setEditingEventId] = useState<string | null>(null);
 
   const isCoord = Boolean(user && ["FACULTY_COORDINATOR", "STUDENT_COORDINATOR"].includes(user.role));
-  const isCore = Boolean(user && ["FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_COORDINATOR", "SOCIAL_MEDIA_COORDINATOR"].includes(user.role));
+  const isCore = Boolean(user && ["FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "DEVELOPMENT_TEAM", "SOCIAL_MEDIA_COORDINATOR"].includes(user.role));
 
   interface Organizer {
     name: string;
@@ -1695,7 +1695,7 @@ export default function EventsPage() {
                       {event.isPublished ? <><EyeOff className="w-3 h-3" /> Unpublish</> : <><Eye className="w-3 h-3" /> Publish</>}
                     </button>
                   )}
-                  {user && ["FACULTY_COORDINATOR", "TECH_COORDINATOR"].includes(user.role) && !event.isApproved && (
+                  {user && ["FACULTY_COORDINATOR", "DEVELOPMENT_TEAM"].includes(user.role) && !event.isApproved && (
                     <button 
                       onClick={(e) => handleQuickApprove(event.id, e)} 
                       className="ck-btn-primary text-xs py-2 shadow-[0_0_10px_rgba(0,245,212,0.3)] border-none" style={{ backgroundColor: "var(--ck-primary)", color: "#00F5D4" }}

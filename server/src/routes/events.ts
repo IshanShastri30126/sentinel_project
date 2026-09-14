@@ -47,7 +47,7 @@ async function clearEventsCache() {
     setImmediate(async () => {
       try {
         const activeEvents = await prisma.event.findMany({
-          where: { isPublished: true, isApproved: true, endDate: { gte: new Date() } },
+          where: { isPublished: true, isApproved: true },
           include: { creator: { select: { id: true, name: true } }, _count: { select: { registrations: true } } },
           orderBy: { startDate: "desc" },
         });
@@ -128,7 +128,7 @@ async function validateEventLeads(organizersStr: string | null): Promise<string 
   return null;
 }
 
-router.post("/", authenticate, requireRole("FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_COORDINATOR"), validate(createEventSchema), auditLog("EVENT_CREATED"), async (req: Request, res: Response) => {
+router.post("/", authenticate, requireRole("FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "DEVELOPMENT_TEAM"), validate(createEventSchema), auditLog("EVENT_CREATED"), async (req: Request, res: Response) => {
   try {
     const data = req.body;
     const startDateObj = new Date(data.startDate);
@@ -160,7 +160,7 @@ router.post("/", authenticate, requireRole("FACULTY_COORDINATOR", "STUDENT_COORD
       }
     }
 
-    const isApproved = ["FACULTY_COORDINATOR", "TECH_COORDINATOR", "FACULTY", "TECH"].includes(req.user!.role);
+    const isApproved = ["FACULTY_COORDINATOR", "DEVELOPMENT_TEAM"].includes(req.user!.role);
     const event = await prisma.event.create({
       data: {
         title: data.title, description: data.description, venue: data.venue,
@@ -218,14 +218,14 @@ router.post("/", authenticate, requireRole("FACULTY_COORDINATOR", "STUDENT_COORD
 });
 
 // POST /api/events/:id/poster — Upload poster
-router.post("/:id/poster", authenticate, requireRole("FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_COORDINATOR", "SOCIAL_MEDIA_COORDINATOR"), upload.single("poster"), async (req: Request, res: Response) => {
+router.post("/:id/poster", authenticate, requireRole("FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "DEVELOPMENT_TEAM", "SOCIAL_MEDIA_COORDINATOR"), upload.single("poster"), async (req: Request, res: Response) => {
   try {
     if (!req.file) { res.status(400).json({ error: "No file uploaded" }); return; }
     const existing = await prisma.event.findUnique({ where: { id: req.params.id } });
     if (!existing) { res.status(404).json({ error: "Event not found" }); return; }
 
-    // [MIGRATION]: SOCIAL_MEDIA_COORDINATOR can upload posters for any event
-    const isElevated = ["FACULTY_COORDINATOR", "TECH_COORDINATOR", "SOCIAL_MEDIA_COORDINATOR"].includes(req.user!.role);
+    // SOCIAL_MEDIA_COORDINATOR can upload posters for any event
+    const isElevated = ["FACULTY_COORDINATOR", "DEVELOPMENT_TEAM", "SOCIAL_MEDIA_COORDINATOR"].includes(req.user!.role);
     if (!isElevated && existing.creatorId !== req.user!.userId) {
       res.status(403).json({ error: "Unauthorized: You can only modify events you created" });
       return;
@@ -238,13 +238,13 @@ router.post("/:id/poster", authenticate, requireRole("FACULTY_COORDINATOR", "STU
 });
 
 // POST /api/events/:id/document — Upload document
-router.post("/:id/document", authenticate, requireRole("FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_COORDINATOR"), upload.single("document"), async (req: Request, res: Response) => {
+router.post("/:id/document", authenticate, requireRole("FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "DEVELOPMENT_TEAM"), upload.single("document"), async (req: Request, res: Response) => {
   try {
     if (!req.file) { res.status(400).json({ error: "No file uploaded" }); return; }
     const existing = await prisma.event.findUnique({ where: { id: req.params.id } });
     if (!existing) { res.status(404).json({ error: "Event not found" }); return; }
 
-    const isElevated = ["FACULTY_COORDINATOR", "TECH_COORDINATOR"].includes(req.user!.role);
+    const isElevated = ["FACULTY_COORDINATOR", "DEVELOPMENT_TEAM"].includes(req.user!.role);
     if (!isElevated && existing.creatorId !== req.user!.userId) {
       res.status(403).json({ error: "Unauthorized: You can only modify events you created" });
       return;
@@ -259,9 +259,9 @@ router.post("/:id/document", authenticate, requireRole("FACULTY_COORDINATOR", "S
 // GET /api/events — Public published events with search/filter
 router.get("/", async (req: Request, res: Response) => {
   try {
-    const { search, tag, from, to, limit } = req.query;
+    const { search, tag, from, to, limit, timeframe } = req.query;
 
-    const isCacheable = !search && !tag && !from && !to;
+    const isCacheable = !search && !tag && !from && !to && (!timeframe || timeframe === "all");
     const l1Key = `l1:events:public:${limit || "all"}`;
     const cacheKey = `PUBLIC_EVENTS_LIMIT_${limit || "all"}`;
 
@@ -301,6 +301,16 @@ router.get("/", async (req: Request, res: Response) => {
     if (from) where.startDate = { gte: new Date(from as string) };
     if (to) where.endDate = { lte: new Date(to as string) };
 
+    const now = new Date();
+    if (timeframe === "upcoming") {
+      where.startDate = { gt: now };
+    } else if (timeframe === "ongoing") {
+      where.startDate = { lte: now };
+      where.endDate = { gte: now };
+    } else if (timeframe === "past") {
+      where.endDate = { lt: now };
+    }
+
     const takeCount = limit ? parseInt(limit as string) : undefined;
 
     let events;
@@ -331,7 +341,7 @@ router.get("/", async (req: Request, res: Response) => {
 });
 
 // GET /api/events/all — All events for coordinators with search/filter
-router.get("/all", authenticate, requireRole("FACULTY_COORDINATOR", "TECH_COORDINATOR", "SOCIAL_MEDIA_COORDINATOR", "STUDENT_COORDINATOR", "MEMBER"), async (req: Request, res: Response) => {
+router.get("/all", authenticate, requireRole("FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "DEVELOPMENT_TEAM", "SOCIAL_MEDIA_COORDINATOR", "MEMBER"), async (req: Request, res: Response) => {
   try {
     const { search, status, tag } = req.query;
     
@@ -486,7 +496,7 @@ router.get("/:id", async (req: Request, res: Response) => {
 });
 
 // GET /api/events/:id/analytics — Registration timeline, team stats, attendance
-router.get("/:id/analytics", authenticate, requireRole("TECH_COORDINATOR"), async (req: Request, res: Response) => {
+router.get("/:id/analytics", authenticate, requireRole("FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "DEVELOPMENT_TEAM"), async (req: Request, res: Response) => {
   try {
     const eventId = req.params.id;
     const event = await prisma.event.findUnique({ where: { id: eventId } });
@@ -524,7 +534,7 @@ router.get("/:id/analytics", authenticate, requireRole("TECH_COORDINATOR"), asyn
 });
 
 // PATCH /api/events/:id — Update event
-router.patch("/:id", authenticate, requireRole("FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_COORDINATOR", "SOCIAL_MEDIA_COORDINATOR"), auditLog("EVENT_UPDATED"), async (req: Request, res: Response) => {
+router.patch("/:id", authenticate, requireRole("FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "DEVELOPMENT_TEAM", "SOCIAL_MEDIA_COORDINATOR"), auditLog("EVENT_UPDATED"), async (req: Request, res: Response) => {
   try {
     const existingEvent = await prisma.event.findUnique({ where: { id: req.params.id } });
     if (!existingEvent) {
@@ -532,8 +542,7 @@ router.patch("/:id", authenticate, requireRole("FACULTY_COORDINATOR", "STUDENT_C
       return;
     }
 
-    // [MIGRATION]: Access Control
-    const isElevated = ["FACULTY_COORDINATOR", "TECH_COORDINATOR"].includes(req.user!.role);
+    const isElevated = ["FACULTY_COORDINATOR", "DEVELOPMENT_TEAM"].includes(req.user!.role);
     if (!isElevated && existingEvent.creatorId !== req.user!.userId) {
       if (req.user!.role === "SOCIAL_MEDIA_COORDINATOR") {
         const allowedFields = ["description", "socialLinks"];
@@ -635,14 +644,14 @@ router.patch("/:id", authenticate, requireRole("FACULTY_COORDINATOR", "STUDENT_C
 });
 
 // PATCH /api/events/:id/publish — Toggle publish
-router.patch("/:id/publish", authenticate, requireRole("FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_COORDINATOR"), auditLog("EVENT_PUBLISH_TOGGLED"), async (req: Request, res: Response) => {
+router.patch("/:id/publish", authenticate, requireRole("FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "DEVELOPMENT_TEAM"), auditLog("EVENT_PUBLISH_TOGGLED"), async (req: Request, res: Response) => {
   try {
     const event = await prisma.event.findUnique({
       where: { id: req.params.id },
     });
     if (!event) { res.status(404).json({ error: "Event not found" }); return; }
 
-    const isElevated = ["FACULTY_COORDINATOR", "TECH_COORDINATOR"].includes(req.user!.role);
+    const isElevated = ["FACULTY_COORDINATOR", "DEVELOPMENT_TEAM"].includes(req.user!.role);
     if (!isElevated && event.creatorId !== req.user!.userId) {
       res.status(403).json({ error: "Unauthorized: You can only publish events you created" });
       return;
@@ -666,8 +675,7 @@ router.patch("/:id/publish", authenticate, requireRole("FACULTY_COORDINATOR", "S
 });
 
 // DELETE /api/events/:id — Permanent delete event
-// [MIGRATION]: Removed STUDENT_COORDINATOR, they cannot delete events
-router.delete("/:id", authenticate, requireRole("FACULTY_COORDINATOR", "TECH_COORDINATOR"), auditLog("EVENT_DELETED"), async (req: Request, res: Response) => {
+router.delete("/:id", authenticate, requireRole("FACULTY_COORDINATOR", "DEVELOPMENT_TEAM"), auditLog("EVENT_DELETED"), async (req: Request, res: Response) => {
   try {
     const event = await prisma.event.findUnique({ where: { id: req.params.id } });
     if (!event) { res.status(404).json({ error: "Event not found" }); return; }
@@ -878,7 +886,7 @@ router.post("/:id/register", eventRegistrationLimiter, authenticate, auditLog("E
 });
 
 // GET /api/events/:id/registrations — List registrations with search (paginated)
-router.get("/:id/registrations", authenticate, requireRole("TECH_COORDINATOR"), async (req: Request, res: Response) => {
+router.get("/:id/registrations", authenticate, requireRole("FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "DEVELOPMENT_TEAM"), async (req: Request, res: Response) => {
   try {
     const { search } = req.query;
     const page = parseInt(req.query.page as string) || 1;
@@ -921,7 +929,7 @@ router.get("/:id/registrations", authenticate, requireRole("TECH_COORDINATOR"), 
 });
 
 // GET /api/events/:id/registrations/export — CSV export
-router.get("/:id/registrations/export", authenticate, requireRole("TECH_COORDINATOR"), async (req: Request, res: Response) => {
+router.get("/:id/registrations/export", authenticate, requireRole("FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "DEVELOPMENT_TEAM"), async (req: Request, res: Response) => {
   try {
     const regs = await prisma.eventRegistration.findMany({
       where: { eventId: req.params.id },
@@ -999,14 +1007,14 @@ router.post("/:id/send-email", mailLimiter, authenticate, requireRole("FACULTY_C
   }
 });
 
-// PATCH /api/events/:id/leaderboard-visibility — Toggle live event leaderboard (Dev Team, Tech Team, Faculty Coordinator)
-router.patch("/:id/leaderboard-visibility", authenticate, requireRole("TECH_COORDINATOR", "FACULTY_COORDINATOR"), auditLog("EVENT_LEADERBOARD_VISIBILITY_TOGGLED"), async (req: Request, res: Response) => {
+// PATCH /api/events/:id/leaderboard-visibility — Toggle live event leaderboard
+router.patch("/:id/leaderboard-visibility", authenticate, requireRole("FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "DEVELOPMENT_TEAM"), auditLog("EVENT_LEADERBOARD_VISIBILITY_TOGGLED"), async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const { isVisible } = req.body;
+    const isVisible = req.body.isVisible ?? req.body.isLeaderboardVisible;
 
     if (typeof isVisible !== "boolean") {
-      res.status(400).json({ error: "Field 'isVisible' (boolean) is required." });
+      res.status(400).json({ error: "Field 'isVisible' or 'isLeaderboardVisible' (boolean) is required." });
       return;
     }
 
@@ -1103,18 +1111,18 @@ router.get("/:id/leaderboard", async (req: Request, res: Response) => {
         }
       }
 
-      // If registered participant (even if DEV_TEAM or TECH_COORDINATOR) -> BLOCKED
+      // If registered participant (even if DEV_TEAM) -> BLOCKED
       if (isParticipant) {
         res.status(403).json({
           isHidden: true,
           isParticipant: true,
-          message: "Live leaderboard telemetry is paused by the Technical Team. Real-time scoring continues in the background."
+          message: "Live leaderboard telemetry is paused by coordinators. Real-time scoring continues in the background."
         });
         return;
       }
 
       // If user is staff (and NOT a registered participant for this event) -> ALLOW STAFF VIEW
-      const isStaff = currentUser && ["TECH_COORDINATOR", "FACULTY_COORDINATOR", "STUDENT_COORDINATOR"].includes(currentUser.role);
+      const isStaff = currentUser && ["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "STUDENT_COORDINATOR"].includes(currentUser.role);
       if (!isStaff) {
         res.status(403).json({
           isHidden: true,

@@ -270,7 +270,7 @@ const DEFAULT_OPS_DATA: OpsData = {
     if (!user) return;
     const load = async () => {
       try {
-        if (["FACULTY_COORDINATOR", "TECH_COORDINATOR", "STUDENT_COORDINATOR"].includes(user.role)) {
+        if (["FACULTY_COORDINATOR", "DEVELOPMENT_TEAM", "STUDENT_COORDINATOR"].includes(user.role)) {
           const [clubRes, opsRes, usersRes] = await Promise.all([
             api<ClubAnalytics>("/analytics/sentinel", { token: token || undefined }).catch((err) => {
               console.warn("Sentinel analytics notice:", err);
@@ -413,14 +413,33 @@ const DEFAULT_OPS_DATA: OpsData = {
     try {
       await api(`/events/${eventId}/register`, { method: "POST", token });
       showNotification(`Successfully registered for ${eventTitle}!`, "success");
-      // Update registration status local state
+      
+      // Update registration status local state immediately
       setMemberEvents((prev) =>
         prev.map((e) =>
           e.id === eventId
-            ? { ...e, _count: { registrations: e._count.registrations + 1 } }
+            ? { ...e, _count: { registrations: (e._count?.registrations || 0) + 1 } }
             : e
         )
       );
+
+      // Immediately synchronize registeredEvents state
+      const targetEvent = memberEvents.find((e) => e.id === eventId);
+      if (targetEvent) {
+        setRegisteredEvents((prev) => {
+          if (prev.some((r) => r.id === eventId)) return prev;
+          return [{ ...targetEvent, _count: { registrations: (targetEvent._count?.registrations || 0) + 1 } }, ...prev];
+        });
+      }
+
+      // Proactively refresh registered events list in background
+      api<{ events: PublicEvent[] }>("/events/registered", { token })
+        .then((regRes) => {
+          if (regRes && regRes.events) {
+            setRegisteredEvents(regRes.events);
+          }
+        })
+        .catch(() => {});
     } catch (err: unknown) {
       console.warn("Register error notice:", err);
       const msg = err instanceof Error ? err.message : "Failed to register.";
@@ -469,7 +488,7 @@ const DEFAULT_OPS_DATA: OpsData = {
     );
   }
 
-  const isCoordinator = ["FACULTY_COORDINATOR", "TECH_COORDINATOR", "STUDENT_COORDINATOR"].includes(user?.role || "");
+  const isCoordinator = ["FACULTY_COORDINATOR", "DEVELOPMENT_TEAM", "STUDENT_COORDINATOR"].includes(user?.role || "");
 
   return (
     <div className="space-y-6">
@@ -705,7 +724,7 @@ const DEFAULT_OPS_DATA: OpsData = {
                   <div className="space-y-3">
                     {/* Action 1: Pending Approvals */}
                     <div
-                      onClick={() => router.push("/approvals")}
+                      onClick={() => router.push("/dashboard/approvals")}
                       className="group flex items-center gap-4 p-3.5 rounded border border-white/[0.06] hover:border-amber-500/40 cursor-pointer bg-[#070E1A] hover:bg-amber-500/[0.04] transition-all duration-200"
                     >
                       <div className="relative shrink-0">
@@ -728,7 +747,7 @@ const DEFAULT_OPS_DATA: OpsData = {
 
                     {/* Action 2: Pending Registration approvals */}
                     <div
-                      onClick={() => router.push("/users")}
+                      onClick={() => router.push("/dashboard/users")}
                       className="group flex items-center gap-4 p-3.5 rounded border border-white/[0.06] hover:border-rose-500/40 cursor-pointer bg-[#070E1A] hover:bg-rose-500/[0.04] transition-all duration-200"
                     >
                       <div className="relative shrink-0">
@@ -985,7 +1004,7 @@ const DEFAULT_OPS_DATA: OpsData = {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
                     {registeredEvents.map((event) => {
                       const status = getRegEventStatus(event);
-                      const isCoordinator = Boolean(user?.role && ["FACULTY_COORDINATOR", "TECH_COORDINATOR", "STUDENT_COORDINATOR"].includes(user.role));
+                      const isCoordinator = Boolean(user?.role && ["FACULTY_COORDINATOR", "DEVELOPMENT_TEAM", "STUDENT_COORDINATOR"].includes(user.role));
                       return (
                         <motion.div
                           key={event.id}
@@ -1102,7 +1121,7 @@ const DEFAULT_OPS_DATA: OpsData = {
                                 </button>
                               ) : status.label === "ENDED" ? (
                                 <button
-                                  onClick={() => router.push(isCoordinator ? `/attendance?eventId=${event.id}` : `/events/${event.slug}`)}
+                                  onClick={() => router.push(isCoordinator ? `/dashboard/attendance?eventId=${event.id}` : `/event/${event.slug || event.id}`)}
                                   className="flex-1 ck-btn-secondary py-2 text-xs font-bold font-mono tracking-wider uppercase text-center cursor-pointer"
                                 >
                                   {isCoordinator ? "Attendance" : "Concluded"}
@@ -1139,7 +1158,7 @@ const DEFAULT_OPS_DATA: OpsData = {
                 ) : (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
                     {memberEvents.map((event) => {
-                      const isFacultyOrCoord = Boolean(user?.role && ["FACULTY_COORDINATOR", "TECH_COORDINATOR", "STUDENT_COORDINATOR"].includes(user.role));
+                      const isFacultyOrCoord = Boolean(user?.role && ["FACULTY_COORDINATOR", "DEVELOPMENT_TEAM", "STUDENT_COORDINATOR"].includes(user.role));
                       const isAlreadyRegistered = registeredEvents.some((r) => r.id === event.id);
 
                       return (

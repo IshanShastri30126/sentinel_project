@@ -78,7 +78,7 @@ export default function EventDetailPage() {
   const [tab, setTab] = useState<"overview" | "registrations" | "teams">("overview");
 
   const isCoord = Boolean(user && ["FACULTY_COORDINATOR", "STUDENT_COORDINATOR"].includes(user.role));
-  const isCore = Boolean(user && ["FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_COORDINATOR", "SOCIAL_MEDIA_COORDINATOR"].includes(user.role));
+  const isCore = Boolean(user && ["FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "DEVELOPMENT_TEAM", "SOCIAL_MEDIA_COORDINATOR"].includes(user.role));
 
   // Google Calendar Sync states
   const [syncLoading, setSyncLoading] = useState(false);
@@ -110,7 +110,7 @@ export default function EventDetailPage() {
   };
 
   useEffect(() => {
-    if (!isLoading && user && !["FACULTY_COORDINATOR", "TECH_COORDINATOR", "STUDENT_COORDINATOR"].includes(user.role)) {
+    if (!isLoading && user && !["FACULTY_COORDINATOR", "DEVELOPMENT_TEAM", "STUDENT_COORDINATOR"].includes(user.role)) {
       router.push("/");
     }
   }, [user, isLoading, router]);
@@ -184,7 +184,7 @@ export default function EventDetailPage() {
     <div>
       {/* Back + Header */}
       <div className="flex items-center gap-3 mb-6">
-        <button onClick={() => router.push("/event")} className="p-2 rounded-lg hover:bg-[#1A1E26] transition">
+        <button onClick={() => router.back()} className="p-2 rounded-lg hover:bg-[#1A1E26] transition cursor-pointer">
           <ArrowLeft className="w-5 h-5" style={{ color: "var(--ck-text-secondary)" }} />
         </button>
         <div className="flex-1">

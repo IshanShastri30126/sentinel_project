@@ -4,7 +4,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
-import { Trophy, Crown, Medal, Award, RefreshCw } from "lucide-react";
+import { Trophy, Crown, Medal, Award, RefreshCw, Lock } from "lucide-react";
 import { AppShell } from "@/components/layout/AppShell";
 import { useCompetition } from "@/hooks/useCompetition";
 import { useSocket } from "@/hooks/useSocket";
@@ -49,15 +49,28 @@ function LeaderboardContent() {
 
     const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
     const [loading, setLoading] = useState(true);
+    const [isFrozen, setIsFrozen] = useState(false);
 
     const fetchLeaderboard = useCallback(async () => {
         if (!competition?.id) return;
         setLoading(true);
-        const res = await getLeaderboard(competition.id);
-        if (res.success && res.data) {
-            setEntries(res.data);
+        try {
+            const res = await getLeaderboard(competition.id);
+            if ((res as any)?.isFrozen) {
+                setIsFrozen(true);
+                setEntries([]);
+            } else if (res.success && res.data) {
+                setIsFrozen(false);
+                setEntries(res.data);
+            }
+        } catch (err: any) {
+            if (err?.isFrozen || err?.status === 403) {
+                setIsFrozen(true);
+                setEntries([]);
+            }
+        } finally {
+            setLoading(false);
         }
-        setLoading(false);
     }, [competition?.id]);
 
     useEffect(() => {
@@ -106,6 +119,23 @@ function LeaderboardContent() {
                     {Array.from({ length: 10 }).map((_, i) => (
                         <Skeleton key={i} className="h-12 rounded-lg" />
                     ))}
+                </div>
+            ) : isFrozen ? (
+                <div className="p-8 sm:p-10 rounded-lg border border-red-500/40 bg-[#070E1A] text-center space-y-4 max-w-xl mx-auto shadow-2xl">
+                    <div className="w-12 h-12 rounded border border-red-500/40 bg-red-950/40 flex items-center justify-center mx-auto text-red-400 shadow-[0_0_20px_rgba(239,68,68,0.25)]">
+                        <Lock className="size-6 text-red-500" />
+                    </div>
+                    <div>
+                        <h3 className="text-xl font-bold font-mono text-white uppercase tracking-tight">
+                            SCORING ARTIFACT LOCKED
+                        </h3>
+                        <p className="text-xs text-slate-300 font-mono mt-2 leading-relaxed max-w-md mx-auto">
+                            The real-time leaderboard for this operation has been temporarily frozen by command staff. Live scores and submissions are actively tracked in background nodes and will be unveiled upon operation conclusion.
+                        </p>
+                    </div>
+                    <div className="inline-block p-2.5 rounded border border-red-900/40 bg-black/60 font-mono text-[10px] text-red-400 uppercase tracking-widest">
+                        STATUS: PAUSED BY COMMAND // BG EVALUATION ACTIVE
+                    </div>
                 </div>
             ) : entries.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-20 gap-4">

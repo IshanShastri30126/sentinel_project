@@ -175,7 +175,7 @@ function LoginPageContent() {
   }, []);
 
   useEffect(() => {
-    if (user && (user.isApproved || user.role === "GUEST")) {
+    if (user && user.isApproved) {
       router.push(redirectTarget);
     }
   }, [user, router, redirectTarget]);

@@ -379,11 +379,11 @@ export default function TeamPage() {
 
   const facultyList = team.filter((m) => m.role === "FACULTY_COORDINATOR");
   const coordinatorsList = team.filter((m) => m.role === "STUDENT_COORDINATOR");
-  const techList = team.filter((m) => m.role === "TECH_COORDINATOR");
+  const techList = team.filter((m) => m.role === "DEVELOPMENT_TEAM");
   const creativeList = team.filter((m) => m.role === "SOCIAL_MEDIA_COORDINATOR");
   const generalList = team.filter(
     (m) =>
-      !["FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_COORDINATOR", "SOCIAL_MEDIA_COORDINATOR"].includes(m.role)
+      !["FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "DEVELOPMENT_TEAM", "SOCIAL_MEDIA_COORDINATOR"].includes(m.role)
   );
 
   return (

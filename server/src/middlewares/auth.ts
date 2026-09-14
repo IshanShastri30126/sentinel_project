@@ -63,7 +63,7 @@ export async function authenticate(req: Request, res: Response, next: NextFuncti
       // Allow access only when active AND (approved OR is a high-trust role that
       // was created directly by an admin, e.g. FACULTY_COORDINATOR/DEVELOPMENT_TEAM).
       // GUEST and MEMBER must be explicitly approved.
-      const highTrustRoles = ["FACULTY_COORDINATOR", "TECH_COORDINATOR", "STUDENT_COORDINATOR", "SOCIAL_MEDIA_COORDINATOR"];
+      const highTrustRoles: Role[] = ["FACULTY_COORDINATOR", "DEVELOPMENT_TEAM", "STUDENT_COORDINATOR", "SOCIAL_MEDIA_COORDINATOR"];
       const approvalRequired = dbUser && !highTrustRoles.includes(dbUser.role);
 
       if (!dbUser || !dbUser.isActive || (approvalRequired && !dbUser.isApproved)) {
@@ -89,14 +89,14 @@ export async function authenticate(req: Request, res: Response, next: NextFuncti
 
 /**
  * Role hierarchy levels — lower number = higher authority.
+ * EXACT 5 USER ROLES.
  */
 export const ROLE_HIERARCHY: Record<Role, number> = {
   FACULTY_COORDINATOR: 1,
-  TECH_COORDINATOR: 1,
-  STUDENT_COORDINATOR: 2,
-  SOCIAL_MEDIA_COORDINATOR: 2,
-  MEMBER: 3,
-  GUEST: 4,
+  DEVELOPMENT_TEAM: 2,
+  STUDENT_COORDINATOR: 3,
+  SOCIAL_MEDIA_COORDINATOR: 4,
+  MEMBER: 5,
 };
 
 /**

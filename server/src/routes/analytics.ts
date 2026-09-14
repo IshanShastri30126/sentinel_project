@@ -5,8 +5,8 @@ import { redisGet, redisSet } from "../lib/redis";
 
 const router = Router();
 
-// GET /api/analytics/sentinel — Faculty/SC/Tech: full sentinel-wide analytics
-router.get(["/sentinel", "/club"], authenticate, requireRole("TECH_COORDINATOR", "FACULTY_COORDINATOR"), async (_req: Request, res: Response) => {
+// GET /api/analytics/sentinel — Faculty/Dev Team: full sentinel-wide analytics
+router.get(["/sentinel", "/club"], authenticate, requireRole("FACULTY_COORDINATOR", "DEVELOPMENT_TEAM"), async (_req: Request, res: Response) => {
   try {
     const cacheKey = "analytics:sentinel";
     const cached = await redisGet(cacheKey);
@@ -69,9 +69,8 @@ router.get(["/sentinel", "/club"], authenticate, requireRole("TECH_COORDINATOR",
   }
 });
 
-// GET /api/analytics/operations — SC+/Tech: operational metrics
-// [MIGRATION]: requireMinRole -> requireRole("TECH_COORDINATOR", "FACULTY_COORDINATOR") based on RBAC refactor map
-router.get("/operations", authenticate, requireRole("TECH_COORDINATOR", "FACULTY_COORDINATOR"), async (_req: Request, res: Response) => {
+// GET /api/analytics/operations — Faculty/Dev Team: operational metrics
+router.get("/operations", authenticate, requireRole("FACULTY_COORDINATOR", "DEVELOPMENT_TEAM"), async (_req: Request, res: Response) => {
   try {
     const cacheKey = "analytics:operations";
     const cached = await redisGet(cacheKey);
@@ -116,8 +115,7 @@ router.get("/operations", authenticate, requireRole("TECH_COORDINATOR", "FACULTY
 });
 
 // GET /api/analytics/top3 — Top 3 items across key domains (registrations, points, team sizes)
-// [MIGRATION]: requireMinRole -> requireRole for all coordinators based on RBAC refactor map
-router.get("/top3", authenticate, requireRole("STUDENT_COORDINATOR", "SOCIAL_MEDIA_COORDINATOR", "TECH_COORDINATOR", "FACULTY_COORDINATOR"), async (_req: Request, res: Response) => {
+router.get("/top3", authenticate, requireRole("STUDENT_COORDINATOR", "SOCIAL_MEDIA_COORDINATOR", "DEVELOPMENT_TEAM", "FACULTY_COORDINATOR"), async (_req: Request, res: Response) => {
   try {
     const cacheKey = "analytics:top3";
     const cached = await redisGet(cacheKey);
@@ -218,8 +216,7 @@ router.get("/top3", authenticate, requireRole("STUDENT_COORDINATOR", "SOCIAL_MED
 });
 
 // GET /api/analytics/events-analysis — Event-wise metrics, capacity, registration timelines
-// [MIGRATION]: requireMinRole -> requireRole for all coordinators based on RBAC refactor map
-router.get("/events-analysis", authenticate, requireRole("STUDENT_COORDINATOR", "SOCIAL_MEDIA_COORDINATOR", "TECH_COORDINATOR", "FACULTY_COORDINATOR"), async (_req: Request, res: Response) => {
+router.get("/events-analysis", authenticate, requireRole("STUDENT_COORDINATOR", "SOCIAL_MEDIA_COORDINATOR", "DEVELOPMENT_TEAM", "FACULTY_COORDINATOR"), async (_req: Request, res: Response) => {
   try {
     const cacheKey = "analytics:events-analysis";
     const cached = await redisGet(cacheKey);
@@ -288,8 +285,7 @@ router.get("/events-analysis", authenticate, requireRole("STUDENT_COORDINATOR", 
 });
 
 // GET /api/analytics/coordinator-activity — Productivity, events, points, approvals marked
-// [MIGRATION]: requireMinRole -> requireRole for all coordinators based on RBAC refactor map
-router.get("/coordinator-activity", authenticate, requireRole("STUDENT_COORDINATOR", "SOCIAL_MEDIA_COORDINATOR", "TECH_COORDINATOR", "FACULTY_COORDINATOR"), async (_req: Request, res: Response) => {
+router.get("/coordinator-activity", authenticate, requireRole("STUDENT_COORDINATOR", "SOCIAL_MEDIA_COORDINATOR", "DEVELOPMENT_TEAM", "FACULTY_COORDINATOR"), async (_req: Request, res: Response) => {
   try {
     const cacheKey = "analytics:coordinator-activity";
     const cached = await redisGet(cacheKey);

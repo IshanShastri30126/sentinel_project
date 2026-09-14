@@ -30,7 +30,7 @@ async function clearUsersCache() {
 const router = Router();
 
 // GET /api/users — List all users (Tech, Faculty)
-router.get("/", authenticate, requireRole("TECH_COORDINATOR", "FACULTY_COORDINATOR"), async (req: Request, res: Response) => {
+router.get("/", authenticate, requireRole("FACULTY_COORDINATOR"), async (req: Request, res: Response) => {
   try {
     const { search, role, approved, page, limit } = req.query;
     
@@ -128,7 +128,7 @@ router.get("/search", authenticate, async (req: Request, res: Response) => {
 });
 
 // PATCH /api/users/:id/approve — Approve user access (Tech, Faculty)
-router.patch("/:id/approve", authenticate, requireRole("TECH_COORDINATOR", "FACULTY_COORDINATOR"), auditLog("USER_APPROVED"), async (req: Request, res: Response) => {
+router.patch("/:id/approve", authenticate, requireRole("FACULTY_COORDINATOR"), auditLog("USER_APPROVED"), async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const user = await prisma.user.findUnique({ where: { id } });
@@ -191,7 +191,7 @@ async function deleteUserCascade(userId: string) {
 }
 
 // PATCH /api/users/:id/reject — Reject & permanently remove candidate from portal (Tech, Faculty)
-router.patch("/:id/reject", authenticate, requireRole("TECH_COORDINATOR", "FACULTY_COORDINATOR"), auditLog("USER_REJECTED"), async (req: Request, res: Response) => {
+router.patch("/:id/reject", authenticate, requireRole("FACULTY_COORDINATOR"), auditLog("USER_REJECTED"), async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const user = await prisma.user.findUnique({ where: { id } });
@@ -216,7 +216,7 @@ router.patch("/:id/reject", authenticate, requireRole("TECH_COORDINATOR", "FACUL
 });
 
 // DELETE /api/users/:id — Delete user and remove all associated data (Tech, Faculty)
-router.delete("/:id", authenticate, requireRole("TECH_COORDINATOR", "FACULTY_COORDINATOR"), auditLog("USER_DELETED"), async (req: Request, res: Response) => {
+router.delete("/:id", authenticate, requireRole("FACULTY_COORDINATOR"), auditLog("USER_DELETED"), async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const user = await prisma.user.findUnique({ where: { id } });
@@ -244,14 +244,14 @@ router.delete("/:id", authenticate, requireRole("TECH_COORDINATOR", "FACULTY_COO
 router.patch(
   "/:id/role",
   authenticate,
-  requireRole("FACULTY_COORDINATOR", "TECH_COORDINATOR"),
+  requireRole("FACULTY_COORDINATOR"),
   auditLog("USER_ROLE_UPDATED"),
   async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
       let { role } = req.body;
 
-      const validRoles: Role[] = ["FACULTY_COORDINATOR", "TECH_COORDINATOR", "STUDENT_COORDINATOR", "SOCIAL_MEDIA_COORDINATOR", "MEMBER"];
+      const validRoles: Role[] = ["FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "DEVELOPMENT_TEAM", "SOCIAL_MEDIA_COORDINATOR", "MEMBER"];
       if (!validRoles.includes(role)) {
         res.status(400).json({ error: "Invalid role" });
         return;
@@ -263,10 +263,9 @@ router.patch(
         return;
       }
 
-      // Verify that caller is either Admin, Tech Coordinator, or Faculty Coordinator
+      // Verify that caller is Faculty Coordinator
       const isAuthorizedManager = [
         "FACULTY_COORDINATOR",
-        "TECH_COORDINATOR",
       ].includes(req.user!.role);
 
       if (!isAuthorizedManager) {
@@ -307,11 +306,11 @@ router.patch(
   }
 );
 
-// PATCH /api/users/:id/deactivate — Deactivate user (Tech, Faculty)
+// PATCH /api/users/:id/deactivate — Deactivate user
 router.patch(
   "/:id/deactivate",
   authenticate,
-  requireRole("TECH_COORDINATOR", "FACULTY_COORDINATOR"),
+  requireRole("FACULTY_COORDINATOR", "DEVELOPMENT_TEAM"),
   auditLog("USER_DEACTIVATED"),
   async (req: Request, res: Response) => {
     try {
@@ -342,7 +341,7 @@ router.patch(
 router.patch(
   "/:id/activate",
   authenticate,
-  requireRole("TECH_COORDINATOR", "FACULTY_COORDINATOR"),
+  requireRole("FACULTY_COORDINATOR"),
   auditLog("USER_ACTIVATED"),
   async (req: Request, res: Response) => {
   try {
@@ -459,7 +458,7 @@ router.patch("/profile", authenticate, upload.single("avatar"), async (req: Requ
 });
 
 // GET /api/users/audit-logs — List system audit logs (Dev Team, Faculty, Tech Team)
-router.get("/audit-logs", authenticate, requireRole("FACULTY_COORDINATOR", "TECH_COORDINATOR"), async (req: Request, res: Response) => {
+router.get("/audit-logs", authenticate, requireRole("FACULTY_COORDINATOR", "DEVELOPMENT_TEAM"), async (req: Request, res: Response) => {
   try {
     const { action, outcome, page, limit } = req.query;
     const pageNum = page ? parseInt(page as string) : 1;

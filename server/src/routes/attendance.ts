@@ -153,8 +153,7 @@ router.post(
       const userId = targetUserId || req.user!.userId;
 
       // Coordinators can check in anyone; members can only check in themselves
-      // [MIGRATION]: Remove legacy strings, use canonical enum
-      const isCoord = ["FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_COORDINATOR"].includes(req.user!.role);
+      const isCoord = ["FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "DEVELOPMENT_TEAM"].includes(req.user!.role);
       if (targetUserId && !isCoord) {
         res.status(403).json({ error: "Insufficient permissions" });
         return;
@@ -215,7 +214,7 @@ router.post(
 router.post(
   "/manual",
   authenticate,
-  requireRole("FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_COORDINATOR"),
+  requireRole("FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "DEVELOPMENT_TEAM"),
   validate(manualCheckInSchema),
   auditLog("ATTENDANCE_MANUAL_OVERRIDE"),
   async (req: Request, res: Response) => {
@@ -288,7 +287,7 @@ router.post(
 router.delete(
   "/:id",
   authenticate,
-  requireRole("FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_COORDINATOR"),
+  requireRole("FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "DEVELOPMENT_TEAM"),
   auditLog("ATTENDANCE_VOIDED"),
   async (req: Request, res: Response) => {
     try {
@@ -330,8 +329,7 @@ router.delete(
 router.get(
   "/event/:eventId",
   authenticate,
-  // [MIGRATION]: requireMinRole -> explicit requireRole
-  requireRole("TECH_COORDINATOR", "FACULTY_COORDINATOR"),
+  requireRole("FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "DEVELOPMENT_TEAM"),
   async (req: Request, res: Response) => {
     try {
       const eventId = req.params.eventId;
@@ -427,8 +425,7 @@ router.get(
 router.get(
   "/presence/:eventId",
   authenticate,
-  // [MIGRATION]: requireMinRole -> explicit requireRole
-  requireRole("TECH_COORDINATOR", "FACULTY_COORDINATOR"),
+  requireRole("FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "DEVELOPMENT_TEAM"),
   async (req: Request, res: Response) => {
     try {
       const eventId = req.params.eventId;
@@ -491,7 +488,7 @@ router.get(
 router.get(
   "/search-registered/:eventId",
   authenticate,
-  requireRole("FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_COORDINATOR"),
+  requireRole("FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "DEVELOPMENT_TEAM"),
   async (req: Request, res: Response) => {
     try {
       const eventId = req.params.eventId;
