@@ -190,20 +190,12 @@ export default function UsersPage() {
                     <p className="text-sm font-semibold text-[var(--ck-text)]">{u.name}</p>
                     {(u.employeeId || u.studentId) && (
                       <span className="text-[9px] font-mono bg-[#FF4D00]/10 border border-[#FF4D00]/25 px-1.5 py-0.5 rounded text-[var(--ck-accent)]">
-<<<<<<< HEAD
-                        {["FACULTY", "FACULTY_COORDINATOR"].includes(u.role) ? `EMP ID: ${u.employeeId || u.studentId}` : `ST ID: ${u.studentId}`}
-=======
                         {isFaculty(u.role) ? `EMP ID: ${u.employeeId || u.studentId}` : `ST ID: ${u.studentId}`}
->>>>>>> sentinel/dev
                       </span>
                     )}
                   </div>
                   <p className="text-[10px] font-mono mt-1 text-[var(--ck-text-muted)] uppercase">
-<<<<<<< HEAD
-                    {u.email.toLowerCase()} {u.phone ? `// TEL: ${u.phone}` : ""} {u.department ? `// DEPT: ${u.department}` : ""} {!["FACULTY", "FACULTY_COORDINATOR"].includes(u.role) && u.semester ? `// SEM: ${u.semester}` : ""}
-=======
-                    {u.email.toLowerCase()} {u.phone ? `// TEL: ${u.phone}` : ""} {u.department ? `// DEPT: ${u.department}` : ""} 
->>>>>>> sentinel/dev
+                    {u.email.toLowerCase()} {u.phone ? `// TEL: ${u.phone}` : ""} {u.department ? `// DEPT: ${u.department}` : ""}
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
@@ -231,11 +223,7 @@ export default function UsersPage() {
         </div>
         <select className="ck-input w-auto text-xs py-2 font-mono" value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)}>
           <option value="">ALL ROLES</option>
-<<<<<<< HEAD
-          {ROLES.map((r) => <option key={r} value={r}>{ROLE_DISPLAY_NAMES[r] || r.replace(/_/g, " ")}</option>)}
-=======
           {CANONICAL_ROLES.map((r) => <option key={r.value} value={r.value}>{r.label.toUpperCase()}</option>)}
->>>>>>> sentinel/dev
         </select>
       </div>
 

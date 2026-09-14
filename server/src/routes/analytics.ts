@@ -6,8 +6,7 @@ import { redisGet, redisSet } from "../lib/redis";
 const router = Router();
 
 // GET /api/analytics/sentinel — Faculty/SC/Tech: full sentinel-wide analytics
-// [MIGRATION]: requireMinRole -> requireRole("TECH_COORDINATOR", "FACULTY_COORDINATOR") based on RBAC refactor map
-router.get("/sentinel", authenticate, requireRole("TECH_COORDINATOR", "FACULTY_COORDINATOR"), async (_req: Request, res: Response) => {
+router.get(["/sentinel", "/club"], authenticate, requireRole("TECH_COORDINATOR", "FACULTY_COORDINATOR"), async (_req: Request, res: Response) => {
   try {
     const cacheKey = "analytics:sentinel";
     const cached = await redisGet(cacheKey);
@@ -219,12 +218,8 @@ router.get("/top3", authenticate, requireRole("STUDENT_COORDINATOR", "SOCIAL_MED
 });
 
 // GET /api/analytics/events-analysis — Event-wise metrics, capacity, registration timelines
-<<<<<<< HEAD
-router.get("/events-analysis", authenticate, requireMinRole("TECH_TEAM"), async (_req: Request, res: Response) => {
-=======
 // [MIGRATION]: requireMinRole -> requireRole for all coordinators based on RBAC refactor map
 router.get("/events-analysis", authenticate, requireRole("STUDENT_COORDINATOR", "SOCIAL_MEDIA_COORDINATOR", "TECH_COORDINATOR", "FACULTY_COORDINATOR"), async (_req: Request, res: Response) => {
->>>>>>> sentinel/dev
   try {
     const cacheKey = "analytics:events-analysis";
     const cached = await redisGet(cacheKey);
@@ -293,12 +288,8 @@ router.get("/events-analysis", authenticate, requireRole("STUDENT_COORDINATOR", 
 });
 
 // GET /api/analytics/coordinator-activity — Productivity, events, points, approvals marked
-<<<<<<< HEAD
-router.get("/coordinator-activity", authenticate, requireMinRole("TECH_TEAM"), async (_req: Request, res: Response) => {
-=======
 // [MIGRATION]: requireMinRole -> requireRole for all coordinators based on RBAC refactor map
 router.get("/coordinator-activity", authenticate, requireRole("STUDENT_COORDINATOR", "SOCIAL_MEDIA_COORDINATOR", "TECH_COORDINATOR", "FACULTY_COORDINATOR"), async (_req: Request, res: Response) => {
->>>>>>> sentinel/dev
   try {
     const cacheKey = "analytics:coordinator-activity";
     const cached = await redisGet(cacheKey);

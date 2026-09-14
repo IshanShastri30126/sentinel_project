@@ -217,13 +217,14 @@ export default function AnalyticsPage() {
   const [eventSearch, setEventSearch] = useState("");
   const [eventSortField, setEventSortField] = useState<string>("registrationsCount");
   const [eventSortOrder, setEventSortOrder] = useState<"asc" | "desc">("desc");
-
   const isStaff = Boolean(
     user?.role &&
       [
-        "DEVELOPMENT_TEAM",
         "FACULTY_COORDINATOR",
+        "TECH_COORDINATOR",
         "STUDENT_COORDINATOR",
+        "SOCIAL_MEDIA_COORDINATOR",
+        "DEVELOPMENT_TEAM",
         "TECH_TEAM",
         "FACULTY",
         "TECH",
@@ -234,21 +235,19 @@ export default function AnalyticsPage() {
     if (!user) return;
     const load = async () => {
       try {
-<<<<<<< HEAD
-        const clubRes = await api<ClubData>("/analytics/club", { token }).catch((err) => {
-          console.warn("Analytics club notice:", err);
-          return null;
-        });
-        if (clubRes) {
-          setClubData(clubRes);
-        }
-
-        const [top3Res, analysisRes, activityRes] = await Promise.allSettled([
-          api<Top3Data>("/analytics/top3", { token }),
-          api<EventAnalysisItem[]>("/analytics/events-analysis", { token }),
-          api<CoordinatorActivityItem[]>("/analytics/coordinator-activity", { token }),
+        const [clubRes, top3Res, analysisRes, activityRes, leaderboardData] = await Promise.allSettled([
+          api<ClubData>("/analytics/sentinel", { token: token || undefined }).catch(() => 
+            api<ClubData>("/analytics/club", { token: token || undefined })
+          ),
+          api<Top3Data>("/analytics/top3", { token: token || undefined }),
+          api<EventAnalysisItem[]>("/analytics/events-analysis", { token: token || undefined }),
+          api<CoordinatorActivityItem[]>("/analytics/coordinator-activity", { token: token || undefined }),
+          api<{ leaderboard: LeaderboardAchiever[] }>("/appreciation/leaderboard", { token: token || undefined }),
         ]);
 
+        if (clubRes.status === "fulfilled" && clubRes.value) {
+          setClubData(clubRes.value);
+        }
         if (top3Res.status === "fulfilled" && top3Res.value) {
           setTop3Data(top3Res.value);
         }
@@ -258,40 +257,8 @@ export default function AnalyticsPage() {
         if (activityRes.status === "fulfilled" && activityRes.value) {
           setCoordinatorActivity(activityRes.value || []);
         }
-
-        const leaderboardData = await api<{ leaderboard: LeaderboardAchiever[] }>("/appreciation/leaderboard", { token }).catch(() => null);
-=======
-        const isCoordinator = Boolean(
-          user?.role &&
-          [
-            "DEVELOPMENT_TEAM",
-            "FACULTY_COORDINATOR",
-            "TECH_TEAM",
-            "STUDENT_COORDINATOR",
-            "FACULTY",
-            "TECH"
-          ].includes(user.role)
-        );
-        if (isCoordinator) {
-          const [data, top3, analysis, activity] = await Promise.all([
-            api<ClubData>("/analytics/club", { token: token || undefined }),
-            api<Top3Data>("/analytics/top3", { token: token || undefined }),
-            api<EventAnalysisItem[]>("/analytics/events-analysis", { token: token || undefined }),
-            api<CoordinatorActivityItem[]>("/analytics/coordinator-activity", { token: token || undefined }),
-          ]);
-          setClubData(data);
-          setTop3Data(top3);
-          setEventsAnalysis(analysis || []);
-          setCoordinatorActivity(activity || []);
-        } else {
-          const data = await api<ClubData>("/analytics/operations", { token: token || undefined });
-          setClubData(data);
-        }
-
-        const leaderboardData = await api<{ leaderboard: LeaderboardAchiever[] }>("/appreciation/leaderboard", { token: token || undefined });
->>>>>>> sentinel/dev
-        if (leaderboardData?.leaderboard && leaderboardData.leaderboard.length > 0) {
-          setTopAchiever(leaderboardData.leaderboard[0]);
+        if (leaderboardData.status === "fulfilled" && leaderboardData.value?.leaderboard && leaderboardData.value.leaderboard.length > 0) {
+          setTopAchiever(leaderboardData.value.leaderboard[0]);
         }
       } catch (err) { 
         console.warn("Analytics load notice:", err); 
@@ -303,20 +270,6 @@ export default function AnalyticsPage() {
   }, [token, user]);
 
   const maxStat = clubData?.overview ? Math.max(...Object.values(clubData.overview).map(Number)) : 1;
-<<<<<<< HEAD
-=======
-  const isCoordinator = Boolean(
-    user?.role &&
-    [
-      "DEVELOPMENT_TEAM",
-      "FACULTY_COORDINATOR",
-      "TECH_TEAM",
-      "STUDENT_COORDINATOR",
-      "FACULTY",
-      "TECH"
-    ].includes(user.role)
-  );
->>>>>>> sentinel/dev
 
   // Sorting logic for events analysis
   const handleSort = (field: string) => {
