@@ -40,19 +40,6 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 const INACTIVITY_TIMEOUT_MS = 15 * 60 * 1000; // 15 Minutes Inactivity Timeout (Point 9)
 
-const isPageReload = (): boolean => {
-  if (typeof window === "undefined") return false;
-  try {
-    const navEntries = window.performance?.getEntriesByType?.("navigation");
-    if (navEntries && navEntries.length > 0) {
-      return (navEntries[0] as PerformanceNavigationTiming).type === "reload";
-    }
-    return window.performance?.navigation?.type === 1;
-  } catch {
-    return false;
-  }
-};
-
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
@@ -67,8 +54,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     Cookies.remove("deviceFingerprint", { path: "/" });
     try {
       localStorage.removeItem("token");
-      sessionStorage.removeItem("sentinel_active_session");
-      sessionStorage.setItem("sentinel_session_terminated", "true");
+      localStorage.setItem("sentinel_logout_sync", Date.now().toString());
     } catch { /* ignore */ }
     
     try {
@@ -76,7 +62,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch { /* ignore */ }
   }, []);
 
-  // Inactivity Listener (Point 9)
+  // Multi-tab logout synchronization
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === "sentinel_logout_sync") {
+        setUser(null);
+        setToken(null);
+      }
+    };
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
+  }, []);
+
+  // Inactivity Listener
   const resetInactivityTimer = useCallback(() => {
     if (inactivityTimerRef.current) {
       clearTimeout(inactivityTimerRef.current);
@@ -117,35 +115,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  // Authoritative server-side session restoration:
+  // Session survives page refresh, route navigation, and browser close/reopen
   useEffect(() => {
-    const handleInitialAuth = async () => {
-      try {
-        const reloaded = isPageReload();
-        const terminated = typeof window !== "undefined" && sessionStorage.getItem("sentinel_session_terminated") === "true";
-        const hasActiveSession = typeof window !== "undefined" && sessionStorage.getItem("sentinel_active_session") === "true";
-
-        // Deterministic session lifecycle:
-        // 1. If page was refreshed/reloaded -> fully invalidate session, user must log in again
-        // 2. If browser was closed and reopened -> sentinel_active_session is missing -> require login
-        // 3. If session was terminated -> require login
-        if (reloaded || terminated || !hasActiveSession) {
-          await logout();
-          setIsLoading(false);
-          return;
-        }
-      } catch { /* ignore */ }
-
-      fetchMe().finally(() => setIsLoading(false));
-    };
-
-    handleInitialAuth();
-  }, [fetchMe, logout]);
+    fetchMe().finally(() => setIsLoading(false));
+  }, [fetchMe]);
 
   const login = async (email: string, password: string) => {
-    try {
-      sessionStorage.setItem("sentinel_active_session", "true");
-      sessionStorage.removeItem("sentinel_session_terminated");
-    } catch { /* ignore */ }
     const deviceFingerprint = getDeviceFingerprint();
     const data = await api<{ user: User; accessToken: string }>("/auth/login", {
       method: "POST",
@@ -156,10 +132,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const loginWithGoogle = async (credential: string) => {
-    try {
-      sessionStorage.setItem("sentinel_active_session", "true");
-      sessionStorage.removeItem("sentinel_session_terminated");
-    } catch { /* ignore */ }
     const deviceFingerprint = getDeviceFingerprint();
     const data = await api<{ user: User; accessToken: string }>("/auth/google", {
       method: "POST",
@@ -170,9 +142,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const register = async (name: string, email: string, password: string, extra?: { studentId?: string; employeeId?: string; phone?: string; department?: string; institute?: string; clubId?: string; newClubName?: string; newClubSlug?: string }) => {
-    try {
-      sessionStorage.removeItem("sentinel_session_terminated");
-    } catch { /* ignore */ }
     const deviceFingerprint = getDeviceFingerprint();
     const data = await api<{ user: User; accessToken: string }>("/auth/register", {
       method: "POST",

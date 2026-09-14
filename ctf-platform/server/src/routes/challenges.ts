@@ -407,7 +407,7 @@ router.post(
 router.patch(
   "/:id",
   authMiddleware,
-  roleGuard(["SUPER_ADMIN", "ADMIN", "FACULTY"]),
+  roleGuard(["FACULTY_COORDINATOR", "DEVELOPMENT_TEAM", "STUDENT_COORDINATOR"]),
   async (req: Request, res: Response): Promise<void> => {
     try {
       const { id } = req.params;

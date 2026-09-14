@@ -7,8 +7,8 @@ import db from "../lib/db";
 
 const router = Router();
 
-// All routes require SUPER_ADMIN, ADMIN, or FACULTY
-const adminGuard = roleGuard(["SUPER_ADMIN", "ADMIN", "FACULTY"]);
+// All routes require FACULTY_COORDINATOR or DEVELOPMENT_TEAM
+const adminGuard = roleGuard(["FACULTY_COORDINATOR", "DEVELOPMENT_TEAM"]);
 
 // ─── GET /api/admin/stats ───────────────────────────────────
 // Returns aggregate statistics for the admin dashboard.

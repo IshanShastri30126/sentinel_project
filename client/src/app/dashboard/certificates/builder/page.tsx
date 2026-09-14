@@ -615,7 +615,7 @@ function CertificateBuilderContent() {
             </style>
           </head>
           <body>
-            <img src="${dataUrl}" onload="window.print();" />
+            <img src="${dataUrl}" alt="Certificate Preview" onload="window.print();" />
           </body>
         </html>
       `);

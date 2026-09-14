@@ -46,6 +46,13 @@ export async function authenticate(req: Request, res: Response, next: NextFuncti
   try {
     const payload = jwt.verify(token, config.jwt.secret) as AuthPayload;
 
+    // Check if token was revoked via logout
+    const isRevoked = await redisGet(`revoked:${token}`);
+    if (isRevoked === "1") {
+      res.status(401).json({ error: "Token has been revoked" });
+      return;
+    }
+
     // Cache isActive check in Redis (60s TTL) to avoid a Neon round-trip on every request.
     // The cache key is scoped to the userId so deactivations propagate within 60s.
     const cacheKey = `auth:active:${payload.userId}`;

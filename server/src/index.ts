@@ -193,6 +193,12 @@ app.use((err: Error, req: express.Request, res: express.Response, _next: express
 
   if (res.headersSent) return;
 
+  // Handle malformed JSON body errors from express.json()
+  if (err instanceof SyntaxError && "body" in (err as any)) {
+    res.status(400).json({ error: "Malformed JSON payload in request body" });
+    return;
+  }
+
   // Generic response — no stack trace, no internal details
   res.status(500).json({ error: "An unexpected error occurred" });
 });

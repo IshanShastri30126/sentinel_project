@@ -55,7 +55,7 @@ export const SEMESTERS = ["1", "2", "3", "4", "5", "6", "7", "8"] as const;
  * @returns {JSX.Element} Rendered authentication gateway.
  */
 function LoginPageContent() {
-  const { login, loginWithGoogle, register, user } = useAuth();
+  const { login, loginWithGoogle, register, user, isLoading } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectTarget = searchParams?.get("redirect") || "/dashboard";
@@ -242,6 +242,16 @@ function LoginPageContent() {
     setInstitute("");
     setRegisteredPending(false);
   };
+
+  // Loading Screen to prevent login screen flash during session hydration
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden bg-[#02050B] text-slate-100 font-mono">
+        <PlexusBackground />
+        <div className="w-10 h-10 border-3 border-cyan-500/30 border-t-[#00F5D4] rounded-full animate-spin shadow-[0_0_15px_rgba(0,245,212,0.3)] relative z-10" />
+      </div>
+    );
+  }
 
   // Lockout Screen
   if (isBlocked) {

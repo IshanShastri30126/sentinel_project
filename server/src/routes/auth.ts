@@ -75,17 +75,23 @@ function setTokenCookies(res: Response, accessToken: string, refreshToken: strin
     httpOnly: true,
     secure: isProduction,
     sameSite: isProduction ? "none" : "lax",
+    path: "/",
+    maxAge: 15 * 60 * 1000, // 15 minutes
   });
   res.cookie("refreshToken", refreshToken, {
     httpOnly: true,
     secure: isProduction,
     sameSite: isProduction ? "none" : "lax",
+    path: "/",
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days persistent session
   });
   if (deviceFingerprint) {
     res.cookie("deviceFingerprint", deviceFingerprint, {
       httpOnly: true,
       secure: isProduction,
       sameSite: isProduction ? "none" : "lax",
+      path: "/",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
     });
   }
 }
@@ -601,6 +607,10 @@ router.post("/logout", async (req: Request, res: Response) => {
 
     if (userId) {
       await redisDel(`session:${userId}`);
+      await redisDel(`auth:active:${userId}`);
+      if (token) {
+        await redisSet(`revoked:${token}`, "1", 15 * 60);
+      }
       await logAuditEvent({
         action: "USER_LOGOUT",
         userId,
