@@ -1210,8 +1210,6 @@ function PublicEventPageContent() {
                         <label className="ck-label font-mono uppercase tracking-wider text-[10px]">Semester (1-8)</label>
                         <select 
                           className="ck-input" 
-                          value={formData.semester} 
-                          onChange={(e) => setFormData({ ...formData, semester: e.target.value })} 
                         >
                           <option value="" className="bg-[#050A18]">Select Semester...</option>
                           {SEMESTERS.map((sem) => (
@@ -1621,7 +1619,7 @@ function PublicEventPageContent() {
               )}
 
               {/* Staff / Coordinator Direct Spectator Link */}
-              {user && ["DEVELOPMENT_TEAM", "TECH_TEAM", "FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "ADMIN", "FACULTY"].includes(user.role) && (
+              {user && ["ADMIN", "TECH_COORDINATOR", "FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "ADMIN", "FACULTY"].includes(user.role) && (
                 <div className="pt-4 border-t border-white/[0.08] flex items-center justify-between flex-wrap gap-2 text-xs">
                   <span className="text-sky-400 uppercase tracking-wider font-bold">
                     Staff Supervisor Mode

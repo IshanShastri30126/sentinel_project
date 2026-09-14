@@ -24,7 +24,7 @@ import {
 } from "lucide-react";
 import { GoogleLogin } from "@react-oauth/google";
 import PlexusBackground from "@/components/PlexusBackground";
-import { SentinalLogo } from "@/components/SentinalLogo";
+import { SentinelLogo } from "@/components/SentinelLogo";
 import { api } from "@/lib/api";
 import { CyberButton } from "@/components/ui/CyberButton";
 import { CyberCard } from "@/components/ui/CyberCard";
@@ -299,7 +299,7 @@ function LoginPageContent() {
               OPERATIVE REGISTRATION COMPLETE
             </h2>
             <p className="text-slate-300 text-xs mb-6 font-mono leading-relaxed">
-              Your credentials have been recorded. Account access is currently pending administrative clearance by the SENTINAL security council.
+              Your credentials have been recorded. Account access is currently pending administrative clearance by the SENTINEL security council.
             </p>
             <CyberButton
               variant="primary"
@@ -351,7 +351,7 @@ function LoginPageContent() {
             {/* Header Identity */}
             <div className="text-center mb-6">
               <div className="flex justify-center mb-3">
-                <SentinalLogo animateDrawing={false} />
+                <SentinelLogo animateDrawing={false} />
               </div>
               <SystemLabel prefix="[// AUTH.GATEWAY]" showDot={true}>
                 {isLogin ? "IDENTITY VERIFICATION" : "NEW OPERATIVE REGISTRATION"}
@@ -523,7 +523,7 @@ function LoginPageContent() {
                   <Mail className="w-4 h-4 text-[#00F5D4] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                   <input
                     type="email"
-                    placeholder="operative@sentinal.defense"
+                    placeholder="operative@sentinel.defense"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
@@ -659,7 +659,7 @@ function LoginPageContent() {
 
       {/* Footer watermark */}
       <div className="relative z-10 text-center py-2 font-mono text-[10px] text-slate-500">
-        © {new Date().getFullYear()} SENTINAL Cyber Defense Operations Hub • Defense Network • TLS 1.3 Certified
+        © {new Date().getFullYear()} SENTINEL Cyber Defense Operations Hub • Defense Network • TLS 1.3 Certified
       </div>
     </div>
   );

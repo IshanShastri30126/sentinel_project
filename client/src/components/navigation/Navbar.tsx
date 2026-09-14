@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { SentinalLogo } from "@/components/SentinalLogo";
+import { SentinelLogo } from "@/components/SentinelLogo";
 import { CyberButton } from "@/components/ui/CyberButton";
 import { CyberStatus } from "@/components/ui/CyberStatus";
 import { useAuth } from "@/lib/auth-context";
@@ -51,7 +51,7 @@ export function Navbar() {
       <div className="max-w-7xl mx-auto px-3 sm:px-6 h-16 flex items-center justify-between">
         {/* Brand Logo */}
         <Link href="/" className="flex items-center gap-3">
-          <SentinalLogo animateDrawing={false} />
+          <SentinelLogo animateDrawing={false} />
         </Link>
 
         {/* Desktop Navigation Links */}

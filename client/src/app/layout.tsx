@@ -8,7 +8,7 @@ import { NetworkInspectionGuard } from "@/components/NetworkInspectionGuard";
 import { CyberDialogProvider } from "@/components/ui/CyberDialogContext";
 
 export const metadata: Metadata = {
-  title: "SENTINAL — Cyber Defense Operations & Command Hub",
+  title: "SENTINEL — Cyber Defense Operations & Command Hub",
   description: "Centralized, strategic operating system for cybersecurity defense operations, events, and CTF wargames.",
   manifest: "/manifest.json",
   icons: {

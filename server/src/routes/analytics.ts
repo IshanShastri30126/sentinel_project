@@ -6,7 +6,7 @@ import { redisGet, redisSet } from "../lib/redis";
 const router = Router();
 
 // GET /api/analytics/club — Faculty/SC/Tech: full club-wide analytics
-router.get("/club", authenticate, requireMinRole("TECH_TEAM"), async (_req: Request, res: Response) => {
+router.get("/club", authenticate, requireMinRole("TECH_COORDINATOR"), async (_req: Request, res: Response) => {
   try {
     const cacheKey = "analytics:club";
     const cached = await redisGet(cacheKey);
@@ -70,7 +70,7 @@ router.get("/club", authenticate, requireMinRole("TECH_TEAM"), async (_req: Requ
 });
 
 // GET /api/analytics/operations — SC+/Tech: operational metrics
-router.get("/operations", authenticate, requireMinRole("TECH_TEAM"), async (_req: Request, res: Response) => {
+router.get("/operations", authenticate, requireMinRole("TECH_COORDINATOR"), async (_req: Request, res: Response) => {
   try {
     const cacheKey = "analytics:operations";
     const cached = await redisGet(cacheKey);
@@ -297,7 +297,7 @@ router.get("/coordinator-activity", authenticate, requireMinRole("STUDENT_COORDI
     const coordinators = await prisma.user.findMany({
       where: {
         role: {
-          in: ["FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "DEVELOPMENT_TEAM"]
+          in: ["FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "ADMIN"]
         }
       },
       select: {

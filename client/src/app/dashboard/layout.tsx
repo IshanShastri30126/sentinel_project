@@ -13,7 +13,7 @@ import {
   User, Info, Check, CheckCheck, RotateCw, ShieldAlert, Terminal
 } from "lucide-react";
 import { DefaultAvatar } from "@/components/default-avatar";
-import { SentinalLogo } from "@/components/SentinalLogo";
+import { SentinelLogo } from "@/components/SentinelLogo";
 
 interface Notification {
   id: string;
@@ -28,26 +28,26 @@ interface NavItem { label: string; href: string; icon: React.ReactNode; roles?: 
 
 const NAV_ITEMS: NavItem[] = [
   { label: "Overview", href: "/dashboard", icon: <LayoutDashboard className="w-5 h-5" /> },
-  { label: "Events", href: "/dashboard/event", icon: <Calendar className="w-5 h-5" />, roles: ["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_TEAM", "FACULTY", "TECH"] },
+  { label: "Events", href: "/dashboard/event", icon: <Calendar className="w-5 h-5" />, roles: ["ADMIN", "FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_COORDINATOR", "FACULTY", "TECH"] },
   { label: "Teams", href: "/dashboard/teams", icon: <UsersRound className="w-5 h-5" /> },
   { label: "Attendance", href: "/dashboard/attendance", icon: <CheckSquare className="w-5 h-5" /> },
-  { label: "Certificates", href: "/dashboard/certificates", icon: <FileCheck className="w-5 h-5" />, roles: ["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_TEAM", "FACULTY", "TECH"] },
-  { label: "Approvals", href: "/dashboard/approvals", icon: <ClipboardList className="w-5 h-5" />, roles: ["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_TEAM", "FACULTY", "TECH"] },
+  { label: "Certificates", href: "/dashboard/certificates", icon: <FileCheck className="w-5 h-5" />, roles: ["ADMIN", "FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_COORDINATOR", "FACULTY", "TECH"] },
+  { label: "Approvals", href: "/dashboard/approvals", icon: <ClipboardList className="w-5 h-5" />, roles: ["ADMIN", "FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_COORDINATOR", "FACULTY", "TECH"] },
   { label: "Leaderboard", href: "/dashboard/leaderboard", icon: <Award className="w-5 h-5" /> },
-  { label: "Users", href: "/dashboard/users", icon: <Users className="w-5 h-5" />, roles: ["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_TEAM", "FACULTY", "TECH"] },
-  { label: "Analytics", href: "/dashboard/analytics", icon: <BarChart3 className="w-5 h-5" />, roles: ["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_TEAM", "FACULTY", "TECH"] },
-  { label: "Landing CMS", href: "/dashboard/landing-management", icon: <LayoutDashboard className="w-5 h-5" />, roles: ["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "TECH_TEAM", "FACULTY", "TECH"] },
-  { label: "Maintenance Logs", href: "/dashboard/maintenance", icon: <Terminal className="w-5 h-5" />, roles: ["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "TECH_TEAM", "FACULTY", "TECH"] },
+  { label: "Users", href: "/dashboard/users", icon: <Users className="w-5 h-5" />, roles: ["ADMIN", "FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_COORDINATOR", "FACULTY", "TECH"] },
+  { label: "Analytics", href: "/dashboard/analytics", icon: <BarChart3 className="w-5 h-5" />, roles: ["ADMIN", "FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_COORDINATOR", "FACULTY", "TECH"] },
+  { label: "Landing CMS", href: "/dashboard/landing-management", icon: <LayoutDashboard className="w-5 h-5" />, roles: ["ADMIN", "FACULTY_COORDINATOR", "TECH_COORDINATOR", "FACULTY", "TECH"] },
+  { label: "Maintenance Logs", href: "/dashboard/maintenance", icon: <Terminal className="w-5 h-5" />, roles: ["ADMIN", "FACULTY_COORDINATOR", "TECH_COORDINATOR", "FACULTY", "TECH"] },
   { label: "My Certificates", href: "/dashboard/my-certificates", icon: <Award className="w-5 h-5" /> },
   { label: "Profile", href: "/dashboard/profile", icon: <User className="w-5 h-5" /> },
-  { label: "Info", href: "/dashboard/info", icon: <Info className="w-5 h-5" />, roles: ["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "TECH_TEAM", "FACULTY", "TECH"] },
+  { label: "Info", href: "/dashboard/info", icon: <Info className="w-5 h-5" />, roles: ["ADMIN", "FACULTY_COORDINATOR", "TECH_COORDINATOR", "FACULTY", "TECH"] },
 ];
 
 const ROLE_LABELS: Record<Role, string> = {
-  DEVELOPMENT_TEAM: "Development Team",
+  ADMIN: "Development Team",
   FACULTY_COORDINATOR: "Faculty Coordinator",
   STUDENT_COORDINATOR: "Student Coordinator",
-  TECH_TEAM: "Tech Team",
+  TECH_COORDINATOR: "Tech Team",
   MEMBER: "Member",
   GUEST: "Guest",
   FACULTY: "Faculty Coordinator",
@@ -318,7 +318,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   onClick={() => setMobileOpen(false)}
                   className="flex items-center gap-2 hover:opacity-90 transition"
                 >
-                  <SentinalLogo collapsed={false} showText={true} animateDrawing={false} className="scale-90 origin-left" />
+                  <SentinelLogo collapsed={false} showText={true} animateDrawing={false} className="scale-90 origin-left" />
                 </Link>
 
                 <button
@@ -456,7 +456,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
             {/* Merged Logo Mark + Wordmark inside Sticky Top Bar */}
             <Link href="/" className="flex items-center gap-2 min-w-0 shrink hover:opacity-90 transition">
-              <SentinalLogo collapsed={false} showText={true} animateDrawing={false} className="scale-90 origin-left shrink-0" />
+              <SentinelLogo collapsed={false} showText={true} animateDrawing={false} className="scale-90 origin-left shrink-0" />
             </Link>
           </div>
 

@@ -392,8 +392,8 @@ export default function EventsPage() {
   };
 
   const { user, token, isLoading } = useAuth();
-  useEffect(() => { if (!isLoading && user?.role === 'MEMBER') router.push('/dashboard'); }, [user, isLoading, router]);
   const router = useRouter();
+  useEffect(() => { if (!isLoading && user?.role === 'MEMBER') router.push('/dashboard'); }, [user, isLoading, router]);
   const { showToast, confirmModal } = useCyberDialog();
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
@@ -1683,7 +1683,7 @@ export default function EventsPage() {
                       {event.isPublished ? <><EyeOff className="w-3 h-3" /> Unpublish</> : <><Eye className="w-3 h-3" /> Publish</>}
                     </button>
                   )}
-                  {user && ["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "TECH_TEAM", "FACULTY", "TECH"].includes(user.role) && !event.isApproved && (
+                  {user && ["ADMIN", "FACULTY_COORDINATOR", "TECH_COORDINATOR", "FACULTY", "TECH"].includes(user.role) && !event.isApproved && (
                     <button 
                       onClick={(e) => handleQuickApprove(event.id, e)} 
                       className="ck-btn-primary text-xs py-2 shadow-[0_0_10px_rgba(0,245,212,0.3)] border-none" style={{ backgroundColor: "var(--ck-primary)", color: "#00F5D4" }}

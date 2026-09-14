@@ -457,7 +457,7 @@ router.patch("/profile", authenticate, upload.single("avatar"), async (req: Requ
 });
 
 // GET /api/users/audit-logs — List system audit logs (Dev Team, Faculty, Tech Team)
-router.get("/audit-logs", authenticate, requireRole("DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "TECH_TEAM"), async (req: Request, res: Response) => {
+router.get("/audit-logs", authenticate, requireRole("ADMIN", "FACULTY_COORDINATOR", "TECH_COORDINATOR"), async (req: Request, res: Response) => {
   try {
     const { action, outcome, page, limit } = req.query;
     const pageNum = page ? parseInt(page as string) : 1;

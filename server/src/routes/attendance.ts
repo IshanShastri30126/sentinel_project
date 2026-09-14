@@ -197,7 +197,7 @@ router.post(
 router.post(
   "/manual",
   authenticate,
-  requireRole("DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_TEAM"),
+  requireRole("ADMIN", "FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_COORDINATOR"),
   validate(manualCheckInSchema),
   auditLog("ATTENDANCE_MANUAL_OVERRIDE"),
   async (req: Request, res: Response) => {
@@ -261,7 +261,7 @@ router.post(
 router.delete(
   "/:id",
   authenticate,
-  requireRole("DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_TEAM"),
+  requireRole("ADMIN", "FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_COORDINATOR"),
   auditLog("ATTENDANCE_VOIDED"),
   async (req: Request, res: Response) => {
     try {
@@ -294,7 +294,7 @@ router.delete(
 router.get(
   "/event/:eventId",
   authenticate,
-  requireMinRole("TECH_TEAM"),
+  requireMinRole("TECH_COORDINATOR"),
   async (req: Request, res: Response) => {
     try {
       const eventId = req.params.eventId;
@@ -390,7 +390,7 @@ router.get(
 router.get(
   "/presence/:eventId",
   authenticate,
-  requireMinRole("TECH_TEAM"),
+  requireMinRole("TECH_COORDINATOR"),
   async (req: Request, res: Response) => {
     try {
       const eventId = req.params.eventId;
@@ -453,7 +453,7 @@ router.get(
 router.get(
   "/search-registered/:eventId",
   authenticate,
-  requireRole("DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_TEAM"),
+  requireRole("ADMIN", "FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_COORDINATOR"),
   async (req: Request, res: Response) => {
     try {
       const eventId = req.params.eventId;

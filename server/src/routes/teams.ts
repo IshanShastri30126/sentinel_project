@@ -159,7 +159,7 @@ router.get("/my", authenticate, async (req: Request, res: Response) => {
 });
 
 // GET /api/teams/event/:eventId — All teams for a specific event
-router.get("/event/:eventId", authenticate, requireMinRole("TECH_TEAM"), async (req: Request, res: Response) => {
+router.get("/event/:eventId", authenticate, requireMinRole("TECH_COORDINATOR"), async (req: Request, res: Response) => {
   try {
     const teams = await prisma.team.findMany({
       where: { eventId: req.params.eventId },
@@ -238,7 +238,7 @@ router.post("/:id/reuse", authenticate, auditLog("TEAM_REUSED"), async (req: Req
 
     // Check requester is the leader or a coordinator
     const { role, userId } = req.user!;
-    const isCoord = ["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_TEAM"].includes(role);
+    const isCoord = ["ADMIN", "FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_COORDINATOR"].includes(role);
     if (original.leaderId !== userId && !isCoord) {
       res.status(403).json({ error: "Only the team leader or a coordinator can reuse this team" }); return;
     }
@@ -281,7 +281,7 @@ router.patch("/:id", authenticate, auditLog("TEAM_UPDATED"), async (req: Request
     if (!team) { res.status(404).json({ error: "Team not found" }); return; }
 
     const { role, userId } = req.user!;
-    const isCoord = ["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_TEAM"].includes(role);
+    const isCoord = ["ADMIN", "FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_COORDINATOR"].includes(role);
     if (team.leaderId !== userId && !isCoord) {
       res.status(403).json({ error: "Only the team leader or a coordinator can edit this team" }); return;
     }
@@ -428,7 +428,7 @@ router.post("/join", authenticate, async (req: Request, res: Response) => {
 });
 
 // GET /api/teams — All teams (Management only)
-router.get("/", authenticate, requireMinRole("TECH_TEAM"), async (_req: Request, res: Response) => {
+router.get("/", authenticate, requireMinRole("TECH_COORDINATOR"), async (_req: Request, res: Response) => {
   try {
     const teams = await prisma.team.findMany({
       include: {
@@ -453,7 +453,7 @@ router.delete("/:id", authenticate, auditLog("TEAM_DELETED"), async (req: Reques
     if (!team) { res.status(404).json({ error: "Team not found" }); return; }
 
     const { role, userId } = req.user!;
-    const isCoord = ["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_TEAM"].includes(role);
+    const isCoord = ["ADMIN", "FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "TECH_COORDINATOR"].includes(role);
     if (team.leaderId !== userId && !isCoord) {
       res.status(403).json({ error: "Only the team leader or an administrator can delete this team" });
       return;
@@ -472,7 +472,7 @@ router.delete("/:id", authenticate, auditLog("TEAM_DELETED"), async (req: Reques
 });
 
 // PATCH /api/teams/:id/disqualify — Disqualify a team (Management only)
-router.patch("/:id/disqualify", authenticate, requireMinRole("TECH_TEAM"), auditLog("TEAM_DISQUALIFIED"), async (req: Request, res: Response) => {
+router.patch("/:id/disqualify", authenticate, requireMinRole("TECH_COORDINATOR"), auditLog("TEAM_DISQUALIFIED"), async (req: Request, res: Response) => {
   try {
     const team = await prisma.team.findUnique({ where: { id: req.params.id } });
     if (!team) { res.status(404).json({ error: "Team not found" }); return; }

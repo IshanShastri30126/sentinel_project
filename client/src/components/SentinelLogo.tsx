@@ -3,14 +3,14 @@
 import React from "react";
 import { motion } from "framer-motion";
 
-export interface SentinalLogoProps {
+export interface SentinelLogoProps {
   className?: string;
   collapsed?: boolean;
   showText?: boolean;
   animateDrawing?: boolean;
 }
 
-export const SentinalLogo: React.FC<SentinalLogoProps> = ({
+export const SentinelLogo: React.FC<SentinelLogoProps> = ({
   className = "",
   collapsed = false,
   showText = true,
@@ -181,6 +181,6 @@ export const SentinalLogo: React.FC<SentinalLogoProps> = ({
   );
 };
 
-export const CyberKavachLogo = SentinalLogo;
-export type CyberKavachLogoProps = SentinalLogoProps;
-export default SentinalLogo;
+export const CyberKavachLogo = SentinelLogo;
+export type CyberKavachLogoProps = SentinelLogoProps;
+export default SentinelLogo;

@@ -131,7 +131,7 @@ export default function PublicEventsPage() {
                 </h1>
                 <p className="font-mono text-xs sm:text-sm text-slate-300 max-w-2xl mx-auto leading-relaxed">
                   Discover upcoming workshops, strategic hackathons, zero-day threat exercises,
-                  and official SENTINAL certification summits.
+                  and official SENTINEL certification summits.
                 </p>
               </div>
             </SectionReveal>

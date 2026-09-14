@@ -271,7 +271,7 @@ const DEFAULT_OPS_DATA: OpsData = {
     if (!user) return;
     const load = async () => {
       try {
-        if (["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "TECH_TEAM", "STUDENT_COORDINATOR", "FACULTY", "TECH"].includes(user.role)) {
+        if (["ADMIN", "FACULTY_COORDINATOR", "TECH_COORDINATOR", "STUDENT_COORDINATOR", "FACULTY", "TECH"].includes(user.role)) {
           const [clubRes, opsRes, usersRes] = await Promise.all([
             api<ClubAnalytics>("/analytics/club", { token: token || undefined }).catch((err) => {
               console.warn("Club analytics notice:", err);
@@ -470,7 +470,7 @@ const DEFAULT_OPS_DATA: OpsData = {
     );
   }
 
-  const isCoordinator = ["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "TECH_TEAM", "STUDENT_COORDINATOR", "FACULTY", "TECH"].includes(user?.role || "");
+  const isCoordinator = ["ADMIN", "FACULTY_COORDINATOR", "TECH_COORDINATOR", "STUDENT_COORDINATOR", "FACULTY", "TECH"].includes(user?.role || "");
 
   return (
     <div className="space-y-6">
@@ -518,7 +518,7 @@ const DEFAULT_OPS_DATA: OpsData = {
               {greeting}, <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#00F5D4] via-[#00E1FF] to-white">{user?.name}</span>
             </h1>
             <p className="mt-2 text-xs sm:text-sm text-slate-300 font-mono">
-              Welcome back to your SENTINAL Operations Command Portal. Managed clearances: <span className="font-semibold uppercase text-white font-mono">{user?.role?.replace(/_/g, " ")}</span>.
+              Welcome back to your SENTINEL Operations Command Portal. Managed clearances: <span className="font-semibold uppercase text-white font-mono">{user?.role?.replace(/_/g, " ")}</span>.
             </p>
           </div>
           <div className="rounded border border-slate-800 bg-[#070E1A] p-3.5 flex flex-col justify-center min-w-[140px] font-mono text-center shrink-0 self-start sm:self-auto shadow-sm">
@@ -987,7 +987,7 @@ const DEFAULT_OPS_DATA: OpsData = {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
                     {registeredEvents.map((event) => {
                       const status = getRegEventStatus(event);
-                      const isCoordinator = Boolean(user?.role && ["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "TECH_TEAM", "STUDENT_COORDINATOR", "FACULTY", "TECH"].includes(user.role));
+                      const isCoordinator = Boolean(user?.role && ["ADMIN", "FACULTY_COORDINATOR", "TECH_COORDINATOR", "STUDENT_COORDINATOR", "FACULTY", "TECH"].includes(user.role));
                       return (
                         <motion.div
                           key={event.id}
@@ -1141,7 +1141,7 @@ const DEFAULT_OPS_DATA: OpsData = {
                 ) : (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
                     {memberEvents.map((event) => {
-                      const isFacultyOrCoord = Boolean(user?.role && ["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "TECH_TEAM", "STUDENT_COORDINATOR", "FACULTY", "TECH"].includes(user.role));
+                      const isFacultyOrCoord = Boolean(user?.role && ["ADMIN", "FACULTY_COORDINATOR", "TECH_COORDINATOR", "STUDENT_COORDINATOR", "FACULTY", "TECH"].includes(user.role));
                       const isAlreadyRegistered = registeredEvents.some((r) => r.id === event.id);
 
                       return (

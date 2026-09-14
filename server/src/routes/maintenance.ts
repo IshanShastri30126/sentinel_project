@@ -9,8 +9,8 @@ import os from "os";
 
 const router = Router();
 
-// Maintenance, diagnostics, and security logs access: DEVELOPMENT_TEAM, FACULTY_COORDINATOR, TECH_TEAM
-router.use(authenticate, requireRole("DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "TECH_TEAM"));
+// Maintenance, diagnostics, and security logs access: ADMIN, FACULTY_COORDINATOR, TECH_COORDINATOR
+router.use(authenticate, requireRole("ADMIN", "FACULTY_COORDINATOR", "TECH_COORDINATOR"));
 
 // ─── 1. Maintenance Overview & Level 2 Real-time Metrics ───────────────────
 router.get("/overview", async (req: Request, res: Response) => {

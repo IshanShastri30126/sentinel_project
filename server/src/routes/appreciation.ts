@@ -41,7 +41,7 @@ router.get("/categories", (_req, res) => {
 });
 
 // POST /api/appreciation — Give points
-router.post("/", authenticate, requireRole("DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "TECH_TEAM", "STUDENT_COORDINATOR"), validate(givePointsSchema), auditLog("APPRECIATION_POINTS_GIVEN"), async (req: Request, res: Response) => {
+router.post("/", authenticate, requireRole("ADMIN", "FACULTY_COORDINATOR", "TECH_COORDINATOR", "STUDENT_COORDINATOR"), validate(givePointsSchema), auditLog("APPRECIATION_POINTS_GIVEN"), async (req: Request, res: Response) => {
   try {
     const { receiverId, points, category, reason, eventId } = req.body;
     if (receiverId === req.user!.userId) { res.status(400).json({ error: "Cannot give points to yourself" }); return; }
@@ -68,7 +68,7 @@ router.post("/", authenticate, requireRole("DEVELOPMENT_TEAM", "FACULTY_COORDINA
 });
 
 // POST /api/appreciation/deduct — Deduct points
-router.post("/deduct", authenticate, requireRole("DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "TECH_TEAM", "STUDENT_COORDINATOR"), validate(deductPointsSchema), auditLog("APPRECIATION_POINTS_DEDUCTED"), async (req: Request, res: Response) => {
+router.post("/deduct", authenticate, requireRole("ADMIN", "FACULTY_COORDINATOR", "TECH_COORDINATOR", "STUDENT_COORDINATOR"), validate(deductPointsSchema), auditLog("APPRECIATION_POINTS_DEDUCTED"), async (req: Request, res: Response) => {
   try {
     const { receiverId, points, reason } = req.body;
     const record = await prisma.appreciationPoint.create({
@@ -167,7 +167,7 @@ router.get("/badges", async (_req: Request, res: Response) => {
 });
 
 // POST /api/appreciation/badges
-router.post("/badges", authenticate, requireRole("DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "TECH_TEAM", "STUDENT_COORDINATOR"), validate(createBadgeSchema), async (req: Request, res: Response) => {
+router.post("/badges", authenticate, requireRole("ADMIN", "FACULTY_COORDINATOR", "TECH_COORDINATOR", "STUDENT_COORDINATOR"), validate(createBadgeSchema), async (req: Request, res: Response) => {
   try {
     const { name, description, icon, pointThreshold } = req.body;
     const badge = await prisma.badge.create({

@@ -2,7 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { SentinalLogo } from "@/components/SentinalLogo";
+import { SentinelLogo } from "@/components/SentinelLogo";
 import { ShieldCheck, ArrowUpRight } from "lucide-react";
 
 /**
@@ -19,9 +19,9 @@ export function Footer() {
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-8 mb-10">
         {/* Column 1: Brand */}
         <div className="md:col-span-2 space-y-4">
-          <SentinalLogo animateDrawing={false} />
+          <SentinelLogo animateDrawing={false} />
           <p className="font-sans text-xs text-slate-400 max-w-sm leading-relaxed">
-            SENTINAL is the centralized digital operations hub and cyber defense platform.
+            SENTINEL is the centralized digital operations hub and cyber defense platform.
             Pioneering advanced vulnerability research, defense strategy summits, and competitive excellence.
           </p>
           <div className="flex items-center gap-2 font-mono text-[10px] text-cyan-400 tracking-wider uppercase">

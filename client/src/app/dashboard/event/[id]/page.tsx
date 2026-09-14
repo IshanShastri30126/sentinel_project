@@ -50,8 +50,8 @@ const getGoogleCalendarUrl = (ev: EventDetail) => {
     
   const text = encodeURIComponent(ev.title);
   const dates = `${start}/${end}`;
-  const details = encodeURIComponent(ev.description || "SENTINAL Event");
-  const location = encodeURIComponent(ev.venue || "Online / SENTINAL Hub");
+  const details = encodeURIComponent(ev.description || "SENTINEL Event");
+  const location = encodeURIComponent(ev.venue || "Online / SENTINEL Hub");
   
   return `https://www.google.com/calendar/render?action=TEMPLATE&text=${text}&dates=${dates}&details=${details}&location=${location}`;
 };
@@ -110,7 +110,7 @@ export default function EventDetailPage() {
   };
 
   useEffect(() => {
-    if (!isLoading && user && !["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "TECH_TEAM", "STUDENT_COORDINATOR", "FACULTY", "TECH", "CONTENT", "SOCIAL_MEDIA"].includes(user.role)) {
+    if (!isLoading && user && !["ADMIN", "FACULTY_COORDINATOR", "TECH_COORDINATOR", "STUDENT_COORDINATOR", "FACULTY", "TECH", "CONTENT", "SOCIAL_MEDIA"].includes(user.role)) {
       router.push("/");
     }
   }, [user, isLoading, router]);
