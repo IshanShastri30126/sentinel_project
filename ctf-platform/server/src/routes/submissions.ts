@@ -374,15 +374,15 @@ router.post(
         `[FLAG CORRECT] ${req.user!.email} solved challenge ${challengeId} for ${pointsAwarded} pts (solve #${newSolveCount})`
       );
 
-      // We use the imported ctfNamespace directly to emit to the room.
-      ctfNamespace.to(`competition:${challenge.competitionId}`).emit("leaderboardUpdate", {
+      // We use the ctfNamespace to emit to the room if available.
+      ctfNamespace?.to(`competition:${challenge.competitionId}`).emit("leaderboardUpdate", {
         participantId: participant.id,
         newTotalScore: newTotalScore,
         challengeId: challengeId,
         pointsAwarded: pointsAwarded,
       });
 
-      ctfNamespace.to(`competition:${challenge.competitionId}`).emit("liveSolve", {
+      ctfNamespace?.to(`competition:${challenge.competitionId}`).emit("liveSolve", {
         challengeId: challengeId,
         newSolveCount: newSolveCount,
         solverName: req.user?.name || "Someone",

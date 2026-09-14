@@ -1,0 +1,413 @@
+[
+  {
+    "id": "850b0fe5-d899-4a75-91be-6f18a808183e",
+    "title": "API-001 Flag Test Comp 1789233460504",
+    "description": null,
+    "rules": null,
+    "state": "ACTIVE",
+    "startTime": null,
+    "endTime": null,
+    "inviteCode": null,
+    "isLeaderboardVisible": true,
+    "version": 1,
+    "createdAt": "2026-09-12T17:17:42.351Z",
+    "updatedAt": "2026-09-12T17:17:42.351Z",
+    "challenges": [
+      {
+        "id": "1ed9c869-f3e2-4d28-ad2f-96234892b84a",
+        "title": "Crypto Flag Challenge 1789233460504",
+        "description": null,
+        "category": "CRYPTO",
+        "difficulty": "MEDIUM",
+        "flagHash": "$2a$10$i7Rsn0wBWcb2aev6z9SObOZy5C2ckMeSa/AcRBjF47KtexHGdJ9ki",
+        "flagType": "EXACT",
+        "initialPoints": 400,
+        "decayCount": 20,
+        "minimumPoints": 100,
+        "currentPoints": 400,
+        "solveCount": 0,
+        "version": 1,
+        "createdAt": "2026-09-12T17:17:43.428Z",
+        "updatedAt": "2026-09-12T17:17:43.428Z",
+        "competitionId": "850b0fe5-d899-4a75-91be-6f18a808183e",
+        "hints": []
+      }
+    ]
+  },
+  {
+    "id": "017eed8b-0cdc-4432-897c-fdff431cb5a2",
+    "title": "Operation Hikari — CTF",
+    "description": "A multi-phase Capture The Flag challenge set against the backdrop of a fictional university physics department's declassified WWII-era nuclear research program. 10 phases, escalating from LOW to EXPERT difficulty.",
+    "rules": "1. Flag format: HIKARI{...} (case-sensitive)\n2. Dynamic scoring: points decrease as more players solve a challenge\n3. Hints cost points — use them wisely\n4. One solve per team per challenge\n5. No brute-forcing the submission endpoint",
+    "state": "ACTIVE",
+    "startTime": "2026-09-12T09:47:21.407Z",
+    "endTime": "2026-09-12T09:57:21.407Z",
+    "inviteCode": "HIKARI-2026",
+    "isLeaderboardVisible": true,
+    "version": 1,
+    "createdAt": "2026-09-12T09:47:21.458Z",
+    "updatedAt": "2026-09-12T09:47:21.458Z",
+    "challenges": [
+      {
+        "id": "bdc6ce7e-fdab-41b7-ac19-308bdfce586c",
+        "title": "Phase 1 — The First Fragment",
+        "description": "An archived mailing-list post from the physics department holds the first clue. Decode the sign-off (Caesar cipher, shift 8) and the forum signature (Base64). A campus trivia riddle reveals a room number, and a QR code at Tanaka Hall gives you a handle.\n\nCombine all four sub-answers to build the phase flag.",
+        "category": "CRYPTO",
+        "difficulty": "EASY",
+        "flagHash": "$2a$10$cU90LPY4bXxr2K2zJ/3ID.MgO6NgjQPTYEK3OgRrhrRXf7U4emXAi",
+        "flagType": "EXACT",
+        "initialPoints": 100,
+        "decayCount": 20,
+        "minimumPoints": 10,
+        "currentPoints": 100,
+        "solveCount": 0,
+        "version": 1,
+        "createdAt": "2026-09-12T09:47:23.207Z",
+        "updatedAt": "2026-09-12T09:47:23.207Z",
+        "competitionId": "017eed8b-0cdc-4432-897c-fdff431cb5a2",
+        "hints": [
+          {
+            "id": "ee12e5ed-ef66-441c-999c-dcd41c57cf29",
+            "content": "The Caesar shift is 8 — for August.",
+            "pointCost": 10,
+            "orderIndex": 0,
+            "createdAt": "2026-09-12T09:47:24.720Z",
+            "challengeId": "bdc6ce7e-fdab-41b7-ac19-308bdfce586c"
+          },
+          {
+            "id": "58e9d633-3d55-4a57-a1a1-66236c49a11c",
+            "content": "The forum signature is pure Base64. Decode it directly.",
+            "pointCost": 10,
+            "orderIndex": 1,
+            "createdAt": "2026-09-12T09:47:26.086Z",
+            "challengeId": "bdc6ce7e-fdab-41b7-ac19-308bdfce586c"
+          }
+        ]
+      },
+      {
+        "id": "9a42a6c4-8612-4183-80cf-6c4056428ec2",
+        "title": "Phase 2 — Metadata Never Lies",
+        "description": "A recovered office photo has secrets in its EXIF data. The UserComment field hides coordinates (Base64 → ROT47), the GPS tags have scrambled digits, and the XMP Description holds a key fragment.\n\nTwo nearly-identical images are provided — compare SHA-256 hashes to find the authentic one. A declassified PDF's Author field holds an Atbash-encoded checksum word.",
+        "category": "FORENSICS",
+        "difficulty": "EASY",
+        "flagHash": "$2a$10$qTXitIRWHclN8qwuyrkMP.OO/od2rdvYEDdSv80adrol8GREl2P86",
+        "flagType": "EXACT",
+        "initialPoints": 150,
+        "decayCount": 20,
+        "minimumPoints": 15,
+        "currentPoints": 150,
+        "solveCount": 0,
+        "version": 1,
+        "createdAt": "2026-09-12T09:47:28.221Z",
+        "updatedAt": "2026-09-12T09:47:28.221Z",
+        "competitionId": "017eed8b-0cdc-4432-897c-fdff431cb5a2",
+        "hints": [
+          {
+            "id": "5a984a4b-f42a-4c0d-b8ab-b4d43b2d37c4",
+            "content": "The EXIF UserComment is encoded: ROT47 first, then Base64.",
+            "pointCost": 15,
+            "orderIndex": 0,
+            "createdAt": "2026-09-12T09:47:29.451Z",
+            "challengeId": "9a42a6c4-8612-4183-80cf-6c4056428ec2"
+          },
+          {
+            "id": "b86483ce-790f-444e-ad10-7d0a691514c3",
+            "content": "Compare SHA-256 hashes of both images. Only one is authentic.",
+            "pointCost": 15,
+            "orderIndex": 1,
+            "createdAt": "2026-09-12T09:47:30.881Z",
+            "challengeId": "9a42a6c4-8612-4183-80cf-6c4056428ec2"
+          }
+        ]
+      },
+      {
+        "id": "cd542c40-5992-4da3-966a-1c42cb00adfb",
+        "title": "Phase 3 — Layers of Silence",
+        "description": "Two recovered disk sectors contain multi-layer encoded data. Sector A uses Binary(8-bit ASCII) → Hex → Base64. Sector B uses ROT13 → Atbash → Base32.\n\nXOR the two decoded halves together to reveal the Telegram channel handle for Phase 8.",
+        "category": "CRYPTO",
+        "difficulty": "MEDIUM",
+        "flagHash": "$2a$10$ZAm8itjQwcTQ4lG00dd0Ue3jZjlRrAO21oECvUyzHz932IOWhS0uG",
+        "flagType": "EXACT",
+        "initialPoints": 200,
+        "decayCount": 20,
+        "minimumPoints": 20,
+        "currentPoints": 200,
+        "solveCount": 0,
+        "version": 1,
+        "createdAt": "2026-09-12T09:47:32.264Z",
+        "updatedAt": "2026-09-12T09:47:32.264Z",
+        "competitionId": "017eed8b-0cdc-4432-897c-fdff431cb5a2",
+        "hints": [
+          {
+            "id": "d65d9b1c-cb52-46d9-9a07-632d0d95a838",
+            "content": "Sector A chain: Binary → Hex → Base64 (decode in reverse order).",
+            "pointCost": 20,
+            "orderIndex": 0,
+            "createdAt": "2026-09-12T09:47:33.952Z",
+            "challengeId": "cd542c40-5992-4da3-966a-1c42cb00adfb"
+          },
+          {
+            "id": "63e39a41-11ee-458f-ae07-52c86c96f788",
+            "content": "Sector B chain: Base32 → Atbash → ROT13 (decode in reverse).",
+            "pointCost": 20,
+            "orderIndex": 1,
+            "createdAt": "2026-09-12T09:47:35.167Z",
+            "challengeId": "cd542c40-5992-4da3-966a-1c42cb00adfb"
+          }
+        ]
+      },
+      {
+        "id": "778ca91c-b4c2-429b-aab8-791610d9527a",
+        "title": "Phase 4 — Static on the Line",
+        "description": "An audio file contains multiple hidden messages. The REAL message is painted in the spectrogram (14–20 kHz range — view in Audacity/Sonic Visualiser). A Morse code layer is a deliberate TRAP.\n\nA backmasked phrase at 18–23 seconds gives a three-digit number. DTMF touch-tones at 25–28 seconds give four more digits. Combine them.",
+        "category": "STEGO",
+        "difficulty": "MEDIUM",
+        "flagHash": "$2a$10$vPY.a12LXxKszwJllKoQL.Do3X/xO0XhEChimEyEuYOnurmdSxr8m",
+        "flagType": "EXACT",
+        "initialPoints": 250,
+        "decayCount": 20,
+        "minimumPoints": 25,
+        "currentPoints": 250,
+        "solveCount": 0,
+        "version": 1,
+        "createdAt": "2026-09-12T09:47:36.823Z",
+        "updatedAt": "2026-09-12T09:47:36.823Z",
+        "competitionId": "017eed8b-0cdc-4432-897c-fdff431cb5a2",
+        "hints": [
+          {
+            "id": "d268b37f-5a6a-4a22-8997-a1184e357f84",
+            "content": "The Morse code is a TRAP. The real answer is in the spectrogram.",
+            "pointCost": 25,
+            "orderIndex": 0,
+            "createdAt": "2026-09-12T09:47:38.200Z",
+            "challengeId": "778ca91c-b4c2-429b-aab8-791610d9527a"
+          },
+          {
+            "id": "f006b54e-6f17-46fd-87ed-7186772bd24a",
+            "content": "Reverse the audio at 18-23s to hear the backmasked number.",
+            "pointCost": 25,
+            "orderIndex": 1,
+            "createdAt": "2026-09-12T09:47:39.720Z",
+            "challengeId": "778ca91c-b4c2-429b-aab8-791610d9527a"
+          }
+        ]
+      },
+      {
+        "id": "55c1c927-b670-4157-86e1-94bcfbe3c5c9",
+        "title": "Phase 5 — Open Sources",
+        "description": "Three 'Ghost' alias accounts are provided — two are decoys planted by the adversary. Identify the authentic account using creation dates and cross-posting timestamps.\n\nOn the real account, find the historical photo it referenced and extract its original publish date. Cross-reference against a second archive for the catalog number.\n\nReverse-image-search a decoy photo to prove it's fabricated.",
+        "category": "OSINT",
+        "difficulty": "MEDIUM",
+        "flagHash": "$2a$10$ph0EJWqCPxf9Ir9sS2IB7OG9VDfW1LIgXW68ag1qTFYzZzwtRxGou",
+        "flagType": "EXACT",
+        "initialPoints": 300,
+        "decayCount": 20,
+        "minimumPoints": 30,
+        "currentPoints": 300,
+        "solveCount": 0,
+        "version": 1,
+        "createdAt": "2026-09-12T09:47:41.290Z",
+        "updatedAt": "2026-09-12T09:47:41.290Z",
+        "competitionId": "017eed8b-0cdc-4432-897c-fdff431cb5a2",
+        "hints": [
+          {
+            "id": "cb455c70-077a-4ee7-8820-3d77c06092ea",
+            "content": "Account A references an event BEFORE its own creation date. Suspicious.",
+            "pointCost": 30,
+            "orderIndex": 0,
+            "createdAt": "2026-09-12T09:47:42.613Z",
+            "challengeId": "55c1c927-b670-4157-86e1-94bcfbe3c5c9"
+          },
+          {
+            "id": "dcfd9a5e-2140-449d-8adb-56c11e135110",
+            "content": "Account C reposts content from B with a 4-hour delay. It's a mirror.",
+            "pointCost": 30,
+            "orderIndex": 1,
+            "createdAt": "2026-09-12T09:47:43.850Z",
+            "challengeId": "55c1c927-b670-4157-86e1-94bcfbe3c5c9"
+          }
+        ]
+      },
+      {
+        "id": "53d2a259-0f9d-4314-976f-f74039bd7d38",
+        "title": "Phase 6 — Sealed Image",
+        "description": "XOR-decrypt the sealed image using the key built from Phase 4 (427 + 8193) and Phase 5's catalog number. Run LSB extraction on the decrypted image to get a text payload.\n\nValidate the payload's checksum against the word 'INTEGRITY' from Phase 2.5. A wrong key produces a plausible-looking but garbage image — this integrity check catches that.",
+        "category": "STEGO",
+        "difficulty": "HARD",
+        "flagHash": "$2a$10$qbX83iBkvDLEY1xsDn3lvOzEOTSaWUlE/F6XSrEfzkN.Im3udZO4i",
+        "flagType": "EXACT",
+        "initialPoints": 400,
+        "decayCount": 20,
+        "minimumPoints": 40,
+        "currentPoints": 400,
+        "solveCount": 0,
+        "version": 1,
+        "createdAt": "2026-09-12T09:47:45.255Z",
+        "updatedAt": "2026-09-12T09:47:45.255Z",
+        "competitionId": "017eed8b-0cdc-4432-897c-fdff431cb5a2",
+        "hints": [
+          {
+            "id": "974e6bc6-8938-49dd-beba-e1ff30ede9a8",
+            "content": "XOR key = SHA-256('427' + '8193' + catalog_number).",
+            "pointCost": 40,
+            "orderIndex": 0,
+            "createdAt": "2026-09-12T09:47:47.088Z",
+            "challengeId": "53d2a259-0f9d-4314-976f-f74039bd7d38"
+          },
+          {
+            "id": "ec38d3e1-4f40-4d9d-8941-99c9880ea04e",
+            "content": "Use LSB extraction on RGB channels, null-terminated.",
+            "pointCost": 40,
+            "orderIndex": 1,
+            "createdAt": "2026-09-12T09:47:48.510Z",
+            "challengeId": "53d2a259-0f9d-4314-976f-f74039bd7d38"
+          }
+        ]
+      },
+      {
+        "id": "9fd32d93-78d7-43aa-aaf6-1405a502802f",
+        "title": "Phase 7 — The Morning Papers",
+        "description": "Two real public-domain 1945 newspaper front pages and one fabricated 'campus paper' clipping. Identify the fake by its typeface anachronism.\n\nApply book-cipher coordinates against both real papers to extract word sequences. A hidden fragment lurks in a photo CAPTION, not the body text. Assemble all fragments into the Phase 7 phrase.",
+        "category": "FORENSICS",
+        "difficulty": "HARD",
+        "flagHash": "$2a$10$QubTMA7IiKiyl2aFYA9h5eEDfA6k4.BSbisgWiqgY8GhF5/qKiRYe",
+        "flagType": "EXACT",
+        "initialPoints": 450,
+        "decayCount": 20,
+        "minimumPoints": 45,
+        "currentPoints": 450,
+        "solveCount": 0,
+        "version": 1,
+        "createdAt": "2026-09-12T09:47:50.001Z",
+        "updatedAt": "2026-09-12T09:47:50.001Z",
+        "competitionId": "017eed8b-0cdc-4432-897c-fdff431cb5a2",
+        "hints": [
+          {
+            "id": "bba46eef-5b17-4d94-8245-8d2880de1473",
+            "content": "The fabricated clipping is #3 — look for a printing anachronism.",
+            "pointCost": 45,
+            "orderIndex": 0,
+            "createdAt": "2026-09-12T09:47:51.414Z",
+            "challengeId": "9fd32d93-78d7-43aa-aaf6-1405a502802f"
+          },
+          {
+            "id": "edd9a164-7541-4b0a-8542-13c28c734cf2",
+            "content": "Don't forget the photo caption cipher (7.6) — it's easy to miss.",
+            "pointCost": 45,
+            "orderIndex": 1,
+            "createdAt": "2026-09-12T09:47:52.757Z",
+            "challengeId": "9fd32d93-78d7-43aa-aaf6-1405a502802f"
+          }
+        ]
+      },
+      {
+        "id": "6abaea3c-9493-41d5-ba06-5a88debe322b",
+        "title": "Phase 8 — Dead Drop",
+        "description": "Interact with the Telegram bot: send /unlock <Phase 7 phrase>. Within the countdown window, find ciphers in the channel's pinned message, sticker pack emoji names, and channel description (Base32).\n\nThe bot only reveals the next asset if you reply to the CORRECT earlier message (not the newest one). Combine fragments in the order given by the reply timestamp.",
+        "category": "MISC",
+        "difficulty": "HARD",
+        "flagHash": "$2a$10$kIf8egQTLnf/D4nC65tHf.xQQJiZWoGww1Hx4yDibzJNm6267Pm3e",
+        "flagType": "EXACT",
+        "initialPoints": 500,
+        "decayCount": 20,
+        "minimumPoints": 50,
+        "currentPoints": 500,
+        "solveCount": 0,
+        "version": 1,
+        "createdAt": "2026-09-12T09:47:54.220Z",
+        "updatedAt": "2026-09-12T09:47:54.220Z",
+        "competitionId": "017eed8b-0cdc-4432-897c-fdff431cb5a2",
+        "hints": [
+          {
+            "id": "1d1a5d62-8b60-4a79-a3c5-8a9a2ee56d75",
+            "content": "The correct reply target has a timestamp matching the 06/08 date from Phase 1.2.",
+            "pointCost": 50,
+            "orderIndex": 0,
+            "createdAt": "2026-09-12T09:47:55.413Z",
+            "challengeId": "6abaea3c-9493-41d5-ba06-5a88debe322b"
+          },
+          {
+            "id": "38fe3608-9c7b-43e8-921d-a20ffc61ba98",
+            "content": "Sticker message = first character of each emoji name, in order.",
+            "pointCost": 50,
+            "orderIndex": 1,
+            "createdAt": "2026-09-12T09:47:56.834Z",
+            "challengeId": "6abaea3c-9493-41d5-ba06-5a88debe322b"
+          }
+        ]
+      },
+      {
+        "id": "9a0329ee-2b93-4ae6-906c-5a1bbaec5a9a",
+        "title": "Phase 9 — The Cipher of Ciphers",
+        "description": "Apply Vigenère cipher (key = concatenation of Phase 2, 5, and 6 keys), then AES-256-CBC (key = SHA-256 of Vigenère output, IV from a physical QR code).\n\nTwo near-identical substitution alphabets are provided — only one matches the Phase 6.3 checksum. Decrypt using the correct one.",
+        "category": "CRYPTO",
+        "difficulty": "INSANE",
+        "flagHash": "$2a$10$O8MUkJ/0gMXBjqlcQPGx6uFXAi8hqZOb7ZViai/y6Nmw5/29Caw3O",
+        "flagType": "EXACT",
+        "initialPoints": 600,
+        "decayCount": 20,
+        "minimumPoints": 60,
+        "currentPoints": 600,
+        "solveCount": 0,
+        "version": 1,
+        "createdAt": "2026-09-12T09:47:58.391Z",
+        "updatedAt": "2026-09-12T09:47:58.391Z",
+        "competitionId": "017eed8b-0cdc-4432-897c-fdff431cb5a2",
+        "hints": [
+          {
+            "id": "2b457ddf-4370-49c9-9606-d4d64730d3ed",
+            "content": "Vigenère key = SIGNAL_FRAGMENT_ALPHA + catalog + LSB_payload.",
+            "pointCost": 60,
+            "orderIndex": 0,
+            "createdAt": "2026-09-12T09:47:59.841Z",
+            "challengeId": "9a0329ee-2b93-4ae6-906c-5a1bbaec5a9a"
+          },
+          {
+            "id": "c4aca710-1719-4148-b839-1f0fc25e0a85",
+            "content": "Validate the alphabet using MD5 prefix from Phase 6.3.",
+            "pointCost": 60,
+            "orderIndex": 1,
+            "createdAt": "2026-09-12T09:48:01.124Z",
+            "challengeId": "9a0329ee-2b93-4ae6-906c-5a1bbaec5a9a"
+          }
+        ]
+      },
+      {
+        "id": "60d2c0ac-cc12-40ac-a125-a5362cf3509e",
+        "title": "Phase 10 — Where the Signal Ends",
+        "description": "The Phase 9 phrase is an offset key. Real GPS coordinates are encoded by subtracting a fixed offset derivable only from the correct substitution alphabet.\n\nMap H-I-K-A-R-I through the alphabet, convert to positions (A=1…Z=26), and use as a repeating offset key. Subtract from the encoded digits (mod 10) to find the true coordinates.",
+        "category": "MISC",
+        "difficulty": "INSANE",
+        "flagHash": "$2a$10$XVamwFbiSSSPEzOW1yFOAONmYcb.t6OXrSwHAsHSPmm/C5dML7Lwu",
+        "flagType": "EXACT",
+        "initialPoints": 700,
+        "decayCount": 20,
+        "minimumPoints": 70,
+        "currentPoints": 700,
+        "solveCount": 0,
+        "version": 1,
+        "createdAt": "2026-09-12T09:48:02.935Z",
+        "updatedAt": "2026-09-12T09:48:02.935Z",
+        "competitionId": "017eed8b-0cdc-4432-897c-fdff431cb5a2",
+        "hints": [
+          {
+            "id": "5fc6b26f-776d-4281-bbab-0e10bfa5ab74",
+            "content": "true_digit = (encoded_digit - offset_digit) mod 10.",
+            "pointCost": 70,
+            "orderIndex": 0,
+            "createdAt": "2026-09-12T09:48:04.386Z",
+            "challengeId": "60d2c0ac-cc12-40ac-a125-a5362cf3509e"
+          },
+          {
+            "id": "9505ac92-db58-4a34-bf56-ea61812aa8d6",
+            "content": "The offset repeats: H=8, I=9, K=11, A=1, R=18, I=9.",
+            "pointCost": 70,
+            "orderIndex": 1,
+            "createdAt": "2026-09-12T09:48:05.575Z",
+            "challengeId": "60d2c0ac-cc12-40ac-a125-a5362cf3509e"
+          }
+        ]
+      }
+    ]
+  }
+]

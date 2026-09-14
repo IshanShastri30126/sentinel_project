@@ -126,6 +126,7 @@ const io = new SocketIOServer(server, {
 import { setupScoreboardSockets } from "./sockets/scoreboard";
 
 const ctfNamespace = io.of("/ctf");
+app.set("io", io);
 
 // Attach all CTF real-time event handlers
 setupScoreboardSockets(ctfNamespace);
