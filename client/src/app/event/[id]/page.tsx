@@ -921,7 +921,7 @@ function PublicEventPageContent() {
               )}
 
               {/* Coordinator View Banner */}
-              {user?.role === "FACULTY" || user?.role === "STUDENT_COORDINATOR" || user?.role === "FACULTY_COORDINATOR" ? (
+              {user?.role === "STUDENT_COORDINATOR" || user?.role === "FACULTY_COORDINATOR" ? (
                 <div className="flex flex-col gap-2 p-4 rounded-xl border border-sky-500/30 bg-sky-500/10 text-sky-400 text-center font-mono">
                   <div className="flex items-center justify-center gap-2">
                     <Eye className="w-5 h-5 text-sky-400 shrink-0" />
@@ -1131,11 +1131,11 @@ function PublicEventPageContent() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
                         <label className="ck-label font-mono uppercase tracking-wider text-[10px]">
-                          {user?.role === "FACULTY" ? "Employee ID *" : "College / Student ID *"}
+                          {user?.role === "FACULTY_COORDINATOR" ? "Employee ID *" : "College / Student ID *"}
                         </label>
                         <input 
                           className="ck-input" 
-                          placeholder={user?.role === "FACULTY" ? "e.g. EMP101" : "e.g. 22CS101"} 
+                          placeholder={user?.role === "FACULTY_COORDINATOR" ? "e.g. EMP101" : "e.g. 22CS101"} 
                           value={formData.studentId} 
                           onChange={(e) => setFormData({ ...formData, studentId: e.target.value })} 
                           required 
@@ -1200,7 +1200,7 @@ function PublicEventPageContent() {
                       </div>
                     </div>
 
-                    {user?.role !== "FACULTY" && (
+                    {user?.role !== "FACULTY_COORDINATOR" && (
                       <div>
                         <label className="ck-label font-mono uppercase tracking-wider text-[10px]">Semester (1-8)</label>
                         <select 
@@ -1614,7 +1614,7 @@ function PublicEventPageContent() {
               )}
 
               {/* Staff / Coordinator Direct Spectator Link */}
-              {user && ["TECH_COORDINATOR", "FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "FACULTY"].includes(user.role) && (
+              {user && ["TECH_COORDINATOR", "FACULTY_COORDINATOR", "STUDENT_COORDINATOR"].includes(user.role) && (
                 <div className="pt-4 border-t border-white/[0.08] flex items-center justify-between flex-wrap gap-2 text-xs">
                   <span className="text-sky-400 uppercase tracking-wider font-bold">
                     Staff Supervisor Mode

@@ -27,11 +27,10 @@ interface NavLinkItem {
 }
 
 const NAV_LINKS: NavLinkItem[] = [
-  { name: "Events", href: "/dashboard/event", icon: Calendar },
-  { name: "Leaderboard", href: "/dashboard/leaderboard", icon: Trophy },
+  { name: "Events", href: "/events", icon: Calendar },
+  { name: "Leaderboard", href: "/leaderboard", icon: Trophy },
   { name: "About", href: "/about", icon: Info },
-  { name: "Team", href: "/team", icon: Users },
-];
+  { name: "Team", href: "/team", icon: Users }];
 
 /**
  * Navbar

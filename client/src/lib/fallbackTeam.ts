@@ -34,7 +34,7 @@ export const FALLBACK_TEAM_CADRE: TeamCadreMember[] = [
   {
     id: "member_1786134186573",
     name: "Dr. Pritesh Prajapati",
-    role: "FACULTY",
+    role: "FACULTY_COORDINATOR",
     designation: "Faculty Mentor",
     department: "CE - CSPIT",
     email: "priteshprajapati@charusat.ac.in",

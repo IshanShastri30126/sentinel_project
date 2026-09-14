@@ -50,9 +50,9 @@ export default function ProfilePage() {
 
   useEffect(() => {
     if (!user) return;
-    const isFac = user.role === "FACULTY_COORDINATOR" || user.role === "FACULTY";
     setEditName(user.name || "");
-    setEditStudentId((isFac ? user.employeeId : user.studentId) || "");
+    const isFac = user.role === "FACULTY_COORDINATOR" || (user.role as string) === "FACULTY";
+    setEditStudentId((isFac ? user.employeeId : user.studentId) || user.employeeId || user.studentId || "");
     setEditPhone(user.phone || "");
     setEditDepartment(user.department || "");
     setEditInstitute(user.institute || "");
@@ -70,7 +70,7 @@ export default function ProfilePage() {
     load();
   }, [token, user]);
 
-  const isFaculty = user?.role === "FACULTY_COORDINATOR" || user?.role === "FACULTY";
+  const isFaculty = user?.role === "FACULTY_COORDINATOR" || (user?.role as string) === "FACULTY";
 
   if (loading) {
     return (
@@ -183,9 +183,9 @@ export default function ProfilePage() {
             <p className="text-sm font-mono text-[var(--ck-text-secondary)]">{user?.email}</p>
             
             <div className="flex flex-wrap justify-center sm:justify-start items-center gap-2 mt-3 text-xs font-mono">
-              {user?.studentId && !user.studentId.includes("@") && (
+              {user && ((isFaculty ? (user.employeeId || user.studentId) : user.studentId) && !(user.employeeId || user.studentId)?.includes("@")) && (
                 <span className="px-2 py-0.5 rounded bg-[var(--ck-bg)] border border-[var(--ck-border)] text-[var(--ck-text-muted)]">
-                  {isFaculty ? `EMPLOYEE ID: ${user.studentId}` : `CLEARANCE: ${user.studentId}`}
+                  {isFaculty ? `EMPLOYEE ID: ${user.employeeId || user.studentId}` : `CLEARANCE: ${user.studentId}`}
                 </span>
               )}
               {user?.department && (
@@ -330,7 +330,10 @@ export default function ProfilePage() {
             </div>
           </div>
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> sentinel_project/dev
 
           {/* Contact info */}
           <div className="p-3.5 rounded border border-slate-800 bg-[#070E1A]/80 flex items-center gap-4 hover:border-[#00F5D4]/40 transition duration-200 sm:col-span-2">
@@ -469,7 +472,10 @@ export default function ProfilePage() {
                   </div>
                 </div>
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> sentinel_project/dev
 
                 <div>
                   <label className="ck-label">New Password (Optional)</label>

@@ -132,8 +132,7 @@ export default function AboutPage() {
                   title: "Hands-on Technical Labs",
                   desc: "Laboratory sessions covering Linux internals, network protocol analysis, wireless penetration, and defensive hardening.",
                   icon: Award,
-                },
-              ].map((item, idx) => {
+                }].map((item, idx) => {
                 const Icon = item.icon;
                 return (
                   <div

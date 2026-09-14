@@ -139,4 +139,3 @@ export function requireMinRole(minRole: Role) {
     next();
   };
 }
-

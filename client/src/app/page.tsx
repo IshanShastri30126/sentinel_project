@@ -292,7 +292,7 @@ export default function LandingPage() {
                   Summits, competitive hackathons, zero-day research sessions, and certifications.
                 </p>
               </div>
-              <Link href="/event" className="mt-4 md:mt-0">
+              <Link href="/events" className="mt-4 md:mt-0">
                 <CyberButton variant="outline" size="sm" rightIcon={<ArrowRight className="w-3.5 h-3.5" />}>
                   VIEW ALL EVENTS
                 </CyberButton>

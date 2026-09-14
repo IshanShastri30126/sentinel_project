@@ -6,8 +6,7 @@ import { redisGet, redisSet } from "../lib/redis";
 const router = Router();
 
 // GET /api/analytics/sentinel — Faculty/SC/Tech: full sentinel-wide analytics
-// [MIGRATION]: requireMinRole -> requireRole("TECH_COORDINATOR", "FACULTY_COORDINATOR") based on RBAC refactor map
-router.get("/sentinel", authenticate, requireRole("TECH_COORDINATOR", "FACULTY_COORDINATOR"), async (_req: Request, res: Response) => {
+router.get(["/sentinel", "/club"], authenticate, requireRole("TECH_COORDINATOR", "FACULTY_COORDINATOR"), async (_req: Request, res: Response) => {
   try {
     const cacheKey = "analytics:sentinel";
     const cached = await redisGet(cacheKey);

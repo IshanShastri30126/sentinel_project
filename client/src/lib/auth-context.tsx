@@ -10,12 +10,9 @@ export type Role =
   | "FACULTY_COORDINATOR"
   | "STUDENT_COORDINATOR"
   | "TECH_COORDINATOR"
+  | "SOCIAL_MEDIA_COORDINATOR"
   | "MEMBER"
-  | "GUEST"
-  | "FACULTY"
-  | "TECH"
-  | "CONTENT"
-  | "SOCIAL_MEDIA";
+  | "GUEST";
 
 export interface User {
   id: string;

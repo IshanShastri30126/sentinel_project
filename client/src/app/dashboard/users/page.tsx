@@ -28,21 +28,22 @@ interface UserEntry {
 }
 
 const CANONICAL_ROLES = [
-  { value: "DEVELOPMENT_TEAM", label: "Development Team" },
   { value: "FACULTY_COORDINATOR", label: "Faculty Coordinator" },
-  { value: "TECH_TEAM", label: "Tech Team" },
+  { value: "TECH_COORDINATOR", label: "Tech Team" },
   { value: "STUDENT_COORDINATOR", label: "Student Coordinator" },
+  { value: "SOCIAL_MEDIA_COORDINATOR", label: "Social Media Coordinator" },
   { value: "MEMBER", label: "Member" },
-  { value: "GUEST", label: "Guest" },
 ];
 
 const ROLE_DISPLAY_NAMES: Record<string, string> = {
-  DEVELOPMENT_TEAM: "Development Team",
   FACULTY_COORDINATOR: "Faculty Coordinator",
-  TECH_TEAM: "Tech Team",
+  TECH_COORDINATOR: "Tech Team",
   STUDENT_COORDINATOR: "Student Coordinator",
+  SOCIAL_MEDIA_COORDINATOR: "Social Media Coordinator",
   MEMBER: "Member",
   GUEST: "Guest",
+  DEVELOPMENT_TEAM: "Development Team",
+  TECH_TEAM: "Tech Team",
   FACULTY: "Faculty Coordinator",
   TECH: "Tech Team",
   CONTENT: "Content Team",
@@ -194,7 +195,7 @@ export default function UsersPage() {
                     )}
                   </div>
                   <p className="text-[10px] font-mono mt-1 text-[var(--ck-text-muted)] uppercase">
-                    {u.email.toLowerCase()} {u.phone ? `// TEL: ${u.phone}` : ""} {u.department ? `// DEPT: ${u.department}` : ""} 
+                    {u.email.toLowerCase()} {u.phone ? `// TEL: ${u.phone}` : ""} {u.department ? `// DEPT: ${u.department}` : ""}
                   </p>
                 </div>
                 <div className="flex items-center gap-2">

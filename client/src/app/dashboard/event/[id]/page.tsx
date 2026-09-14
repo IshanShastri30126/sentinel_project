@@ -110,7 +110,7 @@ export default function EventDetailPage() {
   };
 
   useEffect(() => {
-    if (!isLoading && user && !["FACULTY_COORDINATOR", "TECH_COORDINATOR", "STUDENT_COORDINATOR", "FACULTY", "TECH", "CONTENT", "SOCIAL_MEDIA"].includes(user.role)) {
+    if (!isLoading && user && !["FACULTY_COORDINATOR", "TECH_COORDINATOR", "STUDENT_COORDINATOR"].includes(user.role)) {
       router.push("/");
     }
   }, [user, isLoading, router]);
@@ -122,8 +122,7 @@ export default function EventDetailPage() {
         const [e, a, r] = await Promise.all([
           api<{ event: EventDetail }>(`/events/${eventId}`, { token }),
           api<Analytics>(`/events/${eventId}/analytics`, { token }),
-          api<{ registrations: Registration[] }>(`/events/${eventId}/registrations`, { token }),
-        ]);
+          api<{ registrations: Registration[] }>(`/events/${eventId}/registrations`, { token })]);
         setEvent(e.event); setAnalytics(a); setRegistrations(r.registrations);
       } catch (err) { console.warn("Event load notice:", err); }
       finally { setLoading(false); }
@@ -259,8 +258,7 @@ export default function EventDetailPage() {
           { label: "Teams", value: analytics?.totalTeams || 0, icon: <UsersRound className="w-5 h-5" />, color: "from-[var(--ck-accent)] to-[#CC3D00] text-white" },
           { label: "Checked In", value: analytics?.attendance.checkedIn || 0, icon: <TrendingUp className="w-5 h-5" />, color: "from-[var(--ck-primary)]/15 to-transparent text-[var(--ck-primary)] border border-[var(--ck-primary)]/30" },
           { label: "Checked Out", value: analytics?.attendance.checkedOut || 0, icon: <Clock className="w-5 h-5" />, color: "from-zinc-800 to-black text-slate-400 border border-zinc-900" },
-          { label: "Late Arrivals", value: analytics?.attendance.lateArrivals || 0, icon: <Clock className="w-5 h-5" />, color: "from-[var(--ck-danger)]/15 to-transparent text-[var(--ck-danger)] border border-[var(--ck-danger)]/30" },
-        ].map((s, i) => (
+          { label: "Late Arrivals", value: analytics?.attendance.lateArrivals || 0, icon: <Clock className="w-5 h-5" />, color: "from-[var(--ck-danger)]/15 to-transparent text-[var(--ck-danger)] border border-[var(--ck-danger)]/30" }].map((s, i) => (
           <motion.div key={s.label} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
             className="ck-card p-4">
             <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${s.color} flex items-center justify-center mb-2`}>
@@ -384,7 +382,7 @@ export default function EventDetailPage() {
                     <td className="text-sm font-medium" data-label="Name">{r.user.name}</td>
                     <td className="text-xs" data-label="Email">{r.user.email}</td>
                     <td className="text-xs font-mono" data-label="ID">
-                      {r.user.studentId ? (r.user.role === "FACULTY" || r.user.role === "FACULTY_COORDINATOR" ? `EMP: ${r.user.studentId}` : r.user.studentId) : "—"}
+                      {r.user.studentId ? (r.user.role === "FACULTY_COORDINATOR" ? `EMP: ${r.user.studentId}` : r.user.studentId) : "—"}
                     </td>
                     <td className="text-xs" data-label="Department">{r.user.department || "—"}</td>
                     <td data-label="Team">{r.team ? <span className="ck-badge ck-badge-primary text-[10px]">{r.team.name} ({r.team.teamCode})</span> : <span className="text-xs" style={{ color: "var(--ck-text-muted)" }}>Individual</span>}</td>

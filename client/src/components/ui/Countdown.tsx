@@ -77,8 +77,7 @@ export function Countdown({
     { label: "DAYS", value: timeLeft.days },
     { label: "HOURS", value: timeLeft.hours },
     { label: "MINS", value: timeLeft.minutes },
-    { label: "SECS", value: timeLeft.seconds },
-  ];
+    { label: "SECS", value: timeLeft.seconds }];
 
   return (
     <div

@@ -1,172 +1,189 @@
 <div align="center">
-  <img src="https://img.shields.io/badge/Version-2.0-red.svg" alt="Version 2.0" />
+  <img src="https://img.shields.io/badge/Version-3.0-red.svg" alt="Version 3.0" />
   <img src="https://img.shields.io/badge/Status-Active-success.svg" alt="Status" />
-  <img src="https://img.shields.io/badge/Next.js-14-black?logo=next.js" alt="Next.js" />
+  <img src="https://img.shields.io/badge/Next.js-15-black?logo=next.js" alt="Next.js" />
   <img src="https://img.shields.io/badge/Node.js-Express-green?logo=node.js" alt="Node.js" />
+  <img src="https://img.shields.io/badge/Sockets-Socket.io-010101?logo=socket.io" alt="Socket.io" />
+  <img src="https://img.shields.io/badge/Database-PostgreSQL_Prisma-blue?logo=postgresql" alt="PostgreSQL" />
 </div>
 
 <br />
 
-# 🌀 Chakravyuh Club
+# 🌀 Chakravyuh Sentinel 3.0 & CTF Wars Platform
 
+**Chakravyuh Sentinel 3.0** is an enterprise-grade cyber operations, club management, and competitive Capture The Flag (CTF) intelligence hub developed for the **Chakravyuh Cyber Security & Operations Club**.
 
-**Chakravyuh 2.0** is an advanced, high-performance web platform designed to manage the operations, events, and members of the Cyber Security & Operations Club. Featuring a sleek, futuristic UI and a highly optimized backend, it acts as the central intelligence hub for all club activities.
+Version 3.0 merges the core Sentinel management platform with **CTF Wars**—a dedicated, real-time cyber competition engine engineered for 150+ concurrent competitors with dynamic scoring, distributed locks, WebSockets live broadcasts, and 5-tier role-based operational security.
 
 ---
 
 ## ✨ Features
 
-- **Role-Based Access Control (RBAC):** Hierarchical clearance levels including Faculty, Student Coordinators, Tech Team, and Social Media.
-- **Advanced Event Management:** End-to-end event lifecycles. Create events, request faculty approvals, track registrations, and manage team sizes.
-- **Dynamic Certificate Generation:** An interactive Canvas-based editor to design certificates. Supports bulk CSV imports, auto-generation, Cloudinary storage, and automated email delivery.
-- **AI-Powered Chatbot:** Integrated with Google Gemini AI to assist users with operational intelligence and club-related queries.
-- **Progressive Web App (PWA):** Installable on mobile and desktop with offline support for rapid check-ins and dashboard access.
-- **Live Analytics Dashboard:** Track attendance, user engagement, and event statistics with interactive, visually stunning graphs.
-- **Optimized Performance:** Multi-tiered architecture utilizing Redis caching to eliminate N+1 query bottlenecks and ensure sub-second response times.
+### 🛡️ Core Sentinel Portal
+- **5-Tier Role-Based Access Control (RBAC):** Hierarchical clearance levels (Faculty, Student Coordinators, Tech Team, Social Media, and Club Members) with dual-control gateway authorization.
+- **Advanced Event Management:** End-to-end event lifecycles. Create events, manage registrations, track faculty approvals, configure custom social links, and automate attendance QR scanning.
+- **Dynamic Certificate Engine:** Canvas-based interactive certificate designer with bulk CSV issuing, auto-rendering, Cloudinary cloud storage, and automated verification codes.
+- **AI Operational Intelligence:** Embedded Google Gemini AI assistant for real-time club telemetry, query resolution, and security briefings.
+- **PWA & Mobile-First Experience:** Offline-ready Progressive Web App with custom service worker caching, instant navigation, and animated cyber drawers.
+- **Security & Network Inspection Guard:** OWASP Top 10 hardened, anti-tampering shields, request signing, server-side payload sanitization, and strict Content-Security-Policy.
+
+### ⚔️ CTF Wars Arena
+- **Real-Time CTF Competition Engine:** Host multi-round cybersecurity competitions with dynamic categories (Web, Reverse Engineering, Cryptography, Forensics, OSINT, Pwn).
+- **Sub-Second Real-Time Scoreboard:** WebSockets (Socket.io) broadcast channel delivering instant solve events, dynamic rankings, and leaderboard freeze controls.
+- **Distributed Redis Concurrency:** Redis-backed distributed locks (`Redlock`), flag submission rate limiters, hint penalty deductions, and atomic score updates.
+- **Comprehensive Admin & Heatmap Suite:** Live submission stream, solve heatmaps, participant status tracking, and admin competition freeze overlays.
+- **Participant Command Center:** Dedicated challenge dialogs, hint purchase confirmations, personal score timeline graphs, and team lobbies.
 
 ---
 
 ## 🚀 Tech Stack
 
-### **Frontend (Client)**
-- **Framework:** Next.js (App Router)
-- **Styling:** Tailwind CSS + Custom CSS Variables
-- **Animations:** Framer Motion
-- **Icons:** Lucide React
-- **Language:** TypeScript
+### **Main Portal (`client` & `server`)**
+- **Frontend:** Next.js 14/15 (App Router), Tailwind CSS, Framer Motion, Lucide Icons, TypeScript
+- **Backend:** Node.js, Express.js, Prisma ORM, PostgreSQL (Neon / Docker), Redis (Upstash / Local)
+- **Integrations:** Cloudinary, Resend API, Google Gemini AI, Google OAuth
 
-### **Backend (Server)**
-- **Runtime:** Node.js + Express.js
-- **Database ORM:** Prisma
-- **Database:** PostgreSQL
-- **Caching:** Redis
-- **Language:** TypeScript
-
-### **Integrations & Services**
-- **Cloud Storage:** Cloudinary (Avatars, Event Posters, Certificate PDFs)
-- **Email Service:** Resend API
-- **AI:** Google Gemini API
+### **CTF Wars Platform (`ctf-platform`)**
+- **Frontend (`ctf-platform/client`):** Next.js 15, React 19, Tailwind CSS, Radix UI / Shadcn, Socket.io-client
+- **Backend (`ctf-platform/server`):** Node.js, Express, Socket.io, Prisma ORM, Redis 7, Zod Validation
 
 ---
 
 ## 📂 Project Structure
 
 ```text
-chakravyuh2.0/
-├── client/                 # Next.js Frontend Application
-│   ├── public/             # Static assets, Service Worker (PWA)
+Chakravyuhclub/
+├── client/                     # Sentinel Web Portal (Next.js App Router)
+│   ├── public/                 # Static assets, logos, service worker (PWA)
 │   ├── src/
-│   │   ├── app/            # App Router pages & API routes
-│   │   ├── components/     # Reusable UI components & animations
-│   │   └── lib/            # Utilities, context providers, API wrappers
+│   │   ├── app/                # Portal pages (dashboard, events, team, auth)
+│   │   ├── components/         # Cyber UI components, guards, animations
+│   │   └── lib/                # API client, auth context, security utils
 │   └── package.json
-├── server/                 # Node.js/Express Backend Application
-│   ├── prisma/             # Database schema and migrations
+├── server/                     # Sentinel Backend API Server (Node/Express)
+│   ├── prisma/                 # Database schema & migrations
 │   ├── src/
-│   │   ├── lib/            # External services (Redis, Email, Prisma)
-│   │   ├── middlewares/    # Auth, Validation, Upload handlers
-│   │   └── routes/         # Express API endpoints
+│   │   ├── middlewares/        # Auth, RBAC, network inspection, sanitization
+│   │   ├── routes/             # Events, users, approvals, attendance, auth
+│   │   └── lib/                # Redis, Cloudinary, Email, Audit Logger
 │   └── package.json
+├── ctf-platform/               # CTF Wars Real-time Competition Platform
+│   ├── client/                 # CTF Wars Player & Admin Interface (Next.js 15)
+│   │   ├── src/app/            # Challenges, lobby, leaderboard, admin heatmap
+│   │   ├── src/components/     # Live solve toasts, freeze overlays, challenge modals
+│   │   └── src/hooks/          # WebSockets & competition lifecycle hooks
+│   ├── server/                 # CTF Real-time Socket & API Server
+│   │   ├── prisma/             # CTF Schema (Competitions, Challenges, Submissions)
+│   │   ├── src/sockets/        # Socket.io scoreboard broadcast
+│   │   ├── src/lib/            # Redis distributed locks, dynamic scoring
+│   │   └── src/routes/         # Challenge submissions, admin controls
+│   └── docs/                   # Architectural blueprints, SRS, and schemas
 └── README.md
 ```
 
 ---
 
-## ⚙️ Environment Variables
+## ⚙️ Environment Configuration
 
-To run the project locally, create a `.env` file in both the `client` and `server` directories based on the `.env.example` templates.
+Create `.env` files in their respective folders before running services:
 
-### `server/.env`
+### `server/.env` (Sentinel API)
 ```env
-# Database
 DATABASE_URL="postgresql://user:password@localhost:5432/chakravyuh"
-
-# Redis Cache
 REDIS_URL="redis://localhost:6379"
-
-# Security
 JWT_SECRET="your-secure-jwt-secret"
 FRONTEND_URL="http://localhost:3000"
 PORT=4000
-
-# Cloudinary
 CLOUDINARY_URL="cloudinary://API_KEY:API_SECRET@CLOUD_NAME"
-
-# AI Integration
 GEMINI_API_KEY="your-google-gemini-key"
-
-# Email
 RESEND_API_KEY="your-resend-api-key"
 ```
 
-### `client/.env.local`
+### `client/.env.local` (Sentinel Client)
 ```env
 NEXT_PUBLIC_API_URL="http://localhost:4000/api"
 NEXT_PUBLIC_WS_URL="http://localhost:4000"
+```
+
+### `ctf-platform/server/.env` (CTF Server)
+```env
+PORT=4001
+DATABASE_URL="postgresql://user:password@localhost:5432/chakravyuh"
+REDIS_URL="redis://localhost:6379"
+JWT_SECRET="your-secure-jwt-secret"
+CTF_CLIENT_URL="http://localhost:3001"
+```
+
+### `ctf-platform/client/.env.local` (CTF Client)
+```env
+NEXT_PUBLIC_API_URL="http://localhost:4001/api"
+NEXT_PUBLIC_WS_URL="http://localhost:4001"
+NEXT_PUBLIC_PORTAL_URL="http://localhost:3000"
 ```
 
 ---
 
 ## 🛠️ Getting Started
 
-### 1. Clone the repository
+### 1. Clone the Repository
 ```bash
 git clone https://github.com/IshanShastri30126/Chakravyuhclub.git
 cd Chakravyuhclub
 ```
 
-### 2. Install Dependencies
-Open two terminal windows.
-**Terminal 1 (Backend):**
+### 2. Install Dependencies & Setup Sentinel
+
+**Backend Server:**
 ```bash
 cd server
 npm install
+npx prisma generate
+npm run dev
 ```
-**Terminal 2 (Frontend):**
+
+**Frontend Client:**
 ```bash
 cd client
 npm install
-```
-
-### 3. Setup the Database (Backend)
-Ensure your PostgreSQL server is running and configured in `server/.env`.
-```bash
-cd server
-npx prisma migrate dev --name init
-npx prisma generate
-```
-
-### 4. Start the Development Servers
-**Terminal 1 (Backend):**
-```bash
 npm run dev
 ```
-**Terminal 2 (Frontend):**
-```bash
-npm run dev
-```
-
-The application should now be running at `http://localhost:3000`.
+*Sentinel is accessible at `http://localhost:3000`.*
 
 ---
 
+### 3. Launch the CTF Wars Arena
 
+**CTF Backend Server:**
+```bash
+cd ctf-platform/server
+npm install
+npx prisma generate
+npm run dev
+```
+
+**CTF Frontend Client:**
+```bash
+cd ctf-platform/client
+npm install
+npm run dev
+```
+*CTF Wars Arena is accessible at `http://localhost:3001`.*
+
+---
 
 ## 📜 Available Scripts
 
-### Client
-- `npm run dev`: Starts the Next.js development server.
-- `npm run build`: Builds the application for production.
-- `npm start`: Starts the production server.
-- `npm run lint`: Runs ESLint checks.
-
-### Server
-- `npm run dev`: Starts the Express server with Nodemon (auto-reload).
-- `npm run build`: Compiles TypeScript to JavaScript.
-- `npm start`: Runs the compiled JavaScript application.
+| Location | Command | Description |
+|---|---|---|
+| `client/` | `npm run dev` | Run Sentinel Next.js dev server |
+| `client/` | `npm run build` | Build production Next.js portal |
+| `server/` | `npm run dev` | Run Sentinel Express server with live reload |
+| `server/` | `npm run build` | Compile TypeScript backend |
+| `ctf-platform/client/` | `npm run dev` | Run CTF Wars arena client |
+| `ctf-platform/server/` | `npm run dev` | Run CTF real-time WebSocket backend |
 
 ---
 
 <div align="center">
-  <i>Developed with ❤️ for Chakravyuh.</i>
+  <i>Developed with ❤️ for Chakravyuh Cyber Security & Operations Club.</i>
 </div>
