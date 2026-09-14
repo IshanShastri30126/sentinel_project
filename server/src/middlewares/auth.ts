@@ -88,6 +88,18 @@ export async function authenticate(req: Request, res: Response, next: NextFuncti
 }
 
 /**
+ * Role hierarchy levels — lower number = higher authority.
+ */
+export const ROLE_HIERARCHY: Record<Role, number> = {
+  FACULTY_COORDINATOR: 1,
+  TECH_COORDINATOR: 1,
+  STUDENT_COORDINATOR: 2,
+  SOCIAL_MEDIA_COORDINATOR: 2,
+  MEMBER: 3,
+  GUEST: 4,
+};
+
+/**
  * Middleware factory: Require that the authenticated user has one of the allowed roles.
  */
 export function requireRole(...allowedRoles: Role[]) {
@@ -105,3 +117,26 @@ export function requireRole(...allowedRoles: Role[]) {
     next();
   };
 }
+
+/**
+ * Middleware: Require minimum role level (hierarchy-based).
+ */
+export function requireMinRole(minRole: Role) {
+  return (req: Request, res: Response, next: NextFunction): void => {
+    if (!req.user) {
+      res.status(401).json({ error: "Authentication required" });
+      return;
+    }
+
+    const userLevel = ROLE_HIERARCHY[req.user.role] ?? 99;
+    const requiredLevel = ROLE_HIERARCHY[minRole] ?? 99;
+
+    if (userLevel > requiredLevel) {
+      res.status(403).json({ error: "Insufficient permissions" });
+      return;
+    }
+
+    next();
+  };
+}
+
