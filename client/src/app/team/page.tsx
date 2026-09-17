@@ -3,14 +3,12 @@
 import React, { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { motion } from "framer-motion";
-import { Shield, Users, Mail, Eye, MessageSquare } from "lucide-react";
+import { Shield, Users, Mail, Eye } from "lucide-react";
 import { api, getFileUrl } from "@/lib/api";
 import { FALLBACK_TEAM_CADRE, formatSocialUrl, TeamCadreMember } from "@/lib/fallbackTeam";
 import { Navbar } from "@/components/navigation/Navbar";
 import { Footer } from "@/components/navigation/Footer";
 import { CyberBadge } from "@/components/ui/CyberBadge";
-import { CyberCard } from "@/components/ui/CyberCard";
 import { CyberButton } from "@/components/ui/CyberButton";
 import { SystemLabel } from "@/components/ui/SystemLabel";
 import { SectionReveal } from "@/components/ui/SectionReveal";
@@ -191,22 +189,28 @@ const getClearanceLevel = (role: string) => {
       return "LVL_5 // FACULTY_ADMIN";
     case "STUDENT_COORDINATOR":
       return "LVL_4 // STUDENT_DIRECTOR";
-    case "FACULTY_COORDINATOR":
+    case "DEVELOPMENT_TEAM":
+    case "TECH_COORDINATOR":
       return "LVL_3 // CORE_TECH_SYS";
-    case "FACULTY_COORDINATOR":
-    case "FACULTY_COORDINATOR":
+    case "SOCIAL_MEDIA_COORDINATOR":
+    case "SOCIAL_MEDIA":
+    case "CONTENT":
       return "LVL_2 // CREATIVE_INTEL";
     default:
       return "LVL_1 // SEC_MEMBER";
   }
 };
 
-interface TeamMemberItem extends TeamCadreMember {}
+type TeamMemberItem = TeamCadreMember;
 
 const ROLE_LABELS: Record<string, string> = {
+  FACULTY_COORDINATOR: "Faculty Mentor",
   FACULTY: "Faculty Mentor",
   STUDENT_COORDINATOR: "Coordinator",
+  DEVELOPMENT_TEAM: "Technical Lead",
+  TECH_COORDINATOR: "Technical Lead",
   TECH: "Technical Lead",
+  SOCIAL_MEDIA_COORDINATOR: "Creative Team",
   SOCIAL_MEDIA: "Creative Team",
   CONTENT: "Creative Team",
 };
@@ -368,7 +372,9 @@ export default function TeamPage() {
         }
       } catch (err) {
         const errMsg = err instanceof Error ? err.message : String(err);
-        if (errMsg.includes("IP address is blocked") || (err as any)?.status === 403) {
+        const isForbidden =
+          typeof err === "object" && err !== null && "status" in err && err.status === 403;
+        if (errMsg.includes("IP address is blocked") || isForbidden) {
           setIsIpRestricted(true);
         }
         console.warn("[TeamPage] Live roster load suspended, fallback cadre activated:", err);
