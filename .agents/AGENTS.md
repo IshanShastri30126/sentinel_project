@@ -1,6 +1,5 @@
 # Workspace Rules & Instructions
 
-
 ## Mandatory OWASP Secure Coding Practices Rule
 - **Mandatory Security Rule**: Apply all security constraints from the OWASP-based 67-page Secure Coding Practices guide ([SKILL.md](file:///a:/SENITINAL-MAIN%C2%A9/.agents/skills/secure-coding-practices/SKILL.md)) across ALL project development, website creation, API design, database queries, and system configuration without requiring explicit user instructions.
 - **Core Security Directives**:
@@ -31,7 +30,9 @@
   2. Ensure Network Inspection Protection, OWASP Secure Coding Rules, and constraints are strictly satisfied.
   3. Automatically stage all changes (`git add .`), commit with a descriptive message, and push to GitHub repository.
 
-role based profile management in faculty studentid should be replaced by the employee id and the semester column will be removed .
-
-new constraint the 
-mobile number section in any form exactly 10 integer input , no string or character should returned .
+## Automatic Git Commit & Push Rule
+- **Mandatory Workflow**: Whenever completing any task or modification requested by the user, automatically stage all modified and new files (`git add .`), create a clear, descriptive commit message, and push changes EXCLUSIVELY to the remote repository `https://github.com/IshanShastri30126/sentinel_project.git` (remote `sentinel_project`) on branch `dev`.
+- **Branch Restriction**: Push project changes only to the `dev` branch. Never push to, sync with, or modify any other branch.
+- **STRICT PROHIBITION**: From now onwards, do NOT push, sync, or modify anything in `https://github.com/IshanShastri30126/Chakravyuhclub.git`. That repository is completely locked and frozen.
+- **No Confirmation Prompt Needed**: Do not ask for permission before staging, committing, or pushing project work after completion.
+- **Git Binary Path**: On Windows environments, use `& "C:\Program Files\Git\cmd\git.exe"` if standard `git` command is not in PATH.
