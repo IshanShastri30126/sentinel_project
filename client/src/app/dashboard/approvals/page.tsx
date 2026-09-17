@@ -31,8 +31,7 @@ const APPROVAL_TYPES = [
   { value: "SOCIAL_MEDIA_POST", label: "Social Media Post",     icon: Share2 },
   { value: "CONTENT_PUBLISH",   label: "Content Publishing",    icon: FileText },
   { value: "CERTIFICATE_AUTH",  label: "Certificate Auth",      icon: Award },
-  { value: "EXTERNAL_COLLAB",   label: "External Collaboration",icon: Handshake },
-];
+  { value: "EXTERNAL_COLLAB",   label: "External Collaboration",icon: Handshake }];
 
 function StatusBadge({ status }: { status: string }) {
   const cfg = STATUS_CONFIG[status] || STATUS_CONFIG.PENDING;
@@ -59,7 +58,7 @@ export default function ApprovalsPage() {
   const [filter, setFilter] = useState("ALL");
   const [decisionComment, setDecisionComment] = useState("");
 
-  const canApprove = Boolean(user && ["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "TECH_TEAM", "STUDENT_COORDINATOR", "FACULTY", "TECH"].includes(user.role));
+  const canApprove = Boolean(user && ["FACULTY_COORDINATOR", "TECH_COORDINATOR", "STUDENT_COORDINATOR"].includes(user.role));
 
   const load = async () => {
     try {

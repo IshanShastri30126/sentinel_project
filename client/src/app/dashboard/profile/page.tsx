@@ -45,7 +45,6 @@ export default function ProfilePage() {
   const [editPhone, setEditPhone] = useState("");
   const [editDepartment, setEditDepartment] = useState("");
   const [editInstitute, setEditInstitute] = useState("");
-  const [editSemester, setEditSemester] = useState("");
   const [editAvatar, setEditAvatar] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -56,7 +55,6 @@ export default function ProfilePage() {
     setEditPhone(user.phone || "");
     setEditDepartment(user.department || "");
     setEditInstitute(user.institute || "");
-    setEditSemester(user.semester || "");
 
     const load = async () => {
       try {
@@ -71,7 +69,7 @@ export default function ProfilePage() {
     load();
   }, [token, user]);
 
-  const isFaculty = user?.role === "FACULTY_COORDINATOR" || user?.role === "FACULTY";
+  const isFaculty = user?.role === "FACULTY_COORDINATOR";
 
   if (loading) {
     return (
@@ -102,7 +100,6 @@ export default function ProfilePage() {
         formData.append("studentId", editStudentId);
       } else {
         formData.append("studentId", editStudentId);
-        formData.append("semester", editSemester);
       }
       formData.append("phone", sanitizedPhone);
       formData.append("department", editDepartment);
@@ -341,7 +338,6 @@ export default function ProfilePage() {
               </div>
               <div className="min-w-0">
                 <p className="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">Semester</p>
-                <p className="font-bold mt-0.5 text-white truncate">{user?.semester || "N/A"}</p>
               </div>
             </div>
           )}
@@ -488,8 +484,6 @@ export default function ProfilePage() {
                     <label className="ck-label">Semester (1-8)</label>
                     <select 
                       className="ck-input" 
-                      value={editSemester} 
-                      onChange={(e) => setEditSemester(e.target.value)} 
                       required
                     >
                       <option value="" className="bg-[#050A18]">Select Semester...</option>

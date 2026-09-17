@@ -82,7 +82,7 @@ const CertificateTiltCard = ({
     // Construct absolute verify URL
     const verifyUrl = `${window.location.origin}/verify/${cert.uniqueCode}`;
     const name = `${cert.event.title} Certification`;
-    const org = "Chakravyuh Club";
+    const org = "Sentinel";
     
     return `https://www.linkedin.com/profile/add?startTask=CERTIFICATION&name=${encodeURIComponent(name)}&organizationName=${encodeURIComponent(org)}&issueYear=${year}&issueMonth=${month}&certUrl=${encodeURIComponent(verifyUrl)}&certId=${encodeURIComponent(cert.uniqueCode)}`;
   };

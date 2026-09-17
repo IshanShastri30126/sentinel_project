@@ -82,8 +82,7 @@ export default function CertificatesPage() {
       try {
         const [t, e] = await Promise.all([
           api<{ templates: Template[] }>("/certificates/templates", { token: token || undefined }),
-          api<{ events: { id: string; title: string }[] }>("/events/all", { token: token || undefined }),
-        ]);
+          api<{ events: { id: string; title: string }[] }>("/events/all", { token: token || undefined })]);
         setTemplates(t.templates); setEvents(e.events);
       } catch (err) { console.warn("Certificates template notice:", err); }
     };
@@ -170,8 +169,7 @@ export default function CertificatesPage() {
 
     setGenerationLogs([
       `[SYS_INIT] CONNECTING TO SECURE VAULT ENGINE...`,
-      `[SYS_VAL] VERIFYING RECIPIENTS INTEGRITY (COUNT: ${recipients.length})...`,
-    ]);
+      `[SYS_VAL] VERIFYING RECIPIENTS INTEGRITY (COUNT: ${recipients.length})...`]);
 
     const logSteps = [
       "[SYS_AUTH] PARSING AND PACKAGING SIGNATURE METADATA...",
@@ -488,8 +486,7 @@ export default function CertificatesPage() {
             {[
               { step: "01", icon: <Calendar className="w-5 h-5" />, title: "LINK EVENT", desc: "Select target event to view or generate certificates", color: "#00F5D4" },
               { step: "02", icon: <Palette className="w-5 h-5" />, title: "DESIGN TEMPLATE", desc: "Build credential layout in the designer workspace", color: "#FF4D00", action: () => router.push("/dashboard/certificates/builder") },
-              { step: "03", icon: <Plus className="w-5 h-5" />, title: "BULK GENERATE", desc: "Issue certificates to participants via CSV or registrations", color: "#FF003C", action: () => setShowGenerate(true) },
-            ].map(s => (
+              { step: "03", icon: <Plus className="w-5 h-5" />, title: "BULK GENERATE", desc: "Issue certificates to participants via CSV or registrations", color: "#FF003C", action: () => setShowGenerate(true) }].map(s => (
               <button key={s.step} type="button" onClick={s.action}
                 className="text-left p-4 rounded-xl border bg-[var(--ck-bg-card)] hover:bg-[var(--ck-bg-elevated)] transition-all group"
                 style={{ borderColor: "#1A1E26" }}
@@ -749,8 +746,7 @@ export default function CertificatesPage() {
                           {[
                             { id: "text" as const, label: "TEXT LIST" },
                             { id: "file" as const, label: "FILE" },
-                            { id: "event" as const, label: "REGISTRATIONS" },
-                          ].map(tab => (
+                            { id: "event" as const, label: "REGISTRATIONS" }].map(tab => (
                             <button key={tab.id} type="button"
                               onClick={() => { setActiveImportTab(tab.id); setImportedRecipients([]); setImportSummary(null); }}
                               disabled={tab.id === "event" && !selectedEvent}

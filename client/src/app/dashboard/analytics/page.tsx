@@ -11,9 +11,8 @@ import {
 } from "lucide-react";
 
 const ROLE_COLORS: Record<string, string> = {
-  DEVELOPMENT_TEAM: "#00E1FF",
   FACULTY_COORDINATOR: "#9333ea",
-  TECH_TEAM: "#00D2FF",
+  TECH_COORDINATOR: "#00D2FF",
   STUDENT_COORDINATOR: "#00F5D4",
   FACULTY: "#9333ea",
   TECH: "#00D2FF",
@@ -223,21 +222,16 @@ export default function AnalyticsPage() {
         const isCoordinator = Boolean(
           user?.role &&
           [
-            "DEVELOPMENT_TEAM",
             "FACULTY_COORDINATOR",
-            "TECH_TEAM",
-            "STUDENT_COORDINATOR",
-            "FACULTY",
-            "TECH"
-          ].includes(user.role)
+            "TECH_COORDINATOR",
+            "STUDENT_COORDINATOR"].includes(user.role)
         );
         if (isCoordinator) {
           const [data, top3, analysis, activity] = await Promise.all([
-            api<ClubData>("/analytics/club", { token: token || undefined }),
+            api<ClubData>("/analytics/sentinel", { token: token || undefined }),
             api<Top3Data>("/analytics/top3", { token: token || undefined }),
             api<EventAnalysisItem[]>("/analytics/events-analysis", { token: token || undefined }),
-            api<CoordinatorActivityItem[]>("/analytics/coordinator-activity", { token: token || undefined }),
-          ]);
+            api<CoordinatorActivityItem[]>("/analytics/coordinator-activity", { token: token || undefined })]);
           setClubData(data);
           setTop3Data(top3);
           setEventsAnalysis(analysis || []);
@@ -264,13 +258,9 @@ export default function AnalyticsPage() {
   const isCoordinator = Boolean(
     user?.role &&
     [
-      "DEVELOPMENT_TEAM",
       "FACULTY_COORDINATOR",
-      "TECH_TEAM",
-      "STUDENT_COORDINATOR",
-      "FACULTY",
-      "TECH"
-    ].includes(user.role)
+      "TECH_COORDINATOR",
+      "STUDENT_COORDINATOR"].includes(user.role)
   );
 
   // Sorting logic for events analysis
@@ -330,7 +320,7 @@ export default function AnalyticsPage() {
           <h1 className="text-4xl font-black font-mono tracking-tighter text-[var(--ck-text)]">
             ANALYTICS <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-[#00F5D4] to-cyan-400">DASHBOARD</span>
           </h1>
-          <p className="text-sm text-zinc-550 mt-1 font-mono">CLUB TELEMETRY // ENGAGEMENT METRICS // ADJUDICATION PERFORMANCE</p>
+          <p className="text-sm text-zinc-550 mt-1 font-mono">SENTINEL TELEMETRY // ENGAGEMENT METRICS // ADJUDICATION PERFORMANCE</p>
         </div>
         <motion.div
           animate={{ borderColor: ["rgba(0,245,212,0.2)", "rgba(0,245,212,0.5)", "rgba(0,245,212,0.2)"] }}
@@ -749,8 +739,7 @@ export default function AnalyticsPage() {
           { label: "API STATUS", value: "ONLINE", color: "#10b981", icon: <Cpu className="w-3.5 h-3.5" /> },
           { label: "DATABASE", value: "SYNCED", color: "#06b6d4", icon: <Shield className="w-3.5 h-3.5" /> },
           { label: "ANALYTICS", value: "ACTIVE", color: "#7c3aed", icon: <Activity className="w-3.5 h-3.5" /> },
-          { label: "SECURITY", value: "NOMINAL", color: "#22d3ee", icon: <Radio className="w-3.5 h-3.5" /> },
-        ].map((s, i) => (
+          { label: "SECURITY", value: "NOMINAL", color: "#22d3ee", icon: <Radio className="w-3.5 h-3.5" /> }].map((s, i) => (
           <motion.div key={s.label} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 + i * 0.08 }}
             className="flex items-center gap-2.5 px-3.5 py-3 rounded-xl border border-white/[0.04] bg-white/[0.02] backdrop-blur-sm hover:border-white/[0.08] transition-all"
           >

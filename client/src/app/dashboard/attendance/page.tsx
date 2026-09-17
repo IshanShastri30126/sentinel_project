@@ -172,8 +172,7 @@ function PresencePanel({ data, loading }: { data: PresenceData | null; loading: 
         {([
           { key: "present", label: `INSIDE (${data.counts.present})`, color: "#00F5D4" },
           { key: "absent", label: `MISSING (${data.counts.absent})`, color: "#FFD700" },
-          { key: "out", label: `LEFT (${data.counts.checkedOut})`, color: "#8892A4" },
-        ] as const).map(t => (
+          { key: "out", label: `LEFT (${data.counts.checkedOut})`, color: "#8892A4" }] as const).map(t => (
           <button key={t.key} onClick={() => setTab(t.key)}
             className="flex-1 py-2 text-[9px] font-mono uppercase tracking-wide transition-all border-b-2"
             style={tab === t.key
@@ -421,7 +420,7 @@ export default function AttendancePage() {
   const scannerRef = useRef<Html5QrcodeScanner | null>(null);
   const socketRef = useRef<Socket | null>(null);
 
-  const isCoord = Boolean(user && ["DEVELOPMENT_TEAM", "FACULTY_COORDINATOR", "TECH_TEAM", "STUDENT_COORDINATOR", "FACULTY", "TECH"].includes(user.role));
+  const isCoord = Boolean(user && ["FACULTY_COORDINATOR", "TECH_COORDINATOR", "STUDENT_COORDINATOR"].includes(user.role));
 
   // Participant states
   const [participantCheckedIn, setParticipantCheckedIn] = useState(false);
@@ -656,8 +655,7 @@ export default function AttendancePage() {
       r.user?.name || "", r.user?.employeeId || "", r.user?.email || "",
       r.user?.role || "", r.type,
       new Date(r.timestamp).toLocaleString("en-IN"),
-      r.isLate ? "Y" : "N", r.isEarly ? "Y" : "N", r.isManual ? "Y" : "N",
-    ]);
+      r.isLate ? "Y" : "N", r.isEarly ? "Y" : "N", r.isManual ? "Y" : "N"]);
     const csv = [headers, ...rows].map(row => row.map(v => `"${String(v).replace(/"/g, '""')}"`).join(",")).join("\n");
     const a = document.createElement("a");
     a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));

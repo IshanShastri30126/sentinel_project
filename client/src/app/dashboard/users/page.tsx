@@ -28,28 +28,23 @@ interface UserEntry {
 }
 
 const CANONICAL_ROLES = [
-  { value: "DEVELOPMENT_TEAM", label: "Development Team" },
   { value: "FACULTY_COORDINATOR", label: "Faculty Coordinator" },
-  { value: "TECH_TEAM", label: "Tech Team" },
+  { value: "TECH_COORDINATOR", label: "Tech Coordinator" },
+  { value: "SOCIAL_MEDIA_COORDINATOR", label: "Social Media Coordinator" },
   { value: "STUDENT_COORDINATOR", label: "Student Coordinator" },
   { value: "MEMBER", label: "Member" },
-  { value: "GUEST", label: "Guest" },
-];
+  { value: "GUEST", label: "Guest" }];
 
 const ROLE_DISPLAY_NAMES: Record<string, string> = {
-  DEVELOPMENT_TEAM: "Development Team",
   FACULTY_COORDINATOR: "Faculty Coordinator",
-  TECH_TEAM: "Tech Team",
+  TECH_COORDINATOR: "Tech Coordinator",
+  SOCIAL_MEDIA_COORDINATOR: "Social Media Coordinator",
   STUDENT_COORDINATOR: "Student Coordinator",
   MEMBER: "Member",
   GUEST: "Guest",
-  FACULTY: "Faculty Coordinator",
-  TECH: "Tech Team",
-  CONTENT: "Content Team",
-  SOCIAL_MEDIA: "Social Media",
 };
 
-const isFaculty = (role?: string): boolean => role === "FACULTY" || role === "FACULTY_COORDINATOR";
+const isFaculty = (role?: string): boolean => role === "FACULTY_COORDINATOR";
 
 export default function UsersPage() {
   const { user, token } = useAuth();
@@ -63,7 +58,6 @@ export default function UsersPage() {
   const canAssignRoles = Boolean(
     user?.role &&
     [
-      "ADMIN",
       "FACULTY_COORDINATOR",
       "TECH_COORDINATOR"
     ].includes(user.role)
@@ -72,7 +66,6 @@ export default function UsersPage() {
   const canManageUsers = Boolean(
     user?.role &&
     [
-      "ADMIN",
       "FACULTY_COORDINATOR",
       "TECH_COORDINATOR"
     ].includes(user.role)
