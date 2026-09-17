@@ -67,7 +67,7 @@ export default function LandingManagementPage() {
     setActiveMember({
       id: "member_" + Date.now().toString(),
       name: "New Crew Officer",
-      role: "TECH",
+      role: "FACULTY_COORDINATOR",
       designation: "Security Researcher",
       imageUrl: "",
       coverPosterUrl: "",
@@ -121,7 +121,7 @@ export default function LandingManagementPage() {
 
   const handleSaveModal = () => {
     if (!activeMember) return;
-    const isFac = activeMember.role === "FACULTY" || activeMember.role === "FACULTY_COORDINATOR";
+    const isFac = activeMember.role === "FACULTY_COORDINATOR";
     const idVal = activeMember.employeeId || activeMember.studentId || "";
     const cleanMember = {
       ...activeMember,
@@ -175,13 +175,9 @@ export default function LandingManagementPage() {
   const canManageLanding = Boolean(
     user?.role &&
     [
-      "DEVELOPMENT_TEAM",
       "FACULTY_COORDINATOR",
-      "TECH_TEAM",
-      "STUDENT_COORDINATOR",
-      "FACULTY",
-      "TECH"
-    ].includes(user.role)
+      "TECH_COORDINATOR",
+      "STUDENT_COORDINATOR"].includes(user.role)
   );
 
   if (!canManageLanding) {
@@ -408,11 +404,11 @@ export default function LandingManagementPage() {
                         value={activeMember.role} 
                         onChange={(e) => setActiveMember({ ...activeMember, role: e.target.value })}
                       >
-                        <option value="FACULTY">Faculty Coordinator</option>
+                        <option value="FACULTY_COORDINATOR">Faculty Coordinator</option>
                         <option value="STUDENT_COORDINATOR">Student Coordinator</option>
-                        <option value="TECH">Technical Division</option>
-                        <option value="SOCIAL_MEDIA">Social Media Division</option>
-                        <option value="CONTENT">Content Division</option>
+                        <option value="TECH_COORDINATOR">Technical Division</option>
+                        <option value="SOCIAL_MEDIA_COORDINATOR">Social Media Division</option>
+                        
                       </select>
                     </div>
                     <div>
@@ -448,22 +444,22 @@ export default function LandingManagementPage() {
                     </div>
                     <div>
                       <label className="text-[10px] uppercase font-mono text-[var(--ck-text-muted)] font-bold">
-                        {(activeMember.role === "FACULTY" || activeMember.role === "FACULTY_COORDINATOR") ? "Employee ID" : "Student ID"}
+                        {(activeMember.role === "FACULTY_COORDINATOR") ? "Employee ID" : "Student ID"}
                       </label>
                       <input 
                         type="text"
                         className="ck-input w-full mt-1"
-                        value={((activeMember.role === "FACULTY" || activeMember.role === "FACULTY_COORDINATOR") ? (activeMember.employeeId || activeMember.studentId) : activeMember.studentId) || ""} 
+                        value={((activeMember.role === "FACULTY_COORDINATOR") ? (activeMember.employeeId || activeMember.studentId) : activeMember.studentId) || ""} 
                         onChange={(e) => {
                           const val = e.target.value;
-                          const isFacultyRole = activeMember.role === "FACULTY" || activeMember.role === "FACULTY_COORDINATOR";
+                          const isFacultyRole = activeMember.role === "FACULTY_COORDINATOR";
                           setActiveMember({
                             ...activeMember,
                             studentId: val,
                             ...(isFacultyRole ? { employeeId: val } : {}),
                           });
                         }}
-                        placeholder={(activeMember.role === "FACULTY" || activeMember.role === "FACULTY_COORDINATOR") ? "e.g. EMP101" : "e.g. 22DCS116"}
+                        placeholder={(activeMember.role === "FACULTY_COORDINATOR") ? "e.g. EMP101" : "e.g. 22DCS116"}
                       />
                     </div>
                     <div>

@@ -30,18 +30,20 @@ interface UserEntry {
 
 const CANONICAL_ROLES = [
   { value: "FACULTY_COORDINATOR", label: "Faculty Coordinator" },
+  { value: "TECH_COORDINATOR", label: "Tech Coordinator" },
   { value: "STUDENT_COORDINATOR", label: "Student Coordinator" },
-  { value: "DEVELOPMENT_TEAM", label: "Development Team" },
   { value: "SOCIAL_MEDIA_COORDINATOR", label: "Social Media Coordinator" },
   { value: "MEMBER", label: "Member" },
+  { value: "GUEST", label: "Guest" },
 ];
 
 const ROLE_DISPLAY_NAMES: Record<string, string> = {
   FACULTY_COORDINATOR: "Faculty Coordinator",
+  TECH_COORDINATOR: "Tech Coordinator",
   STUDENT_COORDINATOR: "Student Coordinator",
-  DEVELOPMENT_TEAM: "Development Team",
   SOCIAL_MEDIA_COORDINATOR: "Social Media Coordinator",
   MEMBER: "Member",
+  GUEST: "Guest",
 };
 
 const isFaculty = (role?: string): boolean => role === "FACULTY_COORDINATOR";
@@ -60,14 +62,16 @@ export default function UsersPage() {
   const canAssignRoles = Boolean(
     user?.role &&
     [
-      "FACULTY_COORDINATOR"
+      "FACULTY_COORDINATOR",
+      "TECH_COORDINATOR"
     ].includes(user.role)
   );
 
   const canManageUsers = Boolean(
     user?.role &&
     [
-      "FACULTY_COORDINATOR"
+      "FACULTY_COORDINATOR",
+      "TECH_COORDINATOR"
     ].includes(user.role)
   );
 

@@ -13,8 +13,7 @@ interface LeaderboardEntry { rank: number; user: { id: string; name: string; rol
 const RANK_STYLES = [
   { bg: "from-[#FFD700] via-[#D4AF37] to-[#B8860B]", text: "text-black", color: "#FFD700", shadowColor: "rgba(255,215,0,0.5)", icon: <Trophy className="w-7 h-7 text-black drop-shadow-[0_0_12px_rgba(255,215,0,0.8)]" /> },
   { bg: "from-[#E0E0E0] via-[#C0C0C0] to-[#A0A0A0]", text: "text-black", color: "#C0C0C0", shadowColor: "rgba(192,192,192,0.5)", icon: <Medal className="w-6 h-6 text-black drop-shadow-[0_0_10px_rgba(192,192,192,0.8)]" /> },
-  { bg: "from-[#CD7F32] via-[#B87333] to-[#A0522D]", text: "text-[var(--ck-text)]", color: "#CD7F32", shadowColor: "rgba(205,127,50,0.5)", icon: <Medal className="w-6 h-6 text-[var(--ck-text)] drop-shadow-[0_0_10px_rgba(205,127,50,0.8)]" /> },
-];
+  { bg: "from-[#CD7F32] via-[#B87333] to-[#A0522D]", text: "text-[var(--ck-text)]", color: "#CD7F32", shadowColor: "rgba(205,127,50,0.5)", icon: <Medal className="w-6 h-6 text-[var(--ck-text)] drop-shadow-[0_0_10px_rgba(205,127,50,0.8)]" /> }];
 
 export default function LeaderboardPage() {
   const { user, token } = useAuth();
@@ -36,18 +35,20 @@ export default function LeaderboardPage() {
     isStaffView?: boolean;
     leaderboard: Array<{
       rank: number;
-      team: { id: string; name: string; teamCode: string };
-      totalPoints: number;
-      solvedChallenges: number;
+      id: string;
+      name: string;
+      teamCode: string;
+      score: number;
+      membersCount: number;
       lastSubmissionTime?: string;
     }>;
   } | null>(null);
   const [compLoading, setCompLoading] = useState(false);
   const [togglingVisibility, setTogglingVisibility] = useState(false);
 
-  const isCoord = Boolean(user && ["FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "DEVELOPMENT_TEAM"].includes(user.role));
-  const isFaculty = Boolean(user && ["FACULTY_COORDINATOR", "DEVELOPMENT_TEAM"].includes(user.role));
-  const canManageCompLeaderboard = Boolean(user && ["FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "DEVELOPMENT_TEAM"].includes(user.role));
+  const isCoord = Boolean(user && ["FACULTY_COORDINATOR", "TECH_COORDINATOR", "STUDENT_COORDINATOR"].includes(user.role));
+  const isFaculty = Boolean(user && ["FACULTY_COORDINATOR", "TECH_COORDINATOR", "STUDENT_COORDINATOR"].includes(user.role));
+  const canManageCompLeaderboard = Boolean(user && ["FACULTY_COORDINATOR", "TECH_COORDINATOR", "STUDENT_COORDINATOR"].includes(user.role));
 
   // Modals
   const [showGivePoints, setShowGivePoints] = useState(false);
@@ -247,7 +248,7 @@ export default function LeaderboardPage() {
               : "text-slate-400 hover:text-white"
           }`}
         >
-          Club Appreciation Rankings
+          Sentinel Appreciation Rankings
         </button>
         <button
           type="button"
@@ -479,7 +480,7 @@ export default function LeaderboardPage() {
               </button>
             </div>
 
-            {/* Staff Controller Toggle: FACULTY_COORDINATOR, STUDENT_COORDINATOR & DEVELOPMENT_TEAM */}
+            {/* Staff Controller Toggle */}
             {canManageCompLeaderboard && selectedCompEventId && (
               <div className="flex items-center gap-3 p-2 rounded-lg border border-cyan-500/30 bg-cyan-950/20">
                 <div className="flex items-center gap-2">
@@ -560,9 +561,9 @@ export default function LeaderboardPage() {
                           className="w-16 h-16 sm:w-20 sm:h-20 rounded bg-[#070E1A] border border-white/20 flex flex-col items-center justify-center mx-auto mb-3 relative"
                           style={{ boxShadow: `0 0 20px ${style.shadowColor}` }}
                         >
-                          <span className="text-sm font-bold text-white uppercase">{entry.team.teamCode}</span>
+                          <span className="text-sm font-bold text-white uppercase">{entry.teamCode}</span>
                           <span className="text-[10px] font-bold" style={{ color: style.color }}>
-                            {entry.totalPoints} PTS
+                            {entry.score} PTS
                           </span>
                           <div
                             className="absolute -bottom-1.5 -right-1.5 w-5 h-5 rounded flex items-center justify-center text-[10px] font-black border border-black/50"
@@ -572,10 +573,10 @@ export default function LeaderboardPage() {
                           </div>
                         </div>
                         <p className="text-xs sm:text-sm font-bold text-white uppercase truncate max-w-[100px]">
-                          {entry.team.name}
+                          {entry.name}
                         </p>
                         <p className="text-[10px] text-slate-400 mb-2">
-                          {entry.solvedChallenges} Solved
+                          {entry.membersCount} Members
                         </p>
                         <div
                           className={`${heights[idx]} w-24 sm:w-28 rounded-t-xl relative overflow-hidden border-x border-t border-white/[0.06]`}
@@ -600,7 +601,7 @@ export default function LeaderboardPage() {
                         <th>Rank</th>
                         <th>Team Designation</th>
                         <th>Team Code</th>
-                        <th>Solved Challenges</th>
+                        <th>Members</th>
                         <th>Total Points</th>
                         <th>Last Activity</th>
                       </tr>
@@ -611,7 +612,7 @@ export default function LeaderboardPage() {
                         const rankStyle = RANK_STYLES[entry.rank - 1];
                         return (
                           <tr
-                            key={entry.team.id}
+                            key={entry.id}
                             className={isTop3 ? "hover:bg-white/[0.03]" : ""}
                             style={isTop3 && rankStyle ? { borderLeft: `3px solid ${rankStyle.color}` } : undefined}
                           >
@@ -631,23 +632,23 @@ export default function LeaderboardPage() {
                             <td>
                               <div className="flex items-center gap-2">
                                 <Users className="w-4 h-4 text-slate-400" />
-                                <span className="font-bold text-white text-sm">{entry.team.name}</span>
+                                <span className="font-bold text-white text-sm">{entry.name}</span>
                               </div>
                             </td>
                             <td>
                               <span className="px-2 py-0.5 rounded bg-black/60 border border-zinc-800 text-cyan-300 font-mono text-xs font-bold">
-                                {entry.team.teamCode}
+                                {entry.teamCode}
                               </span>
                             </td>
                             <td>
                               <span className="text-xs font-bold text-slate-300 font-mono">
-                                {entry.solvedChallenges} Solved
+                                {entry.membersCount} Members
                               </span>
                             </td>
                             <td>
                               <span className="font-bold flex items-center gap-1.5 font-mono text-sm text-[#00F5D4]">
                                 <Star className="w-4 h-4 text-[#00F5D4] fill-[#00F5D4]/20" />
-                                {entry.totalPoints} PTS
+                                {entry.score} PTS
                               </span>
                             </td>
                             <td>

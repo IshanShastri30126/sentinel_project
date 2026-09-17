@@ -20,14 +20,9 @@ interface Team {
 }
 
 const MANAGEMENT_ROLES = [
-  "DEVELOPMENT_TEAM",
   "FACULTY_COORDINATOR",
-  "TECH_TEAM",
-  "STUDENT_COORDINATOR",
-  "FACULTY",
-  "TECH",
-  "SOCIAL_MEDIA"
-];
+  "TECH_COORDINATOR",
+  "STUDENT_COORDINATOR"];
 
 export default function TeamsPage() {
   const { user, token } = useAuth();
@@ -76,8 +71,7 @@ export default function TeamsPage() {
         : "/teams/my";
       const [teamsRes, eventsRes] = await Promise.allSettled([
         api<{ teams: Team[] }>(endpoint, { token: token || undefined }),
-        api<{ events: any[] }>("/events", { token: token || undefined }),
-      ]);
+        api<{ events: any[] }>("/events", { token: token || undefined })]);
       if (teamsRes.status === "fulfilled") {
         setTeams(teamsRes.value.teams || []);
       }

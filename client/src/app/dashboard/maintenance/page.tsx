@@ -267,8 +267,7 @@ export default function MaintenancePage() {
     setLoadingSecurity(true);
     try {
       const [ipRes] = await Promise.all([
-        api<{ ips: IpManagementItem[] }>("/maintenance/security/ip-management", { token: token || undefined }),
-      ]);
+        api<{ ips: IpManagementItem[] }>("/maintenance/security/ip-management", { token: token || undefined })]);
       setIpList(ipRes.ips || []);
     } catch (err) {
       console.warn("Failed to load security telemetry", err);
@@ -292,8 +291,7 @@ export default function MaintenancePage() {
     try {
       const [bugsRes, settingsRes] = await Promise.all([
         api<{ bugs: BugReport[] }>("/maintenance/bugs", { token: token || undefined }),
-        api<{ settings: MaintenanceSettings }>("/maintenance/settings", { token: token || undefined }),
-      ]);
+        api<{ settings: MaintenanceSettings }>("/maintenance/settings", { token: token || undefined })]);
       setBugs(bugsRes.bugs || []);
       setMaintenanceSettings(settingsRes.settings || { enabled: false });
     } catch (err) {
@@ -455,8 +453,7 @@ export default function MaintenancePage() {
       `"${l.user?.role || ""}"`,
       `"${l.device || ""}"`,
       `"${l.os || ""}"`,
-      `"${l.browser || ""}"`,
-    ]);
+      `"${l.browser || ""}"`]);
     const csvContent = [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
@@ -686,8 +683,7 @@ export default function MaintenancePage() {
           { id: "firewall" as TabType, label: "FIREWALL POLICIES", icon: ShieldCheck, badge: `${firewallRules.length || 7}` },
           { id: "security" as TabType, label: "IP & THREAT INTEL", icon: Ban },
           { id: "database" as TabType, label: "DATA METRICS", icon: Database },
-          { id: "bugs" as TabType, label: "INCIDENT REPORTS", icon: Bug, badge: bugs.length > 0 ? `${bugs.length}` : undefined },
-        ].map((tab) => {
+          { id: "bugs" as TabType, label: "INCIDENT REPORTS", icon: Bug, badge: bugs.length > 0 ? `${bugs.length}` : undefined }].map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
           return (
@@ -817,8 +813,7 @@ export default function MaintenancePage() {
                   { mode: "table" as LogViewMode, icon: List, label: "Table" },
                   { mode: "terminal" as LogViewMode, icon: Terminal, label: "CRT Stream" },
                   { mode: "timeline" as LogViewMode, icon: Clock, label: "Timeline" },
-                  { mode: "analytics" as LogViewMode, icon: BarChart2, label: "Metrics" },
-                ].map((vm) => {
+                  { mode: "analytics" as LogViewMode, icon: BarChart2, label: "Metrics" }].map((vm) => {
                   const Icon = vm.icon;
                   const isSelected = logsViewMode === vm.mode;
                   return (
@@ -938,8 +933,7 @@ export default function MaintenancePage() {
                 {[
                   { label: "Failed Logins", action: "USER_LOGIN_FAILED" },
                   { label: "WAF Blocks", action: "WAF_ATTACK_BLOCKED" },
-                  { label: "Firewall Rule", action: "FIREWALL" },
-                ].map((preset) => (
+                  { label: "Firewall Rule", action: "FIREWALL" }].map((preset) => (
                   <button
                     key={preset.label}
                     onClick={() => {
@@ -1099,7 +1093,7 @@ export default function MaintenancePage() {
                                       {log.user.email}
                                     </span>
                                     <span className="text-[9px] text-[#00F5D4] font-mono uppercase">
-                                      {log.user.role} {(log.user.role === "FACULTY" || log.user.role === "FACULTY_COORDINATOR") ? (log.user.employeeId || log.user.studentId ? `· EMP: ${log.user.employeeId || log.user.studentId}` : "") : log.user.studentId ? `· ID: ${log.user.studentId}` : ""}
+                                      {log.user.role} {(log.user.role === "FACULTY_COORDINATOR") ? (log.user.employeeId || log.user.studentId ? `· EMP: ${log.user.employeeId || log.user.studentId}` : "") : log.user.studentId ? `· ID: ${log.user.studentId}` : ""}
                                     </span>
                                   </div>
                                 ) : (
@@ -1194,7 +1188,7 @@ export default function MaintenancePage() {
                                         <div className="text-zinc-200 mt-1 space-y-0.5">
                                           <p>Name: <span className="text-white font-bold">{log.user?.name || "Anonymous Gateway"}</span></p>
                                           <p>Role: <span className="text-[#00F5D4] font-bold">{log.user?.role || "NONE"}</span></p>
-                                          <p>ID: <span className="text-zinc-400">{(log.user?.role === "FACULTY" || log.user?.role === "FACULTY_COORDINATOR") ? (log.user.employeeId || log.user.studentId || "EMP-N/A") : log.user?.studentId || log.user?.id?.slice(0, 8) || "N/A"}</span></p>
+                                          <p>ID: <span className="text-zinc-400">{(log.user?.role === "FACULTY_COORDINATOR") ? (log.user.employeeId || log.user.studentId || "EMP-N/A") : log.user?.studentId || log.user?.id?.slice(0, 8) || "N/A"}</span></p>
                                         </div>
                                       </div>
 
@@ -1315,7 +1309,7 @@ export default function MaintenancePage() {
                     <span className="w-2.5 h-2.5 rounded-full bg-yellow-500/80" />
                     <span className="w-2.5 h-2.5 rounded-full bg-emerald-500/80" />
                   </div>
-                  <span className="text-zinc-400 text-[11px] ml-2">sentinal-telemetry-l2: ~ /audit/stream.log</span>
+                  <span className="text-zinc-400 text-[11px] ml-2">sentinel-telemetry-l2: ~ /audit/stream.log</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <button

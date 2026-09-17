@@ -13,8 +13,8 @@ import {
 
 const ROLE_COLORS: Record<string, string> = {
   FACULTY_COORDINATOR: "#9333ea",
+  TECH_COORDINATOR: "#00D2FF",
   STUDENT_COORDINATOR: "#00F5D4",
-  DEVELOPMENT_TEAM: "#00E1FF",
   SOCIAL_MEDIA_COORDINATOR: "#f43f5e",
   MEMBER: "#38bdf8",
 };
@@ -234,7 +234,6 @@ export default function AnalyticsPage() {
           api<CoordinatorActivityItem[]>("/analytics/coordinator-activity", { token: token || undefined }),
           api<{ leaderboard: LeaderboardAchiever[] }>("/appreciation/leaderboard", { token: token || undefined }),
         ]);
-
         if (clubRes.status === "fulfilled" && clubRes.value) {
           setClubData(clubRes.value);
         }
@@ -260,6 +259,7 @@ export default function AnalyticsPage() {
   }, [token, user]);
 
   const maxStat = clubData?.overview ? Math.max(...Object.values(clubData.overview).map(Number)) : 1;
+
 
   // Sorting logic for events analysis
   const handleSort = (field: string) => {
@@ -314,7 +314,7 @@ export default function AnalyticsPage() {
           <h1 className="text-4xl font-black font-mono tracking-tighter text-[var(--ck-text)]">
             ANALYTICS <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-[#00F5D4] to-cyan-400">DASHBOARD</span>
           </h1>
-          <p className="text-sm text-zinc-550 mt-1 font-mono">CLUB TELEMETRY // ENGAGEMENT METRICS // ADJUDICATION PERFORMANCE</p>
+          <p className="text-sm text-zinc-550 mt-1 font-mono">SENTINEL TELEMETRY // ENGAGEMENT METRICS // ADJUDICATION PERFORMANCE</p>
         </div>
         <motion.div
           animate={{ borderColor: ["rgba(0,245,212,0.2)", "rgba(0,245,212,0.5)", "rgba(0,245,212,0.2)"] }}
@@ -764,8 +764,7 @@ export default function AnalyticsPage() {
           { label: "API STATUS", value: "ONLINE", color: "#10b981", icon: <Cpu className="w-3.5 h-3.5" /> },
           { label: "DATABASE", value: "SYNCED", color: "#06b6d4", icon: <Shield className="w-3.5 h-3.5" /> },
           { label: "ANALYTICS", value: "ACTIVE", color: "#7c3aed", icon: <Activity className="w-3.5 h-3.5" /> },
-          { label: "SECURITY", value: "NOMINAL", color: "#22d3ee", icon: <Radio className="w-3.5 h-3.5" /> },
-        ].map((s, i) => (
+          { label: "SECURITY", value: "NOMINAL", color: "#22d3ee", icon: <Radio className="w-3.5 h-3.5" /> }].map((s, i) => (
           <motion.div key={s.label} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 + i * 0.08 }}
             className="flex items-center gap-2.5 px-3.5 py-3 rounded-xl border border-white/[0.04] bg-white/[0.02] backdrop-blur-sm hover:border-white/[0.08] transition-all"
           >
