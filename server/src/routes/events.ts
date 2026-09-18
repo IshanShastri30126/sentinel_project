@@ -135,19 +135,41 @@ async function validateEventLeads(organizersStr: string | null): Promise<string 
   return null;
 }
 
+/**
+ * parseEventDateTime
+ *
+ * Validates and parses an incoming datetime string into a UTC Date object.
+ * If the client string lacks an explicit timezone indicator (neither 'Z' nor [+-]HH:MM),
+ * canonicalizes the string using the local Indian Standard Time offset (+05:30) so that
+ * server environments running in UTC do not shift the event hours.
+ *
+ * @param  {string | null | undefined} dateInput - ISO or datetime string from client
+ * @returns {Date | null} - Validated Date object or null if input is missing or invalid
+ */
+function parseEventDateTime(dateInput: string | null | undefined): Date | null {
+  if (!dateInput) return null;
+  const trimmed = dateInput.trim();
+  if (!trimmed) return null;
+
+  const hasExplicitTimezone = trimmed.endsWith("Z") || /[+-]\d{2}:\d{2}$/.test(trimmed);
+  const normalizedString = hasExplicitTimezone ? trimmed : `${trimmed}+05:30`;
+
+  const parsedDate = new Date(normalizedString);
+  return isNaN(parsedDate.getTime()) ? null : parsedDate;
+}
+
 router.post("/", authenticate, requireRole("FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "DEVELOPMENT_TEAM"), validate(createEventSchema), auditLog("EVENT_CREATED"), async (req: Request, res: Response) => {
   try {
     const data = req.body;
-    const startDateObj = new Date(data.startDate);
-    const endDateObj = new Date(data.endDate);
+    const startDateObj = parseEventDateTime(data.startDate);
+    const endDateObj = parseEventDateTime(data.endDate);
 
-    
     const leadError = await validateEventLeads(data.organizers);
     if (leadError) {
       res.status(400).json({ error: leadError });
       return;
     }
-    if (isNaN(startDateObj.getTime()) || isNaN(endDateObj.getTime())) {
+    if (!startDateObj || !endDateObj) {
       res.status(400).json({ error: "Invalid start or end date format." });
       return;
     }
@@ -155,9 +177,10 @@ router.post("/", authenticate, requireRole("FACULTY_COORDINATOR", "STUDENT_COORD
       res.status(400).json({ error: "Event end date must be strictly after start date." });
       return;
     }
+    let deadlineObj: Date | null = null;
     if (data.registrationDeadline) {
-      const deadlineObj = new Date(data.registrationDeadline);
-      if (isNaN(deadlineObj.getTime())) {
+      deadlineObj = parseEventDateTime(data.registrationDeadline);
+      if (!deadlineObj) {
         res.status(400).json({ error: "Invalid registration deadline format." });
         return;
       }
@@ -172,7 +195,7 @@ router.post("/", authenticate, requireRole("FACULTY_COORDINATOR", "STUDENT_COORD
       data: {
         title: data.title, description: data.description, venue: data.venue,
         startDate: startDateObj, endDate: endDateObj,
-        registrationDeadline: data.registrationDeadline ? new Date(data.registrationDeadline) : null,
+        registrationDeadline: deadlineObj,
         rules: data.rules, tags: data.tags || [],
         minTeamSize: data.minTeamSize, maxTeamSize: data.maxTeamSize,
         maxCapacity: data.maxCapacity, eventType: data.eventType || "general",
@@ -566,10 +589,10 @@ router.patch("/:id", authenticate, requireRole("FACULTY_COORDINATOR", "STUDENT_C
     }
 
     const d = req.body; const u: any = {};
-    const finalStart = d.startDate ? new Date(d.startDate) : existingEvent.startDate;
-    const finalEnd = d.endDate ? new Date(d.endDate) : existingEvent.endDate;
+    const finalStart = d.startDate ? parseEventDateTime(d.startDate) : existingEvent.startDate;
+    const finalEnd = d.endDate ? parseEventDateTime(d.endDate) : existingEvent.endDate;
 
-    if (isNaN(finalStart.getTime()) || isNaN(finalEnd.getTime())) {
+    if (!finalStart || !finalEnd) {
       res.status(400).json({ error: "Invalid start or end date format." });
       return;
     }
@@ -579,10 +602,15 @@ router.patch("/:id", authenticate, requireRole("FACULTY_COORDINATOR", "STUDENT_C
     }
 
     const finalDeadline = d.registrationDeadline !== undefined
-      ? (d.registrationDeadline ? new Date(d.registrationDeadline) : null)
+      ? (d.registrationDeadline ? parseEventDateTime(d.registrationDeadline) : null)
       : existingEvent.registrationDeadline;
 
-    if (finalDeadline && !isNaN(finalDeadline.getTime()) && finalDeadline > finalStart) {
+    if (d.registrationDeadline && !finalDeadline) {
+      res.status(400).json({ error: "Invalid registration deadline format." });
+      return;
+    }
+
+    if (finalDeadline && finalDeadline > finalStart) {
       res.status(400).json({ error: "Registration deadline cannot be after event start date." });
       return;
     }

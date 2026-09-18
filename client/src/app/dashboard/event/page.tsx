@@ -111,19 +111,18 @@ function MiniCalendar({
   const handleDayClick = (day: number) => {
     const d = new Date(year, month, day);
     if (isDayDisabled(d)) return;
-    const time = sel && !isNaN(sel.getTime())
-      ? `${String(sel.getHours()).padStart(2, "0")}:${String(sel.getMinutes()).padStart(2, "0")}`
-      : "09:00";
-    const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}T${time}`;
-    onSelect(dateStr);
+    const currentH = sel && !isNaN(sel.getTime()) ? sel.getHours() : 9;
+    const currentM = sel && !isNaN(sel.getTime()) ? sel.getMinutes() : 0;
+    const targetDate = new Date(year, month, day, currentH, currentM, 0, 0);
+    onSelect(targetDate.toISOString());
   };
 
   const updateHoursAndMinutes = (newH: number, newM: number) => {
     const baseDate = sel && !isNaN(sel.getTime()) ? sel : new Date();
     const clampedH = Math.max(0, Math.min(23, newH));
     const clampedM = Math.max(0, Math.min(59, newM));
-    const dateStr = `${baseDate.getFullYear()}-${String(baseDate.getMonth() + 1).padStart(2, "0")}-${String(baseDate.getDate()).padStart(2, "0")}T${String(clampedH).padStart(2, "0")}:${String(clampedM).padStart(2, "0")}`;
-    onSelect(dateStr);
+    const targetDate = new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate(), clampedH, clampedM, 0, 0);
+    onSelect(targetDate.toISOString());
   };
 
   const rawHours = sel && !isNaN(sel.getTime()) ? sel.getHours() : 9;
@@ -226,42 +225,42 @@ function MiniCalendar({
                   <div className="flex items-center gap-1.5 text-[10px] text-[var(--ck-text-muted)] uppercase font-bold tracking-wider font-mono">
                     <Clock className="w-3.5 h-3.5" style={{ color: "var(--ck-primary)" }} /> Custom Time
                   </div>
-                  <span className="text-[10px] font-mono text-[var(--ck-primary)] font-bold">
+                  <span className="text-[10px] font-mono text-[var(--ck-primary)] font-bold border px-1.5 py-0.5 rounded" style={{ backgroundColor: "rgba(0,245,212,0.1)", borderColor: "rgba(0,245,212,0.25)" }}>
                     {String(displayHour).padStart(2, "0")}:{String(rawMinutes).padStart(2, "0")} {isPM ? "PM" : "AM"}
                   </span>
                 </div>
 
-                {/* Direct Hour & Minute Inputs with AM/PM Pills */}
+                {/* Direct Hour & Minute Selectors with AM/PM Pills */}
                 <div className="grid grid-cols-12 gap-1.5 items-center">
                   <div className="col-span-4 flex items-center bg-zinc-900 border border-[var(--ck-border)] rounded-lg px-2 py-1 focus-within:border-[var(--ck-primary)]">
-                    <input
-                      type="number"
-                      min="1"
-                      max="12"
+                    <select
                       value={displayHour}
-                      onChange={(e) => {
-                        const v = parseInt(e.target.value, 10);
-                        if (!isNaN(v) && v >= 1 && v <= 12) handleHourChange(v);
-                      }}
-                      className="w-full bg-transparent text-center text-xs font-mono font-bold text-[var(--ck-text)] outline-none"
-                    />
+                      onChange={(e) => handleHourChange(parseInt(e.target.value, 10))}
+                      className="w-full bg-transparent text-center text-xs font-mono font-bold text-[var(--ck-text)] outline-none cursor-pointer"
+                    >
+                      {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((h) => (
+                        <option key={h} value={h} className="bg-zinc-900 text-white font-mono">
+                          {String(h).padStart(2, "0")}
+                        </option>
+                      ))}
+                    </select>
                     <span className="text-[9px] text-[var(--ck-text-muted)] font-mono ml-1">H</span>
                   </div>
 
                   <span className="col-span-1 text-center text-sm font-bold text-[var(--ck-primary)] font-mono">:</span>
 
                   <div className="col-span-4 flex items-center bg-zinc-900 border border-[var(--ck-border)] rounded-lg px-2 py-1 focus-within:border-[var(--ck-primary)]">
-                    <input
-                      type="number"
-                      min="0"
-                      max="59"
+                    <select
                       value={rawMinutes}
-                      onChange={(e) => {
-                        const v = parseInt(e.target.value, 10);
-                        if (!isNaN(v) && v >= 0 && v <= 59) handleMinuteChange(v);
-                      }}
-                      className="w-full bg-transparent text-center text-xs font-mono font-bold text-[var(--ck-text)] outline-none"
-                    />
+                      onChange={(e) => handleMinuteChange(parseInt(e.target.value, 10))}
+                      className="w-full bg-transparent text-center text-xs font-mono font-bold text-[var(--ck-text)] outline-none cursor-pointer"
+                    >
+                      {Array.from({ length: 60 }).map((_, i) => (
+                        <option key={i} value={i} className="bg-zinc-900 text-white font-mono">
+                          {String(i).padStart(2, "0")}
+                        </option>
+                      ))}
+                    </select>
                     <span className="text-[9px] text-[var(--ck-text-muted)] font-mono ml-1">M</span>
                   </div>
 
@@ -287,6 +286,25 @@ function MiniCalendar({
                   </div>
                 </div>
 
+                {/* Quick Minute Jump Chips */}
+                <div className="flex items-center gap-1.5 pt-0.5">
+                  <span className="text-[9px] text-[var(--ck-text-muted)] font-mono uppercase tracking-wider">Minutes:</span>
+                  {[0, 15, 30, 45].map((m) => (
+                    <button
+                      key={m}
+                      type="button"
+                      onClick={() => handleMinuteChange(m)}
+                      className={`text-[10px] font-mono py-0.5 px-2 rounded border transition-all ${
+                        rawMinutes === m
+                          ? "border-[var(--ck-primary)] bg-[var(--ck-primary)]/20 text-[var(--ck-primary)] font-bold shadow-[0_0_8px_rgba(0,245,212,0.2)]"
+                          : "border-zinc-800 bg-zinc-900/60 text-zinc-400 hover:border-zinc-700 hover:text-white"
+                      }`}
+                    >
+                      :{String(m).padStart(2, "0")}
+                    </button>
+                  ))}
+                </div>
+
                 {/* Contextual Relative Presets (for Registration Deadline relative to Event Start) */}
                 {rangeStart && label.toLowerCase().includes("deadline") && (
                   <div className="space-y-1 pt-1.5 border-t border-zinc-800/80">
@@ -298,7 +316,7 @@ function MiniCalendar({
                         { label: "Same Day (1h before)", offsetMs: -60 * 60 * 1000 },
                         { label: "Same Day (At Start)", offsetMs: 0 }].map((rel) => {
                         const targetD = new Date(new Date(rangeStart).getTime() + rel.offsetMs);
-                        const isoStr = `${targetD.getFullYear()}-${String(targetD.getMonth() + 1).padStart(2, "0")}-${String(targetD.getDate()).padStart(2, "0")}T${String(targetD.getHours()).padStart(2, "0")}:${String(targetD.getMinutes()).padStart(2, "0")}`;
+                        const isoStr = targetD.toISOString();
                         const isSelectedRel = selectedDate && Math.abs(new Date(selectedDate).getTime() - targetD.getTime()) < 60000;
                         return (
                           <button
@@ -325,6 +343,8 @@ function MiniCalendar({
                   <div className="grid grid-cols-3 gap-1">
                     {[
                       { label: "09:00 AM", h: 9, m: 0 },
+                      { label: "10:00 AM", h: 10, m: 0 },
+                      { label: "10:30 AM", h: 10, m: 30 },
                       { label: "12:00 PM", h: 12, m: 0 },
                       { label: "02:00 PM", h: 14, m: 0 },
                       { label: "06:00 PM", h: 18, m: 0 },
@@ -1104,11 +1124,11 @@ export default function EventsPage() {
                                 const updated = { ...prev, startDate: v };
                                 if (prev.endDate && new Date(prev.endDate) <= new Date(v)) {
                                   const nextDay = new Date(new Date(v).getTime() + 24 * 60 * 60 * 1000);
-                                  updated.endDate = nextDay.toISOString().slice(0, 16);
+                                  updated.endDate = nextDay.toISOString();
                                 }
                                 if (!prev.registrationDeadline) {
                                   const defaultDeadline = new Date(new Date(v).getTime() - 24 * 60 * 60 * 1000);
-                                  updated.registrationDeadline = defaultDeadline.toISOString().slice(0, 16);
+                                  updated.registrationDeadline = defaultDeadline.toISOString();
                                 } else if (new Date(prev.registrationDeadline) >= new Date(v)) {
                                   updated.registrationDeadline = "";
                                 }
@@ -1768,7 +1788,7 @@ export default function EventsPage() {
                 {event.description && <p className="text-sm mb-3 line-clamp-2" style={{ color: "var(--ck-text-secondary)" }}>{event.description}</p>}
                 <div className="space-y-1.5 mb-4 font-mono">
                   <p className="text-[10px] flex items-center gap-1.5" style={{ color: "var(--ck-text-muted)" }}>
-                    <Clock className="w-3.5 h-3.5" style={{ color: "var(--ck-primary)" }} /> {new Date(event.startDate).toLocaleDateString()} — {new Date(event.endDate).toLocaleDateString()}
+                    <Clock className="w-3.5 h-3.5" style={{ color: "var(--ck-primary)" }} /> {new Date(event.startDate).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })} at {new Date(event.startDate).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}
                   </p>
                   {event.venue && <p className="text-[10px] flex items-center gap-1.5" style={{ color: "var(--ck-text-muted)" }}><MapPin className="w-3.5 h-3.5" style={{ color: "var(--ck-primary)" }} /> {event.venue}</p>}
                   <p className="text-[10px] flex items-center gap-1.5" style={{ color: "var(--ck-text-muted)" }}>
