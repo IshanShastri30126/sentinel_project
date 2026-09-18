@@ -17,7 +17,7 @@ import {
   Check 
 } from "lucide-react";
 import { api, getFileUrl } from "@/lib/api";
-import { FALLBACK_TEAM_CADRE, formatSocialUrl, formatPhoneNumber } from "@/lib/fallbackTeam";
+import { FALLBACK_TEAM_CADRE, formatSocialUrl, formatPhoneNumber, getTeamRoleGroup, getTeamRoleLabel } from "@/lib/fallbackTeam";
 import { Navbar } from "@/components/navigation/Navbar";
 import { Footer } from "@/components/navigation/Footer";
 import { ProfileCard } from "@/components/ProfileCard";
@@ -97,7 +97,7 @@ export default function MemberProfilePage() {
     const fetchMember = async () => {
       try {
         const res = await api<{ team: TeamMember[] }>("/settings/landing-team");
-        const list = (res.team && res.team.length > 0) ? res.team : FALLBACK_TEAM_CADRE;
+        const list = Array.isArray(res.team) ? res.team : FALLBACK_TEAM_CADRE;
         const found = list.find((m: TeamMember) => m.id === id);
         if (found) {
           setMember(found);
@@ -155,7 +155,7 @@ export default function MemberProfilePage() {
   }
 
   const skillLines = member.about ? member.about.split("\n").filter((l: string) => l.trim().length > 0) : [];
-  const isFaculty = member.role === "FACULTY_COORDINATOR";
+  const isFaculty = getTeamRoleGroup(member.role) === "faculty";
   const identifierCode = isFaculty ? (member.employeeId || member.studentId) : member.studentId;
   const sanitizedPhone = formatPhoneNumber(member.phone);
 
@@ -220,7 +220,7 @@ export default function MemberProfilePage() {
               <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
                 <h1 className="text-2xl font-black font-mono tracking-tight text-white">{member.name}</h1>
                 <CyberBadge variant="normal" size="sm">
-                  {isFaculty ? "FACULTY MENTOR" : member.role.replace("_", " ")}
+                  {getTeamRoleLabel(member.role).toUpperCase()}
                 </CyberBadge>
               </div>
               <p className="text-xs font-mono text-[#00F5D4] font-semibold uppercase">{member.designation}</p>
@@ -343,7 +343,7 @@ export default function MemberProfilePage() {
                 <User className="w-4 h-4 text-[#00F5D4] shrink-0" />
                 <div>
                   <p className="text-[9px] uppercase text-slate-500">Classification</p>
-                  <p className="text-white uppercase font-bold">{member.role.replace("_", " ")}</p>
+                  <p className="text-white uppercase font-bold">{getTeamRoleLabel(member.role)}</p>
                 </div>
               </div>
 

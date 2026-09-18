@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Shield, Users, Mail, Eye } from "lucide-react";
 import { api, getFileUrl } from "@/lib/api";
-import { FALLBACK_TEAM_CADRE, formatSocialUrl, TeamCadreMember } from "@/lib/fallbackTeam";
+import { FALLBACK_TEAM_CADRE, formatSocialUrl, getTeamRoleGroup, getTeamRoleLabel, TeamCadreMember } from "@/lib/fallbackTeam";
 import { Navbar } from "@/components/navigation/Navbar";
 import { Footer } from "@/components/navigation/Footer";
 import { CyberBadge } from "@/components/ui/CyberBadge";
@@ -204,15 +204,15 @@ const getClearanceLevel = (role: string) => {
 type TeamMemberItem = TeamCadreMember;
 
 const ROLE_LABELS: Record<string, string> = {
-  FACULTY_COORDINATOR: "Faculty Mentor",
-  FACULTY: "Faculty Mentor",
-  STUDENT_COORDINATOR: "Coordinator",
-  DEVELOPMENT_TEAM: "Technical Lead",
-  TECH_COORDINATOR: "Technical Lead",
-  TECH: "Technical Lead",
-  SOCIAL_MEDIA_COORDINATOR: "Creative Team",
-  SOCIAL_MEDIA: "Creative Team",
-  CONTENT: "Creative Team",
+  FACULTY_COORDINATOR: getTeamRoleLabel("FACULTY_COORDINATOR"),
+  FACULTY: getTeamRoleLabel("FACULTY"),
+  STUDENT_COORDINATOR: getTeamRoleLabel("STUDENT_COORDINATOR"),
+  DEVELOPMENT_TEAM: getTeamRoleLabel("DEVELOPMENT_TEAM"),
+  TECH_COORDINATOR: getTeamRoleLabel("TECH_COORDINATOR"),
+  TECH: getTeamRoleLabel("TECH"),
+  SOCIAL_MEDIA_COORDINATOR: getTeamRoleLabel("SOCIAL_MEDIA_COORDINATOR"),
+  SOCIAL_MEDIA: getTeamRoleLabel("SOCIAL_MEDIA"),
+  CONTENT: getTeamRoleLabel("CONTENT"),
 };
 
 /**
@@ -366,7 +366,7 @@ export default function TeamPage() {
     const loadTeam = async () => {
       try {
         const res = await api<{ team: TeamMemberItem[] }>("/settings/landing-team");
-        if (res.team && res.team.length > 0) {
+        if (Array.isArray(res.team)) {
           setTeam(res.team);
           setIsIpRestricted(false);
         }
@@ -383,14 +383,11 @@ export default function TeamPage() {
     loadTeam();
   }, []);
 
-  const facultyList = team.filter((m) => m.role === "FACULTY_COORDINATOR");
-  const coordinatorsList = team.filter((m) => m.role === "STUDENT_COORDINATOR");
-  const techList = team.filter((m) => m.role === "DEVELOPMENT_TEAM");
-  const creativeList = team.filter((m) => m.role === "SOCIAL_MEDIA_COORDINATOR");
-  const generalList = team.filter(
-    (m) =>
-      !["FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "DEVELOPMENT_TEAM", "SOCIAL_MEDIA_COORDINATOR"].includes(m.role)
-  );
+  const facultyList = team.filter((m) => getTeamRoleGroup(m.role) === "faculty");
+  const coordinatorsList = team.filter((m) => getTeamRoleGroup(m.role) === "coordinators");
+  const techList = team.filter((m) => getTeamRoleGroup(m.role) === "technical");
+  const creativeList = team.filter((m) => getTeamRoleGroup(m.role) === "creative");
+  const generalList = team.filter((m) => getTeamRoleGroup(m.role) === "general");
 
   return (
     <div className="min-h-screen bg-[#02050B] text-slate-100 font-sans selection:bg-[#00F5D4]/20 relative overflow-x-hidden">

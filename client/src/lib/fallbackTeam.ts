@@ -30,6 +30,43 @@ export interface TeamCadreMember {
   cyberSpecialAbility?: string;
 }
 
+export type TeamRoleGroup = "faculty" | "coordinators" | "technical" | "creative" | "general";
+
+export function getTeamRoleGroup(role: string): TeamRoleGroup {
+  switch (role) {
+    case "FACULTY":
+    case "FACULTY_COORDINATOR":
+      return "faculty";
+    case "STUDENT_COORDINATOR":
+      return "coordinators";
+    case "TECH":
+    case "TECH_COORDINATOR":
+    case "DEVELOPMENT_TEAM":
+      return "technical";
+    case "CONTENT":
+    case "SOCIAL_MEDIA":
+    case "SOCIAL_MEDIA_COORDINATOR":
+      return "creative";
+    default:
+      return "general";
+  }
+}
+
+export function getTeamRoleLabel(role: string): string {
+  switch (getTeamRoleGroup(role)) {
+    case "faculty":
+      return "Faculty Mentor";
+    case "coordinators":
+      return "Coordinator";
+    case "technical":
+      return "Technical Lead";
+    case "creative":
+      return "Creative Team";
+    default:
+      return role;
+  }
+}
+
 export const FALLBACK_TEAM_CADRE: TeamCadreMember[] = [
   {
     id: "member_1786134186573",
