@@ -74,7 +74,7 @@ export const FALLBACK_TEAM_CADRE: TeamCadreMember[] = [
     role: "FACULTY_COORDINATOR",
     designation: "Faculty Mentor",
     department: "CE - CSPIT",
-    email: "priteshprajapati@charusat.ac.in",
+    email: "priteshprajapati.it@charusat.ac.in",
     phone: "9999999999",
     employeeId: "115",
     studentId: "115",
@@ -107,9 +107,9 @@ export const FALLBACK_TEAM_CADRE: TeamCadreMember[] = [
     cyberSpecialAbility: "FULL-STACK DEFENSE & PROTOCOL REVERSE ENGINEERING",
     cyberBackstory: "Chief architect of the Sentinel operations console. Specializes in real-time intrusion monitoring, hardened cryptographic transport, and offensive security tooling.",
     about: "Domain: Application Security & Zero-Trust Auth\nFocus: Real-time telemetry, tamper-proof audit trails, and automated firewall orchestration\nAffiliation: Chakravyuh Core Technical Cadre",
-    linkedin: "kush-shah",
-    github: "kush-shah",
-    instagram: "chakravyuh.charusat"
+    linkedin: "",
+    github: "",
+    instagram: ""
   },
   {
     id: "member_1789071404245",
@@ -128,9 +128,51 @@ export const FALLBACK_TEAM_CADRE: TeamCadreMember[] = [
     cyberSpecialAbility: "NETWORK RECONNAISSANCE & THREAT INTEL",
     cyberBackstory: "Lead operative coordinating incident response drills, student workshops, and technical CTF challenges across the university campus.",
     about: "Domain: Network Defense & Threat Hunting\nFocus: Traffic anomaly detection and student intelligence workflows\nAffiliation: Chakravyuh Core Operations",
-    linkedin: "ishanshastri",
-    github: "ishanshastri",
-    instagram: "chakravyuh.charusat"
+    linkedin: "",
+    github: "ishanshastri30126",
+    instagram: ""
+  },
+  {
+    id: "member_1789071694201",
+    name: "Tirth Bhatt",
+    role: "STUDENT_COORDINATOR",
+    designation: "Security Operations Coordinator",
+    department: "CE - CSPIT",
+    email: "24ce012@charusat.edu.in",
+    phone: "1223334444",
+    studentId: "24CE012",
+    joinedDate: "December 2025",
+    imageUrl: "/images/cyber_avatar.png",
+    coverPosterUrl: "",
+    cyberAvatarUrl: "/images/cyber_avatar.png",
+    cyberName: "Ssnape69",
+    cyberSpecialAbility: "CLOUD AND DEVOPS SECURITY",
+    cyberBackstory: "Lead operative coordinating incident response drills, student workshops, and technical CTF challenges across the university campus.",
+    about: "Domain: Network Defense & Threat Hunting\nFocus: Traffic anomaly detection and student intelligence workflows\nAffiliation: Chakravyuh Core Operations",
+    linkedin: "",
+    github: "tirth-bhatt18",
+    instagram: ""
+  },
+  {
+    id: "member_1789071312999",
+    name: "Dhairy Tanna",
+    role: "STUDENT_COORDINATOR",
+    designation: "Security Operations Coordinator",
+    department: "CE - CSPIT",
+    email: "24ce124@charusat.edu.in",
+    phone: "8888999900",
+    studentId: "24CE124",
+    joinedDate: "July 2026",
+    imageUrl: "/images/cyber_avatar.png",
+    coverPosterUrl: "",
+    cyberAvatarUrl: "/images/cyber_avatar.png",
+    cyberName: "ShadowOps",
+    cyberSpecialAbility: "NETWORK RECONNAISSANCE & THREAT INTEL",
+    cyberBackstory: "Lead operative coordinating incident response drills, student workshops, and technical CTF challenges across the university campus.",
+    about: "Domain: Network Defense & Threat Hunting\nFocus: Traffic anomaly detection and student intelligence workflows\nAffiliation: Chakravyuh Core Operations",
+    linkedin: "",
+    github: "",
+    instagram: ""
   }
 ];
 

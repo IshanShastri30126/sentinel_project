@@ -241,6 +241,7 @@ router.post("/login", loginLimiter, validate(loginSchema), async (req: Request, 
 
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user || !user.isActive) {
+      const userDoesNotExist = !user;
       const failResult = await LoginRateLimiter.recordFailure(clientIp, email);
       await logAuditEvent({
         action: "USER_LOGIN_FAILED",
@@ -261,7 +262,7 @@ router.post("/login", loginLimiter, validate(loginSchema), async (req: Request, 
       }
 
       res.status(401).json({
-        error: "Invalid email or password",
+        error: userDoesNotExist ? "User doesn't exist" : "Invalid email or password",
         remainingAttempts: failResult.remainingAttempts,
       });
       return;

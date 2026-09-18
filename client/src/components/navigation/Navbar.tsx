@@ -96,7 +96,7 @@ export function Navbar() {
               </CyberButton>
             </Link>
           ) : (
-            <Link href="/auth">
+            <Link href="/dashboard">
               <CyberButton
                 variant="secondary"
                 size="sm"
