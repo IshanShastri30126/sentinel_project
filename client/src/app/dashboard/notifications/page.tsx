@@ -10,9 +10,15 @@ interface Notification { id: string; type: string; title: string; message: strin
 
 const TYPE_CONFIG: Record<string, { color: string; bg: string; border: string }> = {
   APPROVAL: { color: "#f59e0b", bg: "rgba(245,158,11,0.08)", border: "rgba(245,158,11,0.2)" },
+  APPROVAL_UPDATE: { color: "#f59e0b", bg: "rgba(245,158,11,0.08)", border: "rgba(245,158,11,0.2)" },
   EVENT: { color: "#06b6d4", bg: "rgba(6,182,212,0.08)", border: "rgba(6,182,212,0.2)" },
+  EVENT_REMINDER: { color: "#06b6d4", bg: "rgba(6,182,212,0.08)", border: "rgba(6,182,212,0.2)" },
+  TEAM_UPDATE: { color: "#06b6d4", bg: "rgba(6,182,212,0.08)", border: "rgba(6,182,212,0.2)" },
   BADGE: { color: "#7c3aed", bg: "rgba(124,58,237,0.08)", border: "rgba(124,58,237,0.2)" },
+  BADGE_EARNED: { color: "#7c3aed", bg: "rgba(124,58,237,0.08)", border: "rgba(124,58,237,0.2)" },
   POINTS: { color: "#10b981", bg: "rgba(16,185,129,0.08)", border: "rgba(16,185,129,0.2)" },
+  POINTS_RECEIVED: { color: "#10b981", bg: "rgba(16,185,129,0.08)", border: "rgba(16,185,129,0.2)" },
+  ACCOUNT_APPROVED: { color: "#10b981", bg: "rgba(16,185,129,0.08)", border: "rgba(16,185,129,0.2)" },
   SYSTEM: { color: "#94a3b8", bg: "rgba(148,163,184,0.06)", border: "rgba(148,163,184,0.15)" },
 };
 
@@ -56,7 +62,12 @@ export default function NotificationsPage() {
     setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
   };
 
-  const dismiss = (id: string) => setNotifications(prev => prev.filter(n => n.id !== id));
+  const dismiss = async (id: string) => {
+    try {
+      await api(`/notifications/${id}`, { method: "DELETE", token: token || undefined });
+      setNotifications(prev => prev.filter(n => n.id !== id));
+    } catch (err) { console.warn("Notification dismissal notice:", err); }
+  };
 
   const displayed = filter === "UNREAD" ? notifications.filter(n => !n.isRead) : notifications;
   const unreadCount = notifications.filter(n => !n.isRead).length;

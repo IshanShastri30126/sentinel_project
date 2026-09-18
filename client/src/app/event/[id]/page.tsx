@@ -337,21 +337,7 @@ function PublicEventPageContent() {
 
   const handleRegisterClick = () => {
     if (!token) {
-      setFormData({
-        name: "",
-        studentId: "",
-        email: "",
-        phone: "",
-        department: "",
-        institute: "",
-        teammateCount: "0",
-        teamName: ""
-      });
-      setInviteCode(null);
-      setSelectedMembers([]);
-      setMemberSearch("");
-      setSearchResults([]);
-      setShowRegisterModal(true);
+      router.push(`/auth?redirect=/event/${slug}`);
       return;
     }
     setFormData({

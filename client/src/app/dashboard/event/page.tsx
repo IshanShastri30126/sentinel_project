@@ -232,8 +232,8 @@ function MiniCalendar({
                 </div>
 
                 {/* Direct Hour & Minute Inputs with AM/PM Pills */}
-                <div className="grid grid-cols-12 gap-1.5 items-center">
-                  <div className="col-span-4 flex items-center bg-zinc-900 border border-[var(--ck-border)] rounded-lg px-2 py-1 focus-within:border-[var(--ck-primary)]">
+                <div className="grid grid-cols-1 sm:grid-cols-12 gap-1.5 items-center">
+                  <div className="sm:col-span-4 flex items-center bg-zinc-900 border border-[var(--ck-border)] rounded-lg px-2 py-1 focus-within:border-[var(--ck-primary)]">
                     <input
                       type="number"
                       min="1"
@@ -248,9 +248,9 @@ function MiniCalendar({
                     <span className="text-[9px] text-[var(--ck-text-muted)] font-mono ml-1">H</span>
                   </div>
 
-                  <span className="col-span-1 text-center text-sm font-bold text-[var(--ck-primary)] font-mono">:</span>
+                  <span className="hidden sm:block sm:col-span-1 text-center text-sm font-bold text-[var(--ck-primary)] font-mono">:</span>
 
-                  <div className="col-span-4 flex items-center bg-zinc-900 border border-[var(--ck-border)] rounded-lg px-2 py-1 focus-within:border-[var(--ck-primary)]">
+                  <div className="sm:col-span-4 flex items-center bg-zinc-900 border border-[var(--ck-border)] rounded-lg px-2 py-1 focus-within:border-[var(--ck-primary)]">
                     <input
                       type="number"
                       min="0"
@@ -265,7 +265,7 @@ function MiniCalendar({
                     <span className="text-[9px] text-[var(--ck-text-muted)] font-mono ml-1">M</span>
                   </div>
 
-                  <div className="col-span-3 flex rounded-lg border border-[var(--ck-border)] overflow-hidden">
+                  <div className="sm:col-span-3 flex rounded-lg border border-[var(--ck-border)] overflow-hidden min-h-8">
                     <button
                       type="button"
                       onClick={() => togglePeriod("AM")}
@@ -365,6 +365,14 @@ interface Event {
   creator: { id: string; name: string; role: string };
   _count: { registrations: number; teams?: number; attendance?: number };
 }
+
+const toDateTimeLocal = (value?: string | null) => {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  const pad = (part: number) => String(part).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+};
 
 const STEPS = [
   { id: 1, label: "Basic Info", icon: Info },
@@ -627,11 +635,11 @@ export default function EventsPage() {
       title: event.title || "",
       description: event.description || "",
       venue: event.venue || "",
-      startDate: event.startDate || "",
-      endDate: event.endDate || "",
+      startDate: toDateTimeLocal(event.startDate),
+      endDate: toDateTimeLocal(event.endDate),
       maxCapacity: event.maxCapacity ? String(event.maxCapacity) : "",
       eventType: event.eventType || "",
-      registrationDeadline: event.registrationDeadline || "",
+      registrationDeadline: toDateTimeLocal(event.registrationDeadline),
       minTeamSize: event.minTeamSize ? String(event.minTeamSize) : "",
       maxTeamSize: event.maxTeamSize ? String(event.maxTeamSize) : "",
       notTeamEvent: event.minTeamSize === 1 && event.maxTeamSize === 1,
@@ -916,14 +924,13 @@ export default function EventsPage() {
               setPosterFile(null); 
               setPosterPreview(null); 
               setDocumentFiles([]); 
+              setExistingDocuments([]);
+              setOrganizersList([]);
+              setNewOrganizer({ name: "", role: "Event Lead", email: "", phone: "" });
+              setCoordSearch("");
+              setCoordDropdownOpen(false);
               setStep4Confirmed(false);
               setStep4EnteredAt(0);
-              // Pre-seed faculty coordinators for every new event
-              const defaultFaculty = [
-                { name: "Dr. Parag Shah", role: "Faculty Coordinator", email: "paragshah.ce@charusat.ac.in", phone: "9876543210" },
-                { name: "Prof. Martin Parmar", role: "Faculty Coordinator", email: "martinparmar.ce@charusat.ac.in", phone: "9876543210" }
-              ];
-              setOrganizersList([...defaultFaculty]);
               setShowCreate(true); 
               setStep(1); 
             }} 
@@ -1440,12 +1447,12 @@ export default function EventsPage() {
                         <div className="space-y-3">
                           {/* Coordinator lookup combobox */}
                           <div ref={coordSearchRef} className="relative">
-                            <label className="ck-label text-[10px]">Search & Autofill Coordinator</label>
+                            <label className="ck-label text-[10px]">Search Coordinator by Name or ID</label>
                             <div className="relative">
                               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--ck-primary)]/60 pointer-events-none" />
                               <input
                                 className="ck-input text-xs py-1.5 pl-8 w-full"
-                                placeholder="Search by name or email..."
+                                placeholder="Search by name or student ID..."
                                 value={coordSearch}
                                 onFocus={() => setCoordDropdownOpen(true)}
                                 onChange={(e) => { setCoordSearch(e.target.value); setCoordDropdownOpen(true); }}
@@ -1456,7 +1463,7 @@ export default function EventsPage() {
                                 {coordinators
                                   .filter((c) => {
                                     const q = coordSearch.toLowerCase();
-                                    return !q || c.name.toLowerCase().includes(q) || c.email.toLowerCase().includes(q);
+                                    return !q || c.name.toLowerCase().includes(q) || c.studentId?.toLowerCase().includes(q) || c.employeeId?.toLowerCase().includes(q);
                                   })
                                   .map((coord) => (
                                     <button
@@ -1478,7 +1485,7 @@ export default function EventsPage() {
                                     >
                                       <p className="text-xs font-bold font-mono text-[var(--ck-text)]">{coord.name}</p>
                                       <p className="text-[10px] font-mono text-[var(--ck-text-muted)] mt-0.5">
-                                        {coord.email} &bull; {coord.role.replace(/_/g, " ")}
+                                        {coord.role.replace(/_/g, " ")}
                                         {coord.studentId && ` · ST: ${coord.studentId}`}
                                         {coord.employeeId && ` · EMP: ${coord.employeeId}`}
                                       </p>
@@ -1486,7 +1493,7 @@ export default function EventsPage() {
                                   ))}
                                 {coordinators.filter((c) => {
                                   const q = coordSearch.toLowerCase();
-                                  return !q || c.name.toLowerCase().includes(q) || c.email.toLowerCase().includes(q);
+                                  return !q || c.name.toLowerCase().includes(q) || c.studentId?.toLowerCase().includes(q) || c.employeeId?.toLowerCase().includes(q);
                                 }).length === 0 && (
                                   <div className="px-4 py-3 text-[10px] font-mono text-zinc-600 text-center">
                                     NO COORDINATORS FOUND

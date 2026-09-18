@@ -245,9 +245,10 @@ router.post("/:id/poster", authenticate, requireRole("FACULTY_COORDINATOR", "STU
 });
 
 // POST /api/events/:id/document — Upload document
-router.post("/:id/document", authenticate, requireRole("FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "DEVELOPMENT_TEAM"), upload.single("document"), async (req: Request, res: Response) => {
+router.post("/:id/document", authenticate, requireRole("FACULTY_COORDINATOR", "STUDENT_COORDINATOR", "DEVELOPMENT_TEAM"), upload.array("document", 10), async (req: Request, res: Response) => {
   try {
-    if (!req.file) { res.status(400).json({ error: "No file uploaded" }); return; }
+    const files = (req.files as Express.Multer.File[] | undefined) || [];
+    if (files.length === 0) { res.status(400).json({ error: "No file uploaded" }); return; }
     const existing = await prisma.event.findUnique({ where: { id: req.params.id } });
     if (!existing) { res.status(404).json({ error: "Event not found" }); return; }
 
@@ -257,7 +258,16 @@ router.post("/:id/document", authenticate, requireRole("FACULTY_COORDINATOR", "S
       return;
     }
 
-    const event = await prisma.event.update({ where: { id: req.params.id }, data: { documentUrl: getUploadedFileUrl(req.file) } });
+    const previousDocuments = existing.documentUrl?.startsWith("[")
+      ? JSON.parse(existing.documentUrl)
+      : existing.documentUrl
+        ? [existing.documentUrl]
+        : [];
+    const documents = [
+      ...previousDocuments,
+      ...files.map((file) => getUploadedFileUrl(file)),
+    ];
+    const event = await prisma.event.update({ where: { id: req.params.id }, data: { documentUrl: JSON.stringify(documents) } });
     await clearEventsCache();
     res.json({ event });
   } catch (err) { console.error("[Events] Document upload error:", err); res.status(500).json({ error: "Internal server error" }); }

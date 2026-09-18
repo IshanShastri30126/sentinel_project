@@ -77,7 +77,7 @@ export default function ApprovalsPage() {
     try {
       const { request } = await api<{ request: Approval }>("/approvals", { method: "POST", token: token || undefined, body: JSON.stringify(form) });
       if (attachment && request.id) {
-        const fd = new FormData(); fd.append("file", attachment);
+        const fd = new FormData(); fd.append("attachment", attachment);
         await apiUpload(`/approvals/${request.id}/attachment`, fd, token || undefined);
       }
       setShowCreate(false);
@@ -379,11 +379,14 @@ export default function ApprovalsPage() {
                   {/* Attachment */}
                   <div>
                     <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2 font-mono">ATTACHMENT (OPTIONAL)</label>
-                    <label className={`flex items-center gap-3 px-4 py-3 rounded border cursor-pointer transition-all ${attachment ? "border-amber-500/30 bg-amber-950/15" : "border-white/10 bg-[#050A14] hover:border-white/15"}`}>
-                      <Paperclip className={`w-4 h-4 ${attachment ? "text-amber-400" : "text-slate-400"}`} />
-                      <span className="text-xs text-slate-300 flex-1 truncate">{attachment ? attachment.name : "Attach supporting document..."}</span>
-                      <input type="file" className="hidden" onChange={e => setAttachment(e.target.files?.[0] || null)} />
-                    </label>
+                    <div className={`flex items-center gap-3 px-4 py-3 rounded border transition-all ${attachment ? "border-amber-500/30 bg-amber-950/15" : "border-white/10 bg-[#050A14] hover:border-white/15"}`}>
+                      <label className="flex items-center gap-3 min-w-0 flex-1 cursor-pointer">
+                        <Paperclip className={`w-4 h-4 shrink-0 ${attachment ? "text-amber-400" : "text-slate-400"}`} />
+                        <span className="text-xs text-slate-300 truncate">{attachment ? attachment.name : "Attach supporting document..."}</span>
+                        <input type="file" className="hidden" onChange={e => setAttachment(e.target.files?.[0] || null)} />
+                      </label>
+                      {attachment && <button type="button" onClick={() => setAttachment(null)} className="p-1 text-slate-400 hover:text-red-400" aria-label="Remove attachment"><X className="w-4 h-4" /></button>}
+                    </div>
                   </div>
 
                   {/* Submit */}

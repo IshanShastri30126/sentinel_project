@@ -170,6 +170,49 @@ function createCloudinaryMiddleware(fieldName: string, folder?: string) {
   };
 }
 
+function createCloudinaryArrayMiddleware(fieldName: string, maxCount: number, folder?: string) {
+  return (req: Request, res: Response, next: NextFunction) => {
+    memoryUpload.array(fieldName, maxCount)(req, res, async (err) => {
+      if (err) return res.status(400).json({ error: "File upload rejected" });
+      const files = (req.files as Express.Multer.File[] | undefined) || [];
+      if (files.length === 0) return next();
+
+      for (const file of files) {
+        if (file.buffer && file.buffer.length >= 4 && !verifyMagicBytes(file.buffer, file.mimetype)) {
+          return res.status(400).json({ error: "File content does not match declared type" });
+        }
+      }
+
+      try {
+        for (const file of files) {
+          const result = await uploadToCloudinary(file.buffer, {
+            folder: folder || "sentinel",
+            resourceType: file.mimetype.startsWith("image/") ? "image" : "raw",
+          });
+          (file as any).cloudinaryUrl = result.url;
+          (file as any).cloudinaryPublicId = result.publicId;
+          file.filename = result.url;
+        }
+        next();
+      } catch {
+        try {
+          const localUploadDir = path.resolve(config.uploadDir);
+          if (!fs.existsSync(localUploadDir)) fs.mkdirSync(localUploadDir, { recursive: true });
+          for (const file of files) {
+            const ext = path.extname(file.originalname).toLowerCase();
+            const filename = `${uuidv4()}${ext}`;
+            fs.writeFileSync(path.join(localUploadDir, filename), file.buffer);
+            file.filename = filename;
+          }
+          next();
+        } catch {
+          res.status(500).json({ error: "File upload failed" });
+        }
+      }
+    });
+  };
+}
+
 // Export a unified upload object that works like multer
 // but transparently uploads to Cloudinary when configured
 export const upload = {
@@ -178,6 +221,12 @@ export const upload = {
       return createCloudinaryMiddleware(fieldName, folder);
     }
     return diskUpload.single(fieldName);
+  },
+  array: (fieldName: string, maxCount: number, folder?: string) => {
+    if (isCloudinaryConfigured()) {
+      return createCloudinaryArrayMiddleware(fieldName, maxCount, folder);
+    }
+    return diskUpload.array(fieldName, maxCount);
   },
 };
 

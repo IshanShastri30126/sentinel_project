@@ -40,6 +40,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Landing CMS", href: "/dashboard/landing-management", icon: <LayoutDashboard className="w-5 h-5" />, roles: ["FACULTY_COORDINATOR", "DEVELOPMENT_TEAM"] },
   { label: "Maintenance Logs", href: "/dashboard/maintenance", icon: <Terminal className="w-5 h-5" />, roles: ["FACULTY_COORDINATOR", "DEVELOPMENT_TEAM"] },
   { label: "My Certificates", href: "/dashboard/my-certificates", icon: <Award className="w-5 h-5" /> },
+  { label: "Notifications", href: "/dashboard/notifications", icon: <Bell className="w-5 h-5" /> },
   { label: "Profile", href: "/dashboard/profile", icon: <User className="w-5 h-5" /> },
   { label: "Info", href: "/dashboard/info", icon: <Info className="w-5 h-5" />, roles: ["FACULTY_COORDINATOR"] }];
 
@@ -135,7 +136,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   };
 
   const handleToastRedirect = () => {
-    router.push("/notifications");
+    router.push("/dashboard/notifications");
     setActiveToast(null);
   };
 
@@ -471,7 +472,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </button>
 
             {/* Notification Bell (≥44x44px touch target) */}
-            <button 
+              <button
               onClick={() => setShowNotificationModal(prev => !prev)} 
               className="min-w-[44px] min-h-[44px] relative rounded-lg border border-[var(--ck-border)] bg-[var(--ck-bg-secondary)] flex items-center justify-center hover:border-[#00F5D4]/40 transition cursor-pointer"
               aria-label="View notifications"

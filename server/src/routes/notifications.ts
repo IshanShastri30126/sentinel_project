@@ -64,4 +64,21 @@ router.patch("/read-all", authenticate, async (req: Request, res: Response) => {
   } catch (err) { console.error("[Notifications] Read all error:", err); res.status(500).json({ error: "Internal server error" }); }
 });
 
+// DELETE /api/notifications/:id — Delete one notification belonging to the caller
+router.delete("/:id", authenticate, async (req: Request, res: Response) => {
+  try {
+    const result = await prisma.notification.deleteMany({
+      where: { id: req.params.id, userId: req.user!.userId },
+    });
+    if (result.count === 0) {
+      res.status(404).json({ error: "Notification not found" });
+      return;
+    }
+    res.status(204).send();
+  } catch (err) {
+    console.error("[Notifications] Delete error:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 export default router;

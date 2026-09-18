@@ -281,7 +281,7 @@ export default function LeaderboardPage() {
                       {memberResults.length > 0 && (
                         <div className="mt-1 max-h-40 overflow-y-auto border border-white/[0.06] rounded-lg absolute w-full z-10 backdrop-blur-xl" style={{ background: "rgba(8,10,15,0.95)" }}>
                           {memberResults.map(u => (
-                            <button type="button" key={u.id} onClick={() => { setSelectedMember(u); setMemberResults([]); setMemberSearch(""); }} className="w-full text-left p-2.5 hover:bg-white/[0.04] text-sm text-[var(--ck-text-secondary)] hover:text-[var(--ck-text)] transition-colors">{u.name} ({u.email})</button>
+                            <button type="button" key={u.id} onClick={() => { setSelectedMember(u); setMemberResults([]); setMemberSearch(""); }} className="w-full text-left p-2.5 hover:bg-white/[0.04] text-sm text-[var(--ck-text-secondary)] hover:text-[var(--ck-text)] transition-colors">{u.name} {u.studentId ? `(${u.studentId})` : ""}</button>
                           ))}
                         </div>
                       )}
@@ -388,7 +388,7 @@ export default function LeaderboardPage() {
                       {memberResults.length > 0 && (
                         <div className="mt-1 max-h-40 overflow-y-auto border border-white/[0.06] rounded-lg absolute w-full z-10 backdrop-blur-xl" style={{ background: "rgba(8,10,15,0.95)" }}>
                           {memberResults.map(u => (
-                            <button type="button" key={u.id} onClick={() => { setSelectedMember(u); setMemberResults([]); setMemberSearch(""); }} className="w-full text-left p-2.5 hover:bg-white/[0.04] text-sm text-[var(--ck-text-secondary)] hover:text-[var(--ck-text)] transition-colors">{u.name} ({u.email})</button>
+                            <button type="button" key={u.id} onClick={() => { setSelectedMember(u); setMemberResults([]); setMemberSearch(""); }} className="w-full text-left p-2.5 hover:bg-white/[0.04] text-sm text-[var(--ck-text-secondary)] hover:text-[var(--ck-text)] transition-colors">{u.name} {u.studentId ? `(${u.studentId})` : ""}</button>
                           ))}
                         </div>
                       )}
